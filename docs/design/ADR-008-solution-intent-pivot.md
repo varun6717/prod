@@ -281,15 +281,64 @@ real scale, costs more, and dumps an unreviewable pile of findings on the operat
 an **execution strategy**, not an interaction one: batches accumulate into `enrichment.json` and the
 human still gets a single dispositioning session.
 
-**Arm 1 iterates per deliverable** (§7). A deliverable's requirements share code territory, so
-batching by deliverable maximises code locality — the same principle already driving Arm 2's
-clustering by code region, arriving from the other direction:
+**Retrieval batch ≠ reasoning unit** (V-refined). These are separate concerns and conflating them
+costs accuracy:
 
-- **Arm 1** → iterate per **deliverable**
-- **Arm 2** → cluster per **code region**
+- **Batch at retrieval — per deliverable (§7).** Resolve the deliverable's code territory **once**,
+  at module level, from the map. Its requirements share code territory, so this is where the
+  locality win lives.
+- **Loop at reasoning — per epic, independently.** Evaluate one requirement at a time against the
+  already-resolved territory, descending to its specific files/functions and deep-reading only that
+  slice.
+
+```
+per deliverable (once):
+  resolve code territory from the map — module-level, coarse
+    └─ per epic (independent, fan-out safe):
+         descend to specific files/functions within that territory
+         deep-read only that slice
+         map landing points + closure
+         → per-requirement result into §16
+```
+
+**Why per-epic reasoning rather than a batched "map all of these" prompt.** Three failure modes,
+all of which worsen as the code slice grows — and on a JPMC-scale codebase the slice eats the
+context, leaving least attention per requirement exactly when each needs most:
+
+- **cross-contamination** — R1's landing point attributed to R2
+- **attention dilution** — later requirements in a list get shallower analysis than earlier ones
+- **weaker exhaustiveness** — the model satisfices across the set instead of closing each one
+
+This mirrors the existing coarse (map-level, broad) → deep (per-requirement, focused) architecture,
+applied one level up.
+
+**Batch the reading, keep the results per-requirement.** Each epic needs its own landing points and
+closure — stories hang off individual epics and §16 must be machine-consumable per requirement
+(D-A15). Batching is a context/cost optimisation, never a merging of results.
+
+**Guard against anchoring.** A sequential loop carrying accumulated context can lazily map epic 2 to
+whatever components epic 1 landed on — a correctness risk plain batching does not have. The loop may
+carry **structural learnings** ("this module uses macro-based dispatch; closure must follow the
+macro") but must **re-derive mappings independently** per epic. Never inherit a landing point.
+
+**Independence makes fan-out preferable.** Because per-epic analysis is deliberately independent, the
+loop need not be sequential — fan out per-epic subagents against the shared resolved territory (the
+pattern `code_impact` already uses). That eliminates anchoring entirely (no shared context to anchor
+on), runs faster, and preserves the single territory resolution. Sequential buys only cross-epic
+learning, a nice-to-have; independence is a correctness property.
+
+**Cost:** N model calls per deliverable rather than one. Accepted without much debate — a missed
+impact becomes a missed story becomes broken production code, an asymmetry that dwarfs token cost.
+
+**Scale fallback:** if a single deliverable's requirement set still will not fit, split it by **code
+locality within the deliverable**, never arbitrarily, so the locality benefit being batched for
+survives the split.
+
+Summary of the two arms' units:
+
+- **Arm 1** → retrieval batched per **deliverable**, reasoning looped per **epic**
+- **Arm 2** → clustered per **code region**
 - findings accumulate → **one** operator turn
-
-The deliverable layer (D-A14) is what supplies Arm 1's batching unit.
 
 ### D-A9 · Derived impacts and "reverse gaps" are one concept, not two
 
