@@ -518,7 +518,7 @@ refinement (d)).
 | 4 | Business objectives | **P** | | | | | S | | |
 | 5 | Personas & actors | | | **P** | S | | | | E |
 | 6 | High-level use case | S | | **P** | | | | | E |
-| **7** | **Deliverables** | **P** | | | | | S | S | E |
+| **7** | **Deliverables** | **P** | S | | | | S | S | E |
 | 8 | Business requirements | **P** | **P** | | | S | | | E |
 | 9 | Strategic alignment | | | | | S | S | **P** | |
 | 10 | Constraints & principles | | **P** | | **P** | | | | E |
@@ -526,7 +526,7 @@ refinement (d)).
 | 12 | Out of scope | **P** | | | | | S | **P** | E |
 | 13 | Assumptions & risks | | | S | S | | | **P** | E |
 | 14 | Dependencies | | S | | **P** | | | | E |
-| 15 | Success criteria | **P** | | | | | S | S | |
+| 15 | Success criteria | **P** | S | | | | S | S | |
 | 16 | Derived system impacts | | | | | | | | **P** |
 | 17 | Open questions | | | | | | | | |
 | 18 | Verification summary | | | | | | | | **P** |
@@ -636,6 +636,46 @@ Specification (field formats, protocol detail). Nothing invented — cite-or-fla
 - **§16 has a dual role** — a section stakeholders read *and* the substrate story generation draws
   from. It therefore needs enough per-requirement structure to be **machine-consumable**, not just
   readable prose.
+
+#### A Technical Specification is not stories — it is the external contract
+
+A Visa/Mastercard **tech letter** reads as technical requirements but is **not** story-level. It
+specifies the *external contract*; a story is a unit of *internal work*. The letter is **code-blind
+about our system** by construction — Visa has never seen our codebase — so it cannot name which
+module parses field 48, that settlement recon validates field counts and will break, that the cert
+harness needs coverage, or whether we already partially support it. Stories are
+implementation-specific; the letter cannot be one.
+
+**Flow:** tech letter → §8 requirements (epics) + §10 constraints → Arm 1 against code → stories.
+It *drafts* the epics; stories are **derived** from validating those epics against the code, never
+read off the letter.
+
+Its content fans out further than a single section (hence TechSpec carries `S` in §7 and §15):
+
+| Tech-letter content | Lands in |
+|---|---|
+| "must populate subelement 92 with values 01–04" | §8 requirement → epic |
+| "2 bytes, positions 1–2, EBCDIC" | §10 constraint |
+| "effective 2027-07-01" | §15 success criteria |
+| "certification required via VCMS" | implies a §7 deliverable |
+
+**Two things this unlocks:**
+
+- **The tech letter is a verification oracle for the story set.** Because it specifies the external
+  contract precisely, completeness can be checked in the *other* direction — taken together, do
+  these stories satisfy the letter? A business mandate is too vague to support that check. This is
+  where G3's testability review gets real teeth.
+- **Verdicting a tech letter against code can *shrink* scope** — the one enrichment finding that
+  *reduces* work. The letter says "support 01–04"; Arm 2 finds 01–02 already handled, so the real
+  requirement is narrower than the letter implies. Every other finding tends to add (ripple, derived
+  impacts, escalations). Only possible because TechSpec makes code-verifiable claims (D-A12).
+
+**Guardrail — every story must name its code location.** The temptation is to transcribe the
+letter's language into stories: *"populate field 48 subelement 92"* looks technical but names no code
+location, so it carries zero implementation guidance — the spec laundered into Jira without the
+analysis. A story must name the code it changes, or be explicitly flagged **new-build** or
+**non-code** (cert/doc/test). Mechanically checkable at G3, and it is what distinguishes a real story
+from a restated requirement.
 
 **Deferred to item 5:** story granularity. One story per (requirement × affected component) is the
 natural default, but multiple requirements often touch the same component — two parser stories or
