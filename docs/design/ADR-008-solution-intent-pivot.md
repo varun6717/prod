@@ -65,15 +65,21 @@ writing tasks against a superseded spec produces work that must be redone.
 
 ### D-A1 · Gates re-map onto the v1/v2 lifecycle
 
-| Gate | Meaning |
-|---|---|
-| **G0** | Generate — operator inspects the scaffold (unchanged) |
-| **G1** | Solution Intent **v1** accepted (code-blind) |
-| **G2** | Solution Intent **v2** accepted (enriched) |
-| **G3** | Jira push (unchanged; the only external mutation) |
+| Gate | Was | Now |
+|---|---|---|
+| **G0** | Generate — operator inspects the scaffold | unchanged |
+| **G1** | BRD accepted | Solution Intent **v1** accepted (code-blind) |
+| **G2** | FRD traceability + testability | Solution Intent **v2** accepted (enriched) |
+| **G3** | confirm the Jira push | **Review the Jira plan** (all four levels, especially story testability + trace integrity) → *then* push |
 
 G2 does not disappear with the FRD — it becomes the enrichment gate. `gate.py`, the telemetry
 events, the validator pattern and the two-gate operator rhythm are all reused unchanged.
+
+**The old G2 checks migrate to G3** (see D-A15): stories do not exist until after enrichment, so
+nothing would otherwise review the technical decomposition before it is pushed. `frd_validator`'s
+`0.5×traceability + 0.5×testability` formula largely survives inside `jira_validator`. G3 stops
+being a rubber stamp and becomes the real technical-quality gate — appropriate, since it is the
+last point before the only external mutation of a run.
 
 ### D-A2 · v1 → v2 relationship
 
@@ -118,41 +124,43 @@ section) · **Regenerate** (derived from other sections, re-authored after they 
 | 4 | Business objectives | v1 | None |
 | 5 | Personas & actors *(definitions + persona→use-case matrix)* | v1 | Verdict (weak) |
 | 6 | High-level use case | v1 | Verdict + Correct |
-| 7 | Business requirements | v1 | **Extend only** |
-| 8 | Strategic alignment | v1 | None |
-| 9 | Constraints & design principles *(constraints, principles, NFRs)* | v1 | Verdict + Extend |
-| 10 | Stakeholders | v1 | None |
-| 11 | Out of scope | v1 | Extend (both directions) |
-| 12 | Assumptions & risks | v1 | Verdict + Correct |
-| 13 | Dependencies | v1 | Verdict + Extend |
-| 14 | Success criteria | v1 | None |
-| 15 | Derived system impacts | **v2 only** | — |
-| 16 | Open questions | v1, extended in v2 | Extend |
-| 17 | Verification summary | **v2 only** | — |
+| **7** | **Deliverables** | v1 | **Extend only** |
+| 8 | Business requirements | v1 | **Extend only** |
+| 9 | Strategic alignment | v1 | None |
+| 10 | Constraints & design principles *(constraints, principles, NFRs)* | v1 | Verdict + Extend |
+| 11 | Stakeholders | v1 | None |
+| 12 | Out of scope | v1 | Extend (both directions) |
+| 13 | Assumptions & risks | v1 | Verdict + Correct |
+| 14 | Dependencies | v1 | Verdict + Extend |
+| 15 | Success criteria | v1 | None |
+| 16 | Derived system impacts | **v2 only** | — |
+| 17 | Open questions | v1, extended in v2 | Extend |
+| 18 | Verification summary | **v2 only** | — |
 
-§15/§16/§17 sit at the end, after §14, so a v1 document simply stops rather than carrying gaps
-mid-body. The persona→use-case matrix stays inside §5.
+§16/§17/§18 sit at the end so a v1 document simply stops rather than carrying gaps mid-body. The
+persona→use-case matrix stays inside §5. **§7 Deliverables sits immediately before §8
+requirements** — structure before detail (D-A14).
 
-Sections 3, 4, 8, 10, 14 are **never** touched by enrichment — pure business intent that code
-cannot speak to. They also need no code input in the step-3 routing matrix.
+Sections 3, 4, 9, 11, 15 are **never** touched by enrichment — pure business intent that code
+cannot speak to. They also need no code input in the D-A13 routing matrix.
 
 ### D-A4 · Section rules (binding)
 
-- **§7 Business requirements can only be extended, never corrected.** A requirement is a
+- **§8 Business requirements can only be extended, never corrected.** A requirement is a
   statement of *intent*; code cannot contradict an intent, only reveal that it is incomplete
-  (→ escalation) or unachievable (→ that is a risk, §12). Allowing enrichment to rewrite a
+  (→ escalation) or unachievable (→ that is a risk, §13). Allowing enrichment to rewrite a
   business requirement from code inverts the ladder — the existing implementation would begin
   dictating business intent. This is the worst failure mode available here.
-- **v1 must author assumptions in checkable form.** §12 is the section best shaped for the
+- **v1 must author assumptions in checkable form.** §13 is the section best shaped for the
   verdict mechanism ("we assume settlement is unaffected" verdicts cleanly; "we assume the
   architecture is suitable" does not). The v2 design therefore constrains the v1 authoring
   contract.
 - **§1 regenerates, it does not revise.** It is derived from the body; a summary of an
   uncorrected problem statement is silently wrong. Authored last in v1, re-authored in v2.
-- **§11 Out of scope is a two-way door.** Escalated derived impacts can land *in* it; code can
+- **§12 Out of scope is a two-way door.** Escalated derived impacts can land *in* it; code can
   also reveal that something already declared out of scope is structurally coupled and cannot be
   avoided — an escalation *into* scope. Both directions run through the flag loop.
-- **§16 Open questions is v1-authored.** v1 already produces unsourced gaps (`[TBD —
+- **§17 Open questions is v1-authored.** v1 already produces unsourced gaps (`[TBD —
   unsourced]`), which today have no home. v1 ships with its own uncertainty visible; enrichment
   adds to the list rather than introducing it.
 - **§5's verdict is asymmetric — system actors only.** A persona is a *type* of participant
@@ -162,7 +170,7 @@ cannot speak to. They also need no code input in the step-3 routing matrix.
   actors reachable through interfaces and skips human personas entirely, rather than marking them
   unverifiable. The persona→use-case matrix is a coverage grid against §6 — it catches use cases
   with no participant and personas with nothing to do, and neither check involves code.
-- **§17 is a summary, not a ledger.** Counts only (N checked, X confirmed, Y corrected, Z
+- **§18 is a summary, not a ledger.** Counts only (N checked, X confirmed, Y corrected, Z
   unverifiable). The claim-by-claim ledger lives in `enrichment.json`; unverifiable claims
   surface inline in their own sections where a reader needs them.
 
@@ -179,8 +187,8 @@ the marker stops meaning anything. Code can say *"routing isn't hardcoded, it's 
 table"*; code cannot say *"and that isn't a problem."*
 
 **Structural limit.** The code map knows what calls what, not how fast or how often. Any claim
-requiring runtime or behavioural data is unverifiable **by construction** — this hits §9's NFRs
-and any §14 success criterion carrying a current-state baseline. Arm 2 must *recognise*
+requiring runtime or behavioural data is unverifiable **by construction** — this hits §10's NFRs
+and any §15 success criterion carrying a current-state baseline. Arm 2 must *recognise*
 runtime-shaped claims and skip them, not mark them `[unverified against code]`, which would imply
 we looked and failed when the pipeline cannot look at all.
 
@@ -209,10 +217,10 @@ vestigial after correction stays as corrected text.
 | | **Arm 1 — Requirement → code** | **Arm 2 — Claim → code** |
 |---|---|---|
 | Asks | *What did we miss?* | *What did we get wrong?* |
-| Entry | §7 business requirements | §2, §5, §6, §9, §12, §13 |
+| Entry | §8 business requirements | §2, §5, §6, §10, §13, §14 |
 | Nature | Generative — produces new content | Corrective — produces none |
 | Motion | Walks `depends_on`/`used_by` to closure | Point lookup, then stops |
-| Produces | §15 derived impacts; escalations → §7/§11 | In-place corrections; markers; §17 counts |
+| Produces | §16 derived impacts; escalations → §8/§12 | In-place corrections; markers; §18 counts |
 
 Arm 2 deliberately does **not** walk closure — that is what keeps it cheap per item and what
 makes clustering work. If it traversed edges it would blur into Arm 1 and report the same impact
@@ -221,9 +229,9 @@ twice from two directions.
 Arm 1 runs first — not because Arm 2 depends on it, but because Arm 1's closure pulls code slices
 into context that Arm 2's claims often need.
 
-**The same code fact can legitimately produce a finding in both arms.** If v1 §12 assumes
+**The same code fact can legitimately produce a finding in both arms.** If v1 §13 assumes
 "settlement is unaffected" and closure shows it is impacted: Arm 1 writes a derived impact in
-§15, Arm 2 corrects the assumption in §12. One fact, two findings, two destinations — that is the
+§16, Arm 2 corrects the assumption in §13. One fact, two findings, two destinations — that is the
 ideal outcome, not duplication. The false assumption is corrected where a reader meets it; the
 real impact is documented where engineering will scope it.
 
@@ -236,7 +244,7 @@ Reuses the existing coarse→deep machinery:
 Three coarse-stage outcomes, only one expensive: strong map-level match (verdict from the map, no
 source read) · match needing confirmation (deep-read the slice) · **no match anywhere**
 (*unverifiable*, cheaply — and often informative, since it usually means the claim concerns a
-partner system or upstream dependency, which is itself worth surfacing to §13).
+partner system or upstream dependency, which is itself worth surfacing to §14).
 
 #### The loop is clustered by code, not by section
 
@@ -257,7 +265,7 @@ Document order is a presentation concern; code locality is the cost driver.
 1. **Arm 1** — requirements → landing points, no-code-for-it gaps, closure → derived impacts + escalation candidates
 2. **Arm 2** — claims extracted, clustered, verdicted → corrections staged
 3. **One operator turn** — disposition every escalation and scope-moving finding (the existing surface → wait → apply loop)
-4. **Apply** — corrections land in place; §15 written, §16 extended, §17 counted
+4. **Apply** — corrections land in place; §16 written, §17 extended, §18 counted
 5. **Regenerate §1** from the corrected body
 6. **G2**
 
@@ -265,6 +273,23 @@ Deliberately **one** human turn. Both arms run to completion and accumulate find
 `enrichment.json` before anything surfaces — otherwise the operator is interrupted mid-pass, and
 an escalation that adds a requirement in step 3 would re-trigger Arm 1 in a way that is hard to
 bound.
+
+#### Iterate the code pass; batch the operator turn
+
+Requirements are **not** all matched against the code in one shot — that will not fit in context at
+real scale, costs more, and dumps an unreviewable pile of findings on the operator. But iteration is
+an **execution strategy**, not an interaction one: batches accumulate into `enrichment.json` and the
+human still gets a single dispositioning session.
+
+**Arm 1 iterates per deliverable** (§7). A deliverable's requirements share code territory, so
+batching by deliverable maximises code locality — the same principle already driving Arm 2's
+clustering by code region, arriving from the other direction:
+
+- **Arm 1** → iterate per **deliverable**
+- **Arm 2** → cluster per **code region**
+- findings accumulate → **one** operator turn
+
+The deliverable layer (D-A14) is what supplies Arm 1's batching unit.
 
 ### D-A9 · Derived impacts and "reverse gaps" are one concept, not two
 
@@ -281,11 +306,11 @@ What is real is **one finding type — a derived impact — with one follow-up q
 
 | Finding | Disposition |
 |---|---|
-| Settlement recon's field-count validation must widen | Technical consequence → §15, done |
+| Settlement recon's field-count validation must widen | Technical consequence → §16, done |
 | Settlement recon will now reject previously-accepted transactions | Business-visible → **escalate** |
 
-Escalated findings run through the flag loop; the operator's decision lands them in §7 (new
-requirement) or §11 (explicitly excluded). The "the network's mandate was incomplete" case is not
+Escalated findings run through the flag loop; the operator's decision lands them in §8 (new
+requirement) or §12 (explicitly excluded). The "the network's mandate was incomplete" case is not
 a separate detector — it is a derived impact that escalated, made visible because a human had to
 disposition it.
 
@@ -320,19 +345,19 @@ content is exactly the silent failure the guardrails exist to catch).
 
 | Status | Sections |
 |---|---|
-| **Conditional** | §3 Client need & demand · §6 High-level use case · §8 Strategic alignment |
-| **Required, may be empty** | §5 Personas & actors · §13 Dependencies · §16 Open questions |
-| **Required** | all others (§15/§17 required in v2) |
+| **Conditional** | §3 Client need & demand · §6 High-level use case · §9 Strategic alignment |
+| **Required, may be empty** | §5 Personas & actors · §14 Dependencies · §17 Open questions |
+| **Required** | all others (§16/§18 required in v2) |
 
 Rationale for the conditional three: a regulatory mandate has no client demand (§3); some changes
-modify behaviour without introducing a use case (§6); and §8 is the section most likely to attract
+modify behaviour without introducing a use case (§6); and §9 is the section most likely to attract
 ceremonial filler — making it conditional lets *"not applicable, this is a compliance mandate"* be
 an honest answer.
 
 G1's absolute precondition becomes: every **required** section satisfied, and every **conditional**
 section either filled or explicitly dispositioned N/A with a reason.
 
-### D-A11 · Section boundary statements (§4 / §8 / §14)
+### D-A11 · Section boundary statements (§4 / §9 / §15)
 
 Business objectives, Strategic alignment and Success criteria all answer some form of *"why, and
 what does good look like."* They are distinct in principle — **intent · portfolio fit · measurable
@@ -342,9 +367,9 @@ outcome** — but blur badly in practice, and overlapping sections make `must_ca
 Fix is authoring discipline, enforced by a one-line boundary per section:
 
 - **§4** — what we intend to achieve. **No dates, no metrics.**
-- **§8** — why this matters to the portfolio *above* this project. **Must reference something
+- **§9** — why this matters to the portfolio *above* this project. **Must reference something
   external to the project** — a program, strategy, or roadmap commitment.
-- **§14** — how we will measure §4. **Must be measurable, and every criterion traces to an
+- **§15** — how we will measure §4. **Must be measurable, and every criterion traces to an
   objective.**
 
 Worked contrast (Mastercard mandate):
@@ -352,10 +377,10 @@ Worked contrast (Mastercard mandate):
 | | Written well | Written badly |
 |---|---|---|
 | §4 | "Maintain Mastercard network compliance and avoid decertification" | "Achieve compliance by Q3 2027" *(a success criterion in disguise)* |
-| §8 | "Supports the Merchant Services 2027 single-platform brand-parity program" | "Compliance is critical to the business" *(§4 restated)* |
-| §14 | "100% of Mastercard transactions carry the new indicator by 2027-07-01; zero certification defects" | "Remain compliant" *(an objective, not a measure)* |
+| §9 | "Supports the Merchant Services 2027 single-platform brand-parity program" | "Compliance is critical to the business" *(§4 restated)* |
+| §15 | "100% of Mastercard transactions carry the new indicator by 2027-07-01; zero certification defects" | "Remain compliant" *(an objective, not a measure)* |
 
-**§14's boundary doubles as a mechanical guardrail** — an objective with no success criterion is
+**§15's boundary doubles as a mechanical guardrail** — an objective with no success criterion is
 unmeasurable; a criterion with no objective is orphaned. Both are statically checkable. **Carry to
 item 8** as a candidate replacement for the structural checking lost when §10.1 dies.
 
@@ -383,8 +408,8 @@ URL. It is the one disposition the operator does not choose, because it is deriv
 it routes down the existing code arm rather than the doc arm.
 
 **Business Requirement vs Technical Specification are split because they route differently.** An
-article mandate ("support the new indicator by Q3 2027 or face decertification") feeds §2, §4, §7,
-§14. A tech letter ("field 48 subelement 92 carries a 2-byte indicator, values 01–04") feeds §9 and
+article mandate ("support the new indicator by Q3 2027 or face decertification") feeds §2, §4, §8,
+§15. A tech letter ("field 48 subelement 92 carries a 2-byte indicator, values 01–04") feeds §10 and
 is the primary input **Arm 1 matches against code**. Same corpus, different destinations.
 
 **Multiplicity is orthogonal to classification.** Multiple requirement documents are multiple UI
@@ -428,7 +453,7 @@ per-section, and accrue during authoring. They cannot share a column.
 
 **`frame` gains a free-form `overview`** alongside its existing structured fields — it is *added*,
 not a replacement. The structured fields are machine-useful in a way prose is not
-(`frame.stakeholders` → §10 directly, `frame.key_dates` → §14 directly, `scope_hints` → Arm 1
+(`frame.stakeholders` → §11 directly, `frame.key_dates` → §15 directly, `scope_hints` → Arm 1
 scoping). The prose overview has two jobs: it supplies §1's *initiative identity*, and it is a far
 better semantic query for Arm 1's code matching than concatenated key-values (per TASK-066
 refinement (d)).
@@ -444,39 +469,40 @@ refinement (d)).
 | 4 | Business objectives | **P** | | | | | S | | |
 | 5 | Personas & actors | | | **P** | S | | | | E |
 | 6 | High-level use case | S | | **P** | | | | | E |
-| 7 | Business requirements | **P** | **P** | | | S | | | E |
-| 8 | Strategic alignment | | | | | S | S | **P** | |
-| 9 | Constraints & principles | | **P** | | **P** | | | | E |
-| 10 | Stakeholders | | | | | S | **P** | S | |
-| 11 | Out of scope | **P** | | | | | S | **P** | E |
-| 12 | Assumptions & risks | | | S | S | | | **P** | E |
-| 13 | Dependencies | | S | | **P** | | | | E |
-| 14 | Success criteria | **P** | | | | | S | S | |
-| 15 | Derived system impacts | | | | | | | | **P** |
-| 16 | Open questions | | | | | | | | |
-| 17 | Verification summary | | | | | | | | **P** |
+| **7** | **Deliverables** | **P** | | | | | S | S | E |
+| 8 | Business requirements | **P** | **P** | | | S | | | E |
+| 9 | Strategic alignment | | | | | S | S | **P** | |
+| 10 | Constraints & principles | | **P** | | **P** | | | | E |
+| 11 | Stakeholders | | | | | S | **P** | S | |
+| 12 | Out of scope | **P** | | | | | S | **P** | E |
+| 13 | Assumptions & risks | | | S | S | | | **P** | E |
+| 14 | Dependencies | | S | | **P** | | | | E |
+| 15 | Success criteria | **P** | | | | | S | S | |
+| 16 | Derived system impacts | | | | | | | | **P** |
+| 17 | Open questions | | | | | | | | |
+| 18 | Verification summary | | | | | | | | **P** |
 
 `Other` has no column: it is never primary and never supporting — background context only, per
 D-A12. The empty column *is* the definition.
 
 **Scoping vs sourcing.** The frame **scopes** every section (`scope_hints` + `overview` tell the
-agent what is relevant when reading any source for any section) but **sources** only §1, §4, §8,
-§10, §11, §14. The table expresses sourcing; scoping is global and cannot be tabulated.
+agent what is relevant when reading any source for any section) but **sources** only §1, §4, §9,
+§11, §12, §15. The table expresses sourcing; scoping is global and cannot be tabulated.
 
 #### What the matrix reveals
 
-- **Discovery is primary for exactly three sections** — §8, §11, §12. No document in the corpus
+- **Discovery is primary for exactly three sections** — §9, §12, §13. No document in the corpus
   answers them, so disposition and retrieval work buys those sections **nothing**; their quality
   rests entirely on discovery-question quality. This promotes TASK-079 (discovery adequacy) from
   nice-to-have to core.
-- **`frame.stakeholders` already serves §10**, which is why §10 is frame-primary rather than
+- **`frame.stakeholders` already serves §11**, which is why §11 is frame-primary rather than
   discovery-primary — one fewer section depending on question quality than first drafted.
 - **Prior Artifact is never primary anywhere** — always S, always reference-only. Falls out of the
   D-A12 grounding hazard rather than being imposed on top of it.
-- **TechSpec is narrow but deep** — primary for only §7 and §9, yet it is the main input Arm 1
+- **TechSpec is narrow but deep** — primary for only §8 and §10, yet it is the main input Arm 1
   matches against code. Small documentary footprint, large enrichment footprint.
-- **§1, §16, §17 take no input class** — §1 is derived from the body (+ frame identity), §16
-  accumulates gaps, §17 counts verdicts. No routing rule needed.
+- **§1, §17, §18 take no input class** — §1 is derived from the body (+ frame identity), §17
+  accumulates gaps, §18 counts verdicts. No routing rule needed.
 
 #### This sizes item 4
 
@@ -488,6 +514,83 @@ So item 4 is not "solve retrieval for six classes across seventeen sections" —
 classes feeding nine sections**, and those three are precisely the classes whose documents are
 *structured* (mandates, network specs, KB pages), which is what makes structural segmentation
 viable.
+
+### D-A14 · Initiative level and the deliverable layer
+
+**The Solution Intent is authored at the initiative level.** Two scales must both work:
+
+- a **PBI change**, where the change itself *is* the initiative (1–3 deliverables), and
+- a **high-level JPMC initiative** spanning many deliverables.
+
+The 18 sections hold at **both** scales — executive summary, problem, objectives, strategic
+alignment, stakeholders and success criteria are all naturally initiative-level regardless of size.
+**Nothing in the section contract changes with scale.** What varies is decomposition depth below
+§7, and the deliverable count is effectively the tell. A metadata field declares the level;
+no second document type is needed.
+
+#### Deliverable vs Requirement
+
+| | Definition | Verb |
+|---|---|---|
+| **Requirement** (§8) | A statement of what must be true — *"the authorization message must carry the 2-byte indicator in field 48, subelement 92"* | **satisfied** / verified |
+| **Deliverable** (§7) | A unit of work product built and handed over — *"updated authorization parser", "certification test package"* | **delivered** |
+
+Requirements are normative; deliverables are work packages with an owner and a date. The relation
+is many-to-many, but a deliverable typically groups several requirements.
+
+**`frame.overview` (the free-form Initiative Overview) seeds the deliverables; the agent refines
+them from the sources, and discovery fills gaps.** There is no separate deliverable-overview input
+— hence §7 is BizReq-primary with Frame and Discovery supporting (D-A13).
+
+**Third mechanical guardrail** (with §15→§4 and D-A12's): a deliverable with no requirements is
+unjustified; a requirement with no deliverable is unbuildable. Both statically checkable — and per
+D-A15 this one is **load-bearing**, not merely a consistency check.
+
+**New escalation type.** A derived impact can now imply a **new deliverable**, not just a new
+requirement — arguably the most consequential kind, since it moves cost and schedule rather than
+only scope. Hence §7 carries an `E` (extend) in the matrix.
+
+### D-A15 · Jira mapping — and where the FRD actually went
+
+JPMC's Jira hierarchy is **Initiative → Deliverable → Epic → Story** (confirmed): initiative =
+strategic, high level; deliverable = high-level deliverables; epic = a business requirement within
+a deliverable; story = the technical requirements needed to complete that business requirement.
+
+| Jira level | Source | Available at |
+|---|---|---|
+| **Initiative** | the document itself — §1 identity, §2 problem, §4 objectives | v1 |
+| **Deliverable** | §7 Deliverables | v1 |
+| **Epic** | §8 Business requirements — one epic per requirement | v1 |
+| **Story** | Arm 1 code landing points + §16 derived system impacts | **v2 only** |
+
+**A business requirement is epic-sized, not story-sized** — "carry the 2-byte indicator in field
+48" needs parser changes, validation changes, test updates and certification. That is a body of
+work, not a unit.
+
+**The FRD did not die; it moved.** "Technical requirements per epic" *is* FRD content. The old chain
+was BRD → FRD → Jira; the new chain is Solution Intent → enrichment → Jira, with **stories carrying
+the technical requirement**. The technical layer was never optional — it simply does not need to be
+a markdown deliverable, and it now lives where engineers work.
+
+This is **strictly better than the old FRD**, which had to assert technical detail with only the
+BRD underneath it. Story authoring instead draws on a grounded input set: the epic it serves
+(business intent) + Arm 1's landing points and closure (where the code actually is) + Technical
+Specification (field formats, protocol detail). Nothing invented — cite-or-flag holds.
+
+#### Three consequences
+
+- **Jira cannot be authored from v1.** v1 can produce three of the four levels; stories require
+  enrichment. G3 must follow G2 — already the gate order, but now for a reason rather than by
+  convention.
+- **The §7→§8 trace is load-bearing.** It physically builds the Jira parent-child hierarchy; an
+  orphan requirement yields an Epic with no parent Deliverable.
+- **§16 has a dual role** — a section stakeholders read *and* the substrate story generation draws
+  from. It therefore needs enough per-requirement structure to be **machine-consumable**, not just
+  readable prose.
+
+**Deferred to item 5:** story granularity. One story per (requirement × affected component) is the
+natural default, but multiple requirements often touch the same component — two parser stories or
+one clustered story is an open call.
 
 ## Open — Phase A items 4–8
 
