@@ -26,15 +26,17 @@ All design docs live in **`./docs/`**. They are authoritative and frozen; you im
 
 ## How to execute a task
 
-Work through **`TASK_LIST.md`** in order. Each task is sized for a single session and carries:
+**`TASK_LIST.md` is the single task list** — the only one. It opens with the execution protocol, the hard rules, and the VDI environment notes; then a **done ledger** (one line per completed task, TASK-000–063B); then the **open work**. (It was consolidated from `TASK_LIST.md` + `TASK_VDI.md` + `TASK_VDI_BOOTSTRAPS.md` on 2026-07-29 — the completed tasks' full specs and the Copilot bootstrap prompts live in git history at `f8f2ae1` and earlier. Do not recreate those files.)
+
+Work through it in order. Each open task carries:
 
 - **Depends on** — prior tasks + the on-disk artifacts that must already exist. **Verify these exist before starting** (list the files; if a dependency is missing, stop and say so).
 - **Reads** — the *exact* doc + section to open (e.g. ``docs/TECH_SPEC.md`` §5.3). **Open and read the cited sections before writing anything.** Do not work from memory of the design; the cited section is the contract.
 - **Creates / edits** — the exact output paths (from `docs/TECH_SPEC.md` §2).
 - **Acceptance** — concrete, checkable conditions. The task is done only when all are true.
-- **Fixture / proof** — what demonstrates correctness.
+- **Proof** — what demonstrates correctness.
 
-After finishing a task, **tick its checkbox in `TASK_LIST.md`** and commit. The checkbox state is how a later session knows what is done.
+After finishing a task, follow `TASK_LIST.md`'s **Execution protocol** step 5–6: verify, re-publish the registry, **tick the checkbox**, commit. Then collapse the task to a one-line entry in the done ledger. The checkbox state is how a later session knows what is done.
 
 ---
 
@@ -43,8 +45,8 @@ After finishing a task, **tick its checkbox in `TASK_LIST.md`** and commit. The 
 It is safe to **start a fresh chat / new context window at any phase boundary** (marked in `TASK_LIST.md`). To re-orient a fresh session:
 
 1. Read this `CLAUDE.md`.
-2. Open `TASK_LIST.md`; the **first unchecked task** is where to resume.
-3. Inspect the repo on disk (`core/`, `overlays/`, `runs/`, `fixtures/`) to confirm what the checkboxes claim — disk state is ground truth.
+2. Open `TASK_LIST.md`: read its protocol + hard rules, skim the **done ledger** for what already exists, then go to the **first unchecked task under OPEN WORK** — that is where to resume.
+3. Inspect the repo on disk (`core/`, `overlays/`, `runs/`, `fixtures/`) to confirm what the ledger claims — disk state is ground truth.
 4. Execute the next task per "How to execute a task" above.
 
 Durable state lives in **files and git**, never in the conversation. Never rely on something said in an earlier session; if it matters, it is on disk.
@@ -81,7 +83,7 @@ All 12 per-tag mappings now match; §10.5 verified green at TASK-017 (re-gated a
 
 ```
 ./CLAUDE.md            ← you are here
-./TASK_LIST.md         ← the build sequence
+./TASK_LIST.md         ← the single task list: protocol + hard rules, done ledger, open work
 ./docs/                ← authoritative design (REQUIREMENTS, TECH_SPEC, supporting)
 ./core/                ← the generic core you build (skills, scripts, extractors, adapters, profiles, templates)
 ./overlays/            ← the two runtime-tool overlays (claude, copilot)
