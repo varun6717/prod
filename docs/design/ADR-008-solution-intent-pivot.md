@@ -764,6 +764,31 @@ for this requirement"*, and that finding needs a home. It is not an open questio
 *known work*; and not a new requirement (§8) — the requirement exists, the code does not. So §16
 means "how this change lands on the codebase," **including "nothing exists here, must be built."**
 
+**A "no code found" gap does NOT auto-generate a build story — it escalates.** The story builds the
+*code*, never "the requirement" (which already exists in §8). But the finding is ambiguous, and only
+one of its four meanings is a build story:
+
+| What "no code found" actually means | Correct outcome |
+|---|---|
+| Genuinely new capability — the system has never done this | **Build story** ✓ |
+| The code exists; Arm 1 missed it | **Search failure** — a build story here duplicates working functionality |
+| The code lives in another repo (within-repo boundary, FR-DC-13) | **A dependency** (§14), not a story for this repo |
+| The requirement is not code at all — "must be certified by Visa" | **Deliverable-derived** work, no code story |
+
+Auto-converting every gap to "build it" would be wrong in three of four cases, and wrong expensively
+— a duplicate-implementation story gets estimated, assigned, and possibly built before anyone notices
+the capability already existed.
+
+The reasoning mirrors a principle already in the design: Arm 2 treats "no match anywhere →
+**unverifiable**" as an honest, cheap outcome rather than a conclusion. Same here — *"this capability
+exists nowhere in our codebase"* is a strong **negative** claim, and negative search results are the
+least reliable kind. **Absence of evidence over a large codebase is not evidence of absence.**
+
+So a gap lands in §16 as **requiring disposition**, and the operator confirms which of the four it is;
+only the first becomes a build story. One more item in the single operator turn — and exactly the
+judgment that should be human, since on a JPMC-scale codebase "we have never done this" is a claim
+only someone with system knowledge can confidently confirm.
+
 **Sixth mechanical guardrail** — because the story set is *determined* rather than invented, it is
 checkable both ways:
 
