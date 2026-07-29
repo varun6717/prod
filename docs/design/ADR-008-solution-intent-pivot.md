@@ -703,9 +703,71 @@ analysis. A story must name the code it changes, or be explicitly flagged **new-
 **non-code** (cert/doc/test). Mechanically checkable at G3, and it is what distinguishes a real story
 from a restated requirement.
 
-**Deferred to item 5:** story granularity. One story per (requirement × affected component) is the
-natural default, but multiple requirements often touch the same component — two parser stories or
-one clustered story is an open call.
+#### Where the four levels physically live
+
+| Jira level | Location | Note |
+|---|---|---|
+| **Initiative** | the document itself — fields from §1, §2, §4 | 1:1 with the SI; no section of its own |
+| **Deliverable** | **§7** | v1-authored |
+| **Epic** | **§8** — one epic per requirement | v1-authored |
+| **Story** | **`jira_plan/`, not the SI** | generated after G2 |
+
+```
+Solution_Intent.md (v2)
+  §7  Deliverables            → Jira Deliverable
+  §8  Business requirements   → Jira Epic
+  §16 Derived system impacts  → the evidence stories are derived FROM
+                                   ↓
+                        (after G2)  jira_plan/ → Stories → G3 → push → trace.json
+```
+
+**Stable IDs are required** for the chain to hold: §7 deliverables carry IDs (`D1`…); §8
+requirements carry IDs (`R1`…) **plus** a `deliverable:` reference (the load-bearing §7→§8 trace);
+§16 entries reference their requirement ID; `jira_plan/` stories reference a requirement ID + a code
+location. Full chain: `D1 → R3 → impact entry → story → JIRA-1234`.
+
+**§16 is organised by requirement, not by code area.** Arm 2 clusters by code region, but that is
+*processing* order — presentation must be per-requirement, because that is what stories hang off and
+what makes §16 machine-consumable. A by-area view is a cross-index, not the primary structure.
+
+No "Jira plan summary" section in the SI — G3 reviews `jira_plan/` directly, so a summary in the
+document would be a second copy that drifts.
+
+#### Why stories are not in the SI — stable analysis vs mutable work item
+
+Not because stakeholders reject technical detail: **§16 is already technical**, down to
+`file:function`. The actual reason:
+
+- **§16 is a finding** — what the code says today. Stable. Belongs in an accepted, versioned document.
+- **A story is a work item** — refined, split, re-estimated, reassigned during delivery. Mutable.
+  Belongs in the tracker.
+
+Stories in the SI would mean every sprint-time refinement dirties a document frozen at G2.
+
+**§16 determines the story set; `jira_plan/` specifies each story.** An impact entry says
+"`parse_field_48` is affected"; a story says "extend `parse_field_48` to read subelement 92 as a
+2-byte value — done when 01–04 parse correctly and the 64-byte path regresses clean." Scope vs
+specification: action verb, acceptance criteria, testability, sizing.
+
+**Sixth mechanical guardrail** — because the story set is *determined* rather than invented, it is
+checkable both ways:
+
+- every §16 impact entry produces **≥1** story → catches **dropped impacts**
+- every story traces to a §16 entry, **or** is explicitly new-build / deliverable-derived → catches
+  **invented stories**
+
+#### Story granularity — resolved, not deferred
+
+Previously parked as an item-5 decision ("one story per (requirement × component), or clustered?").
+It is **not a separate decision**: **§16's granularity *is* story granularity.** "The parser is
+affected" is ambiguously 1 or 5 stories; but
+
+> `R3 → parse_field_48`: must handle a 2-byte subelement
+> `R3 → validate_subelements`: must accept subelement 92
+> `R3 → field 48 buffer`: capacity exhausted, structural change required
+
+is unambiguously three. The decision therefore moves **upstream** into how Arm 1 structures §16 —
+a better home, since that is where the code evidence lives.
 
 ## Open — Phase A items 4–8
 
