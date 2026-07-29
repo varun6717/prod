@@ -747,7 +747,22 @@ Stories in the SI would mean every sprint-time refinement dirties a document fro
 **§16 determines the story set; `jira_plan/` specifies each story.** An impact entry says
 "`parse_field_48` is affected"; a story says "extend `parse_field_48` to read subelement 92 as a
 2-byte value — done when 01–04 parse correctly and the 64-byte path regresses clean." Scope vs
-specification: action verb, acceptance criteria, testability, sizing.
+specification: action verb, acceptance criteria, testability, sizing. §16 carries **scope**; the
+translation **adds** the rest. It is a transformation, not a copy.
+
+**§16 is not the only story source** — leave this implicit and every non-code deliverable silently
+yields zero stories:
+
+| Story source | Comes from | Example |
+|---|---|---|
+| Code-derived, **modify** | §16 entry — an *impact* | extend `parse_field_48` for a 2-byte subelement |
+| Code-derived, **new build** | §16 entry — a *gap* | create subelement-92 range validation (no code exists) |
+| **Deliverable-derived** | **§7 only — no §16 entry** | certification test package, documentation update |
+
+**Naming trap: §16 holds gaps as well as impacts.** Arm 1 explicitly asks *"where is there no code
+for this requirement"*, and that finding needs a home. It is not an open question (§17) — it is
+*known work*; and not a new requirement (§8) — the requirement exists, the code does not. So §16
+means "how this change lands on the codebase," **including "nothing exists here, must be built."**
 
 **Sixth mechanical guardrail** — because the story set is *determined* rather than invented, it is
 checkable both ways:
