@@ -81,7 +81,7 @@ Replacing §10.1 (vocabulary containment) and §10.5 (emit-map no-drift), which 
 3. Disposition-class totality — no orphan section, no orphan class
 4. Every story names its code location, or is flagged new-build / non-code
 5. Every §16 entry yields ≥1 story; every story traces to a §16 entry or a §7 deliverable
-6. Every epic's implicit current-state assumptions are verdicted
+6. Every **assertion** in §8 has a verdict *(a requirement with 4 assertions and 3 verdicts is a defect)*
 
 ---
 
@@ -351,6 +351,50 @@ context, leaving least attention per requirement exactly when each needs most:
   subelements · is the buffer big enough for 2 more bytes · do we already handle any of 01–04).
   Batching pushes toward matching the *headline* — "field 48 stuff → the parser" — because N epics
   are in flight at once, and the sub-details never get resolved.
+
+#### §8 schema: a requirement is title + description + **assertions**
+
+The document-structure consequence of "epics are not atomic." A requirement carries three parts:
+
+```
+R3  ·  deliverable: D1
+    title:       Authorization message must carry the brand indicator      ← the Jira epic title
+    description: Per Visa TL-2027-14, field 48 gains subelement 92 for     ← prose, for humans
+                 brand routing on all acquirer-initiated authorizations.
+    assertions:                                                            ← the checkable units
+      a. subelement 92 is populated on all acquirer-initiated auths
+      b. the value is 2 bytes, EBCDIC
+      c. accepted values are 01–04
+      d. existing field 48 subelements remain unaffected
+```
+
+**Assertions are what Arm 1 iterates.** Each gets its own code landing points, its own implicit
+current-state assumptions, and its own verdict. Un-enumerated, extraction from prose is lossy — Arm 1
+finds three of four and nobody knows which one went missing.
+
+**An assertion is NOT a story** — an easy conflation, since both are "the multiple things that have to
+happen":
+
+| | Unit of | Example |
+|---|---|---|
+| **Assertion** | specification | "accepted values are 01–04" |
+| **Story** | work | "extend `parse_field_48` to accept 01–04"; "widen `reconcile_fields` count check" |
+
+The mapping is **many-to-many**. Assertion (c) may produce three stories (parser, validator,
+settlement) — or **zero**, if the code already handles 01–04. Assertion (d) may produce only a
+regression-test story. Collapsing them loses exactly the discrimination that makes the scope-shrink
+case (D-A15) detectable.
+
+**Consequences:**
+
+- **§16's granularity sharpens** to per **(assertion × code location)**, not per (requirement × code
+  location). Since §16 determines story granularity (D-A15), stories get more precisely scoped.
+- **Guardrail 6 becomes checkable.** It was "every epic's implicit assumptions are verdicted" — fuzzy
+  about what an epic's assumptions are. Now: **every assertion has a verdict.** A requirement with
+  four assertions and three verdicts is a detectable defect.
+- **Authoring cost is near zero** — assertions are **agent-extracted** from the source text during v1
+  authoring, not hand-written. And this gives G1 something concrete to review: *are the assertions
+  faithful to the tech letter?* Cite-or-flag at assertion level, a tighter check than reviewing prose.
 
 #### Requirement details carry implicit current-state assumptions
 
