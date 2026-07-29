@@ -39,7 +39,7 @@ writing tasks against a superseded spec produces work that must be redone.
 |---|---|---|
 | 1 | Solution Intent section contract | ✅ **Locked** (below) |
 | 2 | Disposition taxonomy | ✅ **Locked** (below) |
-| 3 | Routing matrix (section × disposition) — *keystone* | ⬜ next |
+| 3 | Routing matrix (section × input source) — *keystone* | ✅ **Locked** (below) |
 | 4 | Retrieval within a class — *highest risk* | ⬜ |
 | 5 | Enrichment contract (stage 3–4 output schema) | ⬜ (previewed below) |
 | 6 | Code-impact without tags | ⬜ |
@@ -416,7 +416,80 @@ and to current-state claims) slots in later as its own class without disturbing 
   documents* against the code ("does our implementation match the spec?"), with mismatches as
   findings. Out of scope now; **parked as an enhancement** — the disposition split is what unlocks it.
 
-## Open — Phase A items 2–8
+### D-A13 · Routing matrix (item 3 — the keystone)
+
+This replaces tag-based retrieval routing (`file.topics ∩ section.topics`). It is **section ×
+input source**, not section × disposition — because the **operator** is an input source, in two
+distinct forms.
+
+**Frame vs Discovery.** Both are operator-authored, but they behave differently: the **frame** is
+one text, available up front, global in effect; **discovery answers** are many, elicited
+per-section, and accrue during authoring. They cannot share a column.
+
+**`frame` gains a free-form `overview`** alongside its existing structured fields — it is *added*,
+not a replacement. The structured fields are machine-useful in a way prose is not
+(`frame.stakeholders` → §10 directly, `frame.key_dates` → §14 directly, `scope_hints` → Arm 1
+scoping). The prose overview has two jobs: it supplies §1's *initiative identity*, and it is a far
+better semantic query for Arm 1's code matching than concatenated key-values (per TASK-066
+refinement (d)).
+
+**P** = primary (section authored mainly from this) · **S** = supporting (consulted) ·
+**E** = enrichment only (v2) · blank = no input
+
+| § | Section | BizReq | TechSpec | DomKnow | Arch | Prior | Frame | Discovery | Code |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | Executive summary | | | | | | **P** | | |
+| 2 | Problem statement | **P** | | S | S | | | | E |
+| 3 | Client need & demand | **P** | | S | | | | | |
+| 4 | Business objectives | **P** | | | | | S | | |
+| 5 | Personas & actors | | | **P** | S | | | | E |
+| 6 | High-level use case | S | | **P** | | | | | E |
+| 7 | Business requirements | **P** | **P** | | | S | | | E |
+| 8 | Strategic alignment | | | | | S | S | **P** | |
+| 9 | Constraints & principles | | **P** | | **P** | | | | E |
+| 10 | Stakeholders | | | | | S | **P** | S | |
+| 11 | Out of scope | **P** | | | | | S | **P** | E |
+| 12 | Assumptions & risks | | | S | S | | | **P** | E |
+| 13 | Dependencies | | S | | **P** | | | | E |
+| 14 | Success criteria | **P** | | | | | S | S | |
+| 15 | Derived system impacts | | | | | | | | **P** |
+| 16 | Open questions | | | | | | | | |
+| 17 | Verification summary | | | | | | | | **P** |
+
+`Other` has no column: it is never primary and never supporting — background context only, per
+D-A12. The empty column *is* the definition.
+
+**Scoping vs sourcing.** The frame **scopes** every section (`scope_hints` + `overview` tell the
+agent what is relevant when reading any source for any section) but **sources** only §1, §4, §8,
+§10, §11, §14. The table expresses sourcing; scoping is global and cannot be tabulated.
+
+#### What the matrix reveals
+
+- **Discovery is primary for exactly three sections** — §8, §11, §12. No document in the corpus
+  answers them, so disposition and retrieval work buys those sections **nothing**; their quality
+  rests entirely on discovery-question quality. This promotes TASK-079 (discovery adequacy) from
+  nice-to-have to core.
+- **`frame.stakeholders` already serves §10**, which is why §10 is frame-primary rather than
+  discovery-primary — one fewer section depending on question quality than first drafted.
+- **Prior Artifact is never primary anywhere** — always S, always reference-only. Falls out of the
+  D-A12 grounding hazard rather than being imposed on top of it.
+- **TechSpec is narrow but deep** — primary for only §7 and §9, yet it is the main input Arm 1
+  matches against code. Small documentary footprint, large enrichment footprint.
+- **§1, §16, §17 take no input class** — §1 is derived from the body (+ frame identity), §16
+  accumulates gaps, §17 counts verdicts. No routing rule needed.
+
+#### This sizes item 4
+
+Retrieval precision matters only where a **primary** class carries **large** documents:
+**BizReq, TechSpec, DomKnow** — nine sections. Architecture docs and Jira epics are typically small
+enough to read whole; the discovery- and frame-primary sections involve no retrieval at all.
+
+So item 4 is not "solve retrieval for six classes across seventeen sections" — it is **three
+classes feeding nine sections**, and those three are precisely the classes whose documents are
+*structured* (mandates, network specs, KB pages), which is what makes structural segmentation
+viable.
+
+## Open — Phase A items 4–8
 
 Nothing below is decided. Items 3 and 4 carry the risk: item 3 (the routing matrix) **sizes**
 item 4, and item 4 (retrieval within a class) is the only step where the honest answer may be
