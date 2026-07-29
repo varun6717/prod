@@ -308,6 +308,32 @@ context, leaving least attention per requirement exactly when each needs most:
 - **cross-contamination** — R1's landing point attributed to R2
 - **attention dilution** — later requirements in a list get shallower analysis than earlier ones
 - **weaker exhaustiveness** — the model satisfices across the set instead of closing each one
+- **headline-level matching (the sharpest reason, V-identified)** — an epic is **not atomic**.
+  *"Populate field 48 subelement 92 with values 01–04, 2 bytes, EBCDIC"* is a bundle of detailed
+  assertions, each with distinct code implications (do we parse field 48 at all · do we handle
+  subelements · is the buffer big enough for 2 more bytes · do we already handle any of 01–04).
+  Batching pushes toward matching the *headline* — "field 48 stuff → the parser" — because N epics
+  are in flight at once, and the sub-details never get resolved.
+
+#### Requirement details carry implicit current-state assumptions
+
+D-A5 excludes future-state statements from the verdict population, and *"must populate subelement
+92"* is future-state. But it **silently assumes** *"field 48 has room for two more bytes"* — and
+that is a current-state claim, which **is** verifiable.
+
+| Implicit assumption | Code says | Finding |
+|---|---|---|
+| "field 48 has room" | fixed 64 bytes, all 64 in use | **major** — a structural change, not a field addition |
+| "we don't support 01–04 yet" | 01–02 already handled | **scope shrink** |
+| "we parse subelements" | flat field parse only | a new capability, not an extension |
+
+Without surfacing these, the pipeline emits a story — *"add subelement 92 to the parser"* — that is
+**technically impossible as written**, and nobody discovers it until an engineer picks it up.
+
+So **Arm 1's per-epic pass extracts each requirement's implicit current-state assumptions and hands
+them into the verdict machinery** (Arm 2's mechanic, applied to Arm 1's material — the arms are not
+cleanly separated at the detail level). This is another thing a batched pass structurally cannot do:
+implicit assumptions surface only when reasoning closely about one requirement's details.
 
 This mirrors the existing coarse (map-level, broad) → deep (per-requirement, focused) architecture,
 applied one level up.
