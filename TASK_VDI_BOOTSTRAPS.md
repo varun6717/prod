@@ -1,6 +1,6 @@
 # TASK_VDI_BOOTSTRAPS.md — paste-ready Copilot prompts for the 5B tasks
 
-One bootstrap per task (TASK-060–078). **How to use:** find the task, copy the fenced block,
+One bootstrap per task (TASK-060–081, + TASK-063B after 063). **How to use:** find the task, copy the fenced block,
 fill any `<<PLACEHOLDER>>` (reference files, API shapes, choices), paste into Copilot on the VDI.
 Every prompt carries the same spine: implement the generic piece → keep real APIs/secrets behind
 a seam + `[TBD — VDI]` placeholder in their own function → verify (proof + `build_checks.py`) →
@@ -65,17 +65,55 @@ REFERENCE (working Confluence API example, dev-time only, do not import/vendor):
    ingest_file.py (type, source, url, staged_path, auth_ref, ingest_ts). auth_ref defaults to
    jpmc_adapters:confluence. Never read or branch on `domain`. Keep the offline local-path
    convenience (a local path / file:// url stages directly) like ingest_sharepoint.py.
-2) Real fetch behind a seam: put the live Confluence call in ONE isolated function (e.g.
-   _fetch_confluence) with a set_fetcher-style injection point + a [TBD - VDI] placeholder that
-   raises NotImplementedError. The real call (modeled on REFERENCE) is a /vdi plugin, NOT inlined.
-   token via handle.reveal(), only in the request header, never on disk; raise on non-2xx/empty.
-3) Confluence resides as: <<A SPACE/PAGE-TREE URL the connector LISTS (pull every child page),
-   OR specific page URLs>> — implement accordingly (mirror SharePoint's folder-listing if "lists").
+2) Real fetch isolated in ONE function: put the live Confluence call in ONE isolated function (e.g.
+   _fetch_confluence) carrying a [TBD - VDI] placeholder that raises NotImplementedError. You EDIT
+   THIS FUNCTION IN PLACE on the VDI to add the real call + JPMC auth (mirrors ingest_sharepoint.py's
+   _download_pdf) — NO /vdi plugin, no separation. token via handle.reveal(), only in the request
+   header, never on disk; raise on non-2xx/empty.
+3) One Confluence link = one page (a page URL → one staged document; offline: a local path / file://
+   stages directly). Page-tree/space listing is deferred (a later enhancement, SharePoint-folder style).
 VERIFY: fixtures/confluence/verify_confluence.py (create it on the ingest_sharepoint proof's
 pattern, local-path stand-in) -> green; python core/scripts/build_checks.py -> §10.4 maps
 type:confluence -> ingest_confluence.py, 5 green; AST-confirm no `domain` branch.
 PUBLISH after green: publish_registry.py ... --branch feature/pdlc_app; re-Generate.
 DO NOT: change ingest_file.py / the descriptor shape, import REFERENCE, branch on domain.
+NOTE: this routes Confluence through the EXISTING flat docs_pipeline unchanged. If a doc type
+needs DIFFERENT processing than pdf_extract->article_summarize->change_type_assess, do TASK-063B next.
+```
+
+## TASK-063B — Per-source-type doc-pipeline routing in `adapter.yaml`  (run right after TASK-063)
+
+```
+TASK: Today adapter.yaml's docs_pipeline is a SINGLE flat list run on EVERY doc-class source
+regardless of source type — source_processor routes by CLASS (doc vs code) only, never by
+src.type within the doc class. Add the missing per-type routing, ADDITIVELY, so a doc type that
+needs different processing (e.g. a Confluence page is not a PDF -> pdf_extract is wrong for it ->
+wants a confluence_summarize step) can route to its own pipeline. Read docs/TECH_SPEC.md §6.6.3
+(adapter.yaml schema) + §10.5 (coverage/no-drift check) and core/skills/source_processor.skill.md
+(doc/code routing, lines 79-92) FIRST. This AMENDS a pinned contract — update the design too.
+
+1) Extend the docs_pipeline schema (§6.6.3) to accept EITHER form, back-compatibly:
+   - a bare list (current form) -> treated as `default` (every existing pack stays byte-for-byte valid); OR
+   - a mapping keyed by source `type` with a REQUIRED `default` fallback, e.g.:
+       docs_pipeline:
+         default:    [pdf_extract, article_summarize, change_type_assess]
+         confluence: [confluence_summarize, change_type_assess]
+   Each entry keeps its per-skill `emits:`. Route by TYPE, never `domain`.
+2) Update core/skills/source_processor.skill.md step 2 (doc arm): pick the pipeline variant by
+   src.type, falling back to `default`. No domain branch. Descriptor parity is PRESERVED — only the
+   PROCESSING pipeline differs; the connector's descriptor shape never changes.
+3) Update build check §10.5 to run coverage + no-drift over the UNION of all variants' emits (a
+   required:true topic must be produced by SOME reachable pipeline). Amend §6.6.3 + §10.5 prose.
+4) Author confluence_summarize.skill.md ONLY IF TASK-063 proves Confluence can't use the shared
+   pipeline unchanged — the schema+routing+check extension is the deliverable; the new skill is
+   conditional (propose, don't force).
+VERIFY: an adapter fixture with two doc types -> two pipelines (extend fixtures/merge_manifest or
+add fixtures/adapter_routing/); a bare-list adapter.yaml still parses identically (back-compat);
+python core/scripts/build_checks.py -> §10.5 green across ALL variants, 5 green; AST-confirm no
+`domain` branch; payment_brand (single-list pack) unaffected.
+PUBLISH after green; re-Generate.
+DO NOT: change the connector descriptor shape; branch on domain; break the bare-list (default) form.
+PORT NOTE: amends docs/TECH_SPEC.md §6.6.3 + §10.5 — back-port the schema extension to the JPMC spec.
 ```
 
 ## TASK-064 — Jira authoring + validation skills + `jira_template`
@@ -103,9 +141,9 @@ TASK: Implement the Jira push — the ONLY external mutation of a run. Read docs
 REFERENCE (working JPMC Jira REST example, dev-time only):
   <<PASTE_JIRA_REFERENCE_PATH_OR_ATTACH>>
 
-1) Create core/adapters/jpmc_adapters/jira.py: the generic push interface behind a set_*-style
-   seam + a [TBD - VDI] placeholder (the real JPMC Jira REST call is a /vdi plugin modeled on
-   REFERENCE; token via handle.reveal(), header-only, never on disk).
+1) Create core/adapters/jpmc_adapters/jira.py: the generic push interface with the real JPMC Jira
+   REST call isolated in ONE [TBD - VDI] placeholder function you EDIT IN PLACE on the VDI (modeled
+   on REFERENCE) — NO /vdi plugin; token via handle.reveal(), header-only, never on disk.
 2) Emit jira_plan/ + trace.json (issue keys) per §3.8. Gate G3 on the plan BEFORE any push.
 3) The push is operator-confirmed and is the SOLE external mutation of the run.
 VERIFY: stub the push (set the seam to a local stub); G3 gates; trace.json records keys;
@@ -124,8 +162,18 @@ pass + docs ADR-005 first.
 Rules: this is the already-model-driven CONSUMER of the map, so it's allowed (the model-free rule
 governs BUILDING the map, not reading it). Stay advisory + cite-or-flag: never silently widen
 scope — surface discovered candidates via Flags for operator decision.
+Refinements (V-approved 2026-07-02):
+(a) PROVENANCE — every coarse candidate carries matched_by: tag | purpose | both (both = high
+    confidence; purpose-only = flagged candidate for the operator).
+(b) FEED ADEQUACY — a purpose-only hit is evidence of an under-applied/missing tag: emit it as an
+    uncovered_concepts-style observation into the 5.4.1 vocab-adequacy ledger (links to TASK-067).
+(c) MODULE-FIRST — compare the requirement against components[].purpose first; descend to
+    file-level purposes only within matched modules (bounds the pass on large repos).
+(d) TEXT QUERY — the semantic comparison uses the UI_INPUT.frame TEXT (+ relevant context_set/
+    content, + the drafted BRD requirements section when available), not just profile topic names.
 VERIFY: a fixture with an under-applied tag -> the coarse pass surfaces the component via purpose
-(flagged); the deep-pass structural closure is unchanged; build_checks 5 green.
+(flagged, matched_by: purpose) AND the hit lands in the vocab-adequacy ledger; no file-level
+compare outside matched modules; the deep-pass structural closure is unchanged; build_checks 5 green.
 PUBLISH after green; re-Generate.
 DO NOT: change how the map is BUILT; auto-expand scope without a Flag.
 ```
@@ -282,6 +330,115 @@ TASK: Add role gating to the configurator + a richer live telemetry/metrics surf
 status + G-gate results) driven from GET /runs/{id}/status. Read the role-gating FRs and the
 status endpoint. VERIFY: roles gate the relevant actions; the UI surfaces live ledger status for a
 run; build_checks 5 green.
+```
+
+## TASK-079 — Assess discovery-question adequacy (up-front + throughout the BRD)
+
+```
+TASK: Assess whether the BRD flow asks ENOUGH discovery questions — both UP FRONT (before drafting
+starts) and THROUGHOUT (as sections fill) — then PROPOSE additive fixes. Read
+core/skills/brd_author.skill.md — its "## Discovery (FR-BR-02)" framing pass (the UP-FRONT questions)
+AND the per-section probe_if_missing loop (the THROUGHOUT questions);
+core/profiles/payment_brand/brd_profile.payment_brand.yaml (must_capture + probe_if_missing per topic);
+docs/REQUIREMENTS.md D1 (the must_capture/probe_if_missing schema), FR-BR-02 (up-front framing discovery,
+2-3 clarifying questions), FR-BR-03 (throughout gap-fill limited to unsatisfied must_capture), FR-BR-05
+(never re-ask / shared memory), FR-BR-09 (brd_validator coverage -> G1); and the start-brd prompt FIRST.
+This is an ASSESSMENT-FIRST task: measure coverage, then propose — do NOT redesign the BRD flow.
+1) INVENTORY where questions come from today: the up-front Discovery pass (FR-BR-02, seeded from
+   must_capture) and the throughout pass (the per-section probe_if_missing loop, FR-BR-03). Write it down.
+2) EVALUATE adequacy vs the frame + sources + code surface: for every must_capture topic, is there a
+   question that elicits it when the sources are silent? Any frame-relevant topic with NO probe? Does
+   the author probe before assuming, or drop [TBD] without asking?
+3) Produce a COVERAGE FINDINGS artifact: per-topic covered / under-probed / missing, each cited to the
+   skill/profile line (cite-or-flag — never invent a gap).
+4) PROPOSE additive remediation ONLY in the domain seam — new/stronger probe_if_missing entries in
+   brd_profile and/or sharper elicitation guidance in brd_author.skill.md — as a reviewable diff a
+   human freezes. Propose, never bless. No runtime mutation; never branch on domain.
+VERIFY: a written up-front + throughout coverage report maps every must_capture topic to its eliciting
+question or flags the gap; run a fixture BRD (bundled Mastercard-mandate PDF) with deliberately SPARSE
+sources -> the proposed probes fire for the silent topics; python core/scripts/build_checks.py -> 5
+green; payment_brand BRD unaffected unless the diff is frozen.
+PUBLISH after green (only if the profile/skill diff is frozen); re-Generate.
+DO NOT: hard-wire questions into shared/generic code; branch on domain; auto-mutate the profile (a
+human freezes); invent gaps without citing the skill/profile line.
+```
+
+## TASK-080 — Verify the deep-pass code-ripple closure traces correctly and goes deep enough
+
+```
+TASK: Investigate whether the code_impact DEEP pass (the ripple/closure trace) runs CORRECTLY and
+goes DEEP ENOUGH. Read core/skills/code_impact_assess.skill.md — the Deep mode "trace the real
+dependency closure" step (follow depends_on=callees AND used_by=callers OUTWARD until the affected
+surface is CLOSED; the map SEEDS, the source confirms + EXTENDS) + the deep output contract (ripple +
+scope_ripple flag) + the guardrails (deep reads ONLY the flagged slice; closure within-repo only);
+docs/TECH_SPEC.md §5.6 (coarse/deep + D6c material threshold); context_set/code_map.json §3.3
+(depends_on/used_by edges); docs/REQUIREMENTS.md FR-BR-07, FR-BR-12/13, D6b/c, FR-DC-13. FIRST.
+This is ASSESSMENT-FIRST: measure closure correctness + depth, then propose — do NOT redesign it.
+1) TRACE a known fixture through the deep pass: use fixtures/c_repo/ (signed-off map/oracle); pick a
+   requirement whose true impact is MULTI-HOP (A->B->C callees; plus a caller D used_by-> A). Record
+   the closure + ripple the deep pass actually returns.
+2) CHECK CORRECTNESS: does it follow BOTH depends_on and used_by? Does it iterate to a FIXED POINT
+   (surface genuinely closed, no un-expanded frontier node) or stop at depth 1? Does it EXTEND the
+   closure from source when the map missed an edge (seed an oracle edge the map lacks -> confirm the
+   source pass recovers it)?
+3) CHECK DEPTH ADEQUACY: any reachable closure node missed (false-negative ripple)? Is the within-repo
+   boundary (FR-DC-13) respected as a BOUNDARY, not an excuse to stop early WITHIN the repo?
+4) FINDINGS artifact: per requirement, expected closure (oracle) vs produced closure — nodes hit /
+   missed / over-reached — each cited to the skill line + map edge (cite-or-flag; never invent a node).
+5) PROPOSE additive fixes ONLY where a gap is proven — sharper both-directions / fixed-point /
+   source-extends guidance in code_impact_assess.skill.md (deep-mode prose) — as a reviewable diff a
+   human freezes. No new seam; ripple still surfaces as a Flag (never auto-widen scope); no domain branch.
+VERIFY: a closure-correctness report over >=1 multi-hop fixture requirement shows produced ripple ==
+oracle closure (or each divergence flagged); both edge directions + fixed-point reached (not depth-1)
+demonstrated; a map-omitted edge proven recovered from source; a single-hop control does NOT over-report;
+python core/scripts/build_checks.py -> 5 green; deep pass still reads only the flagged slice + within-repo.
+PUBLISH after green (only if a skill diff is frozen); re-Generate.
+DO NOT: read the whole repo in deep mode; auto-widen scope without a Flag; branch on domain; let
+within-repo closure stop before the fixed point; invent a missed node without citing the oracle edge.
+```
+
+## TASK-081 — Source-grounded auto-fill loop before G1 (agent closes sourced gaps; human gets the rest)
+
+```
+TASK: Add a BOUNDED pre-G1 grounding loop so brd_author AUTO-CLOSES validator gaps whose answer ALREADY
+EXISTS in a source (a routing/citation miss), and routes everything UNSOURCED or SCOPE-MOVING to the
+human exactly as today. The branch condition IS cite-or-flag — NOT a fuzzy "can the agent fix it".
+Read core/skills/brd_validator.skill.md (soft-gate: score §9.2, section-level gap suggestions, G1
+eligibility = score>=threshold AND required-topics-satisfied AND flags-resolved), core/skills/
+brd_author.skill.md (per-section loop, "loop back and revise", Loop exit, hand-off to brd_validator),
+docs/TECH_SPEC.md §9.1/§9.2 (G1 + the two absolute preconditions), docs/REQUIREMENTS.md D4 / FR-XS-13
+(machine soft-gate — informs, never auto-advances) + FR-BR-08/13 (human-mediated flag loop) + the
+cite-or-flag rule, and core/scripts/gate.py (G1 evaluate) FIRST. This AMENDS a pinned contract (the D4
+soft-gate interpretation + the validator/author loop) — author an ADR, do NOT silently build it.
+1) CLASSIFY each validator gap by cite-or-flag into: (a) SOURCE/FRAME-CLOSABLE (a source or the UI_INPUT
+   frame answers it — routing/citation miss); (b) UNSOURCED ([TBD], no corpus answer); (c) SCOPE-MOVING
+   (tied to a material / scope_ripple flag).
+2) AUTO-LOOP bucket (a) ONLY: hand back to brd_author -> re-route the section's source slice, ground the
+   must_capture, emit the coverage footer, re-validate. BOUNDED (cap ~2-3 iterations) + MONOTONIC-PROGRESS
+   guard (each pass MUST strictly shrink the source-closable gap set or raise brd_score, else STOP + flag).
+   No thrash / oscillation.
+3) ROUTE (b) + (c) UNCHANGED: unsourced -> human in-chat fill (today's path); scope-moving -> operator
+   flag loop (FR-BR-08). NEVER invent a value to close a gap (cite-or-flag) — surfacing an unsourced gap
+   stays the correct outcome.
+4) KEEP D4 INTACT: loop runs BEFORE G1; G1 acceptance stays the operator's act; the two ABSOLUTE
+   preconditions (every required topic satisfied, all flags dispositioned) stay human-gated regardless of
+   score; the validator still NEVER advances the pipeline.
+5) AUDIT every auto-fill: record each agent-made grounding to decisions.jsonl / telemetry tagged
+   agent-made, so the operator at G1 sees auto-filled vs human-filled.
+6) (OPTIONAL) a minimal floor: a too-sparse draft skips auto-loop -> straight to human; distinct from the
+   G1 acceptance bar (default 85), which is unchanged.
+7) Author the ADR (D4-interpretation amendment + loop contract); amend §9.2 prose.
+VERIFY: a fixture BRD with three seeded gaps -> (a) a must_capture a bundled source covers but the author
+missed AUTO-CLOSES in-loop (grounded+cited, score rises, no human turn); (b) an unsourced must_capture
+FLAGS to the human; (c) a scope_ripple material flag ROUTES to the operator; the loop respects its
+iteration cap + stops on no-progress (no thrash); every auto-fill recorded agent-made; D4 preserved
+(G1 human, pipeline never self-advances); cite-or-flag never violated (score moves only when a real
+source backs the fill); python core/scripts/build_checks.py -> 5 green.
+PUBLISH after green (if the skill/loop change lands in core/); re-Generate.
+DO NOT: invent a value to hit the threshold; auto-advance past G1; auto-loop unsourced or scope-moving
+gaps; loop unbounded / without a progress guard; skip the ledger audit; branch on domain.
+PORT NOTE: amends D4 / FR-XS-13 interpretation + §9.2 + the brd_validator/brd_author loop — back-port
+with the new ADR.
 ```
 
 ---
