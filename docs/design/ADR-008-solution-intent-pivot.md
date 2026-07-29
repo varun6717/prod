@@ -784,10 +784,57 @@ The reasoning mirrors a principle already in the design: Arm 2 treats "no match 
 exists nowhere in our codebase"* is a strong **negative** claim, and negative search results are the
 least reliable kind. **Absence of evidence over a large codebase is not evidence of absence.**
 
-So a gap lands in §16 as **requiring disposition**, and the operator confirms which of the four it is;
-only the first becomes a build story. One more item in the single operator turn — and exactly the
-judgment that should be human, since on a JPMC-scale codebase "we have never done this" is a claim
-only someone with system knowledge can confidently confirm.
+So a gap **requires disposition**, and the operator confirms which of the four it is; only the first
+becomes a build story. One more item in the single operator turn — and exactly the judgment that
+should be human, since on a JPMC-scale codebase "we have never done this" is a claim only someone
+with system knowledge can confidently confirm.
+
+### D-A16 · Undispositioned findings live outside the document
+
+**Items awaiting disposition are not in any Solution Intent section.** They sit in
+`enrichment.json` with an undispositioned status. The SI contains only **resolved** content —
+otherwise v2 would ship with "TBD, awaiting operator" scattered through it.
+
+Routing for a "no code found" gap once dispositioned:
+
+| Operator's call | Lands in |
+|---|---|
+| Genuinely new capability | **§16** — gap entry, becomes a build story |
+| Arm 1 missed it | **dropped** from findings (it was wrong); logged to `decisions.jsonl` |
+| Lives in another repo | **§14** Dependencies |
+| Not code at all | **§7** Deliverables, as non-code work |
+| **Cannot determine yet** | **§17** Open questions |
+
+**The defer path is required.** An operator who genuinely cannot confirm *"have we ever done this?"*
+must be able to defer, and deferral converts the finding into a real open question rather than
+forcing a guess. Without it the walkthrough pressures people into fabricating certainty at precisely
+the point where the design demands honesty.
+
+### D-A17 · The disposition walkthrough (interactive)
+
+The single operator turn is delivered as a **guided conversational walkthrough**, not a handed-over
+list: present one finding with its evidence, recommend a disposition with reasoning, let the operator
+interrogate ("show me the code", "what else touches this?"), then record the decision **and its
+rationale** to `decisions.jsonl`. Reuses the FR-BR-08 surface→wait→apply loop and TASK-042's flag-loop
+machinery.
+
+Four binding constraints:
+
+- **Proposes, never decides.** The existing principle, especially load-bearing here — this is the
+  *one* human checkpoint in the whole enrichment stage.
+- **Triage, do not enumerate.** A one-at-a-time march through 200 findings is unusable and flattens
+  importance. Scope-moving findings and no-code gaps get individual attention; routine technical
+  consequences batch — *"these 15 are technical consequences with no business visibility — accept all,
+  or review?"* This is the existing material-vs-advisory distinction (D6c) applied to the walkthrough.
+- **Dispositions have ordering dependencies.** Confirming that a finding was a *search miss*
+  invalidates findings derived from that gap. So the walkthrough is not a flat queue — it must
+  sequence dependent findings and revisit downstream ones when an upstream call changes.
+- **Resumable.** Fifty findings will not be dispositioned in one sitting. Status persists per-finding
+  in `enrichment.json`; the file-based model handles this naturally, so the operator can stop and
+  resume without losing position.
+
+Likely a **new role in `overlay_manifest`** — the analytical arms are non-interactive; this one is
+purely interactive.
 
 **Sixth mechanical guardrail** — because the story set is *determined* rather than invented, it is
 checkable both ways:
