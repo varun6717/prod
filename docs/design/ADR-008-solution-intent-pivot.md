@@ -810,6 +810,36 @@ must be able to defer, and deferral converts the finding into a real open questi
 forcing a guess. Without it the walkthrough pressures people into fabricating certainty at precisely
 the point where the design demands honesty.
 
+#### What actually reaches the operator (consolidating D-A6 / D-A9 / D-A16)
+
+Most findings **never** reach the walkthrough. It is not "review all findings" — it is "review the
+ones needing judgment":
+
+| Finding | Path |
+|---|---|
+| Code contradicts a **source-derived** claim | **auto-corrects** in place |
+| Code answers an **unsourced `[TBD]`** | **auto-fills** |
+| Derived impact, **technical consequence** | **auto-writes** to §16 |
+| Code contradicts an **operator answer or the frame** | **escalates** |
+| Derived impact, **business-visible** | **escalates** |
+| **No code found** for a requirement | **escalates** (four-way ambiguous) |
+| Anything **scope-moving** | **escalates** |
+
+The pattern: findings that are **grounded and unambiguous** apply themselves; findings that are
+**ambiguous, scope-moving, or would overrule a human** escalate. This filtering happens *before* the
+walkthrough, which is what keeps the volume tractable.
+
+Each escalated type carries its own routing table — the four-way one above is specific to no-code
+gaps. Business-visible impacts route to §8 or §12; operator-contradictions route back into whichever
+section made the claim, or to §17 if deferred.
+
+#### `enrichment.json` is a permanent record, not a scratch file
+
+It survives past disposition as the audit trail: every finding, its evidence, whether it auto-applied
+or escalated, the operator's call and their rationale. That is what lets someone at G2 ask *"why does
+§13 say this now?"* and get an answer. **The v1 snapshot plus `enrichment.json` together reconstruct
+exactly how v2 came to be.**
+
 ### D-A17 · The disposition walkthrough (interactive)
 
 The single operator turn is delivered as a **guided conversational walkthrough**, not a handed-over
