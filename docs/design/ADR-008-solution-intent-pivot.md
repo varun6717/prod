@@ -35,16 +35,53 @@ writing tasks against a superseded spec produces work that must be redone.
 
 ### Phase A agenda
 
-| # | Item | Status |
+| # | Item | Status | Where |
+|---|---|---|---|
+| 1 | Solution Intent section contract | ✅ **Locked** | D-A3, D-A4, D-A5, D-A10, D-A11, D-A14 |
+| 2 | Disposition taxonomy | ✅ **Locked** | D-A12 |
+| 3 | Routing matrix (section × input source) — *keystone* | ✅ **Locked** | D-A13 |
+| 4 | Retrieval within a class — *highest risk* | ⬜ **the one open item** | — |
+| 5 | Enrichment contract | 🟡 **mostly locked** — only **§16's schema** remains | D-A6–D-A9, D-A15–D-A17 |
+| 6 | Code-impact without tags | 🟡 largely falls out of 4 + 5 | D-A8, D-A13 |
+| 7 | Manifests | ⬜ small, separable | — |
+| 8 | Gates + guardrails | ⬜ needs 3 + 4 first; **6 checks accumulated** | D-A1 |
+
+### Decision index
+
+| | Decision | Item |
 |---|---|---|
-| 1 | Solution Intent section contract | ✅ **Locked** (below) |
-| 2 | Disposition taxonomy | ✅ **Locked** (below) |
-| 3 | Routing matrix (section × input source) — *keystone* | ✅ **Locked** (below) |
-| 4 | Retrieval within a class — *highest risk* | ⬜ |
-| 5 | Enrichment contract (stage 3–4 output schema) | ⬜ (previewed below) |
-| 6 | Code-impact without tags | ⬜ |
-| 7 | Manifests | ⬜ |
-| 8 | Gates + guardrails | ⬜ |
+| **D-A0** | Scope and cutover | — |
+| **D-A1** | Gates re-map onto the v1/v2 lifecycle | 8 |
+| **D-A2** | v1 → v2 relationship (one versioned doc, v1 frozen) | 1 |
+| **D-A3** | Section contract (18 sections + touch types) | 1 |
+| **D-A4** | Section rules (binding) | 1 |
+| **D-A5** | The verdict population | 1 |
+| **D-A6** | Claim provenance drives correction authority | 5 |
+| **D-A7** | Enrichment never deletes | 5 |
+| **D-A8** | Enrichment has two arms · retrieval/reasoning split · implicit assumptions | 5 |
+| **D-A9** | Derived impacts and "reverse gaps" are one concept | 5 |
+| **D-A10** | Conditional sections — dispositioned, never absent | 1 |
+| **D-A11** | Section boundary statements (§4 / §9 / §15) | 1 |
+| **D-A12** | Disposition taxonomy (6 classes + auto Codebase) | 2 |
+| **D-A13** | Routing matrix (section × input source) | 3 |
+| **D-A14** | Initiative level and the deliverable layer | 1 |
+| **D-A15** | Jira mapping · where the FRD went · §16 as the story contract | 5 |
+| **D-A16** | **Undispositioned findings live outside the document** · auto-apply vs escalate · `enrichment.json` as permanent record | 5 |
+| **D-A17** | **The disposition walkthrough (interactive)** | 5 |
+
+> **The enrichment design is split** across **D-A6–D-A9** (arms, provenance, execution) and
+> **D-A15–D-A17** (Jira, §16 contract, disposition). Read both groups together.
+
+#### Mechanical guardrails accumulated for item 8
+
+Replacing §10.1 (vocabulary containment) and §10.5 (emit-map no-drift), which die with tags:
+
+1. §15 → §4 — every success criterion traces to an objective; every objective is measurable
+2. §7 → §8 — every requirement traces to a deliverable *(load-bearing: builds the Jira hierarchy)*
+3. Disposition-class totality — no orphan section, no orphan class
+4. Every story names its code location, or is flagged new-build / non-code
+5. Every §16 entry yields ≥1 story; every story traces to a §16 entry or a §7 deliverable
+6. Every epic's implicit current-state assumptions are verdicted
 
 ---
 
@@ -264,7 +301,7 @@ Document order is a presentation concern; code locality is the cost driver.
 
 1. **Arm 1** — requirements → landing points, no-code-for-it gaps, closure → derived impacts + escalation candidates
 2. **Arm 2** — claims extracted, clustered, verdicted → corrections staged
-3. **One operator turn** — disposition every escalation and scope-moving finding (the existing surface → wait → apply loop)
+3. **One operator turn** — disposition every escalation and scope-moving finding. **This is a required stage, not an optional review: see D-A16** (what escalates vs auto-applies, and where each disposition routes) **and D-A17** (the interactive walkthrough). Only escalated findings reach it; the rest auto-apply.
 4. **Apply** — corrections land in place; §16 written, §17 extended, §18 counted
 5. **Regenerate §1** from the corrected body
 6. **G2**
