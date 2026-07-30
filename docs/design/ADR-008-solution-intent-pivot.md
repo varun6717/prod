@@ -1225,6 +1225,77 @@ the next onboarding review — human-triggered, never an automatic mid-flight sw
 Synthesis **never re-reads code**. Hence the fixed ordering: **resolution completes before synthesis** —
 one cannot abstract over purposes that do not yet exist.
 
+#### Totality, singletons, and the `unclustered` bucket
+
+**Every file must belong to exactly one module.** A file in no module is invisible to tier 1 and can
+never be found by any assertion — silent invisibility, the failure mode this whole design exists to
+avoid. Singleton modules are therefore legitimate; a singleton's purpose needs no synthesis, it *is* the
+file's purpose.
+
+**Confidence tracks purpose quality, not grouping method** — these are different cases:
+
+| Case | Module | Confidence | Tier 1 |
+|---|---|---|---|
+| Placed alone but **has a specific purpose** | its own singleton | **normal** | evaluated on merit — **can be excluded** |
+| **No grouping signal AND no usable purpose** | `unclustered` bucket | **none** | **always** passed to tier 2 |
+
+So a standalone file with a specific stage-B purpose is a normal singleton module, *not* a free pass to
+tier 2. The bucket is only for the **doubly unknown** — cannot group, cannot describe — where there is
+nothing to match on and therefore nothing that can be safely ruled out.
+
+**Two distinct problems, do not conflate:**
+
+- **Correctness** — can the file be evaluated? Yes if it has a purpose. Singletons are correct.
+- **Economy** — 2 000 singleton modules means tier 1 weighs 2 100 entries instead of ~10², and the tier
+  stops filtering.
+
+Semantic grouping of singletons (fallback step 3, onboarding-frozen) is an **economy optimisation, not a
+correctness fix**. If it fails you pay at tier 1 rather than losing anything — the right failure direction.
+
+**Layered fallback for unplaced files, in order, all deterministic at runtime:**
+
+1. **Include graph** — the connected majority
+2. **Prefix family** — weak (903 tokens, cryptic) but non-zero, and only applied to the residue
+3. **Semantic grouping of purposes** — model-**proposed** at onboarding, human-approved, **frozen into
+   the profile as explicit overrides** (propose-never-bless; frozen output is data, so determinism holds)
+4. **`unclustered`** — whatever survives all three
+
+> **Open — needs a follow-up scan.** The survey reports 56.5% of files *use* local includes, but that is
+> **not** the isolated count: a header that includes nothing is still connected by everything including
+> it (edges run both ways). **The unmeasured number is how many files have degree zero in *both*
+> directions** — those are what the include graph cannot place at all, and it decides whether singletons
+> are a footnote or a scale problem.
+
+#### Multi-language repos
+
+The existing machinery does the hard part: TASK-008 detects languages and partitions, each partition
+dispatches to its own frozen extractor, outputs normalise to the §3.3 shape. Unchanged.
+
+What this design adds:
+
+- **One profile per repo, with per-language *sections*** — not separate profiles. The repo is the
+  onboarding unit: one gate, one freeze, one `profile_sha`. Each language section carries its own label
+  aliases (C `/* PURPOSE: */`, javadoc, docstrings), comment syntax, and hub threshold.
+- **Modules are language-scoped**, and that is fine. Include graphs are intrinsically per-language
+  (`#include` vs `import`, no shared namespace), so clustering partitions by language naturally. Tier 1
+  compares an assertion against **all** module purposes regardless of language, so a requirement touching
+  both a C backend and a Java service matches modules in each independently. No cross-language module is
+  needed.
+- **Closure stops at the language boundary.** Tier 3b walks `depends_on`/`used_by`, and there are no
+  edges between a C module and a Java one — JNI, REST hops, shared queues are invisible to both graphs.
+  **This is structurally the identical problem to cross-repo closure**: same shape, same fix — the
+  reserved `external_calls`/`exposes` fields (§3.3) that TASK-068 was already going to populate.
+  Cross-language and cross-repo are **one deferred capability wearing two hats**; building it once covers
+  both.
+- **Unonboarded languages** degrade into the totality path above: TASK-010's model fallback gives coarse
+  structure, no reliable include graph, so those files land in `unclustered` — found at tier 2, just less
+  efficiently.
+
+> **Validation requirement (V, carry into Phase D):** multi-language handling must be **thoroughly
+> tested**, not assumed. A multi-language fixture repo exercising per-language profile sections,
+> language-scoped clustering, cross-language tier-1 matching, and the closure boundary is a required
+> acceptance artifact — not a later enhancement.
+
 #### Two purpose-quality requirements (tier 1 depends on both)
 
 - **Module purpose must abstract over its files, not copy one.** §3.3's own example has module and file
