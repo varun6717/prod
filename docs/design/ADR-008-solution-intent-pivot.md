@@ -40,11 +40,11 @@ writing tasks against a superseded spec produces work that must be redone.
 | 1 | Solution Intent section contract | ✅ **Locked** | D-A3, D-A4, D-A5, D-A10, D-A11, D-A14 |
 | 2 | Disposition taxonomy | ✅ **Locked** | D-A12 |
 | 3 | Routing matrix (section × input source) — *keystone* | ✅ **Locked** | D-A13 |
-| 4 | Retrieval within a class — *highest risk* | ⬜ **the one open item** | — |
-| 5 | Enrichment contract | 🟡 **mostly locked** — only **§16's schema** remains | D-A6–D-A9, D-A15–D-A17 |
-| 6 | Code-impact without tags | 🟡 largely falls out of 4 + 5 | D-A8, D-A13 |
+| 4 | Retrieval within a class — *was highest risk* | ✅ **Locked** — per-artifact index, no embeddings | D-A18 |
+| 5 | Enrichment contract | ✅ **Locked** (§16 schema = per assertion × code location) | D-A6–D-A9, D-A15–D-A17 |
+| 6 | Code-impact without tags | ✅ **Locked** — module-first `purpose` descent → impact entries | D-A8, D-A13, D-A18 |
 | 7 | Manifests | ⬜ small, separable | — |
-| 8 | Gates + guardrails | ⬜ needs 3 + 4 first; **6 checks accumulated** | D-A1 |
+| 8 | Gates + guardrails | ⬜ needs consolidation; **7 checks accumulated** | D-A1 |
 
 ### Decision index
 
@@ -68,6 +68,7 @@ writing tasks against a superseded spec produces work that must be redone.
 | **D-A15** | Jira mapping · where the FRD went · §16 as the story contract | 5 |
 | **D-A16** | **Undispositioned findings live outside the document** · auto-apply vs escalate · `enrichment.json` as permanent record | 5 |
 | **D-A17** | **The disposition walkthrough (interactive)** | 5 |
+| **D-A18** | **Retrieval — the per-artifact index** · no embeddings · grouping & iteration | 4, 6 |
 
 > **The enrichment design is split** across **D-A6–D-A9** (arms, provenance, execution) and
 > **D-A15–D-A17** (Jira, §16 contract, disposition). Read both groups together.
@@ -82,6 +83,7 @@ Replacing §10.1 (vocabulary containment) and §10.5 (emit-map no-drift), which 
 4. Every story names its code location, or is flagged new-build / non-code
 5. Every §16 entry yields ≥1 story; every story traces to a §16 entry or a §7 deliverable
 6. Every **assertion** in §8 has a verdict *(a requirement with 4 assertions and 3 verdicts is a defect)*
+7. **Index completeness** — `lines_total == lines_indexed`; every line inside exactly one entry's range *(what makes "not in the index" a defensible negative)*
 
 ---
 
@@ -967,7 +969,115 @@ affected" is ambiguously 1 or 5 stories; but
 is unambiguously three. The decision therefore moves **upstream** into how Arm 1 structures §16 —
 a better home, since that is where the code evidence lives.
 
-## Open — Phase A items 4–8
+### D-A18 · Retrieval within a class — the per-artifact index (item 4)
+
+**No vector embeddings** (V decision — available, but disproportionate). Instead, at ingest each
+artifact gets a derived **index file**: one entry per document subsection, carrying its heading, line
+range, and a condensed summary. At authoring time a section consults the index and pulls only the
+identified passages.
+
+It is a **deepened `descriptor`**, not a new mechanism — §3.2 already carries a one-line summary per
+*document*; this is one entry per *subsection*. And `pdf_extract` already emits "the document's heading
+hierarchy… section headings and hierarchy, paragraph order, bullet/numbered lists, and tables", so the
+index keys on structure **already produced**. No extraction change.
+
+#### Why an index beats tags: sparse vs dense
+
+A tag exists only where someone applied it, so *"no tag matched"* conflates **the content isn't there**
+with **the tagger missed it** — indistinguishable, which is the silent-invisibility failure mode. An
+index summarises **everything by construction**, so *"not in the index"* is a **defensible negative**.
+That is the difference between absence of evidence and evidence of absence, and tags could never have it.
+
+It also makes the two arms **symmetric**: `code_map.json` is a per-component index with a model-written
+`purpose`; this is a per-subsection index with a model-written summary. Same architecture both sides —
+and it closes ADR-005 open-Q #2 (the doc-side analog), i.e. TASK-067's purpose.
+
+#### Shape
+
+```json
+{ "path": "context_set/sharepoint/mc_mandate_2027.md",
+  "disposition": "business_requirement",
+  "pages": 40, "lines_total": 1840, "lines_indexed": 1840, "entries": 27,
+  "subdivided": ["3.2.2"],
+  "index": [
+    { "id":"2.1", "heading":"Current Brand Identification", "lines":[92,148],
+      "summary":"How brand is identified today: PAN-range lookup at authorization time, where it sits in the flow, which parties depend on it." },
+    { "id":"2.2", "heading":"Limitations of PAN-Range", "lines":[149,206],
+      "summary":"PAN ranges cannot distinguish co-badged products; causes misrouted interchange. Cites 2026 dispute volumes." }
+  ] }
+```
+
+Six SI sections drew six *different* slices from that one 40-page document (§2 → 8% of lines, §10 → 7%,
+§15 → 7% …). Per-document tagging would have handed all six the same 1840 lines.
+
+#### Four rules
+
+- **Per semantic subsection, never per page.** A page is a layout artifact — a clause spans three pages,
+  a page holds four clauses. The document's own numbered structure is a *better* index than pagination
+  and is already extracted. **Pages matter only as a size proxy** for deciding whether to subdivide.
+- **Subdivide oversized entries along content boundaries.** A 6-page value table is one heading but far
+  too big for one entry → `3.2.2a` / `3.2.2b` split at the natural content seam (global vs regional
+  codes), never at a page break. Record it in `subdivided[]` so the synthetic split is auditable, not silent.
+- **Build always; consult conditionally.** Building is cheap, keeps one code path, and is the audit trail
+  for *"did we consider this document for this section?"* But a 3-page document is read whole — no index hop.
+- **The index describes the document, never the destination.** If an entry said *"this feeds §2"* it would
+  be tags re-invented: a mapping that drifts whenever the section contract changes. Content-keyed keeps it
+  SI-blind and serves all 18 sections unmodified.
+
+Structure is deterministic (from extraction); the summaries are a **model pass at ingest** — fine, the
+model-free rule governs the code map only.
+
+#### Replaces the §3.2 routing rule
+
+- **was:** `source ∈ section.sources AND topics ∩ section.topics ≠ ∅` → load document/summary
+- **now:** `disposition ∈ section.classes` (D-A13) → if over budget, consult the index → pull identified passages
+
+#### The whole-read threshold is derived, not chosen
+
+Not really pages — pages are a proxy. The constraint is **the context budget remaining** after a
+section's other inputs (its purpose, the frame, the draft so far). If a document fits comfortably, read
+it whole: the index hop adds a step and can only *lose* information. ~400–600 lines (≈10–15 pages) is a
+defensible start, but it is a **config value calibrated against real documents**, never hardcoded — it
+depends on the model's window.
+
+**It must be checked across the selected *set*, not per document.** Five 10-page documents are each under
+threshold but collectively fifty pages. Try whole-read for the set; if the set exceeds budget, switch the
+largest members to index-guided retrieval first.
+
+#### Grouping and iteration (the previously-unspecified part)
+
+**Grouping is deterministic, not judgment.** Given selected index entries with known line counts, pack
+them into groups under a token budget — bin-packing, reproducible, auditable. Pack in **document order**,
+because adjacent entries are usually one argument (2.1 and 2.2 are a single thread; splitting them across
+groups fragments it).
+
+**Iteration semantics are the OPPOSITE of Arm 1's** — this was being conflated, and conflating it would
+have produced fragmented sections:
+
+| | Iteration | Why |
+|---|---|---|
+| **Arm 1, per epic** | **Independent** — must not see each other | Anti-anchoring; inheriting a landing point is a correctness bug (D-A8) |
+| **Section authoring, per group** | **Dependent** — group 2 sees group 1's draft | A section is a **synthesis**; disjoint passes cannot produce a coherent problem statement |
+
+So Arm 1 fans out; section authoring stays **sequential, carrying the draft forward**. Same
+"resolve broadly / reason narrowly" shape, opposite iteration rule.
+
+**Termination:** every selected group is processed. No early exit, or coverage becomes unverifiable.
+
+#### Guardrail 7 — index completeness
+
+`lines_total == lines_indexed`, with every line falling inside exactly one entry's range. This is what
+*guarantees* the density property instead of assuming it. Without the check an index could silently skip
+twenty pages and you would be back to sparse coverage with no signal — the exact tag failure mode being
+escaped.
+
+#### Degraded case to check against real fixtures
+
+A document with **no substructure** — 40 pages, five headings, flat prose beneath. Boundaries must then be
+**synthesised** by paragraph grouping to a target size. It works, but it is the weakest case, and it is
+what the real `fixtures/pdf/` documents should be checked against before this is considered proven.
+
+## Open — Phase A items 7–8
 
 Nothing below is decided. Items 3 and 4 carry the risk: item 3 (the routing matrix) **sizes**
 item 4, and item 4 (retrieval within a class) is the only step where the honest answer may be
