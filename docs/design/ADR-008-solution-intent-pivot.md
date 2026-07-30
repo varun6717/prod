@@ -1625,6 +1625,32 @@ and why the coherence check still runs on the result.
 > **Cached per file content hash:** purposes *(expensive, model)*
 > **Re-synthesised only for affected modules:** module purposes
 
+#### Build frequency — a FOURTH gate branch
+
+The map is **not** rebuilt per run. TASK-013's 3-branch gate gains a branch, because the signal profile
+did not exist when it was written:
+
+| Branch | Condition | Work |
+|---|---|---|
+| **1 · Onboard** | no profile for this repo | profile scan → gate → freeze → **full build** |
+| **2 · Reuse** | `commit_sha` **and** `profile_sha` both match cache | **nothing** — cached map used as-is |
+| **3 · Incremental** | `commit_sha` moved, profile unchanged | structure + clustering recomputed (cheap); model purposes **only for changed files** |
+| **4 · Full rebuild** | **`profile_sha` changed** | **everything** — the derivation rules themselves changed |
+
+**Branch 4 is the new one.** If re-onboarding moves the hub threshold from 500 to 200, *every* module
+boundary can shift, so nothing in the old map is trustworthy. **Profile change invalidates wholesale;
+commit change invalidates selectively.**
+
+Cache keys: **`(commit_sha, profile_sha)`** for map validity · **file content hash** for individual purposes.
+
+**Wrinkle:** clustering is global, so a changed file's new includes can shift module membership *beyond*
+that file. "Affected modules" is therefore wider than "modules containing changed files" — bounded, but
+not purely local.
+
+Practical consequence: onboarding runs once; most subsequent runs hit **branch 2** (no work) or **branch
+3** with a handful of changed files. The whole-file stage-C reads are a **one-time cost, not per-run** —
+which is what justifies paying for the staged A/B/C investment at all.
+
 **PHASE 3 — Per-assertion impact · run time · reads the map, never writes it**
 
 16. **Tier 1** — assertion (frame + title + description + assertion) vs **module** purposes → matched
