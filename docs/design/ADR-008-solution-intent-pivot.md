@@ -1266,6 +1266,53 @@ correctness fix**. If it fails you pay at tier 1 rather than losing anything —
 > directions** — those are what the include graph cannot place at all, and it decides whether singletons
 > are a footnote or a scale problem.
 
+#### The worst case: degree zero **and** no purpose statement
+
+**Stage C-fallback — exported symbol names.** Before declaring defeat there is a signal the extractor
+already produces: `interfaces` (§3.3), extracted deterministically. A file with no header, no includes and
+no declared purpose but exporting `se_lookup(se_num)` · `se_validate(se_num)` · `se_format(buf, se_num)`
+is evidently service-establishment number handling. Free, deterministic, and genuinely informative.
+
+| Rung | Source | Cost |
+|---|---|---|
+| A | declared label (`PURPOSE:`, `Intention:`, …) | free |
+| B | unlabeled header prose | cheap |
+| C | whole-file read | expensive |
+| **C-fallback** | **exported symbol names** | **free, deterministic** |
+| — | nothing left → **unanalyzable** | — |
+
+Symbol names should feed *into* stage C as input regardless (they improve a whole-file read), but they
+also stand alone when C is skipped or fails.
+
+**Genuine residue after all rungs:** empty/stub files, pure data files (generated tables, constants),
+unreadable files (encoding/binary), and files where the human **declined stage C on cost** at the gate.
+
+**Declare the residue; never hide it.** Two wrong handlings:
+
+- **always pass to tier 3** — reading source for *every* assertion, at ruinous cost, to match against nothing
+- **silently exclude** — the invisibility failure mode this design exists to prevent
+
+Correct: surface it **once, at map build**, not per assertion —
+
+```json
+"coverage_report": {
+  "files_seen": 6165,
+  "files_unanalyzable": 34,
+  "unanalyzable": [
+    { "path": "source/tbl_bin_ranges.c", "reason": "data table, no symbols" },
+    { "path": "source/stub_reserved.c",  "reason": "empty stub" }
+  ]
+}
+```
+
+This extends a pattern **§3.3 already has** — `files_unresolved` / `unresolved_patterns` from TASK-009's
+extractor blindspots — from structural extraction to purpose resolution.
+
+It then surfaces to the operator in **§18 Verification summary**: *"34 files could not be analyzed;
+impact findings do not cover them."* **Cite-or-flag applied to the map itself** — declare the boundary of
+what was examined rather than implying complete coverage. It is also actionable: generated tables are
+fine, but a 2 000-line file that merely lost its header is a one-time repo-hygiene fix.
+
 #### Multi-language repos
 
 The existing machinery does the hard part: TASK-008 detects languages and partitions, each partition
