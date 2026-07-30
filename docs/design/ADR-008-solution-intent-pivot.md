@@ -70,6 +70,7 @@ writing tasks against a superseded spec produces work that must be redone.
 | **D-A17** | **The disposition walkthrough (interactive)** | 5 |
 | **D-A18** | **Retrieval — the per-artifact index** · no embeddings · grouping & iteration | 4 |
 | **D-A19** | **Code-impact without tags** — module-first tier walk · why it isn't tags · purpose creation order | 6 |
+| **D-A20** | **Module derivation + `purpose` provenance** — measured against the real repo: flat tree, declared `Intention:` headers, versioned duplicates | 6 |
 
 > **The enrichment design is split** across **D-A6–D-A9** (arms, provenance, execution) and
 > **D-A15–D-A17** (Jira, §16 contract, disposition). Read both groups together.
@@ -1152,12 +1153,17 @@ the same resolved territory and none sees a sibling's findings.
 
 #### How modules and purposes are created — separate steps, ordered
 
+> ⚠️ **Revised against the real repo (2026-07-29).** The first draft made *directory path* the primary
+> module signal. `Stratus_Repo/source/` is a **single flat directory** — every `.c`/`.h` in one folder —
+> so directory partition yields **one module** and tier 1 filters nothing. Directory is demoted to one
+> signal among several, contributing **nothing** for this repo. See D-A20.
+
 | Step | What | Who |
 |---|---|---|
 | 1 | Partition by language | deterministic (TASK-008) |
-| 2 | Per-file structure + **assign `module` from the directory path** | **deterministic** (TASK-009) |
+| 2 | Per-file structure + **assign `module`** (D-A20 signals) | **deterministic** (TASK-009) |
 | 3 | `merge_edges` | deterministic (TASK-011) |
-| 4 | Write `files[].purpose` | **model** (TASK-011) |
+| 4 | Set `files[].purpose` — **declared `Intention:` where present**, else model-inferred (D-A20) | deterministic + **model** |
 | 5 | Write `components[].purpose`, **abstracting over its file purposes** | **model** (TASK-011) |
 
 **Modules exist before any purpose is written.** The model never chooses a file's module; it only
@@ -1189,6 +1195,99 @@ because model-proposed boundaries would breach "the model owns only `purpose`."
 
 **Both arms share this failure mode:** flat prose PDF (doc side, D-A18) and flat directory tree (code
 side). Both need synthesised grouping; both are what the real fixtures must be checked against.
+
+### D-A20 · Module derivation and `purpose` provenance — measured against the real Stratus repo
+
+Two screenshots of `Stratus_Repo/source/` (2026-07-29) invalidated two assumptions in D-A19's first
+draft. Both corrections make the design **more** deterministic, not less.
+
+#### Finding 1 — the repo is flat; directory is not a usable signal
+
+`Stratus_Repo/source/` holds every `.c` and `.h` in **one folder**: `amex_8583.h`,
+`amex_industry_map_io.c`, `AmexCryptoFncts.c`, `amx_line_tcp.c`, `AP_ISO_message.c`,
+`AP_ISO_message_v2.c`, `ap_io.c`, `ap_dc_server.c`, `ap_srch.c`, `ap_clean_m.c`, `ansi.h`,
+`AOAInquiryService.h`, … Directory partition yields **one module**; tier 1 filters nothing.
+
+**Module grouping signals, all deterministic, in priority order:**
+
+| Signal | Evidence in this repo |
+|---|---|
+| **Prefix families** — split on `_` and camelCase | `amex_*` / `Amex*` / `amx_*`, `AP_ISO_*`, `ap_*` |
+| **`.c` / `.h` pairing** — always one unit | `ap_io.c` + `ap_io.h` |
+| **Include / dependency-graph cohesion** — internal vs external edge ratio | from `depends_on` / `used_by`, already extracted |
+| **Semantic similarity of declared intentions** (finding 2) | "routines to lookup the amex se number" |
+| **Directory path** — *when present* | contributes **nothing** here |
+
+Prefix alone **over-groups**: `ap_*` spans io, servers, search, cleanup and records — not one module. So
+prefixes **seed** the partition and graph cohesion **refines** it. Grouping must stay deterministic
+(binding rule + `commit_sha` cache key); the *label* is cosmetic and may be derived from prefix or purpose.
+
+Worked result — 8 modules from ~30 flat files: `iso_message` · `amex_mapping` · `amex_crypto` ·
+`amex_line` · `ap_io` · `ap_server` · `ap_search` · `ap_maintenance`.
+
+#### Finding 2 — every file declares its own purpose
+
+Each file carries a structured header with an explicit **`Intention:`** field:
+
+```c
+/* amex_se_map_io.c  v001  210714  mtm  */
+/*********************************************
+ Name:        amex_se_map_io.c
+ Intention:   routines to lookup the amex se number
+ MODIFICATION HISTORY:
+     v001  210714  mtm  initial version
+*/
+```
+
+**This is better than a model-written `purpose`** on three counts: it is a **deterministic extraction**
+(leading comment block + field regex, no model); it is **human-authored ground truth** — what the
+developer *said* the file does, rather than the model's reading — and therefore **citable** to a line
+rather than to an inference; and it **shrinks the model's role**, which the binding rules prefer.
+
+```json
+{ "path": "source/amex_se_map_io.c", "module": "amex_mapping",
+  "purpose": "routines to lookup the amex se number",
+  "purpose_source": "declared",
+  "declared_version": "v001", "declared_date": "2021-07-14" }
+```
+
+**Two caveats, resolving into a feature:**
+
+- **Coverage is "mostly", not all** (V). Files without headers fall back to model-inferred purpose, and
+  `purpose_source: declared | inferred` records which — a provenance distinction that matters, since a
+  declared intention is citable and an inferred one is the model's reading.
+- **Staleness.** `v001 210714` is 2021; four years of change may have moved a file past its stated
+  intention. So declared intention is **high-provenance but possibly stale**, while a model reading is
+  **current but inferential**.
+
+**Resolution — use both: the model verdicts the declared intention against the actual code.** Same
+mechanic as Arm 2, third appearance.
+
+```json
+{ "path": "source/ap_io.c",
+  "purpose": "record-level I/O for authorization processing",
+  "purpose_source": "declared", "purpose_verdict": "diverged",
+  "purpose_actual": "record I/O, plus brand-rule table caching added since v001" }
+```
+
+**A divergence is a finding, not noise** — and operationally critical: if `ap_io.c` declares "record I/O"
+but now also caches brand rules, an assertion about brand rules would **miss it entirely** were matching
+based on the declared intention alone.
+
+Net effect: the **code arm now has better provenance than the doc arm** — declared intentions verified
+against source, versus model-written summaries on the doc side.
+
+#### Finding 3 — versioned duplicates are an impact hazard
+
+`AP_ISO_message.c` **and** `AP_ISO_message_v2.c` both exist. If an assertion lands on message parsing,
+does it change v1, v2, or both? Getting it wrong means shipping to the dead path. Versioned file pairs
+(`*_v2`, `*_old`, `*_new`) must be surfaced as a **first-class finding requiring disposition** (D-A16),
+never silently resolved by the agent.
+
+#### Available but not built on
+
+`MODIFICATION HISTORY` is also structured, so per-file change history is deterministically extractable.
+Recently-churned files being higher-risk is a plausible ranking input — noted, not in scope.
 
 ## Open — Phase A items 7–8
 
