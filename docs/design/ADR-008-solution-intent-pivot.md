@@ -71,6 +71,7 @@ writing tasks against a superseded spec produces work that must be redone.
 | **D-A18** | **Retrieval — the per-artifact index** · no embeddings · grouping & iteration | 4 |
 | **D-A19** | **Code-impact without tags** — module-first tier walk · why it isn't tags · purpose creation order | 6 |
 | **D-A20** | **Module derivation + `purpose` provenance** — measured against the real repo: flat tree, declared `Intention:` headers, versioned duplicates | 6 |
+| **D-A21** | **Onboarding gate report** (stage distribution) · **the consolidated 3-phase process** | 6 |
 
 > **The enrichment design is split** across **D-A6–D-A9** (arms, provenance, execution) and
 > **D-A15–D-A17** (Jira, §16 contract, disposition). Read both groups together.
@@ -1503,6 +1504,103 @@ the agent.
 - **Available, not built on:** `MODIFICATION HISTORY` is structured, so per-file change history is
   deterministically extractable. Recently-churned files being higher-risk is a plausible ranking input —
   noted, out of scope.
+
+### D-A21 · The onboarding gate report + the consolidated code-map process
+
+#### The gate report (V-requested)
+
+The onboarding gate must show a **stage-distribution breakdown of how the repo was handled**, including
+the count for which nothing is derivable. Rationale: the gate is the **only** human checkpoint on map
+quality, and without this the operator cannot see *what quality of map they are approving*. A map that is
+85% human-authored purposes is a fundamentally better analysis substrate than one that is 60%
+model-inferred — and D-A20's "one-time scan bakes in a quality ceiling" risk is only visible here.
+
+```
+═══ CODE MAP ONBOARDING — Stratus_Repo @ 9f3c1ab ══════════════════
+
+SIGNAL PROFILE (proposed)
+  module derivation   include_graph_cohesion (primary)
+  purpose labels      PURPOSE · Purpose · Intention · DESCRIPTION · … (8 aliases, fuzzy)
+  hub threshold       fan-in > 200  →  shared_interfaces
+  prefix families     tiebreak only
+  directory signal    unusable (flat tree)
+
+PURPOSE RESOLUTION — projected distribution
+  A   declared label      3,576   58.0%  ████████████░░░░░░░░  human-authored
+  B   header prose        1,670   27.1%  █████░░░░░░░░░░░░░░░  human-authored   ← sampled 71/100
+  C   whole-file read       890   14.4%  ███░░░░░░░░░░░░░░░░░  MODEL-INFERRED
+  C*  symbol names           21    0.3%  ░░░░░░░░░░░░░░░░░░░░  deterministic
+  ──  unanalyzable            8    0.1%  ░░░░░░░░░░░░░░░░░░░░  NO COVERAGE
+                          ─────
+                          6,165
+      human-authored 85.4%  ·  model-inferred 14.4%  ·  uncovered 0.1%
+
+MODULE DERIVATION
+  clustered by graph     5,102   82.8%   →  104 modules
+  singleton (w/ purpose)   892   14.5%   →  892 singleton modules
+  unclustered bucket       163    2.6%   →  1 bucket, always passed to tier 2
+  hubs                       8    0.1%   →  shared_interfaces
+  tier-1 entries: 997   ⚠  above target (~200) — singleton grouping recommended
+
+COVERAGE GAPS
+  unanalyzable                8   listed — impact findings will not cover these
+  versioned duplicates       38   require disposition (D-A16)
+  low-confidence modules      6   tier 1 will widen rather than exclude
+
+ESTIMATED COST   stage C ≈ 890 whole-file reads
+
+[ approve ]  [ adjust profile ]  [ skip stage C ]  [ group singletons ]
+```
+
+Three things a plain approval cannot do: distinguish **human-authored from model-inferred** (the quality
+ceiling); surface **tier-1 entry count against target** (the economy problem, while still fixable); and
+state the **uncovered set explicitly** rather than implying completeness.
+
+#### The consolidated process
+
+**PHASE 1 — Onboarding · once per repo · human-gated**
+
+1. Clone repo, pin `commit_sha`
+2. **Profile scan** — automated survey: purpose-label variants + coverage · include density and
+   resolution rate · prefix-token quality · `.h` placement · versioned duplicates · **graph isolation
+   (degree zero both directions)** · **symbol presence**
+3. **Stage B sample** — run B on ~100 random files, measure recovery rate
+4. **Project** the stage distribution and stage C cost from the sample
+5. **⛔ GATE** — human reviews the report above; may adjust thresholds, trigger a **secondary recluster**
+   on low-coherence clusters (model proposes → human approves), skip stage C, or request singleton grouping
+6. **Freeze** `signal_profile` → `profile_sha`; approved model proposals are baked in as **data**
+
+**PHASE 2 — Map build · per commit · cached per file hash**
+
+7. Partition by language *(TASK-008)*
+8. Structural extraction per language — parse, `interfaces`, `depends_on`/`used_by` *(deterministic;
+   TASK-009, model fallback TASK-010 marked `coarse`)*
+9. **Hub exclusion** — fan-in > threshold → `shared_interfaces`, removed from cluster glue *(deterministic)*
+10. **Module clustering** — graph cohesion → prefix family → frozen semantic overrides → `unclustered`
+    *(deterministic)*
+11. **Purpose resolution** per file — A declared → B header prose → C whole-file → C\* symbols → unanalyzable
+12. **Module purpose synthesis** — model abstracts over member purposes *(never re-reads source)*
+13. **Confidence scoring** — purpose quality + member coverage + semantic coherence
+14. **Coverage report** — stage distribution · unanalyzable list · duplicates · low-confidence modules
+15. Write `code_map/components.json` + `code_map/files.json`
+
+> **Recomputed every build:** structure, clustering, hub exclusion *(cheap, deterministic)*
+> **Cached per file content hash:** purposes *(expensive, model)*
+> **Re-synthesised only for affected modules:** module purposes
+
+**PHASE 3 — Per-assertion impact · run time · reads the map, never writes it**
+
+16. **Tier 1** — assertion (frame + title + description + assertion) vs **module** purposes → matched
+    modules *(low confidence **widens**, never excludes)*
+17. **Tier 2** — vs **file** purposes within matched modules only → selected files
+18. **Tier 3a** — read selected files' **source** → confirm/refute landing points, verdict implicit assumptions
+19. **Tier 3b** — walk `depends_on`/`used_by` outward from confirmed landings → **ripple**, reaching files
+    no tier selected
+20. → §16 entries → `enrichment.json`
+
+**The map is requirement-blind.** Phases 1–2 never see a requirement; "in scope" is computed per
+assertion in phase 3 and recorded in `enrichment.json`, never in the map. Same rule as the doc index
+(D-A18): *the index describes the artifact, never the destination.*
 
 ## Open — Phase A items 7–8
 
