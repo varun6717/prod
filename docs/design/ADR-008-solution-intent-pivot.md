@@ -42,7 +42,7 @@ writing tasks against a superseded spec produces work that must be redone.
 | 3 | Routing matrix (section × input source) — *keystone* | ✅ **Locked** | D-A13 |
 | 4 | Retrieval within a class — *was highest risk* | ✅ **Locked** — per-artifact index, no embeddings | D-A18 |
 | 5 | Enrichment contract | ✅ **Locked** (§16 schema = per assertion × code location) | D-A6–D-A9, D-A15–D-A17 |
-| 6 | Code-impact without tags | ✅ **Locked** — module-first `purpose` descent → impact entries | D-A8, D-A13, D-A18 |
+| 6 | Code-impact without tags | ✅ **Locked** — module-first tier walk; `tags` removed from §3.3 | D-A19 |
 | 7 | Manifests | ⬜ small, separable | — |
 | 8 | Gates + guardrails | ⬜ needs consolidation; **7 checks accumulated** | D-A1 |
 
@@ -68,7 +68,8 @@ writing tasks against a superseded spec produces work that must be redone.
 | **D-A15** | Jira mapping · where the FRD went · §16 as the story contract | 5 |
 | **D-A16** | **Undispositioned findings live outside the document** · auto-apply vs escalate · `enrichment.json` as permanent record | 5 |
 | **D-A17** | **The disposition walkthrough (interactive)** | 5 |
-| **D-A18** | **Retrieval — the per-artifact index** · no embeddings · grouping & iteration | 4, 6 |
+| **D-A18** | **Retrieval — the per-artifact index** · no embeddings · grouping & iteration | 4 |
+| **D-A19** | **Code-impact without tags** — module-first tier walk · why it isn't tags · purpose creation order | 6 |
 
 > **The enrichment design is split** across **D-A6–D-A9** (arms, provenance, execution) and
 > **D-A15–D-A17** (Jira, §16 contract, disposition). Read both groups together.
@@ -1076,6 +1077,118 @@ escaped.
 A document with **no substructure** — 40 pages, five headings, flat prose beneath. Boundaries must then be
 **synthesised** by paragraph grouping to a target size. It works, but it is the weakest case, and it is
 what the real `fixtures/pdf/` documents should be checked against before this is considered proven.
+
+### D-A19 · Code-impact without tags — the module-first tier walk (item 6)
+
+`files[].tags` is **removed** from `code_map.json` (§3.3). Nothing on the code side is tagged. Matching
+is **model reasoning over prose**, not a set operation.
+
+#### Why this is not "tags with extra steps"
+
+| | Tags | `purpose` |
+|---|---|---|
+| Form | closed vocabulary, 12 terms | free prose, unbounded |
+| Both sides must agree on | **a shared dictionary** | **nothing** |
+| Coverage | sparse — only where applied | dense — every module/file has one |
+| Maintenance | authored, frozen, `vocab_sha`, amended | derived per repo, never curated |
+| Match mechanism | `∩` set intersection (boolean) | model judgment (**explainable**) |
+
+Row 2 is the crux: tags required *both* arms to emit from the same controlled vocabulary, and **that
+shared dictionary is the source of everything being removed** — the F1+3 drift class, §10.1 containment,
+§10.5 emit-map, and the whole onboarding chain. With prose on both sides, nothing must agree.
+
+Row 5 is a real gain: `{"routing"} ∩ {"routing"}` explains nothing. A semantic match carries its
+reasoning — *"module `iso8583` matched: its purpose describes subelement layout, which is where
+subelement 92 is read"* — which becomes the evidence trail in `enrichment.json`, is what the operator
+sees at the disposition walkthrough, and makes a wrong match **reviewable** rather than silently wrong.
+Cite-or-flag applied to code matching, which a set intersection cannot support.
+
+**But the risk is real:** terse purposes (`"handles routing"`) degrade this *into* tag-like behaviour.
+**Rich purpose ≠ tags; terse purpose ≈ tags.** Purpose quality is load-bearing and needs a build-time
+check, not an assumption.
+
+#### The query side creates nothing
+
+There is **no tag emission, no keyword extraction, no intermediate artifact** on the requirement side.
+The query is **raw text**: `frame + requirement title + description + the assertion`.
+
+A *bare* assertion would fail, and this is why the context is required:
+
+```
+bare:  "accepted values are 01–04"
+         → vs "Routes a transaction to the correct card-brand handler"  → no match
+in context:
+  frame:       "Support Visa TL-2027-14 brand indicator in authorization"
+  title:       "Authorization message must carry the brand indicator"
+  description: "field 48 gains subelement 92 for brand routing on acquirer-initiated auths"
+  assertion:   "accepted values are 01–04"
+         → matches iso8583 / routing / settlement                        → ✓
+```
+
+The **assertion narrows what to verify; the requirement context supplies what to search for.** This
+generalises TASK-066 refinement (d).
+
+#### Three tiers (5 000-file / 10-module worked example)
+
+`code_map.json` holds **two** purpose arrays — this is what reconciles "5 000 is too many" with
+"compare against purpose":
+
+| Tier | Compared against | Count | Outcome |
+|---|---|---|---|
+| 1 | `components[].purpose` — **module** tier | **10** | 4 modules match (`api` alone eliminates 2 177 files) |
+| 2 | `files[].purpose`, **only where module ∈ matched** | **1 340** | 4 candidate files |
+| 3 | actual **source** of those files | **4** | findings + `depends_on`/`used_by` closure |
+
+The module tier is the filter that makes the file tier affordable. Beyond cost, it is the **attention**
+argument: a model can weigh 10 purposes carefully; over 5 000 the matching is shallow and unreliable.
+
+**`purpose` seeds; source establishes.** Never conclude from purpose alone.
+
+**Amortisation** (per D-A8's retrieval/reasoning split): the territory — matched modules plus their file
+purposes — is resolved **once per deliverable** and stays resident while assertions iterate against it,
+not re-derived per assertion. This stays compatible with the anti-anchoring rule because what is shared
+is **reference material** (a deterministic artifact), never **conclusions**: fan-out workers each receive
+the same resolved territory and none sees a sibling's findings.
+
+#### How modules and purposes are created — separate steps, ordered
+
+| Step | What | Who |
+|---|---|---|
+| 1 | Partition by language | deterministic (TASK-008) |
+| 2 | Per-file structure + **assign `module` from the directory path** | **deterministic** (TASK-009) |
+| 3 | `merge_edges` | deterministic (TASK-011) |
+| 4 | Write `files[].purpose` | **model** (TASK-011) |
+| 5 | Write `components[].purpose`, **abstracting over its file purposes** | **model** (TASK-011) |
+
+**Modules exist before any purpose is written.** The model never chooses a file's module; it only
+*describes* modules that already exist. Two reasons this is load-bearing:
+
+- **The binding rule** — the structural extractor is deterministic and frozen; the model owns only
+  `purpose`. Model-assigned module boundaries would be the model rewriting structure.
+- **Cacheability** — `commit_sha` is the whole-map cache key (§5 gate), which requires the same commit
+  to yield the same modules every run. Model-assigned boundaries would break reproducibility.
+
+**Order within the model pass matters:** file purposes first, then module purpose synthesised *from
+them*. That is what makes "abstract, don't copy" enforceable — coverage of the member file purposes is
+checkable. Written independently, it could not be verified.
+
+#### Two purpose-quality requirements (tier 1 depends on both)
+
+- **Module purpose must abstract over its files, not copy one.** §3.3's own example has module and file
+  purpose as *identical strings* — harmless in a one-file fixture, fatal at scale: if module purpose is
+  one member's purpose, the tier filters nothing.
+- **Purpose must be specific enough to discriminate.** `"handles routing"` matches every routing-adjacent
+  query and is useless. `"Selects the brand handler from PAN range and applies per-brand fee rules"` is
+  matchable.
+
+#### Degraded case — symmetric with the doc arm
+
+A flat `src/` holding 5 000 files yields **one module**, and tier 1 filters nothing. The fallback must
+stay **deterministic** — cluster on the `depends_on`/`used_by` graph, or on path-prefix patterns —
+because model-proposed boundaries would breach "the model owns only `purpose`."
+
+**Both arms share this failure mode:** flat prose PDF (doc side, D-A18) and flat directory tree (code
+side). Both need synthesised grouping; both are what the real fixtures must be checked against.
 
 ## Open — Phase A items 7–8
 
