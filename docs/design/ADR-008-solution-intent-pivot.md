@@ -43,7 +43,7 @@ writing tasks against a superseded spec produces work that must be redone.
 | 4 | Retrieval within a class — *was highest risk* | ✅ **Locked** — per-artifact index, no embeddings | D-A18 |
 | 5 | Enrichment contract | ✅ **Locked** (§16 schema = per assertion × code location) | D-A6–D-A9, D-A15–D-A17 |
 | 6 | Code-impact without tags | ✅ **Locked** — module-first tier walk; `tags` removed from §3.3 | D-A19 |
-| 7 | Manifests | ⬜ small, separable | — |
+| 7 | Manifests | ✅ **Locked** — 5 artifacts, 3 granularities | D-A22 |
 | 8 | Gates + guardrails | ⬜ needs consolidation; **7 checks accumulated** | D-A1 |
 
 ### Decision index
@@ -72,6 +72,7 @@ writing tasks against a superseded spec produces work that must be redone.
 | **D-A19** | **Code-impact without tags** — module-first tier walk · why it isn't tags · purpose creation order | 6 |
 | **D-A20** | **Module derivation + `purpose` provenance** — measured against the real repo: flat tree, declared `Intention:` headers, versioned duplicates | 6 |
 | **D-A21** | **Onboarding gate report** (stage distribution) · **the consolidated 3-phase process** | 6 |
+| **D-A22** | **Manifests — a split, not a deletion**: 5 artifacts at 3 granularities | 7 |
 
 > **The enrichment design is split** across **D-A6–D-A9** (arms, provenance, execution) and
 > **D-A15–D-A17** (Jira, §16 contract, disposition). Read both groups together.
@@ -1665,7 +1666,71 @@ which is what justifies paying for the staged A/B/C investment at all.
 assertion in phase 3 and recorded in `enrichment.json`, never in the map. Same rule as the doc index
 (D-A18): *the index describes the artifact, never the destination.*
 
-## Open — Phase A items 7–8
+### D-A22 · Manifests (item 7) — a split, not a deletion
+
+Reading the three files showed they perform **six** distinct jobs. The instinct to remove them was aimed
+at the parts that genuinely die, but those were tangled with parts that do not.
+
+#### `onboarding_manifest.yaml` held three unrelated concepts
+
+| Contents | Fate |
+|---|---|
+| `extractors[]` — per-**language** freeze (path, `extractor_sha`, tools, globs, coverage floor) | **survives** → `extractor_manifest.yaml` |
+| `adequacy_threshold` + `vocab_sha` | **dies** — pure tag-chain artifacts |
+| `repos[]` — per-**repo** build records (`content_hash`, `built_with_extractor_sha`, `last_built`) | **survives, wrong location** → the cache |
+
+**`repos[]` exposed a design smell:** it is **mutable build state inside a frozen, SHA-pinned registry
+artifact**. Every map build wants to update `last_built`/`content_hash`, dirtying the registry that
+§6.6.1 requires to stay frozen. It is also exactly where the 4-branch gate reads its cache key and where
+`profile_sha` belongs — real and needed, but as cache, not registry config.
+
+**Why `adequacy_threshold` dies specifically:** it measures `untagged_ratio` — the fraction of entities no
+vocabulary term covered. With no tagging step nothing can be untagged; the ratio has **no denominator**.
+The *concern* survives and is answered better: the D-A21 gate distribution (human-authored vs
+model-inferred vs uncovered) plus per-module `purpose_confidence` replace one binary flag with graded
+quality carrying provenance. **Direct heir:** a profile-level `warn_if_human_authored_below` threshold.
+
+#### `registry_manifest.yaml` — keep it, shrink it
+
+It has a job nothing else does: telling `hydrate.py` what to copy into a run workspace. Hardcoding those
+paths in Python would be worse. But its **17 hand-listed doc files** are a maintenance trap — add an ADR,
+forget the manifest, and it silently never reaches a run. That nearly bit already: ADR-006/007 are named
+there but were untracked in git.
+
+```yaml
+include:
+  trees: [core/, overlays/, docs/]
+exclude: ["**/__pycache__/**", "**/*.pyc", "**/.git/**", "**/.DS_Store"]
+```
+
+Same file, same job, 54 lines → 4.
+
+#### `overlay_manifest.yaml` — survives, contents rewritten
+
+Real work: single source of truth for the runtime-tool seam, and §10.2 parity checks against it. Both
+tools stay (D-A0). ADR-008 rewrites its **contents**: `brd_*` → `solution_intent_*`, `frd_*` **retire**,
+enrichment + disposition-walkthrough roles added, `prompt_files` re-pointed.
+
+#### End state — five artifacts, three granularities
+
+| File | One per | Function |
+|---|---|---|
+| `registry_manifest.yaml` | registry | what `hydrate.py` copies into a run, plus excludes |
+| `overlay_manifest.yaml` | registry | runtime-tool seam: roles, prompt files, per-tool paths/launch; drives §10.2 |
+| `extractor_manifest.yaml` | **language** | frozen extractor per language — one C extractor serves every C repo |
+| `code_profiles/<repo>.profile.yaml` | **repo** | how to read *this* repo: labels, signal priority, thresholds, frozen overrides, gate record |
+| `cache/code_maps/index.yaml` | repo build | 4-branch gate cache lookup — **mutable, outside the frozen registry** |
+
+The extractor/profile split is what delivers the "dynamic to other codebases" property: a second C repo
+**reuses the extractor untouched** and gets its own profile.
+
+**Also dying (not manifests):** `vocabulary.<domain>.yaml` entirely · `adapter.yaml`'s `emits` · the
+`topics` layer in the profiles · `frd_profile`.
+
+**Net:** not fewer files — but no hand-maintained enumerations, no mutable state in a frozen artifact, and
+every remaining file doing exactly one job.
+
+## Open — Phase A item 8
 
 Nothing below is decided. Items 3 and 4 carry the risk: item 3 (the routing matrix) **sizes**
 item 4, and item 4 (retrieval within a class) is the only step where the honest answer may be
