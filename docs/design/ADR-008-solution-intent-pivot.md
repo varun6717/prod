@@ -1178,6 +1178,53 @@ the same resolved territory and none sees a sibling's findings.
 them*. That is what makes "abstract, don't copy" enforceable — coverage of the member file purposes is
 checkable. Written independently, it could not be verified.
 
+#### `components[]` carries an explicit `members[]` list
+
+`files[].module` alone is functionally sufficient for tier 2 (filter `files[] where module == matched`)
+but forces loading **all** file entries to find a few. `components[]` therefore carries an explicit
+`members: [path, …]`, so tier 1 reads only the small `components` array (~10² entries), obtains member
+paths, and tier 2 looks up **only those** file entries. The redundancy with `files[].module` is safe —
+both are generated together — and a build check asserts they agree.
+
+*Scale option, not taken now:* split the map into a small `components` file and a large `files` file
+loaded selectively. That is a §3.3 contract change; only do it if the single map proves too large to hold.
+
+#### Cluster-quality disagreement — detect and report, never auto-pivot
+
+Graph cohesion and semantic coherence are independent signals, so they can disagree: if the graph groups
+40 files but their purposes are heterogeneous, the synthesised module purpose comes out vague. **That is
+evidence the clustering was wrong, not merely that the text is poor** — two signals agreeing is
+confidence, disagreeing is a flag.
+
+**Auto-pivoting the clustering method on that signal is forbidden**: it would break determinism (the map
+must be reproducible from `commit_sha`; a method that varies by model judgment is not) and breach the
+binding rule (a model judgment driving structure).
+
+| When | Behaviour |
+|---|---|
+| **Onboarding** (human-gated) | Low-coherence clusters surface in the profile review; the human adjusts the signal profile — clustering parameters or a manual override. **Method changes here, with a person.** |
+| **Runtime** (per-commit rebuild) | Profile is frozen; nothing pivots. The module carries `purpose_confidence: low`. |
+
+**Low confidence makes tier 1 *more* inclusive, not less.** If the synthesised purpose cannot be trusted
+to describe the cluster, it cannot be trusted to *rule the cluster out* either — and the asymmetry
+matters: a false positive costs tier 2 some work, a false negative is missed impact. **Confidence
+modulates selectivity, never method.**
+
+A module that repeatedly contains impacts tier 1 failed to predict is evidence to revisit the profile at
+the next onboarding review — human-triggered, never an automatic mid-flight switch.
+
+#### Purpose resolution vs module purpose synthesis
+
+| | **Purpose resolution** (stages A/B/C) | **Module purpose synthesis** |
+|---|---|---|
+| Produces | one purpose per **file** | one purpose per **module** |
+| Reads | the file — its header (A/B) or its code (C) | only the **already-resolved file purposes** |
+| Count (Stratus) | 6 165 | ~10² |
+| Cost | the expensive part — stage C reads source | cheap; short strings, never source |
+
+Synthesis **never re-reads code**. Hence the fixed ordering: **resolution completes before synthesis** —
+one cannot abstract over purposes that do not yet exist.
+
 #### Two purpose-quality requirements (tier 1 depends on both)
 
 - **Module purpose must abstract over its files, not copy one.** §3.3's own example has module and file
