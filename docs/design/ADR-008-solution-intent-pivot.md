@@ -1556,6 +1556,43 @@ Three things a plain approval cannot do: distinguish **human-authored from model
 ceiling); surface **tier-1 entry count against target** (the economy problem, while still fixable); and
 state the **uncovered set explicitly** rather than implying completeness.
 
+#### The gate actions
+
+All three are **pre-freeze only** — after approval the profile is frozen data and none exist at runtime.
+That is the determinism guarantee. They compose freely.
+
+**`adjust profile`** — edit signal-profile parameters, then re-review. Cheap to iterate, because
+clustering is deterministic graph arithmetic: adjust → recompute → updated distribution → adjust again.
+Only the freeze is one-way.
+
+| Parameter | Why change it |
+|---|---|
+| hub threshold | scan proposes fan-in > 200 but 40 of those are genuinely modular, not shared surfaces |
+| cluster size policy | min-merge / max-split bounds — a tail of 2-file clusters, or one 800-file giant |
+| purpose label aliases | add a convention the scan missed (`Function:`, a team-specific label) |
+| derivation priority | if the graph is weak in *this* repo, promote another signal ahead of it |
+| confidence thresholds | what counts as low enough to widen tier 1 |
+
+**`skip stage C`** — decline the expensive whole-file model pass. Those files do **not** vanish: they
+fall through to **C\* (symbol names)**, and only what C\* cannot cover becomes unanalyzable.
+
+*When it is right:* cost is real and the population is low-value (test harnesses, generated code); or a
+**fast first map** is wanted to validate the pipeline before paying for the full build.
+*What it costs:* those files get weaker or no purposes, so tiers 1–2 cannot match them — reachable only
+via tier-3b closure, and only if structurally connected. A visible coverage reduction, not a hidden one.
+**Reversible** — purposes are cached per file content hash, so running C later fills the gaps
+incrementally. Skipping at onboarding is a **deferral, not a permanent exclusion**.
+
+**`group singletons`** — triggers fallback step 3 on the singleton population. The model reads their
+purposes (short strings, cheap) and **proposes** groupings by semantic similarity; the human reviews the
+proposal **as a diff** — which files move into which group — approving or rejecting per group. Approved
+groupings freeze into the profile as explicit membership overrides.
+
+*Effect (worked example):* **997 tier-1 entries → ~250** — the economy problem solved at the only point
+it is cheap to solve. *Risk:* a bad grouping yields a module with a vague synthesised purpose — the
+cluster-quality problem by another route, which is why it is reviewed as a diff rather than auto-applied,
+and why the coherence check still runs on the result.
+
 #### The consolidated process
 
 **PHASE 1 — Onboarding · once per repo · human-gated**
