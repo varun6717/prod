@@ -1,6 +1,6 @@
 # SURVEY — Stratus repo header convention + module-grouping signals
 
-**Status:** ⬜ not yet run · **Run on:** the VDI, with Copilot, against the real `Stratus_Repo`
+**Status:** ✅ **RUN 2026-07-29** — 6 165 files · report at `Stratus_Repo/HEADER_SURVEY.md` · results folded into ADR-008 D-A20
 **Feeds:** `ADR-008-solution-intent-pivot.md` → **D-A19 / D-A20** (item 6, code-impact without tags)
 
 ---
@@ -35,10 +35,29 @@ This survey measures what is actually there, rather than designing against an as
 
 ## The two numbers that decide the design
 
-| Number | If high | If low |
+| Number | Result | Verdict |
 |---|---|---|
-| **Purpose-field coverage** (% of files declaring an intent) | `Intention:` carries tier 1; the model only *verdicts* declared vs actual | the include graph must carry tier 1, and model-inferred purpose becomes the main path, not the fallback |
-| **Specific vs generic** (of those that declare one) | tier 1 filters well | tier 1 degrades toward tag-like behaviour — the failure mode D-A19 warns about |
+| **Purpose-field coverage** | **58.0%** (3 576 / 6 165) | Moderate — declared purpose carries the majority; the **include graph must carry the other 42%**. Tier 1 is a **hybrid**, not "purpose alone." |
+| **Specific vs generic** | **96.7% specific** (3 457 / 119) | **Strong** — the terse-purpose failure mode D-A19 warns about is essentially **absent** (3.3%). |
+| **Leading-comment coverage** | **96.1%** | Nearly every file has *some* header block — see the recoverable-population note below. |
+
+**The discovery instruction was decisive.** Purpose appears under `PURPOSE` (2 403), `Intention` (623),
+`DESCRIPTION`/`Description` (363), `Purpose` (324), `SYNOPSIS` (126), `Descr`/`Desc` (23), plus typos
+(`Putpose` ×4). **`Intention:` is only 17% of the total** — counting it alone would have reported ~10%
+coverage instead of 58%, a **5.7× under-report**, and the design would have been rewritten on false
+evidence.
+
+**Signal priority came out close to inverted** from the draft: the **include graph is primary**
+(95.1% of includes resolve to a repo file, avg 9.1 per file), declared purpose is the semantic second,
+and **prefix families are weak** (903 tokens, 24% singletons, cryptic — `s`, `md`, `or`). `.c`/`.h`
+pairing is unreliable (1 157 `.c` files have their `.h` in the other directory).
+
+## Follow-ups this raised
+
+1. **Is the missing 42% uniform or clustered?** Module purposes are synthesised from member file
+   purposes, so a concentrated gap makes tier 1 fail in one subsystem while the aggregate looks healthy.
+2. **~2 300 files have a header but no purpose-labelled field** (the 96.1% / 58.0% gap) — likely usable
+   prose under no label, which would push effective coverage well above 58%.
 
 Everything else in the survey is a secondary grouping signal, collected because it is nearly free
 during a scan that is happening anyway.

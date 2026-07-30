@@ -1208,26 +1208,57 @@ draft. Both corrections make the design **more** deterministic, not less.
 `AP_ISO_message_v2.c`, `ap_io.c`, `ap_dc_server.c`, `ap_srch.c`, `ap_clean_m.c`, `ansi.h`,
 `AOAInquiryService.h`, … Directory partition yields **one module**; tier 1 filters nothing.
 
-**Module grouping signals, all deterministic, in priority order:**
+**Module grouping signals, all deterministic — priority order REVISED by the full survey
+(6 165 files, 2026-07-29; `Stratus_Repo/HEADER_SURVEY.md`). The first draft's ordering was close to
+inverted:**
 
-| Signal | Evidence in this repo |
-|---|---|
-| **Prefix families** — split on `_` and camelCase | `amex_*` / `Amex*` / `amx_*`, `AP_ISO_*`, `ap_*` |
-| **`.c` / `.h` pairing** — always one unit | `ap_io.c` + `ap_io.h` |
-| **Include / dependency-graph cohesion** — internal vs external edge ratio | from `depends_on` / `used_by`, already extracted |
-| **Semantic similarity of declared intentions** (finding 2) | "routines to lookup the amex se number" |
-| **Directory path** — *when present* | contributes **nothing** here |
+| Signal | Draft rank | **Survey verdict** | Measured |
+|---|---|---|---|
+| **Include / dependency-graph cohesion** | 3rd | **PRIMARY** | 56.5% of files use local includes, avg **9.1** each, **95.1% resolve to a repo file** → graph is derivable and is the strongest deterministic signal |
+| **Declared-purpose semantic similarity** | 4th | **strong second** | 96.7% specific where present (finding 2) |
+| **Prefix families** — split on `_`/camelCase | **1st** | **weak — tie-break only** | 903 tokens; largest `s` (390), `md` (323), `sb` (142), `pti` (124); **24% singletons**; tokens cryptic. `s`/`md`/`or` are naming noise, not modules |
+| **`.c` / `.h` pairing** | 2nd | **unreliable** | **1 157** `.c` files have their `.h` in the *other* directory |
+| **Directory path** | 5th | nothing | as expected — flat tree |
 
-Prefix alone **over-groups**: `ap_*` spans io, servers, search, cleanup and records — not one module. So
-prefixes **seed** the partition and graph cohesion **refines** it. Grouping must stay deterministic
-(binding rule + `commit_sha` cache key); the *label* is cosmetic and may be derived from prefix or purpose.
+So the **include graph carries module grouping**, with declared purpose as the semantic refinement and
+prefixes only breaking ties. Grouping must stay deterministic (binding rule + `commit_sha` cache key);
+the *label* is cosmetic and may be derived from prefix or purpose.
+
+*(Only **one** purely-numeric filename repo-wide — `722.c`. That worried the draft more than warranted.)*
 
 Worked result — 8 modules from ~30 flat files: `iso_message` · `amex_mapping` · `amex_crypto` ·
 `amex_line` · `ap_io` · `ap_server` · `ap_search` · `ap_maintenance`.
 
-#### Finding 2 — every file declares its own purpose
+#### Finding 2 — most files declare their own purpose, under many different labels
 
-Each file carries a structured header with an explicit **`Intention:`** field:
+> **Survey result (6 165 files):** purpose-field coverage **58.0%** (3 576) · of those, **96.7% specific**
+> (3 457 specific / 119 generic) · leading-comment coverage **96.1%**.
+>
+> **Net: tier 1 is viable as a HYBRID** — declared purpose where present (high quality), include-graph
+> fallback for the 42% without one. **Not "purpose alone."**
+>
+> The **96.7% specificity is the decisive number**: the terse-purpose failure mode D-A19 warns about is
+> essentially **absent** (3.3%). Where a purpose exists, it discriminates.
+
+**The label varies widely — assuming one keyword would have been a 5.7× under-report:**
+
+| Label | Files |
+|---|---|
+| `PURPOSE` | 2 403 |
+| `Intention` | 623 |
+| `DESCRIPTION` / `Description` | 363 |
+| `Purpose` | 324 |
+| `SYNOPSIS` | 126 |
+| `Descr` / `Desc` | 23 |
+| typos — `Putpose` ×4, `MODFICATION HISTORY` | — |
+
+**`Intention:` is only 623 of 3 576 (17%).** Counting it alone — the two-screenshot assumption — would
+have reported ~10% coverage instead of the real 58%, and D-A19 would have been rewritten around the
+include graph alone on false evidence. Two mechanical consequences: label matching must be **fuzzy**
+(the typos are real), and the extractor needs a **label alias set**, not a single field name. Parser
+noise to ignore: `http` (8, from URLs), `conditions are met` (6, license boilerplate).
+
+Files carry a structured header; the original observed form was `Intention:`: 
 
 ```c
 /* amex_se_map_io.c  v001  210714  mtm  */
@@ -1277,17 +1308,36 @@ based on the declared intention alone.
 Net effect: the **code arm now has better provenance than the doc arm** — declared intentions verified
 against source, versus model-written summaries on the doc side.
 
-#### Finding 3 — versioned duplicates are an impact hazard
+#### Finding 3 — versioned duplicates are an impact hazard, but a bounded one
 
 `AP_ISO_message.c` **and** `AP_ISO_message_v2.c` both exist. If an assertion lands on message parsing,
 does it change v1, v2, or both? Getting it wrong means shipping to the dead path. Versioned file pairs
-(`*_v2`, `*_old`, `*_new`) must be surfaced as a **first-class finding requiring disposition** (D-A16),
-never silently resolved by the agent.
+must be surfaced as a **first-class finding requiring disposition** (D-A16), never silently resolved by
+the agent.
 
-#### Available but not built on
+> **Survey result:** **38** suffix files (`_v2`, `_v6`, `_test`, `_old`) and **no silent duplicate
+> stems**. So the hazard is real but **small and fully enumerable** — the 38 can be listed up front
+> rather than discovered per run.
 
-`MODIFICATION HISTORY` is also structured, so per-file change history is deterministically extractable.
-Recently-churned files being higher-risk is a plausible ranking input — noted, not in scope.
+#### Two questions the survey did not answer — worth a short follow-up before Phase B
+
+1. **Is the missing 42% uniformly spread, or clustered?** Tier 1 needs good *module* purposes, and those
+   are synthesised from member file purposes. A module where 6 of 10 files declare a purpose synthesises
+   fine. But if the gap is **concentrated** — an entire subsystem with zero declared purposes — those
+   modules get weak purposes and tier 1 fails *specifically there* while the 58% aggregate looks healthy.
+2. **The 96.1% / 58.0% gap is a recoverable population.** ~2 300 files have a header block but **no
+   purpose-labelled field**. Some of that is very likely usable purpose prose sitting under no label at
+   all. Recovering even part of it pushes effective coverage well above 58%.
+
+#### Also recorded
+
+- **Generic purposes must be flagged, not trusted.** Only 119 (3.3%), but they should carry
+  `purpose_quality: generic` so tier 1 does not weight them.
+- **`.h` placement:** 1 781 in `include/` vs 1 767 in `source/` — a **file-type** convention, not a
+  functional one, confirming the split carries no module signal.
+- **Available, not built on:** `MODIFICATION HISTORY` is structured, so per-file change history is
+  deterministically extractable. Recently-churned files being higher-risk is a plausible ranking input —
+  noted, out of scope.
 
 ## Open — Phase A items 7–8
 
