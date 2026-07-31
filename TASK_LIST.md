@@ -2,12 +2,17 @@
 
 **The one task list.** Everything open lives here; everything done is a one-line ledger entry
 below. Previously split across `TASK_LIST.md` / `TASK_VDI.md` / `TASK_VDI_BOOTSTRAPS.md` —
-consolidated 2026-07-29. Full specs of completed tasks (TASK-000–055) and the VDI bootstrap
-prompts are in git history at commit `f8f2ae1` and earlier.
+consolidated 2026-07-29. Full specs of completed tasks (TASK-000–063B) are in git history
+(`f8f2ae1` and earlier); the pre-pivot open specs (TASK-056, 064–083) are at `0d7d8aa` and earlier.
 
-**Where the work runs.** The MVP (BRD→FRD, single domain, SharePoint + Bitbucket) is running.
-Milestone 5B is executed **on the JPMC VDI with Copilot**; the external Claude Code build is
-where generic pieces are built and proven first. Both use this file.
+**Re-cut 2026-07-31 (ADR-008 Phase D).** The open work below is rebuilt from
+`docs/design/ADR-008-impact-analysis.md` (Phase C — every file classified keep/amend/retire).
+The pipeline is now **Solution Intent v1 → enrichment → v2 → Jira (4-level)**. New tasks are
+numbered **TASK-100+** so the retired numbers keep their historical meaning in git; see
+"Disposition of the pre-pivot open tasks" before OPEN WORK.
+
+**Where the work runs.** The cutover is built and proven **here** (external Claude Code build)
+end-to-end over mock fixtures per source type (D-A24); the VDI port follows via `VDI_WIRING.md`.
 
 **How to use it.** Pick the first unchecked task, top-down. Follow the **Execution protocol**.
 Tick the box only when every Acceptance condition is true and the proof + build checks are
@@ -17,71 +22,82 @@ green. **Disk + git are ground truth** — never rely on something said in an ea
 
 ## Execution protocol (run this loop for EVERY task)
 
-1. **Read the cited design first.** Each task names the exact `docs/…` §sections and files under
-   **Reads** — open them. Do not work from memory; the cited section is the contract.
+1. **Read the cited design first.** Each task names the exact `docs/…` §sections and D-A blocks
+   under **Reads** — open them. Do not work from memory; the cited section is the contract.
+   (`ADR-008`'s D-A blocks are **normative** for the new subsystems until the spec's next
+   consolidation — the TECH_SPEC banner says which sections they override.)
 2. **Verify dependencies exist** (the **Depends on** files). If one is missing, stop and say so.
 3. **Implement the GENERIC piece.** Build what is testable here. For anything that must hit a
    **real external API or secret store**, do NOT inline it — isolate it in **its own function**
    carrying a `[TBD — VDI]` placeholder (raises `NotImplementedError`), plus an **offline
-   local-path convenience** so the piece runs end-to-end here (hard rule **S**). On the VDI you
-   **edit that one placeholder function in place** to add the real call + JPMC auth (the way
-   `ingest_sharepoint.py`'s `_download_pdf` and `ingest_confluence.py`'s `_fetch_confluence`
-   were wired). Keeping the env-specific call in its own function is what makes that a clean,
-   no-merge-conflict edit.
+   local-path convenience** so the piece runs end-to-end here (hard rule **S**). On the VDI that
+   one placeholder function is edited in place (the way `_download_pdf` / `_fetch_confluence`
+   were wired).
 4. **Verify.** Run the task's **Proof**, then **`python core/scripts/build_checks.py`** — all
-   5 §10 checks must be green. A connector also runs its `fixtures/<type>/verify_*.py`.
-5. **Publish so the UI run sees it** (only after green):
-   `python core/scripts/publish_registry.py <registry-repo-url> --branch feature/pdlc_app`
-   then delete the stale run workspace and **re-Generate** from the UI to test end-to-end.
-   (Local edits are invisible to the UI until the registry is re-published.)
+   **registered** §10 checks must be green (3 checks during the cutover after TASK-100; 4 from
+   TASK-108 when §10.5′ registers). A connector also runs its `fixtures/<type>/verify_*.py`.
+5. **Publish — ⏸ SUSPENDED during the cutover.** Re-publishing mid-cutover would ship a
+   half-re-cut core; the published `registry_sha` keeps serving the old pipeline until the new
+   one is whole. The publish + re-Generate step **resumes at TASK-127** (acceptance), which
+   re-publishes and re-tests the UI path end-to-end.
 6. **Tick the box** and commit (and push, so the external copy stays current).
 
-> ✅ **A task is done when:** Acceptance true · its proof green · `build_checks.py` (§10 ×5)
-> green · the registry re-published (so the UI run uses it) · box ticked.
+> ✅ **A task is done when:** Acceptance true · its proof green · `build_checks.py` (registered
+> checks) green · box ticked · committed.
 
 ---
 
-## Hard rules (never violate — condensed from `CLAUDE.md` / `docs/`)
+## Hard rules (never violate — condensed from `CLAUDE.md` / `docs/` / ADR-008)
 
 - **S. Build-and-port / edit-in-place discipline.** Generic code is shared and built+tested first;
   any real API/secret is **isolated in its own function** carrying a `[TBD — VDI]` placeholder
-  (raises `NotImplementedError`) plus an **offline local-path convenience** so the piece runs
-  end-to-end in the external build. On the VDI you **edit that one placeholder function in place**
-  to add the real call + JPMC auth — **no `/vdi` plugin folder, no auto-load hook, no separation.**
-  (V decision 2026-06-30 — this supersedes the prior `/vdi`-plugin rule everywhere it appears.)
-- **Two seams only (FR-XS-01).** The **domain seam** (adapter / profiles / template / vocabulary)
-  and the **runtime-tool seam** (instruction file / wrappers / prompts / launch). The per-language
-  **extractor** is the one non-domain variation point, governed by the **onboarding gate**.
+  (raises `NotImplementedError`) plus an **offline local-path convenience**. On the VDI you **edit
+  that one placeholder function in place** — **no `/vdi` plugin folder, no auto-load hook.**
+  (V decision 2026-06-30; extended to everything ADR-008 adds by D-A24.)
+- **Two seams only (FR-XS-01).** The **domain seam** (adapter pack / `si_profile` /
+  `jira_template` — the vocabulary is deleted) and the **runtime-tool seam** (instruction file /
+  wrappers / prompts / launch). Non-domain variation points: the per-language **extractor**
+  (`extractor_manifest`, onboarding-gated) and the per-repo **signal profile**
+  (`code_profiles/<repo>.profile.yaml`, D11.4 gate). Nothing else varies.
 - **Binding rationales.** The structural extractor is **deterministic + frozen** — never
-  model-rewritten at runtime. The map-build gate is **model-free**. The model owns only
-  `purpose` + `tags` in the code map. **Ingestion never branches on `domain`.** The **only**
-  external mutation of a run is the Jira push. Scope changes are operator-decided.
+  model-rewritten at runtime. Map **structure** (partition, edges, hub exclusion, module
+  clustering, membership) is **deterministic**; modules exist **before** any purpose is written;
+  the model owns only **text** — file/module `purpose` prose and doc-index summaries. The
+  map-build **gate is model-free** (4 branches on `(commit_sha, profile_sha)`). Gate actions are
+  **pre-freeze only**: approved model proposals freeze into the profile **as data**
+  (propose-never-bless). **Ingestion never branches on `domain`** (routing by operator-declared
+  `disposition` is config, not domain logic). **Enrichment never deletes** (corrections rewrite in
+  place, with provenance); findings that are ambiguous, scope-moving, or would overrule a human
+  **escalate — never auto-apply**. The **only** external mutation of a run is the Jira push
+  (G3-gated, operator-confirmed). Scope changes are **operator-decided**.
+- **Totality — never silently exclude.** Every file is in exactly one module or `unclustered`;
+  every file has a purpose or is listed `unanalyzable[]`; every extract line is inside exactly one
+  index entry. Silent invisibility is the failure mode this design exists to prevent — declare
+  residue, never hide it (D-A19/D-A18, family-2 checks).
 - **Descriptor parity.** Every source connector emits the **same descriptor shape** as
-  `ingest_file.py` (`type, source, url/…, staged_path, auth_ref, ingest_ts`). Downstream
-  (`pdf_extract → article_summarize`, or the routed lane) must not change.
-- **Onboarding skills: propose-never-bless.** The onboarding aids (extractor/domain/profile/
-  adapter) **propose reviewable artifacts**; a human **freezes**. Amendments are **build-time**
-  (committed + re-pinned), never runtime mutations. §10 build checks gate every freeze.
-- **Cite-or-flag.** Every substantive artifact claim is grounded to a source/frame/operator
-  answer or marked `[TBD — unsourced]`. Never invent.
-- **§10 must stay green.** No task lands with a red build check. Connectors keep §10.4; the
-  domain seam keeps §10.1/10.3/10.5; overlays keep §10.2.
-- **Ladder discipline.** If a task would change a pinned contract or reopen D1–D10, **stop and
-  flag it** — unless the task explicitly says it is a ladder amendment (063B, 081), in which case
-  amend the design *as part of the task* and add the port note.
+  `ingest_file.py` (`type, source, url/…, staged_path, auth_ref, ingest_ts`).
+- **Cite-or-flag.** Every substantive artifact claim grounds to a source/frame/operator answer or
+  is `[TBD — unsourced]`. Provenance classes drive enrichment correction authority (D-A6):
+  source-derived → auto-correct; operator/frame → escalate; `[TBD]` → auto-fill. `Prior Artifact`
+  is reference-only; `Other` is never a sole citation.
+- **§10 must stay green.** No task lands with a red **registered** check. §10.2 parity, §10.3
+  domain artifacts, §10.4 connectors always; §10.5′ disposition-class totality from TASK-108.
+- **Ladder discipline.** If a task would change a pinned contract or reopen **D1–D11** (or an
+  ADR-008 D-A block), **stop and flag it** — unless the task explicitly says it is a ladder
+  amendment, in which case amend the design *as part of the task* and add the port note.
 
 ---
 
 ## VDI environment notes
 
 - **Python deps.** Scripts need `httpx` + `PyYAML`; extractor tasks also need
-  `tree-sitter==0.25.2` + `tree-sitter-c==0.24.2` (ADR-001). No venv is assumed — use whatever
-  Python you run the repo with. Check: `python -c "import httpx, yaml"`.
-- **Auth (the seam, env backend).** Set as **user** env vars so the run inherits them:
-  `PDLC_AUTH_BITBUCKET` (+ `_USER`), `PDLC_AUTH_SHAREPOINT` (+ `_USER`), and for new connectors
-  `PDLC_AUTH_CONFLUENCE` / Jira likewise. The token never lands on disk — `auth_ref` is a pointer.
+  `tree-sitter==0.25.2` + `tree-sitter-c==0.24.2` (ADR-001). No venv is assumed.
+  Check: `python -c "import httpx, yaml"`.
+- **Auth (the seam, env backend).** User env vars: `PDLC_AUTH_BITBUCKET` (+ `_USER`),
+  `PDLC_AUTH_SHAREPOINT` (+ `_USER`), `PDLC_AUTH_CONFLUENCE`, `PDLC_AUTH_JIRA`. The token never
+  lands on disk — `auth_ref` is a pointer.
 - **Registry / code repos.** Registry = `feature/pdlc_app`; Stratus code = `feature/c_repo`
-  (one Bitbucket repo, two branches). Re-publish to `feature/pdlc_app` after any `core/` change.
+  (one Bitbucket repo, two branches). Re-publish resumes at TASK-127.
 - **Copilot layout (already fixed).** Generate emits `.github/copilot-instructions.md` +
   `.github/prompts/*.prompt.md`; agents are `*.agent.md` at the run root.
 
@@ -89,21 +105,20 @@ green. **Disk + git are ground truth** — never rely on something said in an ea
 
 ## Citation key
 
-`FR-…` / `NFR-…` / `D1`–`D10` → `docs/REQUIREMENTS.md` · `§n.n` → `docs/TECH_SPEC.md` ·
-`ADR-00n` → `docs/design/` · **Model key:** `Sonnet` = default · `Opus` = deep design artifact
-or a mistake that propagates far.
+`FR-…` / `NFR-…` / `D1`–`D11` → `docs/REQUIREMENTS.md` · `§n.n` → `docs/TECH_SPEC.md` ·
+`D-A n` → `docs/design/ADR-008-solution-intent-pivot.md` · `ADR-00n` → `docs/design/` ·
+`impact §n` → `docs/design/ADR-008-impact-analysis.md` · **Model key:** `Sonnet` = default ·
+`Opus` = deep design artifact or a mistake that propagates far.
 
 ---
 
 ## Standing port note (not a numbered task)
 
-**Real JPMC host / secret validation.** 5A built the auth seam (TASK-052), cloned through it
-from a local-remote Bitbucket (TASK-054), and pulled SharePoint from a stub (TASK-055). What
-remains is binding `auth_ref` to the **real JPMC secret store** and validating against the
-**live** Bitbucket / SharePoint / Confluence endpoints. The mechanism is unchanged — only the
-secret backend + endpoints differ, and per hard rule **S** that is an in-place edit of each
-connector's `_fetch_*` / `_download_*` placeholder. Environment-specific; done as the
-connectors land on the VDI, not as its own task. (FR-DC-02/11/12, §7.)
+**Real JPMC host / secret validation.** The auth seam (TASK-052), live Bitbucket clone
+(TASK-054), and the SharePoint/Confluence connectors exist; what remains is binding `auth_ref` to
+the **real JPMC secret store** and validating live endpoints — an in-place edit of each
+connector's placeholder per hard rule **S**, done as connectors land on the VDI (FR-DC-02/11/12,
+§7). See `VDI_WIRING.md`.
 
 ---
 
@@ -111,6 +126,9 @@ connectors land on the VDI, not as its own task. (FR-DC-02/11/12, §7.)
 
 > One line per completed task. Full specs are in git history (`f8f2ae1` and earlier).
 > This is what a fresh session reads to know what exists without re-deriving it.
+> ⚠ **Post-ADR-008 reading note:** entries describing vocabulary/tag/BRD/FRD machinery record
+> *what was built then*; much of it is retired or recast by the D-milestones below — the impact
+> analysis says which. The ledger is history, not current architecture.
 
 **Setup · Phase 0 (UI design, chat/JSX only)**
 - [x] TASK-000 — Repo scaffold: directory tree, .gitkeeps, initial git commit
@@ -172,8 +190,6 @@ connectors land on the VDI, not as its own task. (FR-DC-02/11/12, §7.)
 - [x] TASK-047 — §10.2 `check_overlay_parity.py`
 - [x] TASK-048 — `build_checks.py` runner (all five) + `metrics_scan.py`
 - [x] TASK-049 — Spine end-to-end acceptance: PDF + repo → BRD vN → FRD; flag loop + G1 reopen; §10 green
-
-**Phase 5 · Milestone 5A — Self-serve run**
 - [x] TASK-050 — Generate backend service (FastAPI): config → `UI_INPUT.yaml` → `generate.py` (G0)
 - [x] TASK-051 — React Run Configurator (5 tabs) → emits §3.1 `UI_INPUT.yaml`; Generate + hand-off
 - [x] TASK-052 — `jpmc_adapters/auth.py` real `resolve_auth` (auth_ref → secret store)
@@ -184,9 +200,32 @@ connectors land on the VDI, not as its own task. (FR-DC-02/11/12, §7.)
 **Phase 5 · Milestone 5B — carried fixes + connectors**
 - [x] TASK-060 — `runtime_tool` threaded through G1/G2 telemetry — `_runtime_tool(ledger_dir)` helper in both validators reads the run's sibling `UI_INPUT.yaml`; copilot runs record `tool: copilot`. *(built+verified external; pending VDI port)*
 - [x] TASK-061 — D5 `card_brand`/`message_format` `emitted_by` reconciled — D5 table now matches `vocabulary.yaml` on all 12 tags; §10.5 green. **JPMC-side D5 still to fix at port.**
-- [x] TASK-062 — `UI_INPUT.example.yaml` frame alignment — **skipped by V decision 2026-06-30.** Cosmetic only: the Discover/Mastercard mismatch is confined to the static example fixture (and greyed UI placeholder text) and never reaches an operator-driven run. Closed without change; revisit only for a demo where coherence matters.
+- [x] TASK-062 — `UI_INPUT.example.yaml` frame alignment — **skipped by V decision 2026-06-30.** Cosmetic only; superseded by the TASK-103 re-cut.
 - [x] TASK-063 — Confluence connector `ingest_confluence.py` — mirrors `ingest_sharepoint.py`; `pull_page()` emits the exact `ingest_file` descriptor; `_fetch_confluence` is the lone `[TBD — VDI]` placeholder (`set_fetcher` seam for tests); lazy auth; `main()` stages multiple pages (one link = one page). Fixtures `fixtures/confluence/{discover_routing_kb,message_format_kb}.html` + `verify_confluence.py` (13 checks). **VDI:** edit `_fetch_confluence` with the real REST call + auth; no other change.
-- [x] TASK-063B — Per-source-type doc-pipeline routing — `adapter.yaml` `docs_pipeline` now a two-lane mapping (`default` PDF lane + `confluence: [confluence_tag]`), bare-list back-compat preserved; `confluence_tag.skill.md` authored (tag-only, 6 tags, `certification` excluded); `vocabulary` `emitted_by` += `confluence_tag`, `vocab_sha d5frozen-r2 → -r3`; §10.5 unions across lanes + requires a `default` lane; `source_processor` routes by `src.type` (never `domain`); UI Confluence row un-deferred + `emit.js` wired + `verify_frontend` asserts it emits. Proof `fixtures/adapter_routing/verify_adapter_routing.py` (11 checks). **Port note:** amends §6.6.3 + §10.5 — carry into the JPMC-side spec. **VDI:** re-publish registry + `vite build` so the un-deferred Confluence row ships.
+- [x] TASK-063B — Per-source-type doc-pipeline routing — two-lane `docs_pipeline` + `confluence_tag` + §10.5 lane union. *(Mechanism retired by ADR-008/D-A19 at TASK-100/105 — routing is now by operator disposition; the connector + UI row survive.)*
+
+---
+
+## Disposition of the pre-pivot open tasks (TASK-056, 064–083 — none carries over verbatim)
+
+Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
+
+| Old | Disposition |
+|---|---|
+| 056 self-serve acceptance | surviving half ("the pipe works via the UI") → **TASK-127** (D-A0) |
+| 064 / 065 Jira | re-cut for the 4-level hierarchy → **TASK-122–124** (D-A15) |
+| 066 purpose-as-discovery | **absorbed** — D-A19's tier walk *is* purpose-first matching; refinement (d) became the query contract |
+| 067 doc-side gap signal | **absorbed** — the per-artifact index is the doc-side symmetry (D-A18 closes ADR-005 open-Q #2) |
+| 068 multi-repo closure | **deferred** (candidates below) — merged with cross-language closure: one capability (D-A19) |
+| 069 extractor onboarding (2nd language) | **deferred** — cleaner now via `extractor_manifest` + per-repo profiles (ADR-006 stands) |
+| 070–074 domain-onboarding chain + multi-domain | **deferred, re-scoped** — no vocabulary step; a new domain = `si_profile` + `jira_template` + adapter pack |
+| 075 vocab_gap_assess | **dead** — no vocabulary (D-A22) |
+| 076 metrics store · 077 auto-launch · 078 UI enhancements | **deferred** unchanged in spirit |
+| 079 discovery adequacy | **promoted to core** by D-A13 → **TASK-111** |
+| 080 closure depth verification | **folded** into TASK-118's acceptance (fixed point, both directions, source-extends) |
+| 081 pre-G1 auto-fill | **arrived via D-A6** — `[TBD]` auto-fill is enrichment's third authority row (TASK-117/121) |
+| 082 section-as-subprocess | **kept deferred** (applies to SI authoring at overflow scale) |
+| 083 chunk-level granularity | **dead** — the per-artifact index *is* passage-level retrieval (D-A18) |
 
 ---
 
@@ -194,401 +233,665 @@ connectors land on the VDI, not as its own task. (FR-DC-02/11/12, §7.)
 
 ## Open index (tick here; then collapse the task into the done ledger above)
 
-**Milestone 5A — remaining**
-- [ ] TASK-056 — Self-serve acceptance: UI → Generate → VS Code Claude Code/Copilot → BRD/FRD · `Opus`
+**Milestone D0 — Cutover groundwork**
+- [ ] TASK-100 — Retirement sweep + §10 re-cut to the surviving checks · `Sonnet`
+- [ ] TASK-101 — Manifest split: `extractor_manifest` + map cache + registry-manifest shrink · `Sonnet`
+- [ ] TASK-102 — Runtime-tool seam re-cut (manifest, renames, new-role stubs, parity) · `Sonnet`
 
-**Milestone 5B — Jira (the only external mutation + G3)**
-- [ ] TASK-064 — Jira authoring + validation skills + `jira_template` · `Opus`
-- [ ] TASK-065 — Jira push seam + `jira_plan/` + `trace.json` + G3 · `Opus`
+**Milestone D1 — Input side (UI_INPUT, routing, index, Jira ingest)**
+- [ ] TASK-103 — `UI_INPUT` v2: dispositions + `frame.overview` + run scaffold · `Sonnet`
+- [ ] TASK-104 — Ledger stages + enrichment event vocabulary · `Sonnet`
+- [ ] TASK-105 — Manifest v2 + disposition routing + adapter shrink · `Sonnet`
+- [ ] TASK-106 — Per-artifact index + completeness (guardrail 7) · `Opus`
+- [ ] TASK-107 — `ingest_jira.py` connector (Prior Artifact source type) · `Sonnet`
 
-**Milestone 5B — Code-impact enhancements**
-- [ ] TASK-066 — `purpose`-as-discovery in the coarse pass · `Opus`
-- [ ] TASK-067 — Doc-side semantic-gap signal · `Sonnet`
+**Milestone D2 — Solution Intent v1**
+- [ ] TASK-108 — `si_profile` (18 sections) + §10.5′ disposition-class totality · `Opus`
+- [ ] TASK-109 — `solution_intent_author` recast · `Opus`
+- [ ] TASK-110 — `solution_intent_validator` + G1 + v1 freeze · `Opus`
+- [ ] TASK-111 — Discovery-question adequacy (promoted by D-A13) · `Opus`
 
-**Milestone 5B — Multi-repo**
-- [ ] TASK-068 — Multi-repo cross-repo closure · `Opus`
+**Milestone D3 — Code map v2**
+- [ ] TASK-112 — Extractor declared-purpose extraction + `c_repo` additive pass · `Sonnet`
+- [ ] TASK-113 — Repo profile scan + onboarding gate report (D-A21 phase 1) · `Opus`
+- [ ] TASK-114 — Map build recast (two files, modules, purposes) + context checks · `Opus`
+- [ ] TASK-115 — 4-branch gate + map cache · `Opus`
+- [ ] TASK-116 — Multi-language validation fixture (required, D-A19) · `Opus`
 
-**Milestone 5B — Domain onboarding (proposers → orchestrator; strict dependency order)**
-- [ ] TASK-069 — `extractor_onboard` skill + a 2nd language extractor · `Opus`
-- [ ] TASK-070 — `domain_onboard` skill (propose a new domain's vocabulary) · `Opus`
-- [ ] TASK-071 — `profile_onboard` skill · `Opus`
-- [ ] TASK-072 — `adapter_onboard` skill (+ promote `pdf_extract` to `core/skills/`) · `Opus`
-- [ ] TASK-073 — Domain-onboarding orchestrator (`onboard.py` + `ONBOARD_INPUT.yaml`) · `Opus`
-- [ ] TASK-074 — Multi-domain enablement (`domains_index.yaml` + UI) · `Sonnet`
+**Milestone D4 — Enrichment (v1 → v2)**
+- [ ] TASK-117 — `enrichment.json` contract + finding routes · `Opus`
+- [ ] TASK-118 — Arm 1: per-assertion impact (`code_impact` recast) · `Opus`
+- [ ] TASK-119 — Arm 2: `claim_verifier` · `Opus`
+- [ ] TASK-120 — Disposition walkthrough · `Opus`
+- [ ] TASK-121 — Apply pass + G2 + enrichment spine exercise · `Opus`
 
-**Milestone 5B — Vocabulary adequacy (L2)**
-- [ ] TASK-075 — `vocab_gap_assess` + amendment loop · `Opus`
+**Milestone D5 — Jira (4-level plan + the only external mutation)**
+- [ ] TASK-122 — `jira_author` + `jira_template` (4-level plan) · `Opus`
+- [ ] TASK-123 — `jira_validator` + G3 · `Opus`
+- [ ] TASK-124 — Jira push seam + `jira_trace.json` · `Opus`
 
-**Milestone 5B — Infra / UX (lower priority)**
-- [ ] TASK-076 — Metrics store + dashboard (SQLite) · `Sonnet`
-- [ ] TASK-077 — Auto-launch (operator-gesture automation) · `Sonnet`
-- [ ] TASK-078 — UI enhancements (role gating + telemetry surface) · `Sonnet`
-
-**Milestone 5B — Quality assessments (assessment-first; each proposes a human-frozen diff)**
-- [ ] TASK-079 — Assess discovery-question adequacy (up-front + throughout the BRD) · `Opus`
-- [ ] TASK-080 — Verify the deep-pass code-ripple closure traces + goes deep enough · `Opus`
-- [ ] TASK-081 — Source-grounded auto-fill loop before G1 (ladder amendment + ADR) · `Opus`
-
----
-
-## Milestone 5A — remaining
-
-### TASK-056 — Self-serve milestone acceptance (UI → Generate → tool → BRD/FRD)
-- **Phase:** P5-A · **Depends on:** TASK-050..055.
-- **Model:** Opus — the full operator-driven path; highest-stakes of 5A.
-- **Reads:** `docs/ACCEPTANCE.md` (the TASK-049 spine run) + every 5A task above.
-- **Creates / edits:** `docs/ACCEPTANCE_5A.md` (the self-serve run log + artifact links).
-- **Do:** From the React UI, configure a run (Domain `payment_brand`; sources = SharePoint PDF(s) + Bitbucket code repo; registry = Bitbucket) → **Generate** (G0) → open VS Code Claude Code/Copilot in the scaffold → run the spine → accepted BRD + FRD. Nothing outside the seam changes.
-- **Acceptance:** an operator completes a fresh run unaided through UI + tool; `UI_INPUT.yaml` carries the real URLs; sources pulled live through the connectors + auth seam; BRD/FRD pass G1/G2; `build_checks.py` green; `metrics_scan.py` derives the run's metrics.
-- **Proof:** the run workspace + ledger + `docs/ACCEPTANCE_5A.md`.
-- **Satisfies:** FR-XS-02/06/09/16, FR-DC-01/02/11/12.
-
-> 🔁 **Milestone 5A done = self-serve run works.** The 5B tasks below are ordered by dependency;
-> tackle top-down.
+**Milestone D6 — Metrics, docs, acceptance**
+- [ ] TASK-125 — `metrics_scan` re-cut (amended FR-MX-02) · `Sonnet`
+- [ ] TASK-126 — Docs re-cut (`SKILLS_INDEX`, `BUILD_OVERVIEW`, `design/README`, `CLAUDE.md`) · `Sonnet`
+- [ ] TASK-127 — End-to-end acceptance + registry re-publish (lifts the publish suspension) · `Opus`
 
 ---
 
-## Milestone 5B — Jira (the only external mutation + G3)
+## Milestone D0 — Cutover groundwork
 
-### TASK-064 — Jira authoring + validation skills + `jira_template`
-- **Phase:** P5-B · **Depends on:** the BRD/FRD author+validator pattern, the domain seam.
-- **Model:** Opus — new authoring + gate semantics.
-- **Reads:** `docs/TECH_SPEC.md` §9.4 (jira), §10.3 (seam requires `jira_template`); FR-JR-*, FR-XS-17.
-- **Creates / edits:** `core/skills/jira_author.skill.md`, `core/skills/jira_validator.skill.md`; `core/profiles/payment_brand/jira_template.*`.
-- **Do:** Author the Jira epic/story generation skill + its validator; add `jira_template` to the domain seam (once present, §10.3 requires it).
-- **Acceptance:** a fixture FRD → jira plan authored + gated; §10.3 now checks `jira_template` (green); no external push yet (TASK-065).
-- **Proof:** a fixture FRD → jira plan; validator gate runs.
-- **Satisfies:** FR-JR-*, FR-XS-17.
+### TASK-100 — Retirement sweep + §10 re-cut to the surviving checks
+- **Depends on:** `docs/design/ADR-008-impact-analysis.md`; V-flags 1–3 resolved 2026-07-31
+  (delete old run workspace · delete the 4 seed docs · add ADR banners).
+- **Model:** Sonnet — mechanical but wide; the file list is fully enumerated.
+- **Reads:** impact §§1–9 (every ⛔ row) · D-A0, D-A22, D-A23 family 1 · `build_checks.py`.
+- **Creates / edits:** deletions below; `core/scripts/build_checks.py`; ADR-003/004/005 banners;
+  commit of the pending working-tree housekeeping (`.gitignore` `notes/` ignore, `NOTES.md`
+  deletion, V's interim `registry_manifest.yaml` ADR additions — superseded at TASK-101 but
+  committed as-is first so history keeps V's edit).
+- **Do:** Delete (git history preserves everything): `core/skills/frd_{author,validator}.skill.md`;
+  `core/scripts/frd_validator.py` (its G3 formula is salvaged **from git history** at TASK-123);
+  `core/scripts/checks/{check_vocab_containment,vocab_adequacy}.py`;
+  `core/profiles/payment_brand/{vocabulary.payment_brand,frd_profile.payment_brand}.yaml`;
+  `core/profiles/payment_brand/adapter/{article_summarize,confluence_tag}.skill.md`;
+  `fixtures/{adapter_routing,brd_author,brd_validator,frd_author,frd_validator,code_impact}/`
+  (the two `code_impact` oracles' closure content is salvage material for TASK-118);
+  `docs/brd_frd_overview.html`; `docs/{brd_author,code_impact_assess,code_map_build}.skill.md`;
+  `runs/r-2026-06-17-001/`. **Overlay files are NOT touched here** — TASK-102 does the seam
+  atomically so §10.2 never breaks. Re-cut `build_checks.py`: unregister §10.1 + §10.5; amend
+  §10.3 to stop requiring `vocabulary`/`frd_profile` (still requires `adapter.yaml` +
+  `brd_profile` transitionally, until TASK-108 swaps in `si_profile`). Add the one-line
+  superseded-by-ADR-008 banner to ADR-003/004/005.
+- **Acceptance:** no ⛔ file from impact §§1–9 remains except those owned by later tasks
+  (`onboarding_manifest` → 101; `brd_profile` → 108; overlay `frd_*` → 102); `build_checks.py`
+  runs exactly §10.2/§10.3/§10.4 and is green; working tree clean.
+- **Proof:** `git status` clean; `build_checks.py` output lists 3 checks, all green.
 
-### TASK-065 — Jira push seam + `jira_plan/` + `trace.json` + G3 gate
-- **Phase:** P5-B · **Depends on:** TASK-064, TASK-052 (auth seam).
+### TASK-101 — Manifest split: `extractor_manifest` + map cache + registry-manifest shrink
+- **Depends on:** TASK-100.
+- **Model:** Sonnet.
+- **Reads:** D-A22 (the whole block: three-jobs analysis, end-state table) · §2.1 · §5.2
+  (struck-through) · impact §4.
+- **Creates / edits:** `core/extractor_manifest.yaml` (from `onboarding_manifest.extractors[]`:
+  per-language `path`, `extractor_sha`, tools, globs, coverage floor); `cache/code_maps/index.yaml`
+  home (**mutable, outside the registry** — gitignore `cache/`, commit `cache/README.md` stating
+  the contract; `repos[]` build records move here); shrink `core/registry_manifest.yaml` to
+  `include.trees: [core/, overlays/, docs/]` + excludes (54 lines → ~6; supersedes the hand-listed
+  file enumeration, including V's interim ADR additions); delete `core/onboarding_manifest.yaml`;
+  repoint every reader (`hydrate.py`, `publish_registry.py`, `validate_onboarding.py`, the gate
+  code — `grep -rn onboarding_manifest` must end empty; full gate/validate recast waits for
+  TASK-113/115, this task only keeps them importable).
+- **Acceptance:** no code references `onboarding_manifest.yaml`; `hydrate.py` copies correctly
+  from the trees manifest (local dry-run); `publish_registry.py` honors excludes; `cache/` is
+  ignored; checks green.
+- **Proof:** local hydrate dry-run + `build_checks.py` green + empty grep.
+
+### TASK-102 — Runtime-tool seam re-cut (manifest, renames, new-role stubs, parity)
+- **Depends on:** TASK-100 (amended runner), TASK-101.
+- **Model:** Sonnet — mechanical; contents recast in D2/D4 tasks.
+- **Reads:** D-A23 (role table + prompt list + execution modes) · D11.7 · §4 · §6.3 · §10.2 ·
+  impact §5.
+- **Creates / edits:** `core/overlay_manifest.yaml` rewritten (8 roles: `source_processor`,
+  `solution_intent_author`, `solution_intent_validator`, `code_impact`, `claim_verifier`,
+  `disposition_walkthrough`, `jira_author`, `jira_validator`; per-role execution mode —
+  interactive: author + walkthrough; analytical: rest; `prompt_files: [start-ingest, start-si,
+  start-enrich, start-jira]`; per-tool paths/launch). **Renames (git mv, content recast later):**
+  `core/skills/brd_author.skill.md → solution_intent_author.skill.md`, `brd_validator.skill.md →
+  solution_intent_validator.skill.md`, `core/scripts/brd_validator.py →
+  solution_intent_validator.py` (+ import/caller repoints); overlay wrappers + prompts renamed in
+  both tools (`brd_*` → `solution_intent_*`, `start-brd → start-si`, `start-frd → start-enrich`).
+  **Delete** overlay `frd_{author,validator}` ×2 tools. **New:** thin `claim_verifier` +
+  `disposition_walkthrough` wrappers ×2 tools + stub `core/skills/{claim_verifier,
+  disposition_walkthrough}.skill.md` (one-paragraph role statement + "content lands TASK-119/120").
+  `start-ingest` ×2 surfaces `start-si`; `start-jira` ×2 notes it follows G2. `launch.md` ×2 +
+  `core/instruction_file.template.md` + `generate_instruction.py`: stage names
+  (`si_v1 → enrichment → si_v2 → jira`). Amend `check_overlay_parity.py` to the new role/prompt
+  lists.
+- **Acceptance:** §10.2 green (8 roles + 4 prompts, both tools); no `brd_`/`frd_` filename remains
+  under `overlays/` or `core/skills/`; every wrapper's skill pointer resolves to an existing file.
+- **Proof:** `build_checks.py` green; `ls overlays/**` shows the new set.
+
+---
+
+## Milestone D1 — Input side
+
+### TASK-103 — `UI_INPUT` v2: dispositions + `frame.overview` + run scaffold
+- **Depends on:** TASK-102.
+- **Model:** Sonnet — the contract is fully specified.
+- **Reads:** §3.1 (amended) · §2.2 · D-A12 (taxonomy, `Codebase` auto, `Other` second-class,
+  multi-disposition) · D-A13 (`overview`'s two jobs) · impact §6.
+- **Creates / edits:** `core/scripts/generate.py` (validate the amended §3.1; scaffold gains
+  `solution_intent/`); `app/backend/{app,service,validation}.py`;
+  `app/frontend/src/PDLCConfigurator.jsx` (per-source disposition selector — 6 operator classes,
+  multi allowed, defaults to one; repo rows show auto-set non-editable `Codebase`; `Other` marked
+  "background only — not citable"; Initiative Overview textarea in the frame tab);
+  `app/frontend/src/emit.js` + `scripts/emit_cli.mjs`; `fixtures/UI_INPUT.example.yaml`;
+  `fixtures/frontend/{sample_form.json,verify_frontend.py}`;
+  `fixtures/generate/{verify_generate,verify_backend}.py`; `runs/_template/` (add
+  `solution_intent/.gitkeep`).
+- **Acceptance:** emitted `UI_INPUT.yaml` carries `disposition:` per doc source + `frame.overview`;
+  backend rejects a doc source with missing/unknown disposition; repo rows auto-`Codebase`;
+  Generate produces the §2.2 scaffold with `solution_intent/`; all four verifies green.
+- **Proof:** `verify_frontend.py` + `verify_generate.py` + `verify_backend.py` green.
+
+### TASK-104 — Ledger stages + enrichment event vocabulary
+- **Depends on:** TASK-103.
+- **Model:** Sonnet.
+- **Reads:** §3.4–3.6 (banner note) · §8.1 · D-A16/17 (what a disposition record carries).
+- **Creates / edits:** `core/scripts/telemetry.py` + `schemas/{telemetry,run_state,decisions}.schema.json`
+  + `decisions.py`: `run_state` stages → `ingest / si_v1 / enrichment / si_v2 / jira`; new events
+  `verdict`, `escalation`, `disposition` (+ enrichment stage start/end); `decisions.jsonl` gains
+  the walkthrough record (finding id, operator call, rationale); `runs/_template/ledger/` refreshed.
+- **Acceptance:** schema validators accept the new events/stages and reject the old stage names;
+  existing emit() call sites still validate.
+- **Proof:** schema round-trip on fixture events; template ledger validates.
+
+### TASK-105 — Manifest v2 + disposition routing + adapter shrink
+- **Depends on:** TASK-103.
+- **Model:** Sonnet.
+- **Reads:** §3.2 (amended — entry shape + replaced routing rule) · D-A12/13 · §6.6.3 (amended) ·
+  impact §§2, 4, 7.
+- **Creates / edits:** `core/scripts/merge_manifest.py` (entries: drop `topics`/`change_type`;
+  gain `disposition` — copied from `UI_INPUT`, and `index_path` — populated once TASK-106 emits
+  it, null until then; `sources_status` semantics unchanged — failed sources marked, never
+  dropped); `core/skills/source_processor.skill.md` (route by source *type* to a connector and by
+  the run config's *disposition* into the manifest — code sources → code lane, doc sources →
+  extract lane; **no tag lanes; never branches on `domain`**);
+  `core/profiles/payment_brand/adapter/adapter.yaml` (drop `emits` + the two-lane
+  `docs_pipeline`; keep the pack pointers: `pdf_extract`, `code_pipeline → code_map_build`);
+  `pdf_extract.skill.md` (strip emit/tag references — extraction contract itself unchanged,
+  D-A18); re-cut `fixtures/merge_manifest/` (5 files) + `fixtures/pdf/expected_manifest_entries.json`
+  + `fixtures/confluence/verify_confluence.py` (drop tag assertions).
+- **Acceptance:** `index.json` entries carry `disposition` (+ `index_path` field); no `topics`/
+  `change_type` anywhere in the ingest path; `grep -rn "emits" core/profiles` empty; fixtures green.
+- **Proof:** merge over the mock corpus → expected entries match; verifies green.
+
+### TASK-106 — Per-artifact index + completeness (guardrail 7)
+- **Depends on:** TASK-105.
+- **Model:** Opus — index/summary quality is what selection quality rests on.
+- **Reads:** D-A18 (**whole block**: two files, shape, four rules, always-summarize decision,
+  whole-read threshold-over-the-set, grouping/iteration, selection kept simple, degraded case) ·
+  FR-SI-03 · §3.2.
+- **Creates / edits:** the doc-lane index step in `source_processor.skill.md` — for every doc
+  artifact, emit `<extract>.index.json` beside the `.md` (one entry per semantic subsection:
+  `id`, `heading`, `lines`, model-written `summary`; `subdivided[]` for synthetic splits; keyed on
+  the structure `pdf_extract` already produces — **the index describes the document, never the
+  destination**); `core/scripts/checks/check_index_completeness.py` (family 2, run at ingest —
+  `lines_total == lines_indexed`, every line in exactly one entry); whole-read threshold as a
+  config value (default ~500 lines, checked across the routed **set**); index oracles for the two
+  PDF extracts + two Confluence pages; the **degraded case** exercised against the real fixture
+  PDFs (flat prose → boundaries synthesised by paragraph grouping, recorded, never silent).
+- **Acceptance:** every doc artifact has a complete index (checker green); `index_path` populated
+  in `index.json`; summaries carry specifics (spot-check vs the oracle); degraded case produces a
+  total index too.
+- **Proof:** ingest the mock corpus → 4 `.index.json` files, completeness green, oracles match.
+
+### TASK-107 — `ingest_jira.py` connector (Prior Artifact source type)
+- **Depends on:** TASK-103.
+- **Model:** Sonnet — mirrors TASK-063's shape.
+- **Reads:** D-A24 (mock table) · §6.6.2 · `ingest_confluence.py` (the pattern) · impact §12.
+- **Creates / edits:** `core/scripts/ingest_jira.py` (`_fetch_issue` is the lone `[TBD — VDI]`
+  placeholder; `set_fetcher` test seam; lazy auth via `PDLC_AUTH_JIRA`; issue payload → staged
+  `.md` extract; exact descriptor parity); `fixtures/jira/{issue payload mock(s),verify_jira.py}`;
+  UI: a Jira source row (disposition defaults `Prior Artifact`) in `PDLCConfigurator.jsx` +
+  `emit.js` + `verify_frontend.py`; §10.4 connector inventory gains the `jira` row.
+- **Acceptance:** mock fetch → staged extract + descriptor byte-shape-identical to the other
+  connectors; §10.4 green including `jira`; UI emits the row.
+- **Proof:** `fixtures/jira/verify_jira.py` green; `build_checks.py` green.
+
+---
+
+## Milestone D2 — Solution Intent v1
+
+### TASK-108 — `si_profile` (18 sections) + §10.5′ disposition-class totality
+- **Depends on:** TASK-102.
+- **Model:** Opus — `must_capture` authoring quality is load-bearing (it is both the G1 checklist
+  and the retrieval query, D-A18).
+- **Reads:** D11.1 · D-A3 (section table) · D-A4 (binding rules) · D-A10 (conditional statuses) ·
+  D-A11 (boundary statements) · D-A13 (the routing matrix — transcribe exactly) · §10.5′ · §10.3.
+- **Creates / edits:** `core/profiles/payment_brand/si_profile.payment_brand.yaml` — per section:
+  `id` (1–18), `title`, `authored` (v1 / v2-only / v1-extended-in-v2), `touch` (D-A3 enrichment
+  touch type), `status` (required / required-may-be-empty / conditional), `classes` (the D-A13 row:
+  each input source marked P/S/E), boundary one-liner (§4/§9/§15), `must_capture[]`,
+  `probe_if_missing[]`. Delete `brd_profile.payment_brand.yaml`. New
+  `core/scripts/checks/check_disposition_totality.py` (§10.5′: every section has ≥1 routed input
+  class; every operator-selectable class in the UI taxonomy appears in ≥1 section row) — register
+  in `build_checks.py` (now 4 checks); §10.3 swaps `brd_profile` → `si_profile`.
+- **Acceptance:** profile matrix is cell-identical to D-A13; §10.5′ green against the UI's
+  taxonomy list; §10.3 green; `build_checks.py` reports 4/4.
+- **Proof:** `build_checks.py` 4/4 green; a deliberate matrix-cell deletion turns §10.5′ red.
+
+### TASK-109 — `solution_intent_author` recast
+- **Depends on:** TASK-106 (index), TASK-108 (profile).
+- **Model:** Opus — the central authoring artifact.
+- **Reads:** §3.7 (replaced — on-disk contract) · D-A2 (v1 frozen; placement rule) · D-A3/4
+  (sections + binding rules) · D-A8 (the §8 schema: title/description/**assertions**,
+  agent-extracted) · D-A10 (dispositions proposed, operator-confirmed at G1) · D-A11 (boundaries)
+  · D-A13 (funnel level 1) · D-A14 (initiative level; §7 before §8; stable IDs `D1…`/`R1…` +
+  `deliverable:` refs) · D-A18 (funnel level 2: index selection by `must_capture`; whole-read over
+  the set; sequential groups carrying the draft; termination) · FR-SI-01…07.
+- **Creates / edits:** `core/skills/solution_intent_author.skill.md` full recast (the TASK-102
+  rename holds the old BRD content until now): discovery framing carried (FR-BR-02/03/05
+  semantics — up-front questions, per-section probes, never re-ask); the two-level funnel;
+  section loop over the 18-section contract with coverage footers; assertions extracted per
+  requirement; conditional sections dispositioned with reasons; §17 accrues `[TBD]` gaps; §1
+  authored last; cite-or-flag with provenance classes (`Prior Artifact` reference-only, `Other`
+  never sole citation); the flag loop carried (surface→wait→apply, material vs advisory). Wrapper
+  contents ×2 tools refreshed to describe the SI role.
+- **Acceptance:** in-session authoring over the mock corpus (2 PDFs + 2 Confluence pages +
+  `c_repo`, dispositioned per D-A12) produces a v1 with: all 18 sections present-or-dispositioned;
+  every §8 requirement carrying `deliverable:` + enumerated assertions; stable IDs; per-section
+  coverage footers; every citation resolving to an index entry/line range or flagged.
+- **Proof:** the authored fixture v1 + its citation spot-check.
+
+### TASK-110 — `solution_intent_validator` + G1 + v1 freeze
+- **Depends on:** TASK-109, TASK-104.
+- **Model:** Opus.
+- **Reads:** §9.2 (replaced) · D-A23 family 3 (G1 rows) + scoring · D-A10 (precondition) · D-A2
+  (v1 snapshot at G1) · `gate.py` (reused unchanged, D-A1) · FR-SI-\*.
+- **Creates / edits:** `core/skills/solution_intent_validator.skill.md` +
+  `core/scripts/solution_intent_validator.py` recast: score `0.7×section_coverage +
+  0.3×citation_integrity` (section_coverage = satisfied `must_capture` / total, per profile);
+  hard preconditions — every required section satisfied; every conditional section filled or
+  dispositioned-with-reason; §15→§4 total + every objective measurable; §7→§8 total (no orphan
+  requirement/deliverable); every requirement has ≥1 assertion; flags dispositioned. On operator
+  G1 accept: snapshot `solution_intent/v1.md` (immutable), telemetry G1 events (`runtime_tool`
+  threading kept). New `fixtures/si_validator/{si_pass.md,si_fail.md,README.md}`.
+- **Acceptance:** pass/fail fixtures score correctly (fail names each violated precondition);
+  the D4 principle holds — score informs, operator accepts; v1 freeze happens exactly at accept.
+- **Proof:** validator over both fixtures + a G1 accept on the TASK-109 v1 → `v1.md` snapshot.
+
+### TASK-111 — Discovery-question adequacy (promoted by D-A13)
+- **Depends on:** TASK-108, TASK-109.
+- **Model:** Opus — assessment-first; propose-never-bless.
+- **Reads:** D-A13 ("discovery is primary for exactly §9/§12/§13 — their quality rests entirely
+  on question quality") · `si_profile` · the author skill's discovery passes · old TASK-079 spec
+  (git `0d7d8aa`) for the method.
+- **Do:** Inventory where questions originate (up-front framing + per-section probes). For every
+  discovery-primary or frame-supporting section — §9/§12/§13 first — map each `must_capture` to
+  an eliciting question or flag the gap; findings artifact cited to profile/skill lines; propose
+  the closing profile/skill diff for human freeze.
+- **Acceptance:** written coverage assessment; no `must_capture` in §9/§12/§13 without an
+  eliciting question after the frozen diff; sparse-source proof below.
+- **Proof:** author over deliberately sparse sources → probes fire for the silent topics.
+
+---
+
+## Milestone D3 — Code map v2
+
+### TASK-112 — Extractor declared-purpose extraction + `c_repo` additive pass
+- **Depends on:** TASK-101 (`extractor_manifest`).
+- **Model:** Sonnet — deterministic parsing + fixture authoring; the contract is precise.
+- **Reads:** D-A20 (header form, label variance table, fuzzy matching, parser noise) · D-A19
+  (steps 1–2) · §3.3 (amended) · V-flag 4 resolution (targeted subset) · impact §§4, 7.
+- **Creates / edits:** `core/extractors/c_extractor.py`: extract the leading comment block; parse
+  declared-purpose fields against a **label alias set passed in** (profile data — default set for
+  pre-profile runs), fuzzy enough for the real typos; emit `purpose_declared`,
+  `declared_version`/`declared_date` where parseable; structural fields unchanged; still no tags.
+  Bump `extractor_sha` in `extractor_manifest.yaml` (a build-time re-freeze, never runtime).
+  `fixtures/c_repo`: declared headers on ~60% of files under varied labels (`PURPOSE`,
+  `Intention`, `Description`, `Desc`, one `Putpose` typo), ~40% left headerless (exercises rungs
+  B/C/C\*); one versioned-duplicate pair (e.g. `msg_format.c` + `msg_format_v2.c`, both wired);
+  `PATTERN_CATALOG.md` updated.
+- **Acceptance:** two extraction runs byte-identical; the typo label is caught; headerless files
+  emit no declared purpose; the duplicate pair extracts as two normal files (surfacing is the
+  map/build's job); `extractor_sha` recorded.
+- **Proof:** deterministic double-run diff + a per-file extraction spot-check.
+
+### TASK-113 — Repo profile scan + onboarding gate report (D-A21 phase 1)
+- **Depends on:** TASK-112.
+- **Model:** Opus — the gate is the only human checkpoint on map quality.
+- **Reads:** D-A21 (**whole block**: report layout, the three things plain approval cannot do,
+  the three gate actions, process steps 1–6) · D-A20 (signal priority: include graph primary) ·
+  D-A22 (profile file contract) · §5.2/§5.3 · impact §12.
+- **Creates / edits:** `code_profiles/<repo>.profile.yaml` contract (label aliases, derivation
+  priority, hub threshold, cluster size policy, confidence thresholds, frozen semantic overrides,
+  `warn_if_human_authored_below`, gate record) + the first instance for `fixtures/c_repo`;
+  `core/scripts/validate_onboarding.py` recast to drive D-A21 phase 1: automated **profile scan**
+  (label variants + coverage · include density/resolution · prefix-token quality · `.h` placement
+  · versioned duplicates · degree-zero-both-directions isolation · symbol presence), stage-B
+  sample, projected stage distribution + stage-C cost, the **gate report** (D-A21 layout), and
+  the three actions — `adjust profile` (edit → deterministic recompute → re-review), `skip
+  stage C` (files fall to C\*, reversible), `group singletons` (model **proposes**, human reviews
+  as a diff, approved groups freeze as overrides). Freeze → `profile_sha`.
+- **Acceptance:** the report over `c_repo` shows the seeded ~60/40 split, the duplicate pair, and
+  tier-1 entry count; every gate action works and composes; freeze emits `profile_sha`; nothing
+  model-driven survives past the freeze except as frozen data.
+- **Proof:** the rendered gate report + a freeze → `code_profiles/c_repo.profile.yaml` with sha.
+
+### TASK-114 — Map build recast (two files, modules, purposes) + context checks
+- **Depends on:** TASK-113.
+- **Model:** Opus — the analysis substrate everything downstream matches against.
+- **Reads:** §3.3 (amended: two files, `members[]`, purpose provenance/verdict/quality,
+  `coverage_report`) · D-A19 (creation order; totality/singletons/`unclustered`; C-fallback;
+  purpose-quality requirements; degraded case) · D-A20 (declared-vs-actual verdict) · D-A21
+  (steps 7–15; caching rules) · D-A23 family 2 · impact §§3, 7, 12.
+- **Creates / edits:** `core/skills/code_map_build.skill.md` full recast + deterministic helpers:
+  hub exclusion (fan-in > threshold → `shared_interfaces`); module clustering (include graph →
+  prefix tiebreak → frozen overrides → `unclustered`; language-scoped); purpose resolution per
+  file (A declared → B header prose → C whole-file → C\* symbol names → `unanalyzable[]` with
+  reasons), cached per file content hash; **purpose verdict** where declared (model verdicts the
+  declared intention against the code: `confirmed` | `diverged` + `purpose_actual`); module
+  purpose **synthesis** (model abstracts over member purposes — never re-reads source, never
+  copies one member); `purpose_confidence` (+ `generic` quality flags); `coverage_report`; write
+  `context_set/code_map/{components.json,files.json}` (`components[].members` explicit).
+  **Family-2 context checks** enforced in-build: module totality, purpose totality, `members[]` ↔
+  `files[].module` consistency. Reshape the oracle → `fixtures/c_repo/{expected_components.json,
+  expected_files.json}` + **human re-freeze of `SIGNOFF.md`** (V — the old sign-off graded the
+  old shape).
+- **Acceptance:** build over `c_repo` matches the re-signed oracle; totality checks green; no
+  module purpose is a copy of a member's; two runs produce identical structure (determinism);
+  purposes cached (second run does no model purpose work); the versioned pair and the
+  low-coherence case surface in the coverage report.
+- **Proof:** oracle diff clean ×2 runs; family-2 checks green; cache hit demonstrated.
+
+### TASK-115 — 4-branch gate + map cache
+- **Depends on:** TASK-114.
+- **Model:** Opus — cache-correctness mistakes propagate silently.
+- **Reads:** §5.3 (amended — the 4 branches) · D-A21 (build frequency; cache keys
+  `(commit_sha, profile_sha)` + file content hash; the clustering-is-global wrinkle) · impact §12.
+- **Creates / edits:** the gate recast (in `validate_onboarding.py` / the map-build entry):
+  branch 1 onboard (no profile) · branch 2 reuse (both shas match — no work) · branch 3
+  incremental (commit moved — structure/clustering recomputed, model purposes only for changed
+  files, module purposes re-synthesised for **affected** modules, which can exceed
+  changed-file modules) · branch 4 full rebuild (`profile_sha` changed). `cache/code_maps/index.yaml`
+  wiring; `REONBOARD_FLAG` semantics carried.
+- **Acceptance:** all four branches exercised and observable in telemetry; branch 2 does zero
+  work; branch 3 re-purposes only changed files; branch 4 invalidates wholesale.
+- **Proof:** scripted branch walk on `c_repo` (touch nothing / touch a file / bump the profile).
+
+### TASK-116 — Multi-language validation fixture (required, D-A19)
+- **Depends on:** TASK-114.
+- **Model:** Opus — the ADR marks this a required acceptance artifact, not an enhancement.
+- **Reads:** D-A19 (multi-language block + the V validation requirement) · TASK-008/010 machinery
+  (ledger) · `fixtures/mixed_repo/` · impact §§7, 12.
+- **Creates / edits:** extend `fixtures/mixed_repo/` into a real multi-language repo (C + Java +
+  Python, each with a genuine include/import graph); per-language **sections** in its
+  `code_profiles/mixed_repo.profile.yaml` (one profile per repo — one gate, one freeze); proof
+  that: modules are language-scoped; tier-1 matching runs an assertion against **all** module
+  purposes and matches modules in two languages independently; closure stops at the language
+  boundary (no cross-language edges; the reserved `external_calls`/`exposes` fields stay
+  reserved); an unonboarded language degrades to the `unclustered` totality path via the TASK-010
+  fallback.
+- **Acceptance:** the four properties above demonstrated over the fixture; single-language
+  (`c_repo`) behavior unchanged.
+- **Proof:** map build over `mixed_repo` + a cross-language tier-1 match transcript.
+
+---
+
+## Milestone D4 — Enrichment (v1 → v2)
+
+### TASK-117 — `enrichment.json` contract + finding routes
+- **Depends on:** TASK-110 (an accepted v1 exists), TASK-104 (events).
+- **Model:** Opus — the permanent record every enrichment stage reads/writes.
+- **Reads:** §3.7 (replaced — `enrichment.json`) · D-A6 (authority) · D-A7 (never delete) · D-A9
+  (escalated impacts) · D-A16 (**the routing tables**: auto-apply vs escalate; the no-code-gap
+  four-way; undispositioned findings live outside the document; permanent record) · FR-EN-\*.
+- **Creates / edits:** the `enrichment.json` schema + JSON-schema validator (per finding: `id`,
+  `arm`, `kind`, requirement/assertion refs, code evidence + reasoning, `verdict?`, `action:
+  auto_applied | escalated`, `disposition?`, `rationale?`, `section_target`, status — including
+  undispositioned, for resumability); the routing implementation as a shared helper the arms +
+  walkthrough consume (provenance → authority per D-A6; the escalate set per D-A16; each
+  escalated type's destination table); ledger events wired (`verdict`/`escalation`/`disposition`).
+- **Acceptance:** validator accepts/rejects fixture findings correctly; the D-A16 "what reaches
+  the operator" table is reproduced by the router on a fixture finding set (grounded+unambiguous
+  → auto; ambiguous/scope-moving/human-overruling → escalate).
+- **Proof:** router unit-proof over a crafted finding set covering every table row.
+
+### TASK-118 — Arm 1: per-assertion impact (`code_impact` recast)
+- **Depends on:** TASK-117, TASK-114 (map).
+- **Model:** Opus.
+- **Reads:** §5.6 (the three-tier walk) · D-A19 (tiers; query = frame + title + description +
+  assertion; low confidence **widens**; territory amortisation) · D-A8 (retrieval per deliverable
+  / reasoning per epic; independent fan-out, anti-anchoring; **implicit current-state
+  assumptions**) · D-A15/16 (§16 granularity = (assertion × location) incl. **gaps**; no-code gap
+  escalates, never auto-builds) · D-A9 · old TASK-080 spec (git `0d7d8aa` — its fixed-point /
+  both-directions / source-extends checks fold into Acceptance here).
+- **Creates / edits:** `core/skills/code_impact_assess.skill.md` full recast: resolve the code
+  **territory once per deliverable** (tier 1 vs module purposes; matched modules + their file
+  purposes stay resident); fan out **per epic, independently** (structural learnings may carry;
+  landing points never inherited); per assertion — tier 2 (file purposes within matched modules),
+  tier 3a (read source; confirm/refute; extract + verdict implicit current-state assumptions),
+  tier 3b (closure over `depends_on`/`used_by` **both directions to a fixed point**, extending
+  from source where the map missed an edge); emit §16 entries per (assertion × location) — impacts
+  **and** gaps; no-code findings route to escalation via TASK-117. New tier-walk oracles
+  `fixtures/code_impact/` (salvaging the old closure content from git history).
+- **Acceptance:** over the fixture v1 + `c_repo` map: a multi-hop closure reaches its oracle
+  fixed point (both directions; a deliberately map-omitted edge recovered from source; a
+  single-hop control does not over-report); an implicit-assumption finding surfaces (the "field
+  48 has room" class); a no-code assertion escalates rather than emitting a build story;
+  `unclustered` and low-confidence modules are searched, never skipped.
+- **Proof:** tier-walk oracle diff + the escalation record in `enrichment.json`.
+
+### TASK-119 — Arm 2: `claim_verifier`
+- **Depends on:** TASK-117.
+- **Model:** Opus.
+- **Reads:** D-A5 (the verdict population three-way sort; runtime-shaped claims **skipped**, not
+  marked) · D-A4 (§5 system-actor asymmetry; §8 never corrected) · D-A6 (authority) · D-A7
+  (rewrite, never delete) · D-A8 (point lookup, no closure; cluster by code region; the coarse
+  three outcomes — only one expensive; "unverifiable" as an honest cheap outcome feeding §14).
+- **Creates / edits:** `core/skills/claim_verifier.skill.md` (replacing the TASK-102 stub):
+  extract factual current-state claims from the verdict-eligible sections (§2, §5, §6, §10, §13,
+  §14); sort the population (claims / judgment / future-state); **cluster by code region**; per
+  cluster one coarse match → strong-match verdict | deep-read | unverifiable; stage corrections
+  (source-derived claims) with inline code provenance; route operator/frame contradictions to
+  escalation; auto-fill `[TBD]` gaps the code answers; contribute §18 counts. Wrapper contents ×2
+  tools refreshed.
+- **Acceptance:** over the fixture v1: a seeded wrong source-derived claim → staged correction
+  with provenance; a seeded wrong frame claim → escalation (never silently overruled); a
+  runtime-shaped NFR claim → skipped (no marker); an unmatchable claim → unverifiable, cheap,
+  surfaced toward §14; §8 never touched.
+- **Proof:** the staged-findings set in `enrichment.json` vs the seeded expectations.
+
+### TASK-120 — Disposition walkthrough
+- **Depends on:** TASK-117 (+ findings from 118/119 to walk).
+- **Model:** Opus — the one human checkpoint of the enrichment stage.
+- **Reads:** D-A17 (**the four binding constraints**: proposes-never-decides; triage-not-
+  enumerate; ordering dependencies + downstream revisit; resumable) · D-A16 (per-type routing on
+  disposition; the defer path is required) · D6c (material vs advisory batching) · FR-BR-08 loop
+  (carried machinery).
+- **Creates / edits:** `core/skills/disposition_walkthrough.skill.md` (replacing the stub):
+  present one finding + evidence + recommended disposition; allow interrogation ("show me the
+  code"); batch routine technical consequences ("these 15 — accept all, or review?"); sequence
+  dependent findings and revisit downstream when an upstream call changes (a search-miss call
+  invalidates derived findings); record decision + rationale → `decisions.jsonl`; persist status
+  per finding in `enrichment.json` (stop/resume works); route each disposition per D-A16
+  (including **defer → §17**). Wrapper contents ×2 tools refreshed.
+- **Acceptance:** a fixture walkthrough covering: an individual scope-moving finding; a batched
+  advisory group; a dependency chain revisited after an upstream reversal; a deferral landing in
+  §17; an interrupted session resumed without loss.
+- **Proof:** the `decisions.jsonl` + `enrichment.json` trail of that walkthrough.
+
+### TASK-121 — Apply pass + G2 + enrichment spine exercise
+- **Depends on:** TASK-118, 119, 120.
+- **Model:** Opus.
+- **Reads:** D-A2 (corrections revise in place with provenance; discoveries append) · D-A8
+  (sequence steps 4–6: apply → §16/§17/§18 → regenerate §1) · §9.3 (G2 formula — **flagged
+  provisional**) · D-A23 (G2 hard preconditions; "validate against a real run before freezing") ·
+  §3.7.
+- **Creates / edits:** the apply machinery (in the author skill's v2-assembly section + a small
+  deterministic applier): auto-applied + dispositioned findings land — corrections in place with
+  inline provenance (never delete), §16 written **organised by requirement**, §12 two-way moves,
+  §17 extended, §18 counts (counts only — the ledger is `enrichment.json`); **§1 regenerated**
+  from the corrected body; `solution_intent/v2.md` written (v1 untouched).
+  `solution_intent_validator.py` gains the G2 duty: `0.5×verdict_completeness +
+  0.5×impact_coverage`; hard preconditions — every escalation dispositioned; every correction
+  carries code provenance; **every assertion has a verdict** (family 3). Then run the **full
+  enrichment spine** over the fixture v1 → v2, and **evaluate the provisional G2 formula against
+  that run** — record the verdict in the task commit; if the formula needs change, that is a
+  ladder amendment (flag it, amend §9.3 + REQUIREMENTS in-task, add the port note).
+- **Acceptance:** v2 exists with every touch traceable (v1 + `enrichment.json` reconstruct it —
+  D-A16); G2 scores the run; both preconditions enforceable (a seeded undispositioned escalation
+  blocks); §1 reflects the corrected body; formula verdict recorded.
+- **Proof:** the v1→v2 diff + `enrichment.json` + the G2 gate record in the ledger.
+
+---
+
+## Milestone D5 — Jira (4-level plan + the only external mutation)
+
+### TASK-122 — `jira_author` + `jira_template` (4-level plan)
+- **Depends on:** TASK-121 (an accepted v2 + `enrichment.json`).
+- **Model:** Opus.
+- **Reads:** §3.8 (amended) · D11.6 · D-A14 (deliverable layer) · D-A15 (**whole block**: level
+  sources; stories from §16 impacts *and* gaps *and* §7 non-code work; §16 granularity = story
+  granularity; scope-vs-specification — the translation **adds** acceptance criteria/testability;
+  every story names its code location or is flagged new-build/non-code; the tech letter as
+  completeness oracle) · FR-JR-01/02 · §6.6.1.
+- **Creates / edits:** `core/skills/jira_author.skill.md` (new — the wrapper exists since
+  TASK-102); `core/profiles/payment_brand/jira_template.payment_brand.yaml` (field mapping per
+  level: Initiative ← §1/§2/§4; Deliverable ← §7; Epic ← §8, one per requirement; Story fields
+  incl. `code_location | new_build | non_code`, acceptance criteria, trace refs); emit
+  `jira_plan.json` (§3.8) — full ID chain `D1 → R3 → §16 entry → story`; §10.3 now requires
+  `jira_template` (present → green).
+- **Acceptance:** over the fixture v2: four levels emitted; every §16 entry yields ≥1 story or an
+  explicit disposition; every story traces to §16 or §7 and names code or carries its flag;
+  deliverable-derived (non-code) stories present; nothing story-shaped read straight off the
+  tech-letter text.
+- **Proof:** `jira_plan.json` structural walk vs the v2's ID inventory.
+
+### TASK-123 — `jira_validator` + G3
+- **Depends on:** TASK-122.
+- **Model:** Opus.
+- **Reads:** §9.4 (amended — absorbs the FRD formula) · D-A1 (G3 = the real technical-quality
+  gate) · D-A23 family 3 (the two story guardrails) · D-A15 (the reverse completeness check:
+  do the stories, together, satisfy the tech letter?) · the old `frd_validator.py` at git
+  `0d7d8aa` (salvage the scoring code, don't rewrite it).
+- **Creates / edits:** `core/skills/jira_validator.skill.md` + `core/scripts/jira_validator.py`:
+  `0.5×traceability + 0.5×testability` over the 4-level plan; hard checks — every §16 entry →
+  ≥1 story (dropped-impact catch); every story → §16/§7 (invented-story catch); every story names
+  code or is flagged; parent-chain integrity (no orphan epic/deliverable); the tech-letter
+  completeness pass where a TechSpec source exists. G3 wiring through `gate.py`;
+  `fixtures/jira_plan/{plan_pass,plan_fail}.json`.
+- **Acceptance:** pass/fail fixtures score correctly with named violations; G3 stays an operator
+  act (D4).
+- **Proof:** validator over both fixtures + the TASK-122 plan.
+
+### TASK-124 — Jira push seam + `jira_trace.json`
+- **Depends on:** TASK-123, TASK-052 (auth seam).
 - **Model:** Opus — the **only** external mutation; highest care.
-- **Reads:** `docs/TECH_SPEC.md` §3.8 (`jira_plan/`, `trace.json`), §7 (push seam), §9 (G3); FR-JR-*, FR-XS-17.
-- **Creates / edits:** `core/adapters/jpmc_adapters/jira.py`, `jira_plan/` + `trace.json` emit, the G3 gate.
-- **Do:** Generic Jira-push connector with the real JPMC Jira REST call **isolated in its own `[TBD — VDI]` placeholder function, edited in place on the VDI** (hard rule **S** — no `/vdi` plugin); emit `jira_plan/` + `trace.json`; gate **G3** before push. The push is the **only** external mutation — operator-confirmed.
-- **Acceptance:** G3 gates the plan; a stub push records `trace.json` (issue keys); no secret on disk; push is the sole mutation; build_checks green.
-- **Proof:** stub Jira endpoint; G3 + `trace.json` proof; no secret on disk.
-- **Satisfies:** FR-JR-*, FR-XS-17, §7.
+- **Reads:** §7.1 (interface signature) · §7.2 (push flow) · §3.8 (`jira_trace.json`) · D-A24 ·
+  impact §12.
+- **Creates / edits:** `core/adapters/jpmc_adapters/jira.py` — generic push connector; the real
+  JPMC Jira REST call isolated in its own `[TBD — VDI]` placeholder function + a **local stub
+  target** so the flow proves offline; push order Initiative → Deliverable → Epic → Story with
+  parent links; G3-gated + operator-confirmed before any write; emit `jira_trace.json` (issue
+  keys per plan node); telemetry.
+- **Acceptance:** stub push records a complete trace; an un-gated or unconfirmed push is
+  impossible by construction; no secret on disk; the push is the run's sole external mutation.
+- **Proof:** stub-target run → `jira_trace.json` + the gate/confirm records in the ledger.
 
 ---
 
-## Milestone 5B — Code-impact enhancements (real-corpus value)
+## Milestone D6 — Metrics, docs, acceptance
 
-### TASK-066 — `purpose`-as-discovery in the coarse pass
-- **Phase:** P5-B · **Depends on:** TASK-040 (coarse pass).
-- **Model:** Opus.
-- **Reads:** the TASK-040 coarse pass (`core/skills/code_impact_assess.skill.md`); ADR-005.
-- **Creates / edits:** the coarse-pass agent (TASK-040).
-- **Do:** Let the coarse pass also use `purpose` for **semantic candidate discovery** (surface a component whose `purpose` describes the requirement even when the matching *tag* wasn't applied) — mitigates the under-applied-tag blind spot. Advisory + cite-or-flag (never silently widen scope; surface via Flags). The model-free rule governs *building* the map, not the already-model-driven coarse consumer. **Refinements (V-approved 2026-07-02):**
-  - **(a) provenance per candidate** — every coarse candidate carries `matched_by: tag | purpose | both` (`both` = high confidence; `purpose`-only = flagged candidate for the operator);
-  - **(b) feed the adequacy signal** — a `purpose`-only hit is direct evidence of an under-applied/missing tag, so emit it as an `uncovered_concepts`-style observation into the §5.4.1 vocab-adequacy ledger (links to TASK-067 / FR-DC-21; every impact run doubles as vocabulary QA);
-  - **(c) module-first descent** — compare the requirement against `components[].purpose` first, descend to file-level purposes only within matched modules (bounds the semantic pass on large repos);
-  - **(d) the impact query is text, not topics** — the semantic comparison uses the `UI_INPUT.frame` text (+ relevant `context_set/` content and, once drafted, the BRD requirements section), not just profile topic names; the frame names concepts no topic-level tag ever will.
-- **Acceptance:** a mis-tagged-but-`purpose`-relevant component surfaces as a flagged candidate carrying `matched_by: purpose`; the same hit lands in the vocab-adequacy ledger; module-first order holds (no file-level compare outside matched modules); never silently widens scope; deep-pass closure unchanged.
-- **Proof:** a fixture with an under-applied tag → coarse pass surfaces it via `purpose`.
-- **Satisfies:** ADR-005 (`purpose` leverage); enhances TASK-040/041.
-
-### TASK-067 — Doc-side semantic-gap signal
-- **Phase:** P5-B · **Depends on:** §5.4.1 vocab-adequacy.
+### TASK-125 — `metrics_scan` re-cut (amended FR-MX-02)
+- **Depends on:** TASK-121 (enrichment events exist), TASK-124.
 - **Model:** Sonnet.
-- **Reads:** ADR-005 open-Q #2; the code-side `uncovered_concepts`.
-- **Creates / edits:** a doc-arm analog to `uncovered_concepts`.
-- **Do:** Add a doc-side equivalent of the code side's `uncovered_concepts` so vocabulary-adequacy detection (§5.4.1) is symmetric across both arms, not code-only.
-- **Acceptance:** the doc arm emits a leftover-meaning signal symmetric to the code arm; §5.4.1 considers both.
-- **Proof:** a doc with vocabulary-uncovered meaning → doc-side gap signal.
-- **Satisfies:** ADR-005 open-Q #2.
+- **Reads:** FR-MX-02 (amended — M01–M07, M09–M12) · §8.2 · impact §2.
+- **Creates / edits:** `core/scripts/metrics_scan.py` re-cut: $/SI-v1, $/enrichment, scores at
+  G1/G2, first-pass acceptance, docs/month, v1→v2 cycle time, latency p95, §16→story coverage at
+  push, stories/epic, push success, **M12 enrichment yield** (corrections + derived impacts +
+  auto-fills per run — the v1→v2 delta). Drop the FRD-era metrics.
+- **Acceptance:** over the D4/D5 fixture run's ledger, every amended metric derives; no retired
+  metric referenced.
+- **Proof:** `metrics_scan.py` output over the fixture ledger.
 
----
-
-## Milestone 5B — Multi-repo
-
-### TASK-068 — Multi-repo cross-repo closure
-- **Phase:** P5-B · **Depends on:** the `code_map` build (TASK-036), TASK-054 (clone).
-- **Model:** Opus.
-- **Reads:** `docs/TECH_SPEC.md` §3.3 (reserved `external_calls`/`exposes`), FR-DC-18.
-- **Creates / edits:** `code_map.json` cross-repo fields + closure logic + multi-repo clone (N repos/run).
-- **Do:** Populate the reserved `external_calls`/`exposes` fields and implement cross-repo closure (a requirement spanning >1 repo).
-- **Acceptance:** a 2-repo run maps cross-repo calls; closure surfaces impact across repos; single-repo unaffected.
-- **Proof:** two linked fixture repos → a cross-repo edge in `code_map` + closure.
-- **Satisfies:** FR-DC-18. **See also:** `docs/design/ADR-007-cross-repo-code-impact.md`.
-
----
-
-## Milestone 5B — Domain onboarding (the proposer skills, then the orchestrator)
-
-### TASK-069 — `extractor_onboard` skill + a 2nd language extractor
-- **Phase:** P5-B · **Depends on:** TASK-009/012 (C extractor pattern), the onboarding gate (§5.7 `port_check`).
-- **Model:** Opus.
-- **Reads:** `docs/TECH_SPEC.md` §5.7, ADR-001 (tree-sitter), FR-DC-19; `docs/ENV_PRECHECK.md`; `docs/design/ADR-006-extractor-onboarding.md`.
-- **Creates / edits:** `core/skills/extractor_onboard.skill.md`; a 2nd-language extractor frozen with its own `onboarding_manifest`.
-- **Do:** The skill proposes/refines an extractor against a code sample → reviewable artifact for human **freeze**; onboard a 2nd language (e.g. Java/Python) via the same gate. Structural-only, deterministic, **model-free build**; the TASK-010 model fallback covers unonboarded languages meanwhile.
-- **Acceptance:** a 2nd-language extractor onboarded + frozen against an oracle; §10 green; the build stays model-free.
-- **Proof:** extract a sample repo in the new language; oracle match.
-- **Satisfies:** FR-DC-19.
-
-### TASK-070 — `domain_onboard` skill (propose a new domain's vocabulary)
-- **Phase:** P5-B · **Depends on:** TASK-069 (an untagged `purpose`-only map), D5 (vocabulary contract).
-- **Model:** Opus.
-- **Reads:** ADR-003, FR-DC-20; `vocabulary.payment_brand.yaml` (the shape to propose).
-- **Creates / edits:** `core/skills/domain_onboard.skill.md`.
-- **Do:** Propose a **new** domain's first `vocabulary.<domain>.yaml` from its sample docs + the untagged (`purpose`-only) code-map of a sample repo → reviewable artifact for human freeze (**propose, never bless** — the FR-DC-19 governance applied to the dictionary). Cannot be exercised until domain #2; `payment_brand`'s vocabulary is frozen by D5.
-- **Acceptance:** given 2nd-domain samples, proposes a `vocabulary.<domain>.yaml` a human can freeze; never auto-blesses; §10.1 containment holds once frozen.
-- **Proof:** a 2nd-domain sample → proposed vocabulary artifact.
-- **Satisfies:** FR-DC-20.
-
-### TASK-071 — `profile_onboard` skill
-- **Phase:** P5-B · **Depends on:** TASK-070 (a frozen vocabulary).
-- **Model:** Opus.
-- **Reads:** ADR-004, FR-DC-22, FR-BR-08; the `payment_brand` profiles.
-- **Creates / edits:** `core/skills/profile_onboard.skill.md`.
-- **Do:** Gate 3 of the adaptive-dictionary chain (detect → name a tag → **route it into a profile section**). When a vocabulary grows (FR-DC-20/21), a newly-approved tag is *taggable but unconsumed* until a profile section references it. **Surface** the unconsumed tag (FR-BR-08 surface→wait→apply loop), **propose** a target section `id` + drafted `must_capture`/`probe_if_missing` (`sources` from the tag's `emitted_by`; `functional_kind`/`traces_to` for the FRD) → reviewable **profile diff**. Two modes: **bulk** (whole first profile at onboarding, right after `domain_onboard` freezes the vocabulary) + **incremental** (one new tag at drift). Vocabulary-first (§10.1 containment). Build-time amendment, never runtime mutation (§6.6.1).
-- **Acceptance:** an approved-but-unconsumed tag → proposed profile diff a human freezes; no runtime mutation.
-- **Proof:** an unconsumed tag → proposed profile section.
-- **Satisfies:** FR-DC-22.
-
-### TASK-072 — `adapter_onboard` skill (+ promote `pdf_extract` to `core/skills/`)
-- **Phase:** P5-B · **Depends on:** TASK-070, TASK-071 (frozen vocab + profiles).
-- **Model:** Opus.
-- **Reads:** ADR-005, FR-DC-23, §6.6.3; the TASK-017 F1+3 drift class (`CLAUDE.md`).
-- **Creates / edits:** `core/skills/adapter_onboard.skill.md`; promote `pdf_extract` → `core/skills/`.
-- **Do:** The last domain-seam authoring aid. Propose the adapter pack by guided conversation — show the fixed frame (engine + fixed `code_pipeline → code_map_build`), design the variable `docs_pipeline` (reuse shared/structural skills; scaffold net-new ad-hoc skills), and **derive each skill's `emits` from the vocabulary's `emitted_by`** so `adapter.yaml` cannot drift from the vocab **by construction** (kills the TASK-017 F1+3 drift class). Bulk + incremental. **Dependency:** promote domain-agnostic `pdf_extract` into `core/skills/` first, so it is available before a pack exists. Propose-never-bless; references core skills, authors only domain pack skills, never edits `core/skills/` content beyond the promotion, never runtime-mutates.
-- **Acceptance:** given frozen vocab+profiles, proposes an adapter pack whose `emits` == `emitted_by` by construction; §10.5 no-drift green; `pdf_extract` in `core/skills/`.
-- **Proof:** a 2nd-domain frozen seam → proposed `adapter.yaml` with zero drift.
-- **Satisfies:** FR-DC-23. **Open Qs (ADR-005):** #1 answered by TASK-073 (`ONBOARD_INPUT.yaml`); #2 by TASK-067.
-
-### TASK-073 — Domain-onboarding orchestrator (`onboard.py` + `ONBOARD_INPUT.yaml`)
-- **Phase:** P5-B · **Depends on:** TASK-069..072 (all four helpers), TASK-048 (`build_checks.py`).
-- **Model:** Opus — sequences the authoring chain with hard gates + a registry push.
-- **Reads:** §6.6.1, §10, Appendix B (consume-pull vs author-pull); FR-DC-19/20/22/23.
-- **Creates / edits:** `core/scripts/onboard.py`, `ONBOARD_INPUT.yaml`.
-- **Design (V-proposed, to refine — the four helper *skills* are the proposers; this is the utility that sequences them end-to-end so a new domain can be authored, frozen, and pushed back to the registry as one guided flow, after which a normal `mode: run` proceeds):**
-  - **Config = a separate but `UI_INPUT`-shaped envelope with a `mode` discriminator** — `mode: onboard` (authors the registry) vs `mode: run` (consumes it). Deliberately **not** a flag bolted onto run-`UI_INPUT`: run config is the immutable consume-the-registry artifact (§3.1); onboarding carries different fields (`sample_sources[]` corpus, sample repo, `baseline`, the **new** `domain`) and a different output (a registry commit, not a run workspace). One shared schema style / UI affordance, two modes — this is the concrete answer to ADR-005's "sample-input mechanism unspecified (is it `UI_INPUT`-shaped?)".
-  - **Flow:** `onboard.py` does the **authoring pull** (clone registry → `onboard_dir/` scratch), runs the four helpers **in the mandated order** (`extractor_onboard` → `domain_onboard` → `profile_onboard` → `adapter_onboard`) with a **human freeze gate at each step** (propose → refine → freeze), then runs **`build_checks.py` (§10) as a HARD GATE** (containment §10.1, emit-map no-drift §10.5, coverage, parity §10.2) — **red ⇒ stop, no push** — then `git commit` + **push to Bitbucket**, and **emits the resulting `registry_sha`** to thread into the subsequent `mode: run` `UI_INPUT`.
-  - **Governance (unchanged):** propose-never-bless throughout; the push is a **build-time developer `git` action**, not a runtime agent mutation (distinct from the run-time Jira push, the *only* external mutation of a run); the registry stays human-frozen + SHA-pinned (§6.6.1). Distinct from `hydrate.py` (TASK-024): that is the *consume* pull (copy a frozen SHA into a run); this is the *author* pull (edit the registry, push back).
-- **Acceptance:** a new domain authored end-to-end → §10 green → pushed → `registry_sha` emitted; red §10 ⇒ no push; distinct from the `hydrate.py` consume pull.
-- **Proof:** onboard a 2nd domain against a local bare-git registry; `registry_sha` emitted; §10 gate enforced (red blocks push).
-- **Satisfies:** FR-DC-19/20/22/23; answers ADR-005 open-Q #1.
-
-### TASK-074 — Multi-domain enablement (`domains_index.yaml` + UI)
-- **Phase:** P5-B · **Depends on:** TASK-073 (a 2nd domain authored).
+### TASK-126 — Docs re-cut (`SKILLS_INDEX`, `BUILD_OVERVIEW`, `design/README`, `CLAUDE.md`)
+- **Depends on:** TASK-122 (the skill roster is final).
 - **Model:** Sonnet.
-- **Reads:** FR-BR-11/14, FR-XS-21, D2; the UI `DOMAINS` list (`PDLCConfigurator.jsx`).
-- **Creates / edits:** `domains_index.yaml`; drive the UI domain dropdown from it.
-- **Do:** Add `domains_index.yaml` (the registered domains) + wire the UI's domain dropdown from it instead of the hardcoded `payment_brand`. Generate hydrates the chosen domain (domain-pruned). The YAML baseline extraction stays deferred under D2.
-- **Acceptance:** a 2nd domain appears in the UI + Generates a correctly-pruned scaffold; `payment_brand` unaffected.
-- **Proof:** a 2-domain index → UI offers both → Generate prunes correctly.
-- **Satisfies:** FR-BR-11/14, FR-XS-21.
+- **Reads:** impact §8 · D-A23 (role list) · the landed D0–D5 state (disk is ground truth).
+- **Creates / edits:** `docs/SKILLS_INDEX.md` (SI-era catalog: 8 roles, per-skill contract
+  pointers); `docs/BUILD_OVERVIEW.md` (the SI → enrichment → Jira pipeline); `docs/design/README.md`
+  (ADR index incl. 008 + the 003/004/005 banners); `CLAUDE.md` (drop retired pointers — seed
+  skills, `brd_frd_overview.html`; confirm the current-slice wording matches the landed state).
+- **Acceptance:** no doc references a retired file; a fresh-session read of `CLAUDE.md` →
+  `TASK_LIST.md` → disk is coherent.
+- **Proof:** link/reference sweep (`grep` for retired names) comes back empty.
+
+### TASK-127 — End-to-end acceptance + registry re-publish
+- **Depends on:** every task above.
+- **Model:** Opus — the full operator path; absorbs old TASK-056's surviving half (D-A0).
+- **Reads:** `docs/ACCEPTANCE.md` (the old spine run, as the format model) · §9.5 · every D-A
+  gate/guardrail block · the Execution protocol step 5 suspension note.
+- **Creates / edits:** `docs/ACCEPTANCE_SI.md` (run log + artifact links); registry re-publish.
+- **Do:** From the React UI: configure a run (domain `payment_brand`; sources = SharePoint PDFs +
+  Confluence pages + Bitbucket repo + a Jira Prior Artifact, each dispositioned; overview filled)
+  → Generate (G0) → open the tool in the scaffold → `start-ingest` (fan-out + indexes + map via
+  the 4-branch gate) → `start-si` → v1 → flag loop → G1 accept (v1 freezes) → `start-enrich` →
+  Arms 1+2 → walkthrough → v2 → G2 → `start-jira` → 4-level plan → G3 → **stub** push +
+  `jira_trace.json`. Then: `build_checks.py` 4/4 green · family-2 checks green ·
+  `metrics_scan.py` derives the amended set · **re-publish the registry** (publish suspension
+  lifts; both overlays ship) · delete the stale run workspace, re-Generate from the UI, and
+  confirm the published registry serves the new pipeline.
+- **Acceptance:** an operator completes the fresh run unaided through UI + tool; every gate is an
+  operator act; v1 + `enrichment.json` reconstruct v2; the trace chain
+  `D→R→§16→story→(stub) key` is intact; checks + metrics green; registry re-published and
+  re-hydrated successfully.
+- **Proof:** the run workspace + ledger + `docs/ACCEPTANCE_SI.md`.
 
 ---
 
-## Milestone 5B — Vocabulary adequacy (L2)
+# Deferred / candidate tasks (capture only — promote when the trigger is hit)
 
-### TASK-075 — `vocab_gap_assess` + amendment loop
-- **Phase:** P5-B · **Depends on:** TASK-013 (L1 detector, in-slice), the `vocab_sha` cache hook.
-- **Model:** Opus.
-- **Reads:** ADR-003, FR-DC-21; the L1 `VOCAB_GAP_FLAG`.
-- **Creates / edits:** `core/skills/vocab_gap_assess.skill.md` + the amendment loop.
-- **Do:** The model half of vocabulary adequacy — a bounded model pass over the **newly-introduced untagged delta** proposes a candidate tag + evidence; human-gated **amendment** → `vocab_sha` bump → re-tag pass. First meaningful exercise is the real (VDI) corpus: the synthetic fixtures were authored to fit the 12 tags, so the gap cannot manifest externally. The `vocab_sha` cache-key hook is already reserved (TASK-012/013), so the loop drops in additively.
-- **Acceptance:** an untagged delta → proposed tag + evidence; human-gated amendment bumps `vocab_sha` + re-tags; never auto-mutates.
-- **Proof:** a synthetic untagged delta → proposed amendment artifact.
-- **Satisfies:** FR-DC-21.
-
----
-
-## Milestone 5B — Infra / UX (lower priority)
-
-### TASK-076 — Metrics store + dashboard (SQLite)
-- **Phase:** P5-B · **Depends on:** TASK-032 (ledger), `metrics_scan`. · **Model:** Sonnet.
-- **Reads:** D8 persistence split; FR-MX-*.
-- **Do:** Promote the JSONL ledger to a queryable store + a metrics dashboard — **additive** (JSONL stays source of truth).
-- **Acceptance:** ledger events queryable; dashboard renders run metrics; JSONL unchanged.
-- **Proof:** ingest a run's ledger → dashboard renders. **Satisfies:** FR-MX-*, D8.
-
-### TASK-077 — Auto-launch (operator-gesture automation)
-- **Phase:** P5-B · **Depends on:** the 5A manual-start path (FR-XS-22). · **Model:** Sonnet.
-- **Reads:** FR-XS-25 (deferred auto-launch); the overlays' `launch.md`.
-- **Do:** Automate the manual start gesture (open the tool + run `start-ingest`) where the environment permits — Claude-only convenience first.
-- **Acceptance:** Generate → run starts without the manual step where allowed; the manual path still works.
-- **Proof:** an auto-launched run. **Satisfies:** FR-XS-25.
-
-### TASK-078 — UI enhancements (role gating + telemetry surface)
-- **Phase:** P5-B · **Depends on:** TASK-050/051. · **Model:** Sonnet.
-- **Reads:** the role-gating FRs; the `GET /runs/{id}/status` endpoint.
-- **Creates / edits:** `app/frontend/` + `app/backend/`.
-- **Do:** Role gating on the configurator + a richer telemetry/metrics surface (live run status, G-gate results).
-- **Acceptance:** roles gate actions; the UI surfaces live ledger status.
-- **Proof:** a gated action + a live-status view. **Satisfies:** FR-XS-* (UI enhancements).
-
----
-
-## Milestone 5B — BRD discovery quality
-
-### TASK-079 — Assess discovery-question adequacy (up-front + throughout the BRD)
-- **Phase:** P5-B · **Depends on:** TASK-037/038/039 (`brd_author`), TASK-015 (`brd_profile`). · **Model:** Opus.
-- **Reads:** `core/skills/brd_author.skill.md` — its `## Discovery (FR-BR-02)` framing pass (the *up-front* questions) **and** the per-section `probe_if_missing` loop (the *throughout* questions); `core/profiles/payment_brand/brd_profile.payment_brand.yaml` (`must_capture` / `probe_if_missing` per topic); `docs/REQUIREMENTS.md` **D1** (the `must_capture`/`probe_if_missing` schema), **FR-BR-02** (up-front framing discovery — 2–3 clarifying questions), **FR-BR-03** (throughout gap-fill, limited to unsatisfied `must_capture`), **FR-BR-05** (never re-ask / shared memory), **FR-BR-09** (`brd_validator` coverage score → G1); the `start-brd` prompt and — for the pre-BRD handoff — `start-ingest`.
-- **Why / when.** The BRD's quality is bounded by what the author *asks*. Two question moments exist: an **up-front** pass (what `brd_author` elicits before drafting, seeded from `must_capture`) and a **throughout** pass (the `probe_if_missing` loop as sections fill). Today neither is measured — a `must_capture` topic with no eliciting question, or a frame-relevant topic with no probe, silently becomes a `[TBD]` instead of a question. This task **measures** that coverage, then proposes additive fixes; it does **not** redesign the BRD flow.
-- **Do (assessment-first, then propose — propose-never-bless):**
-  1. **Inventory** where discovery questions originate today: the up-front pass and the `probe_if_missing` loop. Write the inventory.
-  2. **Evaluate adequacy** against the frame + sources + code surface: for each `must_capture` topic, is there a question that elicits it when the sources are silent? Any frame-relevant topic with **no** probe? Does the author probe before assuming, or drop `[TBD]` without asking?
-  3. **Findings artifact:** per-topic coverage (covered / under-probed / missing), each cited to the skill/profile line (**cite-or-flag** — never invent a gap).
-  4. **Propose** additive remediation **only in the domain seam** — new/strengthened `probe_if_missing` entries in `brd_profile` and/or sharper elicitation guidance in `brd_author.skill.md` — as a reviewable diff a human **freezes**. No runtime mutation; never branch on `domain`.
-- **Acceptance:** a written up-front + throughout coverage assessment mapping every `must_capture` topic to its eliciting question or flagging the gap; a proposed (human-frozen) profile/skill diff that closes the identified gaps; G1 still gated by the same validator; `build_checks.py` (§10 ×5) green; the `payment_brand` BRD run is unaffected unless the diff is frozen.
-- **Proof:** run a fixture BRD (the bundled Mastercard-mandate PDF) through `brd_author` with deliberately **sparse** sources → the proposed probes fire for the silent topics; the coverage report lists no un-probed `must_capture` topic.
-
----
-
-## Milestone 5B — Code-impact depth (deep-pass ripple / closure)
-
-### TASK-080 — Verify the deep-pass code-ripple closure traces correctly and goes deep enough
-- **Phase:** P5-B · **Depends on:** TASK-041 (deep pass), TASK-005 (the signed-off oracle). · **Model:** Opus.
-- **Reads:** `core/skills/code_impact_assess.skill.md` — the **Deep** mode "trace the real dependency closure" step (follow `depends_on` = callees **and** `used_by` = callers **outward until the affected surface is closed**; the map *seeds*, the source *confirms + extends*), the deep output contract (`ripple` + the `scope_ripple` flag), and the guardrails (deep reads **only the flagged slice**; closure **within-repo only**); `docs/TECH_SPEC.md` §5.6 (coarse/deep contract + the D6c material threshold); `context_set/code_map.json` §3.3 (the `depends_on`/`used_by` edges the closure seeds from); `docs/REQUIREMENTS.md` **FR-BR-07**, **FR-BR-12/13**, **D6b/c**, **FR-DC-13** (single-repo within-repo boundary).
-- **Why / when.** The deep pass is where requirement→code impact is actually established: it must walk the dependency graph **outward to a fixed point** ("until the affected surface is closed"), in **both** directions (callees via `depends_on`, callers via `used_by`), and it must **extend** the closure from the real source when the map missed an edge — not stop at the map's first-hop neighbours. If it terminates after one hop, follows only one direction, or trusts only map edges, the ripple is **under-reported** → scope-widening `scope_ripple` flags get missed and G1 inherits a too-narrow surface. This task **measures** closure correctness + depth; it does **not** redesign the deep pass.
-- **Do (assessment-first, then propose — propose-never-bless):**
-  1. **Trace a known fixture through the deep pass.** Use `fixtures/c_repo/` (the signed-off map/oracle): pick a requirement whose true impact is **multi-hop** (A→B→C callees; plus a caller D that `used_by` → A). Record the closure + `ripple` the deep pass actually returns.
-  2. **Check correctness:** does it follow **both** `depends_on` and `used_by`? Does it iterate to a **fixed point** (the surface is genuinely closed — no un-expanded frontier node), or stop at depth 1? Does it **extend** the closure from source for a map-omitted edge (seed an oracle edge the map lacks → confirm the source pass recovers it)?
-  3. **Check depth adequacy:** any reachable closure node missed (false-negative ripple)? Is the within-repo boundary (FR-DC-13) respected as a *boundary*, not used to stop early *within* the repo?
-  4. **Findings artifact:** per requirement, the expected closure (from the oracle) vs the produced closure — nodes hit / missed / over-reached — each cited to the skill line + map edge (**cite-or-flag**; never invent a missed node).
-  5. **Propose** additive remediation ONLY where a gap is proven — sharper both-directions / fixed-point / source-extends guidance in the deep-mode prose of `code_impact_assess.skill.md` — as a reviewable diff a human **freezes**. No new seam; ripple still surfaces as a **Flag** (never auto-widen scope); never branch on `domain`.
-- **Acceptance:** a written closure-correctness assessment over ≥1 multi-hop fixture requirement showing produced `ripple` == the oracle closure (or each divergence flagged); a demonstration that the deep pass follows **both** edge directions and reaches a **fixed point** (not depth-1); a map-omitted edge proven recovered from source; any proposed skill diff is human-frozen; `build_checks.py` (§10 ×5) green; the deep pass still reads only the flagged slice (no whole-repo read) and stays within-repo.
-- **Proof:** a `fixtures/c_repo/` requirement with a 3-hop callee chain + a caller edge → the deep pass's `ripple` lists every node in the oracle closure; a deliberately map-omitted edge is still surfaced (source-extends proven); a single-hop control requirement does **not** over-report.
-
----
-
-## Milestone 5B — BRD completeness loop (source-grounded auto-fill, pre-G1)
-
-### TASK-081 — Source-grounded auto-fill loop before G1 (agent closes sourced gaps; human gets the rest)
-- **Phase:** P5-B · **Depends on:** TASK-043 (`brd_validator` + G1), TASK-042 (the flag loop). · **Model:** Opus.
-- **Reads:** `core/skills/brd_validator.skill.md` (the soft-gate: score §9.2, section-level gap suggestions, G1 eligibility = `score ≥ threshold` ∧ required-topics-satisfied ∧ flags-resolved); `core/skills/brd_author.skill.md` (the per-section loop, the *"loop back and revise"* rule, **Loop exit**, the hand-off to `brd_validator`); `docs/TECH_SPEC.md` §9.1/§9.2 (G1 + the two **absolute** preconditions); `docs/REQUIREMENTS.md` **D4 / FR-XS-13** (machine soft-gate — informs, never auto-advances), **FR-BR-08/13** (the human-mediated flag loop), the **cite-or-flag** rule; `core/scripts/gate.py` (`G1` evaluate).
-- **Why / when.** Today the `brd_validator → brd_author` re-entry is **human-triggered for *every* gap** — even a gap whose answer **already exists in a source** and the author simply didn't route or cite it. Those are *retrieval misses*, not knowledge gaps: re-reading the source and grounding the claim is the author finishing its own job, **not** invention. This task automates the **return trip for the source-closable subset only**, and leaves everything unsourced (and everything scope-moving) on today's human path. The branch condition **is** cite-or-flag — not a fuzzy "can the agent fix it". **This amends a pinned contract** (the D4 soft-gate interpretation + the validator/author loop) — treat it as a ladder amendment **+ ADR**, not a silent build.
-- **Do (assessment-first, then propose the amendment — propose-never-bless):**
-  1. **Classify each validator gap** by the cite-or-flag line into three buckets: **(a) source/frame-closable** (a source or the `UI_INPUT` frame answers it — a routing/citation miss); **(b) unsourced** (`[TBD]` — no corpus answer); **(c) scope-moving** (tied to a material / `scope_ripple` flag).
-  2. **Add a bounded pre-G1 grounding loop** for bucket (a) **only**: hand the gap back to `brd_author` to re-route the section's source slice, ground the `must_capture`, emit the coverage footer, then re-validate. **Bounded** (cap iterations, e.g. 2–3) **+ monotonic-progress guard** (each pass MUST strictly shrink the source-closable gap set or raise `brd_score`, else stop and flag) — no thrash, no oscillation.
-  3. **Route buckets (b) and (c) unchanged:** unsourced → human in-chat fill (today's path); scope-moving → the operator-decided flag loop (FR-BR-08). **Never invent** a value to close a gap (cite-or-flag) — surfacing an unsourced gap stays the correct outcome.
-  4. **Keep D4 intact:** the loop runs **before** G1; G1 acceptance stays the operator's act; the two **absolute** preconditions (every required topic satisfied, all flags dispositioned) stay human-gated regardless of score; the validator still **never advances the pipeline**.
-  5. **Audit every auto-fill:** each agent-made grounding is recorded to `decisions.jsonl`/telemetry tagged **agent-made**, so the operator at G1 sees auto-filled vs human-filled and can spot-check.
-  6. **(Optional) minimal floor:** decide whether a too-sparse draft (below a low floor) skips the auto-loop and goes straight to human — distinct from the G1 acceptance bar (default 85), which is **unchanged**.
-  7. **Author the ADR** capturing the D4-interpretation amendment + the loop contract; amend the §9.2 prose to match.
-- **Acceptance:** a source-closable `must_capture` gap **auto-closes** (grounded + cited, `brd_score` rises) with **no human turn**; an **unsourced** gap still flags to the human in-chat; a **scope** flag still routes to the operator; the loop **terminates** (iteration cap + monotonic guard — proven not to thrash); every auto-fill is recorded as **agent-made** in the ledger; **D4 preserved** (G1 stays human; the pipeline never self-advances; required-topic + flags-resolved stay absolute); **cite-or-flag never violated** — Goodhart-safe: the score moves only when a real source backs the fill; `build_checks.py` (§10 ×5) green.
-- **Proof:** a fixture BRD seeded with three gaps — **(a)** a `must_capture` a bundled source covers but the author missed → **auto-closed in-loop**; **(b)** a `must_capture` with no source answer → **human flag**; **(c)** a `scope_ripple` material flag → **operator flag**; the loop respects its iteration cap and stops on no-progress.
-- **Port note:** amends `docs/REQUIREMENTS.md` D4 / FR-XS-13 interpretation + `docs/TECH_SPEC.md` §9.2 + the `brd_validator`/`brd_author` loop contract — back-port with the new ADR.
-
----
-
-# Milestone 5C — deferred / candidate tasks (not scheduled; capture only)
-
-> Scale-driven or exploratory items surfaced during 5B design discussion. **Not** part of the 5B
-> build. Listed so they aren't re-litigated — promote to a numbered task only when the trigger
-> condition is actually hit.
-
-- [ ] **TASK-082 (candidate) — Section-as-subprocess BRD authoring with persisted state (context-overflow scale-out)**
-  - **Trigger / when.** Only when a single BRD authoring run is large enough that the **continuous
-    `brd_author` context window would overflow** (many sections over a big corpus). At MVP / typical
-    scale (one PDF + one repo, a handful of sections, comfortably one window) this is **not needed** —
-    the single-context loop is both cheaper and safer.
-  - **Idea.** Today `brd_author` runs the per-section loop in **one continuous context window**;
-    shared memory = the live session **+** the incrementally-written `BRD.md` (FR-BR-05). The candidate:
-    run **each section as its own sub-process**, seeded from **persisted state** (the `BRD.md`-so-far
-    **plus** the decision/Q&A log), so the run can complete without holding the whole draft + all
-    prior source slices resident at once.
-  - **Why it's deferred, not done now (the cost/benefit).** Sections are **inherently sequential**
-    (section N depends on section N-1's draft) → **no parallelism** to win; the accumulating draft must
-    be carried regardless, so context savings are **marginal** (you only shed prior sections' source
-    slices, already bounded by selective-read + per-source summarize). And `BRD.md` alone is
-    **insufficient** shared memory — the operator Q&A not yet written into a section lives in the live
-    session, so a sub-process seeded with only the draft risks **re-asking** (FR-BR-05 violation) unless
-    the full decision/Q&A log is persisted + passed too. Net: pay isolation's costs without its benefits
-    — **until** the window can't hold the run, which is the one regime that flips it.
-  - **Design constraints if promoted.** Keep section authoring **synthetic** (multiple sources still
-    co-resident *within* a section — do **not** fan out within a section; that breaks conflict
-    reconciliation + coverage). Persist **both** the draft and the decision/Q&A log so "never re-ask"
-    and cross-section **loop-back-and-revise** survive the hop. Trigger on a **context-size threshold**,
-    not by default. Mirrors the existing `code_impact` subagent pattern (fan out the *independent* work;
-    keep the *sequential/synthetic* work in one window).
-  - **Reads (when picked up):** `core/skills/brd_author.skill.md` (the per-section loop, "Revisiting &
-    shared memory" FR-BR-05, the `code_impact` subagent delegation); `docs/REQUIREMENTS.md` FR-BR-04/05,
-    NFR-05 (selective read at any corpus size).
-
-- [ ] **TASK-083 (candidate) — Chunk/segment-level source granularity (finer-than-document tagging + retrieval)**
-  - **Trigger / when.** Only for **large individual documents** — a sprawling spec or a big Confluence
-    KB page — where **document-level** tagging is too coarse (the whole doc tagged `routing` because one
-    passage mentions it, so a section pulls the entire doc/summary). At MVP / normal doc sizes this is
-    **over-engineering**: document-level tagging + the per-source summarize already give the right
-    granularity for a small curated corpus.
-  - **Idea.** Today tagging is **per document** (§3.2: one manifest entry per doc, document-level
-    `topics`); per-section retrieval loads whole matching doc bodies/summaries
-    (`file.topics ∩ section.topics ≠ ∅`). The candidate: an LLM **pre-chunks/segments** a doc into
-    coherent pieces, tagging happens **per chunk**, and per-section retrieval pulls **only the relevant
-    chunks** → tighter context, less noise, finer (passage-level) citations. (Allowed: the model-free
-    rule governs the **code** map build, not the doc pipeline, which is already model-driven.)
-  - **Lighter first rung (prefer this before full chunking).** Make `article_summarize` /
-    `confluence_tag` emit a **topic-segmented summary** (the digest organized by topic) so retrieval
-    pulls the **relevant segment** of the summary — **no §3.2 schema change** (still one entry per doc),
-    document coherence preserved, retrieval still gets finer. Full chunk-level manifest is the heavier
-    escalation only if segmented summaries prove insufficient.
-  - **Why deferred, not done now (cost/benefit).** The two wins (noise, size) are **already largely
-    mitigated** by selective-read-by-section + per-source summarize, so the marginal gain is smaller
-    than it looks. Costs: **coherence loss** (chunks drop surrounding context → harder cross-chunk
-    synthesis, and authoring is synthesis-heavy); chunking is a **new lossy model-driven step** (a bad
-    cut splits a coherent argument — a new failure mode); and full chunk-level retrieval is a
-    **§3.2 manifest-contract change + ADR**, not a small edit.
-  - **Design constraints if promoted.** Start with the **segmented-summary** rung (additive, no schema
-    change); escalate to chunk-level manifest only if needed. Preserve **document-level coherence** as a
-    fallback (a chunk must carry enough context to be faithfully citable — cite-or-flag). Same
-    **document-size trigger** family as TASK-082 (don't enable by default).
-  - **Reads (when picked up):** `core/skills/brd_author.skill.md` (selective-read routing, the
-    `file.topics ∩ section.topics` rule); `core/profiles/payment_brand/adapter/article_summarize.skill.md`
-    (the summary it produces); `docs/TECH_SPEC.md` §3.2 (manifest entry shape — the contract a chunk
-    model would amend); `docs/REQUIREMENTS.md` FR-BR-04 (selective read), the cite-or-flag rule.
-
-- [ ] **`purpose`-diff as a semantic-drift signal (idea, unnumbered).** The code-map cache key is the
-  structural `commit_sha`, so a component whose *structure* is unchanged but whose *behaviour* changed
-  re-tags identically today. Diffing `purpose` between commits would surface that drift. Noted as
-  lower-value than TASK-066/067; promote only if the real corpus shows the miss.
+- [ ] **Cross-repo + cross-language closure** *(old 068 + ADR-007; D-A19: one capability wearing
+  two hats)* — populate the reserved `external_calls`/`exposes` (§3.3); closure crosses repo and
+  language boundaries. Trigger: a real multi-repo/multi-language impact need on the VDI corpus.
+- [ ] **2nd-language extractor onboarding** *(old 069; ADR-006 stands)* — now cleaner:
+  a new language = an `extractor_manifest` entry + per-language profile sections. Trigger:
+  a real non-C repo.
+- [ ] **Domain onboarding, re-scoped** *(old 070–074; no vocabulary step)* — a new domain =
+  `si_profile.<domain>` + `jira_template.<domain>` + adapter pack, proposer skills +
+  `onboard.py` orchestration + `domains_index.yaml` + UI dropdown. Trigger: domain #2.
+- [ ] **Metrics store + dashboard (SQLite)** *(old 076)* — additive; JSONL stays source of truth.
+- [ ] **Auto-launch** *(old 077)* — automate the start gesture where the environment permits.
+- [ ] **UI enhancements** *(old 078)* — role gating + live telemetry surface.
+- [ ] **Section-as-subprocess SI authoring** *(old 082)* — only at context-overflow scale; the
+  D-A18 sequential-group rule and never-re-ask must survive the hop.
+- [ ] **Scope-creep detection at implementation time** *(parked in D-A9)* — compare an
+  implementation branch against the accepted SI; revives early if `UI_INPUT` gains a declared
+  change scope.
+- [ ] **Template profiles for recognised doc families** *(parked in D-A18)* — promote only if
+  letters arrive on cadence and index selection proves noisy; per-section matching, N samples.
+- [ ] **`purpose`-diff as a semantic-drift signal** *(idea)* — diff purposes between commits to
+  catch behaviour drift under unchanged structure.
 
 ---
 
 # Build-and-port discipline (reminder)
 
-This repo is the **external Claude Code build**. Do not add VDI/Copilot-air-gap accommodations into
-the generic core — the port is a separate, later artifact (thin overlay files + `port_check` per §5.7
-+ the user-scope allow-list runbook per FR-XS-26). Keep the core agent-agnostic; the runtime-tool seam
-is the only thing the port touches. Real API/secret calls follow hard rule **S**: one isolated
-placeholder function per call, edited in place on the VDI.
+This repo is the **external Claude Code build**. Do not add VDI/Copilot-air-gap accommodations
+into the generic core — the port touches only the runtime-tool seam + the placeholder functions.
+Real API/secret calls follow hard rule **S**: one isolated placeholder per call, edited in place
+on the VDI.
 
 ## Build the structure here; defer only the call (V, 2026-07-31 · ADR-008 D-A24)
 
-For **every** source type, the **connector script, the agent/skill, and the UI wiring are all built
-here**. Only the real API call is deferred to the VDI. A **mock fixture** stands in for what the API
-would return, so the full pipeline — ingest → extract → index → route → author — runs end-to-end
-offline.
-
-**Mocks are per source TYPE, not per disposition.** Dispositions are operator *labels* with no fetching
-involved; source types are where API calls live. The same mock PDF can be dispositioned `Business
-Requirement` in one run and `Technical Specification` in another.
+For **every** source type, the connector script, the agent/skill, and the UI wiring are all built
+here. Only the real API call is deferred. A **mock fixture** stands in for what the API would
+return, so the full pipeline — ingest → extract → index → route → author — runs end-to-end
+offline. **Mocks are per source TYPE, not per disposition** (dispositions are operator labels; no
+fetching involved).
 
 | Source type | Mock | Placeholder to fill on the VDI |
 |---|---|---|
 | `sharepoint` → PDF | ✅ `fixtures/pdf/`, `fixtures/sharepoint/` | `ingest_sharepoint.py :: _download_pdf` |
 | `confluence` → HTML | ✅ `fixtures/confluence/` | `ingest_confluence.py :: _fetch_confluence` |
 | `bitbucket` → repo | ✅ `fixtures/c_repo/`, `fixtures/code_clone/` | `clone.py` |
-| `jira` → issue payload | ⬜ **new** | `ingest_jira.py :: _fetch_issue` **(new)** |
-| Jira **push** | ⬜ **new** | `jpmc_adapters/jira.py` **(new)** |
+| `jira` → issue payload | ⬜ TASK-107 | `ingest_jira.py :: _fetch_issue` |
+| Jira **push** | ⬜ TASK-124 | `jpmc_adapters/jira.py` |
 
 **PDFs always arrive via SharePoint** — the `file` source type is local-testing-only, never production.
 
 ## Two lists, disjoint by construction
 
-**`VDI_WIRING.md`** holds the environment wiring Copilot performs on the VDI. The split is by **kind of
-work**, not by audience:
+**`VDI_WIRING.md`** holds the environment wiring performed on the VDI. The split is by **kind of
+work**, not by audience: this file = what gets **built** (generic, testable here, full specs);
+`VDI_WIRING.md` = what gets **wired** (environment-specific, untestable here, **no specs** — an
+item merely names a placeholder this list already built). **No task appears in both.** *(A
+previous `TASK_VDI.md` drifted precisely by duplicating specs; deleted 2026-07-29.)*
 
-- **This file** — what gets **built**: generic, testable here, full specs
-- **`VDI_WIRING.md`** — what gets **wired**: environment-specific, untestable here, **no specs**
-
-**No task appears in both, and a VDI item is never a spec** — it merely names a placeholder this list
-already built. *(A previous `TASK_VDI.md` was deleted on 2026-07-29 precisely because it duplicated
-specs and drifted: it claimed canonical specs lived here when four tasks existed only there. Splitting
-by kind-of-work removes the possibility.)*
-
-**Carry these port notes forward:** the JPMC-side D5 table still needs the TASK-061 `code_map_build`
-fix for `card_brand`/`message_format`; the JPMC-side spec still needs the TASK-063B §6.6.3/§10.5
-`docs_pipeline` routing extension and the D9 `start-ingest` amendment.
+**Port note (standing):** the JPMC-side design docs receive the **whole ADR-008 re-cut** at port
+time — Phase B (`REQUIREMENTS.md` v2 + `TECH_SPEC.md` banner/amendments), the accepted ADR-008,
+Phase C (`ADR-008-impact-analysis.md`), and this Phase D list. The older per-task port notes
+(TASK-061 D5 fix, TASK-063B routing extension) are **moot** — the vocabulary and tag-lane routing
+they patch are retired; only the D9 `start-ingest` amendment still carries (re-pointed to
+`start-si`).

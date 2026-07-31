@@ -101,11 +101,14 @@ contract downstream depends on.
 
 ## Port notes carried from the external build
 
-- [ ] JPMC-side D5 table needs the TASK-061 `code_map_build` fix for `card_brand` / `message_format`
-      *(moot once ADR-008 retires the vocabulary — verify before spending effort)*
-- [ ] JPMC-side spec needs the TASK-063B §6.6.3/§10.5 `docs_pipeline` routing extension
-- [ ] JPMC-side D9 needs the `start-ingest` amendment
-- [ ] **ADR-008 supersessions** — carry the Phase B ladder re-cut across once it lands
+- ~~JPMC-side D5 table (TASK-061 fix)~~ — **moot**: ADR-008 retires the vocabulary (D-A22)
+- ~~JPMC-side §6.6.3/§10.5 `docs_pipeline` routing extension (TASK-063B)~~ — **moot**: tag-lane
+  routing retired (D-A19); routing is by operator disposition
+- [ ] JPMC-side D9 needs the `start-ingest` amendment — start gesture → `start-ingest`, which now
+      surfaces `start-si` (re-pointed at TASK-102)
+- [ ] **ADR-008 re-cut, whole** — carry across at port time: `REQUIREMENTS.md` v2 (D11) +
+      `TECH_SPEC.md` amendments (Phase B), the accepted ADR-008, `ADR-008-impact-analysis.md`
+      (Phase C), and the rebuilt `TASK_LIST.md`/this file (Phase D)
 
 ---
 
