@@ -1,10 +1,39 @@
-# Requirements — Agentic BRD / FRD / Jira Generation Pipeline
+# Requirements — Agentic Solution Intent / Jira Generation Pipeline
 
 **Project:** PDLC_App_v2 · JPMC Merchant Services · AI Automation
 **Document type:** System requirements specification
-**Status:** Draft v1 — derived from `BUILD_OVERVIEW.md` (architecture aligned end-to-end); resolves all ten §18 open questions.
+**Status:** Draft v2 — **amended by ADR-008 (the Solution Intent pivot), 2026-07-31.** v1 derived from `BUILD_OVERVIEW.md` and resolved the ten §18 questions (D1–D10); v2 supersedes parts of that resolution per **D11** below.
 **Owner:** V (Varun Munjal)
-**Supersedes nothing; precedes:** tech spec → per-tool task lists → UI design.
+**Precedes:** tech spec → task lists → UI design.
+
+> ## ⚡ ADR-008 supersession notice — read before relying on any D-block
+>
+> The pipeline is now **Solution Intent → enrichment → Jira**. BRD and FRD are retired as artifacts;
+> the FRD's content moved into Jira **stories** generated from code-grounded enrichment evidence. The
+> **tag chain is removed** (vocabulary → adapter `emits` → profile `topics` → `code_map.tags`); routing
+> is by **operator-declared disposition + per-artifact index**, and code impact is a **purpose-based
+> tier walk**. Full design record: [`docs/design/ADR-008`](design/ADR-008-solution-intent-pivot.md).
+>
+> | Decision | Status after ADR-008 |
+> |---|---|
+> | **D1** | ⛔ **Superseded** — `must_capture`/`probe_if_missing` survive as per-section checklists (D11); the topic⊆vocabulary contract dies with tags |
+> | **D2** | ⛔ **Superseded** — the SI has a **fixed 18-section contract** (D11); no baseline+profile merge |
+> | **D3a** | ⛔ **Superseded** — the FRD is retired (D-A0/D-A15) |
+> | **D3b** | 🔧 **Amended** — the template survives; the plan is now **4-level** (initiative/deliverable/epic/story), epic = an SI §8 requirement (D11.6) |
+> | **D4** | 🔧 **Amended** — gates re-mapped: G1 = SI v1, G2 = SI v2 (enrichment), G3 absorbs the old G2 checks (D11.5). GF and the soft-gate principle survive unchanged |
+> | **D5** | ⛔ **Superseded** — the vocabulary is removed entirely; nothing tags anything (D11.3, D11.4) |
+> | **D6a** | 🔧 **Amended** — `code_map.json` loses `tags`, gains purpose provenance + `members[]`, splits into two files (D11.4) |
+> | **D6b/c** | ✅ **Survive** — the Flags schema + material threshold are reused by enrichment escalations (D-A9/D-A16) |
+> | **D7** | ✅ **Survives** — ingestion stays source-type-keyed and domain-blind; *disposition* is an operator label, not a domain branch |
+> | **D8** | ✅ **Survives, extended** — `solution_intent/` (v1/v2/enrichment.json) replaces `BRD.md`/`FRD.md` in the artifact set (D11.2) |
+> | **D9** | 🔧 **Amended** — role list rewritten (`solution_intent_*`, `claim_verifier`, `disposition_walkthrough`; `frd_*` retired); prompt files re-pointed (D11.7) |
+> | **D10** | ✅ **Survives** — manual start, co-equal tools, VDI validation all unchanged |
+>
+> FR-cluster impact: **FR-BR-\* and FR-FR-\* are retired**, replaced by **FR-SI-\*** (Solution Intent)
+> and **FR-EN-\*** (enrichment) in A3/A4. FR-DC-08/09 (vocabulary) are retired; FR-DC-19/20/21/22/23
+> (the vocabulary/profile/adapter onboarding chain) are retired except FR-DC-19 (extractor onboarding,
+> which survives). FR-JR-\* amended per D11.6. Retired text below is kept for history — **do not build
+> against a ⛔ block.**
 
 ---
 
@@ -21,16 +50,16 @@ Where this document **refines** an example skill (e.g. dropping the standalone `
 
 ### 0.2 Conventions
 
-- **Requirement IDs:** `FR-<area>-NN` (functional), `NFR-NN` (non-functional), `D-N` (design decision from §18). Areas: `XS` cross-cutting/system · `DC` data & context · `BR` BRD · `FR` FRD · `JR` Jira · `MX` metrics.
+- **Requirement IDs:** `FR-<area>-NN` (functional), `NFR-NN` (non-functional), `D-N` (design decision). Areas: `XS` cross-cutting/system · `DC` data & context · `SI` Solution Intent · `EN` enrichment · `JR` Jira · `MX` metrics. *(Retired by ADR-008: `BR` BRD · `FR` FRD.)*
 - **Priority (MoSCoW):** **M** must (MVP-blocking) · **S** should · **C** could · **W** won't-for-MVP (recorded, deferred).
 - **Schemas** are normative where given as YAML/JSON code blocks; field names are part of the contract.
 - **"The session"** = the running Claude Code / Copilot agent session that acts as orchestrator. **"The operator"** = the human in VSCode. **"The agent"** = whichever skill-driven role is active.
 
 ### 0.3 Scope (mirrors overview §16)
 
-**In scope (MVP):** five layers; one domain (Payment Brand Implementations); generic per-source-type ingestion; domain-adapter pre-processing; per-source parallel fan-out + deterministic merge; manifest + selective read; code clone + coarse map + coarse/deep impact + human-mediated flag loop; BRD + FRD authoring/validation; Jira **epic** creation with one human gate + adapter push; basic metrics; local VDI; agnostic build (Claude Code + Copilot via the UI switch); AI-session-driven orchestration; stage transitions via prompt files.
+**In scope (post-ADR-008):** five layers; one domain (Payment Brand Implementations); generic per-source-type ingestion with **operator disposition**; per-source parallel fan-out + deterministic merge; manifest + **per-artifact index**; code clone + purpose-based map (signal profile, tier walk) + human-mediated flag loop; **Solution Intent v1 authoring + enrichment (two arms) + disposition walkthrough**; Jira **4-level plan** (initiative/deliverable/epic/story) with G3 sign-off + adapter push; basic metrics; local VDI; agnostic build (Claude Code + Copilot); AI-session-driven orchestration; stage transitions via prompt files.
 
-**Out of scope (deferred):** Jira stories; sync/freshness; change detection & downstream flagging; semantic retrieval; multi-domain breadth; **multi-system / cross-repo code impact (see C5)**; AWS + Snowflake; the Claude-only deterministic spine; auto-launch; any custom context-refresh mechanism; automated (non-human-mediated) impact re-runs.
+**Out of scope (deferred):** sync/freshness; change detection & downstream flagging; embeddings retrieval; template profiles (parked, D-A18); multi-domain breadth; **multi-system / cross-repo / cross-language closure (see C5 + D-A19)**; implementation-vs-SI scope-creep detection (post-build, D-A9); AWS + Snowflake; the Claude-only spine; auto-launch; custom context-refresh; automated impact re-runs.
 
 ---
 
@@ -65,38 +94,39 @@ Where this document **refines** an example skill (e.g. dropping the standalone `
 | FR-DC-06 | M | The MVP MUST use **large-context direct feed with selective read** — **no RAG / vector store**. The manifest is always loaded; agents pull only section-relevant files and expand on demand. | §6, §17 |
 | FR-DC-07 | W | Sync/freshness, change detection & downstream flagging, and semantic (embeddings) retrieval are deferred. | §6 |
 
-## A3. BRD generation layer (Layer 2)
+## A3. Solution Intent layer (Layer 2) — *rewritten by ADR-008; replaces the retired FR-BR-\* cluster*
 
 | ID | Pri | Requirement | Ref |
 |----|-----|-------------|-----|
-| FR-BR-01 | M | BRD authoring MUST use the **generic `brd_author` skill driven by `brd_profile.<domain>.yaml`**. The skill hardcodes no domain content and is never edited at runtime; composition is `skill(profile) → BRD.md`. | §7, §8 |
-| FR-BR-02 | M | Authoring MUST begin with **short framing discovery** (load `UI_INPUT.yaml` + manifest; 2–3 clarifying questions), then proceed **section by section** in a deliberate order, with the **executive summary written last**. | §8 |
-| FR-BR-03 | M | Per section, the agent MUST ground in the **information hierarchy**: (1) source documents (selective-read), (2) the `UI_INPUT` requirement frame, (3) chat gap-fill limited to unsatisfied `must_capture` items. Questions are gap-fills tied to unsatisfied requirements, not 1:1 with files. | §8 |
-| FR-BR-04 | M | Loading MUST be **always selective by section** — manifest always loaded, section-routed files loaded by default, more pulled on demand for cross-references. No load-all path, no size threshold. | §8, §17 |
-| FR-BR-05 | M | The agent MUST support **revisiting** (later sections may revise earlier ones) and **shared memory** (never re-ask an answered question; the session + accumulating `BRD.md` carry answers; on mid-stage reset, persist facts to the draft first). | §8 |
-| FR-BR-06 | M | Every substantive claim MUST be **grounded and cited inline** to a `context_set/` file, the `UI_INPUT` frame, or an explicit operator answer; ungrounded items MUST be marked `[TBD — unsourced]`, never invented. | brd skill |
-| FR-BR-07 | M | At the code-impact section, the agent MUST **delegate to the `code_impact` subagent**, draft the section **business-framed** (impacted systems / scale / risk — not file/function detail), and run the **human-mediated flag loop** (see FR-BR-08). | §10 |
-| FR-BR-08 | M | On returned flags the agent MUST NOT auto-apply scope changes. For each significant flag it MUST **surface** (finding/implication/options, one at a time, with a recommendation), **wait** for the operator decision, **apply** it (updating affected sections incl. earlier ones, recording decision + rationale), and **re-run `code_impact` only if scope changed materially** (see D6). | §10 |
-| FR-BR-09 | M | `brd_validator` MUST cross-check section coverage against required topics, source artifacts, and the code surface, returning a **completion score + section-level gap suggestions** for in-chat fill-in. | §2, wireframe |
+| FR-SI-01 | M | The business artifact is a single **`Solution_Intent.md`** at **initiative level**, conforming to the **fixed 18-section contract** (D11.1). The contract holds at both scales — a PBI change (the change *is* the initiative) and a high-level JPMC initiative; only decomposition depth below §7 varies. | D11.1, D-A3/D-A14 |
+| FR-SI-02 | M | **v1 is authored code-blind** from the routed sources + frame + discovery. v1 is **frozen at G1**; enrichment produces **v2** per FR-EN-\*. One document, versioned — never a base + overlay. | D-A2 |
+| FR-SI-03 | M | Section selection MUST follow the **two-level funnel**: (1) disposition + routing matrix decide *which artifacts* a section sees (deterministic, D11.3); (2) for artifacts over the whole-read budget, the **per-artifact index** decides *which passages* (model judgment driven by `must_capture`, D11.3). The whole-read check applies to the routed **set**, not per file. | D-A13, D-A18 |
+| FR-SI-04 | M | Each §8 business requirement carries **title + description + enumerated `assertions[]`** (the checkable units) + a stable ID + a `deliverable:` reference. Assertions are agent-extracted from sources at v1; G1 reviews their fidelity (cite-or-flag at assertion level). | D-A8 |
+| FR-SI-05 | M | §7 Deliverables + §8 Requirements + §16 entries carry **stable IDs** forming the trace chain `D → R → impact entry → story → Jira key`. §8→§7 tracing is **load-bearing** (it builds the Jira hierarchy). | D-A14/15 |
+| FR-SI-06 | M | **Conditional sections are dispositioned, never absent** — filled, "None identified", or "Not applicable — <reason>" (agent-proposed, operator-confirmed at G1). | D-A10 |
+| FR-SI-07 | M | Cite-or-flag is unchanged and gains **claim provenance**: every claim grounds to a source / the frame / an operator answer or is `[TBD — unsourced]`; provenance drives enrichment correction authority (FR-EN-03). Discovery keeps FR-BR-02/03/05 semantics: framing questions up front, per-section `probe_if_missing` gap-fill, revisiting + never re-ask, executive summary (§1) last. | D-A6, D11.1 |
+| FR-SI-08 | M | `solution_intent_validator` scores **`0.7 × section_coverage + 0.3 × citation_integrity`** (topic_coverage is retired with tags); hard preconditions at G1: every required section satisfied or dispositioned, §15→§4 and §8→§7 traces intact, flags resolved. | D-A23 |
 
-## A4. FRD generation layer (Layer 3)
+## A4. Enrichment layer (Layer 3) — *rewritten by ADR-008; replaces the retired FR-FR-\* cluster*
 
 | ID | Pri | Requirement | Ref |
 |----|-----|-------------|-----|
-| FR-FR-01 | M | FRD authoring MUST use the **generic `frd_author` skill driven by `frd_profile.<domain>.yaml`** (same engine pattern as BRD). | §7 |
-| FR-FR-02 | M | The FRD MUST consume the **accepted `BRD.md` as primary input** and translate it into functional decomposition: actor flows, system behaviors, data contracts, error states, NFRs. | §2, wireframe |
-| FR-FR-03 | M | The FRD MUST carry the **detailed technical code impact** forward from the BRD code-impact work (the BRD section stays business-framed; the FRD holds file/function detail). | §10 |
-| FR-FR-04 | M | The FRD author MUST support **inquiry mode** and **modify-via-chat with diff preview**. | wireframe |
-| FR-FR-05 | M | `frd_validator` MUST check **BRD→FRD traceability** and **testability / acceptance-criteria coverage**, returning a completion score + remediation suggestions. | wireframe |
+| FR-EN-01 | M | Enrichment runs **two arms** over accepted v1 + the code map. **Arm 1 (`code_impact`)**: per assertion, find landing points + walk `depends_on`/`used_by` to closure → §16 derived system impacts ("what did we miss?"). **Arm 2 (`claim_verifier`)**: verdict factual current-state claims → confirmed / contradicted / unverifiable ("what did we get wrong?"). Arm 2 does not walk closure. | D-A8 |
+| FR-EN-02 | M | The **verdict population** is factual current-state claims only — business judgment, intent, and future-state statements are skipped; runtime-shaped claims (NFR latency etc.) are **recognised and skipped**, not marked unverifiable. Implicit current-state assumptions inside §8 assertions ARE verdicted. | D-A5, D-A8 |
+| FR-EN-03 | M | Correction authority follows **claim provenance**: source-derived contradiction → auto-correct in place with code citation; operator/frame contradiction → escalate; unsourced `[TBD]` the code answers → auto-fill. **Enrichment never deletes** — contradicted claims are rewritten, not removed. §8 requirements are **extend-only** (code cannot contradict intent). §1 regenerates last. | D-A4/6/7 |
+| FR-EN-04 | M | Findings that are grounded and unambiguous **auto-apply**; findings that are ambiguous, scope-moving, or would overrule a human **escalate** to one batched operator turn — the **disposition walkthrough** (triage, ordering-dependency aware, resumable; proposes, never decides). A "no code found" gap always escalates (4-way ambiguous: new-build / search miss / other repo / not code). | D-A16/17, D-A9 |
+| FR-EN-05 | M | Execution: Arm 1 batches **retrieval per deliverable** (territory resolved once) and reasons **per assertion, independently** (anti-anchoring: share reference material, never conclusions; fan-out safe). Arm 2 clusters by code region. Findings accumulate in **`enrichment.json`** — the permanent audit record (finding, evidence, auto/escalated, operator call + rationale). v1 + `enrichment.json` reconstruct v2. | D-A8, D-A16 |
+| FR-EN-06 | M | §16 entries are per **(assertion × code location)**, organised by requirement, machine-consumable; each yields ≥1 story or is explicitly dispositioned. §16 holds **gaps** ("no code exists — must be built") as well as impacts. | D-A15 |
+| FR-EN-07 | M | G2 gates v2: score **`0.5 × verdict_completeness + 0.5 × impact_coverage`**; hard preconditions: every escalation dispositioned, every correction carries code provenance. D4's soft-gate principle is preserved — scores inform, the operator accepts. | D-A23 |
 
 ## A5. Jira epic creation layer (Layer 4)
 
 | ID | Pri | Requirement | Ref |
 |----|-----|-------------|-----|
-| FR-JR-01 | M | The layer MUST be **epic-only for MVP** (`jira_author` / `jira_validator`); stories are deferred to the same layer later. | §9 |
-| FR-JR-02 | M | Inputs MUST be `jira_template.<domain>.yaml` (epic schema, controls fields, labels) + accepted `FRD.md` (primary) + `BRD.md` (business context only). | §9 |
-| FR-JR-03 | M | `jira_author` MUST cluster the FRD into epics by functional area, map each to template fields, link each epic to its source FRD requirements, and draft a reviewable **`jira_plan.json`** — **no write to Jira**. | §9 |
-| FR-JR-04 | M | `jira_validator` MUST check **bidirectional traceability** (every FRD area covered by an epic; every epic traces to the FRD) + **required/controls field completeness**, returning a coverage score + gap list. | §9 |
+| FR-JR-01 | M | *(amended by ADR-008)* The plan is **four-level**: Initiative ← the SI itself · Deliverable ← §7 · Epic ← one per §8 requirement · **Story ← derived from §16 evidence + §7 non-code work**. Stories exist **only after G2** (they require enrichment evidence); Jira cannot be authored from v1. | D11.6, D-A15 |
+| FR-JR-02 | M | *(amended)* Inputs MUST be `jira_template.<domain>.yaml` + accepted **SI v2** + **`enrichment.json`** (the story evidence). | D11.6 |
+| FR-JR-03 | M | *(amended)* `jira_author` MUST emit a reviewable **`jira_plan.json`** covering all four levels — **no write to Jira**. **Every story names the code location it changes, or is explicitly flagged new-build / non-code** (deliverable-derived cert/doc/test work). An impact entry may yield stories; a story must trace to a §16 entry or a §7 deliverable. | D-A15 |
+| FR-JR-04 | M | *(amended)* `jira_validator` absorbs the old G2 duty: **`0.5 × traceability + 0.5 × testability`** across the hierarchy (every epic → a deliverable; every story → an epic + a §16 entry or §7; every §16 entry → ≥1 story or dispositioned) + required/controls field completeness. | D-A23 |
 | FR-JR-05 | M | A **single human gate** MUST combine validation review and push authorization into one sign-off; no epics are created without it. | §9 |
 | FR-JR-06 | M | Push MUST go **via the `jpmc_adapters` seam** and write epic keys to `jira_trace.json` for **idempotent re-runs**. | §9 |
 
@@ -105,7 +135,7 @@ Where this document **refines** an example skill (e.g. dropping the standalone `
 | ID | Pri | Requirement | Ref |
 |----|-----|-------------|-----|
 | FR-MX-01 | M | Metrics MUST be **auto-computed from pipeline telemetry** (`telemetry.emit()` events), not hand-entered. | §2, wireframe |
-| FR-MX-02 | M | MVP MUST compute at minimum: M01 $/BRD, M02 $/FRD, M03 avg completion score at acceptance, M04 first-pass acceptance rate, M05 docs/month, M06 BRD→FRD cycle time, M07 agent latency p95, M09 FRD→epic coverage at push, M10 epics/FRD, M11 Jira push success rate. (M08 upstream-change alerts depends on deferred change-detection → **W**.) | wireframe |
+| FR-MX-02 | M | *(amended by ADR-008)* MVP MUST compute at minimum: M01 $/SI-v1, M02 $/enrichment, M03 avg completion score at acceptance (G1/G2), M04 first-pass acceptance rate, M05 docs/month, M06 v1→v2 cycle time, M07 agent latency p95, M09 §16→story coverage at push, M10 stories/epic, M11 Jira push success rate, **M12 enrichment yield** (corrections + derived impacts + auto-fills per run — the v1→v2 delta, the stage's value story). (M08 upstream-change alerts → **W**.) | D11 |
 
 ---
 
@@ -116,6 +146,11 @@ Each resolution states the ruling, the rationale, the resulting artifact, and th
 ---
 
 ## D1 — `must_capture` / `probe_if_missing`: topic level vs section level
+
+> ⛔ **SUPERSEDED by ADR-008 / D11.** `must_capture` + `probe_if_missing` survive as **per-section
+> checklists** in the SI profile (D11.1) — a checklist, not a controlled vocabulary. The `topic` field
+> and the topic⊆vocabulary contract die with tags; selective read is replaced by the D11.3 funnel.
+> Retained for history — do not build against this block.
 
 **Question.** Do the capture criteria and probe questions attach to a section, or to topics within a section?
 
@@ -152,6 +187,10 @@ sections:
 ---
 
 ## D2 — Baseline sections: in the skill vs `brd_baseline.yaml`
+
+> ⛔ **SUPERSEDED by ADR-008 / D11.** The Solution Intent has a **fixed 18-section contract** (D11.1);
+> there is no baseline+profile merge, no `position`/`suppress` machinery, and FR-BR-11/14 are retired.
+> Retained for history.
 
 **Question.** Should the universal BRD section list live in `brd_author.skill.md`, or as a separate `brd_baseline.yaml`?
 
@@ -192,7 +231,11 @@ constraints_assumptions order 70
 
 **Decision.** The **FRD profile reuses the BRD profile schema** plus two FRD-specific fields per topic/section; the **Jira template is a structural contract** (not an authoring profile) defining the epic field schema, controls fields, label/component conventions, and FRD→epic mapping + traceability rules.
 
-### D3a — `frd_profile.<domain>.yaml` (normative)
+### D3a — `frd_profile.<domain>.yaml` ~~(normative)~~
+
+> ⛔ **SUPERSEDED by ADR-008.** The FRD is retired (D-A0). Its content moved to Jira **stories**
+> generated from enrichment evidence (D-A15); `functional_kind` vocabulary may be reused in story
+> typing. `traces_to` survives conceptually as the FR-SI-05 ID chain. Retained for history.
 
 Same `sections → requirements{topic, must_capture, probe_if_missing}` shape as D1, with additions:
 - per section: `functional_kind` ∈ `{actor_flow | system_behavior | data_contract | error_state | nfr}` — lets `frd_validator` check testability coverage by kind.
@@ -261,6 +304,12 @@ mapping:
 
 ## D4 — Gate inventory
 
+> 🔧 **AMENDED by ADR-008 / D11.5.** The six-control-point structure, GF, the soft-gate principle
+> ("validators inform, never auto-advance") and versioned locks all **stand**. The gates re-map:
+> **G1 = SI v1 accepted (code-blind) · G2 = SI v2 accepted (enrichment gate) · G3 = 4-level Jira plan
+> review (absorbs the old G2 traceability/testability duty) + push.** The disposition walkthrough
+> (D-A17) is the enrichment-stage operator turn, governed by the same GF surface→wait→apply pattern.
+
 **Question.** Enumerate the gates: BRD acceptance, FRD acceptance, Jira push.
 
 **Decision.** Six control points. Three are **human acceptance gates** (G1–G3), one is a **scaffold inspection checkpoint** (G0), and the per-flag operator decision is a **sub-gate inside BRD authoring** (GF). Validator passes are **machine soft-gates** that feed the human gate's decision but do not themselves block.
@@ -283,6 +332,11 @@ Notes:
 ---
 
 ## D5 — First domain + concrete tag vocabulary
+
+> ⛔ **SUPERSEDED by ADR-008 / D11.3–11.4.** The vocabulary is **removed entirely** — nothing tags
+> anything on either arm. Doc routing = disposition + per-artifact index; code matching = purpose-based
+> tier walk. FR-DC-08/09 retired; §10.1/§10.5 build checks retired. The first-domain choice
+> (**Payment Brand**) stands. Retained for history.
 
 **Question.** Pick the first domain and define its concrete tag vocabulary — the adapter-emits ↔ profile-topics ↔ code_map-tags contract.
 
@@ -322,7 +376,14 @@ Notes:
 
 **Question.** Pin the `code_map.json` schema and the Flags schema, including types, fields, and the threshold for a "material" scope change.
 
-### D6a — `code_map.json` (normative)
+### D6a — `code_map.json` ~~(normative)~~
+
+> 🔧 **AMENDED by ADR-008 / D11.4.** `tags[]` is **removed**; `purpose` gains provenance
+> (`purpose_source: declared | header_prose | inferred | symbols` + a declared-vs-actual verdict);
+> `components[]` gains explicit `members[]`; the map **splits into two files**
+> (`code_map/components.json` + `code_map/files.json`) so tier 1 never loads file entries wholesale.
+> Everything else below — map-don't-copy, both edge directions, per-file `coverage`, `commit_sha`
+> caching, reserved `external_calls`/`exposes` — **stands**. D11.4 is normative; this block is context.
 
 ```json
 {
@@ -390,15 +451,20 @@ Otherwise the flag is **advisory**: recorded with its decision, sections updated
 
 `FR-DC-17 (M)` Code-map construction is a **blend**: deterministic tooling is the **primary source of structure + dependency edges** (resolved from the language's import/include/symbol signals via a per-language extractor, selected by deterministic language detection); the model owns **`purpose` and `tags`** only and MUST NOT be the primary source of dependency edges. A **model-only fallback** is permitted for languages with no extractor, but its output MUST be marked lower-coverage. Static-analysis blind spots (function pointers, macros, config-driven wiring) are marked `coverage: coarse` and confirmed in the deep pass. *Why: deterministic tooling is more accurate and cheaper on resolvable edges, the model is required for the semantics tooling can't infer; using each where it is strong beats model-for-everything on both accuracy and cost.*
 
-`FR-DC-19 (W)` **Agent-assisted extractor onboarding (Branch A).** When the gate (FR-DC-15) detects no frozen extractor for a language, the onboarding step MAY be performed by a dedicated skill (working name `extractor_onboard`) that reads a representative code sample, proposes or refines a per-language extractor + its `onboarding_manifest` entry, runs it against the sample, and emits a **reviewable enhancement artifact for human approval** (proposed extractor + coverage estimate + unresolved-pattern report). A human freezes and commits per FR-DC-14; the skill MUST NOT freeze, self-bless, or modify a frozen extractor. This skill is **deferred** — at MVP the only language is C, authored and frozen via the manual onboarding path (TASK-009/012), so Branch A never fires on the slice; until any onboarding completes, the model-only fallback (FR-DC-17) keeps map-build live at lower coverage. The steady-state extractor is invoked by the `code_map_build` gate skill (FR-DC-15), not by this onboarding skill. *Why: the "build an extractor on the fly for a new repo/language" case needs a defined, human-gated home so it isn't re-derived ad hoc — but it earns no MVP build cost because slice-1's single language is onboarded manually; naming it now keeps the FR-DC-14 freeze invariant intact when the second language arrives.*
+`FR-DC-19 (W)` **Agent-assisted extractor onboarding (Branch A).** When the gate (FR-DC-15) detects no frozen extractor for a language, a dedicated human-gated skill (working name `extractor_onboard`) MAY read a representative code sample, propose/refine a per-language extractor + its `onboarding_manifest` entry, and emit a **reviewable enhancement artifact** (proposed extractor + coverage estimate + unresolved-pattern report) for a human to freeze and commit (FR-DC-14); it MUST NOT freeze, self-bless, or modify a frozen extractor. **Deferred** — slice-1's only language (C) is onboarded manually (TASK-009/012) and the model-only fallback (FR-DC-17) covers any unonboarded language meanwhile; first exercise is the second language. **Full design + rationale → [`docs/design/ADR-006`](design/ADR-006-extractor-onboarding.md).**
 
-`FR-DC-20 (W)` **Agent-assisted vocabulary onboarding (new domain).** When a **new domain** is registered, the first `vocabulary.<domain>.yaml` MAY be authored with help from a dedicated skill (working name `domain_onboard`) that reads the domain's sample documents and the **untagged** structural+`purpose` code-map of a sample repo (`tags` cannot inform it — they would be circular), and emits a **reviewable proposal** (candidate tags with definition, `emitted_by`, code-tag flag, and motivating evidence) for a human to edit, approve, and freeze. The skill MUST NOT commit or self-bless the vocabulary — a human freezes it, exactly as FR-DC-19 freezes an extractor and FR-DC-14 freezes the freeze invariant. This skill is **deferred** — at MVP the only domain is `payment_brand`, whose vocabulary is frozen by D5, so there is nothing to propose; naming it now keeps one coherent "propose-not-bless onboarding" story for both frozen artifacts (extractor, vocabulary) when the second domain arrives. *Why: a second domain's dictionary must be authored from scratch, and an agent that has read the domain's real artifacts proposes it far faster than a blank-file start — but the human-freeze gate is what keeps the dictionary an external contract rather than the model grading its own homework.*
+> ⛔ **FR-DC-20/21/22/23 below are RETIRED by ADR-008** — they exist to author and govern the tag
+> vocabulary, which is removed. FR-DC-19 (extractor onboarding) **survives**: the per-language
+> extractor freeze is unchanged. The per-repo **signal profile** (D11.4) takes over the "how do we
+> read this repo" role at onboarding.
 
-`FR-DC-21 (S)` **Vocabulary adequacy signal (the coverage-floor twin for the *dictionary*).** Alongside the §10.1/§10.5 **containment** check (`usage ⊆ vocabulary`, a build-time hard gate against tag *invention*), the build MUST also surface an **adequacy** signal — whether the frozen vocabulary is *too small* for the artifacts actually present — because the model cannot invent a tag (`tags ⊆ vocabulary`), so an uncovered concept is otherwise **silent**. The signal MUST catch **both** a fully-uncovered file (`tags: []`) and a **partially**-uncovered one (the file got its primary tag but a *secondary* concept has no tag — non-empty, so an empty-count alone misses it). (L1, in-slice — TASK-011/013) To achieve this, `model_enrich` MUST emit, in the same pass that assigns tags, an `uncovered_concepts[]` observation per file (concepts present that no vocabulary tag covers); this routes to the ledger, **not** the `code_map` (it has no tag, so routes nothing). A **deterministic aggregation** raises a `VOCAB_GAP_FLAG` naming a concept that recurs across the net-new delta, with a model-free `untagged_ratio` (entries with empty `tags` / no topics) kept **underneath** as a safety-net floor against `adequacy_threshold`. The detector NEVER auto-grows the vocabulary — it raises a hand, exactly as the coverage floor never auto-modifies the extractor (FR-DC-16); the run is not blocked (advisory runtime flag, not a build gate). (L2, deferred to port — Phase 5) The model **proposal** that turns a recurring uncovered concept into a well-formed candidate tag (working name `vocab_gap_assess`), the human-gated vocabulary **amendment** (an addition; D5's set is never silently redefined), the `vocab_sha` version bump, and the **re-tag pass** (re-applying the refined vocabulary to affected files) are deferred — their first meaningful exercise is the real (VDI) corpus. *Why: an undersized vocabulary is the one failure mode containment cannot catch (it checks the opposite direction); reporting leftover meaning the model could not tag — rather than merely counting empty tags — turns the silent gap, including the partial-coverage case, into a trending, human-actionable flag, the vocabulary analog of the extractor coverage floor.*
+`FR-DC-20 (W)` **Agent-assisted vocabulary onboarding (new domain).** When a **new domain** is registered, a dedicated human-gated skill (working name `domain_onboard`) MAY propose its first `vocabulary.<domain>.yaml` from the domain's sample documents + the **untagged** (`purpose`-only) code-map of a sample repo (`tags` cannot inform it — they would be circular), as a **reviewable proposal** (candidate tags with definition, `emitted_by`, code-tag flag, evidence) for a human to edit, approve, and freeze; it MUST NOT commit or self-bless the vocabulary. **Deferred** — `payment_brand`'s vocabulary is frozen by D5, so there is nothing to propose until domain #2. **Full design + rationale → [`docs/design/ADR-003`](design/ADR-003-agent-assisted-vocabulary.md).**
 
-`FR-DC-22 (W)` **Agent-assisted profile integration (gate 3 — the vocabulary→profile seam).** A tag added to a vocabulary (whether at `domain_onboard`, FR-DC-20, or via the FR-DC-21 amendment loop) is **inert until a profile section consumes it** — *taggable but unconsumed*: it is stamped onto artifacts but, because no `requirements[].topic` references it, no BRD/FRD section ever surfaces it. Closing that gap is **gate 3**, and it is the one seam in the adaptive-dictionary chain with no authoring aid: gate 1 *detects* (FR-DC-21 L1, `VOCAB_GAP_FLAG`), gate 2 *names a tag* (FR-DC-20/21, `domain_onboard`/`vocab_gap_assess`), but routing that tag into a profile section is today a **manual** profile edit. This requirement names a dedicated human-gated skill (working name `profile_onboard`) that, given an approved tag with **no** consuming section, MUST **surface** it to the operator (the FR-BR-08 *surface → wait → apply* loop, applied to the dictionary→profile seam), **propose** a target section `id` + drafted `must_capture`/`probe_if_missing` (+ `required`, with `sources` derived from the tag's `emitted_by`; and for the FRD profile, the `functional_kind` + `traces_to` of D3a), and on approval emit a **reviewable profile diff**. `profile_onboard` runs in **two modes** off the same propose-not-bless engine: **bulk** — at onboarding, immediately after `domain_onboard` (FR-DC-20) freezes the vocabulary, it proposes the **complete first profile** from the frozen vocabulary + the D2 baseline (every section, every topic placement, drafted `must_capture`/`probe_if_missing`), refined conversationally and frozen **in one session** (onboard-and-refine together); and **incremental** — at drift, it wires a *single* newly-approved tag, as above. **Vocabulary-first is mandatory** (§10.1 containment, `profile topics ⊆ vocabulary`): the profile is always generated *from* an already-frozen vocabulary, never before it — which is why no separate "align a pre-vocabulary starting profile" step is needed (bulk mode generates and refines as one act, so the would-be align step dissolves). The skill MUST NOT decide the section, write `must_capture`, or mutate the profile on its own — it **proposes**; a human edits, approves, and the change lands as a **committed, build-time, re-pinned amendment** (NOT a runtime mutation), preserving §6.6.1 (registration is build-time, human-authored, SHA-pinned, never agent-invented at runtime) exactly as FR-DC-19 freezes an extractor and FR-DC-20 freezes a vocabulary. This skill is **deferred** — at MVP the single domain's profiles are hand-authored (TASK-015/016) and there is no tag to integrate; its first exercise is alongside FR-DC-20/21 (a new domain, or the real-corpus amendment loop). *Why: a newly-approved tag that no profile consumes never reaches a BRD/FRD, so the detect→name chain is wasted without gate 3; automating the **proposal** (which section, what to capture) — never the **decision** — closes the loop while keeping the profile a human-frozen contract, the same propose-not-bless governance the extractor and vocabulary already carry.*
+`FR-DC-21 (S)` **Vocabulary adequacy signal (the coverage-floor twin for the *dictionary*).** Alongside the §10.1/§10.5 **containment** check (`usage ⊆ vocabulary`, the build-time hard gate against tag *invention*), the build MUST also surface an **adequacy** signal — whether the frozen vocabulary is *too small* for the artifacts present — since the model cannot invent a tag, so an uncovered concept is otherwise **silent**; it MUST catch both a fully-uncovered file (`tags: []`) and a **partially**-uncovered one (primary tag assigned, a secondary concept untagged). **L1 (in-slice, built — TASK-011/013):** `model_enrich` emits, in the same pass that assigns tags, an `uncovered_concepts[]` observation per file, routed to the ledger (**not** the `code_map` — it has no tag, so routes nothing); a **deterministic aggregation** raises a `VOCAB_GAP_FLAG` for a concept recurring across the net-new delta, with a model-free `untagged_ratio` floor against `adequacy_threshold` underneath. The detector NEVER auto-grows the vocabulary and never blocks the run (advisory runtime flag, not a build gate). **L2 (deferred to port):** the `vocab_gap_assess` model proposal, the human-gated vocabulary **amendment** (an addition; D5's set is never silently redefined), the `vocab_sha` bump, and the re-tag pass. **Full design + rationale → [`docs/design/ADR-003`](design/ADR-003-agent-assisted-vocabulary.md).**
 
-`FR-DC-23 (W)` **Agent-assisted adapter onboarding (the domain pre-processing seam).** The adapter pack (`adapter.yaml` + its pre-processing skills, §6.6.3) is the one domain-seam artifact with **no** authoring aid — the extractor has `extractor_onboard` (FR-DC-19), the vocabulary `domain_onboard` (FR-DC-20), the profiles `profile_onboard` (FR-DC-22), the adapter nothing; today it is authored manually ("write one more pack", §11). This requirement names a dedicated human-gated skill (working name `adapter_onboard`, **ADR-005**) that, given a domain's **frozen** vocabulary + profiles + sample sources, **proposes** the pack by **guided conversation**: it shows the fixed frame (the generic engine + the fixed `code_pipeline → code_map_build`, which never varies by domain, D7) and designs the variable `docs_pipeline` — **reusing** shared/structural skills and **scaffolding net-new domain-specific skills** (the pack's skill set is not fixed; a new domain may need ad-hoc skills), with each skill's `emits` **derived from the vocabulary's `emitted_by` column** so `adapter.yaml` and the vocabulary cannot drift by construction (the §10.5 no-drift check becomes a confirmation, not a manual reconciliation — closing the defect class surfaced when TASK-017 hand-authored `adapter.yaml` against §6.6.3 and produced four emit-map drifts). It runs in **two modes** off the same propose-not-bless engine: **bulk** — at onboarding, immediately after `profile_onboard` freezes the profiles, propose the **complete first pack** (whole `docs_pipeline`, every skill, full emit-map) from the frozen vocabulary + profiles + sample sources, refined conversationally and frozen **in one session**; and **incremental** — at drift, wire one newly-approved tag to a producing step (or propose a new step). **Vocabulary-and-profiles-first is mandatory** (the emit-map is vocabulary tags assigned to skills, coverage is defined against the profiles' `required` topics), so the pack is always generated *from* already-frozen vocabulary + profiles — the onboarding order is `extractor_onboard` → `domain_onboard` → `profile_onboard` → **`adapter_onboard`** → human freeze. The skill MUST NOT decide the pipeline shape, author the final skill behavior, author or modify a **core** skill (it may *reference* core skills and *author* domain **pack** skills, never write `core/skills/`), or mutate a live pack — it **proposes** a reviewable diff; a human edits, approves, and the change lands as a **committed, build-time, re-pinned amendment** (NOT a runtime mutation), preserving §6.6.1 exactly as FR-DC-19/20/22 freeze the extractor, vocabulary, and profiles. **Dependency:** the structural extraction step (`pdf_extract`, domain-agnostic) must live in `core/skills/` and be available **before** the pack exists — `domain_onboard` needs structural document reading for vocabulary analysis but cannot run the *tagging* skills (which tag against a not-yet-existing vocabulary), so the tagging skills are authored **last**, by `adapter_onboard`. This skill is **deferred** — at MVP the single domain's pack is hand-authored (TASK-017/018/019); first exercise is a new domain at the port. **Open questions** (see ADR-005): (1) the onboarding sample-input mechanism is unspecified (FR-DC-20 does not say whether it is `UI_INPUT`-shaped); (2) the doc-side vocabulary-adequacy detector has no documented equivalent of the code-side `uncovered_concepts` signal (FR-DC-21). *Why: the adapter is the front-half meaning layer where the real domain judgment lives, and it is the last seam with no propose-not-bless helper; deriving the emit-map from the frozen vocabulary makes drift structurally impossible, while a guided conversation (not a silent generator) fits work whose skill set is not fixed — the same author-then-freeze governance the other three seam artifacts already carry.*
+`FR-DC-22 (W)` **Agent-assisted profile integration (gate 3 — the vocabulary→profile seam).** A tag added to a vocabulary is **inert until a profile section consumes it** — *taggable but unconsumed*: it is stamped onto artifacts but, because no `requirements[].topic` references it, no BRD/FRD section ever surfaces it. Closing that **gate 3** (gate 1 *detects*, FR-DC-21 L1; gate 2 *names a tag*, FR-DC-20/21) is today a manual profile edit. A dedicated human-gated skill (working name `profile_onboard`) MAY close it — **surface** the unconsumed tag (the FR-BR-08 *surface → wait → apply* loop), **propose** a target section `id` + drafted `must_capture`/`probe_if_missing` (`sources` from the tag's `emitted_by`; `functional_kind`/`traces_to` for the FRD, D3a), and emit a **reviewable profile diff**; it MUST NOT decide the section, author `must_capture`, or mutate the profile (the change lands as a committed, re-pinned, build-time amendment, §6.6.1). **Deferred** — MVP profiles are hand-authored (TASK-015/016) with no tag to integrate. **Full design (bulk/incremental modes, vocabulary-first order) + rationale → [`docs/design/ADR-004`](design/ADR-004-agent-assisted-profile-integration.md).**
+
+`FR-DC-23 (W)` **Agent-assisted adapter onboarding (the domain pre-processing seam).** The adapter pack (`adapter.yaml` + its pre-processing skills, §6.6.3) is the last domain-seam artifact with **no** authoring aid (the extractor has FR-DC-19, the vocabulary FR-DC-20, the profiles FR-DC-22); today it is authored manually. A dedicated human-gated skill (working name `adapter_onboard`) MAY, given a domain's **frozen** vocabulary + profiles + sample sources, **propose** the pack by **guided conversation** — showing the fixed frame (generic engine + the fixed `code_pipeline → code_map_build`, D7) and designing the variable `docs_pipeline`, with each skill's `emits` **derived from the vocabulary's `emitted_by` column** so `adapter.yaml` cannot drift from the vocabulary by construction (turning the §10.5 no-drift check into a confirmation, and closing the TASK-017 F1+3 drift class). It proposes-never-blesses: references core skills, authors only domain **pack** skills (never `core/skills/`), never mutates a live pack. **Dependency:** the structural step (`pdf_extract`, domain-agnostic) must live in `core/skills/` before the pack exists (tagging skills authored last). **Deferred** — MVP's pack is hand-authored (TASK-017/018/019); first exercise is a new domain at the port. **Full design (modes, onboarding order, open questions) + rationale → [`docs/design/ADR-005`](design/ADR-005-agent-assisted-adapter-onboarding.md).**
 
 ---
 
@@ -481,6 +547,11 @@ Metrics (Part A6) are derived by filtering/aggregating these events; no metric i
 
 ## D9 — Overlay authoring: hand-maintain vs generate from one spec
 
+> 🔧 **AMENDED by ADR-008 / D11.7.** The decision (hand-author, parity by manifest) **stands**; the
+> **contents** change: roles become `solution_intent_author`/`solution_intent_validator` (← `brd_*`),
+> `claim_verifier` + `disposition_walkthrough` are added, `frd_*` retire; `prompt_files` becomes
+> `[start-ingest, start-si, start-enrich, start-jira]`. Still 8 roles; §10.2 parity unchanged.
+
 **Question.** Maintain the two tool overlays by hand, or generate both from one workflow spec?
 
 **Decision.** **Hand-maintain the two overlays for MVP, with parity enforced by a shared checklist spec — not a generator.** Concretely:
@@ -540,6 +611,108 @@ parity_check: every_role_and_prompt_present_in_both_overlays
 
 ---
 
+## D11 — The Solution Intent pivot (ADR-008, V-approved 2026-07-31)
+
+**Question.** Replace BRD/FRD with a single initiative-level Solution Intent enriched against the
+codebase; remove the tag chain; route by operator-declared disposition + per-artifact index.
+
+**Decision.** As recorded across **ADR-008 D-A0–D-A24** (the authoritative design record — this block
+is the requirement-level distillation). Clean cutover: the BRD/FRD pipeline is retired in place.
+
+### D11.1 — The 18-section contract (normative)
+
+§1 Executive summary *(regenerated last)* · §2 Problem statement · §3 Client need & demand *(cond.)* ·
+§4 Business objectives · §5 Personas & actors · §6 High-level use case *(cond.)* · **§7 Deliverables** ·
+**§8 Business requirements** *(title + description + `assertions[]`; extend-only under enrichment)* ·
+§9 Strategic alignment *(cond.)* · §10 Constraints & design principles · §11 Stakeholders ·
+§12 Out of scope *(two-way door)* · §13 Assumptions & risks *(authored checkable)* · §14 Dependencies ·
+§15 Success criteria *(every criterion traces to a §4 objective)* · **§16 Derived system impacts**
+*(v2-only; per assertion × code location; holds gaps)* · §17 Open questions *(v1-authored)* ·
+**§18 Verification summary** *(v2-only; counts, not a ledger)*.
+
+Enrichment touch types per section (Verdict/Correct/Extend/Regenerate/None), the verdict population
+rule, and all binding section rules: **D-A3–D-A5, D-A10–D-A11**. `must_capture`/`probe_if_missing`
+attach per section as **checklists** (no topic vocabulary).
+
+### D11.2 — Artifacts
+
+`solution_intent/v1.md` (frozen at G1) · `v2.md` (the deliverable) · `enrichment.json` (permanent
+audit: every finding, evidence, auto/escalated, disposition + rationale). Replaces `BRD.md`/`FRD.md`
+in FR-XS-05's durable-state list. Corrections revise **in place** with inline code provenance;
+discoveries append; enrichment never deletes (D-A2, D-A7).
+
+### D11.3 — Input contract: disposition + routing + the per-artifact index
+
+- **Disposition (operator-declared, multi allowed, per D-A12):** Business Requirement · Technical
+  Specification · Product Domain Knowledge · Architecture · Prior Artifact *(reference-only — never
+  the primary citation for a new requirement)* · Other *(background only — never citable)* ·
+  **Codebase** *(auto-set for repo URLs)*. Source **type** ≠ disposition: type is where it came from
+  (fetching); disposition is what it is for (routing). PDFs always arrive via `sharepoint`.
+- **Routing matrix (D-A13, normative):** section × input source, with **Frame** and **Discovery** as
+  first-class sources. Discovery is primary for §9/§12/§13 only. `frame` gains free-form `overview`.
+- **Per-artifact index (D-A18):** for artifacts over the whole-read budget — `<doc>.md` full extract
+  + `<doc>.index.json` (heading + summary + line range per semantic subsection; summaries always
+  generated; entry completeness `lines_total == lines_indexed`). Selection = `must_capture` matched
+  semantically against index entries; pull the cited line ranges; widen if unsatisfied. No keyword
+  maps, no template profiles (parked), no embeddings.
+
+**Emits:** `FR-DC-24 (M)` every configured source carries an operator disposition per the taxonomy
+above; ingestion still never branches on domain. `FR-DC-25 (M)` doc processing is domain-agnostic
+(extract + index); the per-artifact index conforms to D-A18. `FR-DC-26 (M)` the routing funnel
+(disposition ∈ section.classes → set-level whole-read check → index) replaces the D5 selective-read
+rule everywhere.
+
+### D11.4 — Code map without tags (amends D6a; detail D-A19–D-A21)
+
+Two files: `code_map/components.json` (modules: `purpose`, `members[]`, cohesion, confidence) +
+`code_map/files.json` (per file: `purpose` + `purpose_source: declared | header_prose | inferred |
+symbols`, declared-vs-actual `purpose_verdict`, interfaces, edges, coverage). **No `tags` field.**
+Impact matching = **three-tier walk**: assertion-in-context vs module purposes → file purposes within
+matched modules → source read + closure. Low purpose-confidence **widens** tier 1, never excludes.
+Totality: every file in exactly one module (singletons legal; `unclustered` always passes tier 1);
+`unanalyzable[]` declared in the coverage report, surfaced at §18.
+
+Per-repo **signal profile** (`code_profiles/<repo>.profile.yaml`, frozen at a human onboarding gate
+with the D-A21 stage-distribution report): module-derivation signal priority (include-graph primary),
+hub exclusion, cluster size policy, purpose-label aliases (fuzzy), stage A/B/C/C\* resolution config,
+frozen overrides (model-proposed, human-approved, stored as data). Cache = `(commit_sha, profile_sha)`
++ per-file content hash; the D6 gate gains a **4th branch** (profile change ⇒ full rebuild).
+
+**Emits:** `FR-DC-27 (M)` the code map conforms to D11.4; the model owns `purpose` text only (module
+membership, edges, and clustering are deterministic; approved overrides are data). `FR-DC-28 (M)` each
+repo carries a frozen signal profile; repo onboarding presents the stage-distribution gate report.
+`FR-DC-29 (M)` map-build caching keys on `(commit_sha, profile_sha)`; purposes cache per file hash.
+
+### D11.5 — Gates + scoring (amends D4)
+
+G0 unchanged · **G1** = SI v1 (score per FR-SI-08) · **G2** = SI v2 (score per FR-EN-07) · **G3** =
+4-level Jira plan review (score per FR-JR-04) + operator-confirmed push. GF + D6b/c flags survive as
+the escalation vehicle. D4's principles intact: soft gates inform, operators accept, versions lock.
+
+### D11.6 — Jira mapping (amends D3b/FR-JR)
+
+Initiative ← the document · Deliverable ← §7 · Epic ← §8 requirement · Story ← §16 evidence + §7
+non-code work, generated **after G2** by `jira_author`. The FRD's content lives here — technical
+requirements per epic, grounded in code evidence rather than authored from business text.
+
+### D11.7 — Roles + manifests (amends D9; detail D-A22–D-A23)
+
+Roles (8): `source_processor` · `solution_intent_author` · `solution_intent_validator` · `code_impact`
+(Arm 1) · `claim_verifier` (Arm 2, new) · `disposition_walkthrough` (new, interactive) · `jira_author`
+· `jira_validator`. Prompts: `[start-ingest, start-si, start-enrich, start-jira]`.
+
+Manifests: `registry_manifest` (tree-based, no doc enumeration) · `overlay_manifest` (rewritten
+contents) · `extractor_manifest` (per-language freeze — was `onboarding_manifest.extractors`) ·
+`code_profiles/<repo>.profile.yaml` (per-repo) · `cache/code_maps/index.yaml` (mutable build records —
+**outside** the frozen registry). `vocabulary.<domain>.yaml`, `adapter.emits`, and profile `topics`
+are deleted. Build checks: §10.1/§10.5 retired; §10.2/10.3/10.4 amended; + disposition-class totality
+(**§10 = 4 checks**); context/artifact checks per D-A23 families 2–3.
+
+**Build-and-port discipline for the new surface: D-A24** (mocks per source type; `VDI_WIRING.md`
+disjointness).
+
+---
+
 # Part C — Non-functional requirements, acceptance & traceability
 
 ## C1. Non-functional requirements
@@ -558,27 +731,29 @@ parity_check: every_role_and_prompt_present_in_both_overlays
 
 ## C2. Per-layer acceptance criteria
 
-- **Data & context:** every configured source produces a `context_set/` slice + manifest entries; `index.json` merges deterministically; failed sources are marked, not silent; for code-bearing domains `code_map.json` exists with `commit_sha` + honest `coverage`. (FR-DC-01…11, FR-DC-08/09)
-- **BRD:** all `required` topics satisfied or explicitly waived; every claim grounded/cited or `[TBD]`; all flags resolved/recorded; `brd_validator` score ≥ threshold; **G1** sign-off → BRD vN locked. (FR-BR-*, D4)
-- **FRD:** every BRD requirement traced or marked out-of-scope; testability/acceptance-criteria coverage met by `functional_kind`; **G2** sign-off → FRD pinned to BRD vN. (FR-FR-*, D3a, D4)
-- **Jira:** `jira_plan.json` drafted (no write); bidirectional traceability + required/controls field completeness pass; **G3** single sign-off → push via `jpmc_adapters`; keys in `jira_trace.json`. (FR-JR-*, D3b, D4)
+- **Data & context:** every configured source carries a disposition, produces a `context_set/` slice + manifest entries + (over budget) an index; `index.json` merges deterministically; failed sources marked, not silent; `code_map/` exists with `commit_sha` + `profile_sha` + honest coverage report incl. `unanalyzable[]`. (FR-DC-01…07, FR-DC-24…29)
+- **Solution Intent v1:** every required section satisfied or dispositioned; every claim cited or `[TBD]`; assertions enumerated per §8 requirement; §15→§4 and §8→§7 traces intact; score ≥ threshold; **G1** → v1 frozen. (FR-SI-*, D11.5)
+- **Enrichment / v2:** both arms complete; every assertion verdicted; every escalation dispositioned via the walkthrough; corrections carry code provenance; §16 machine-consumable; §1 regenerated; **G2** → v2 accepted. (FR-EN-*, D11.5)
+- **Jira:** 4-level `jira_plan.json` drafted (no write); every story names its code location or is flagged new-build/non-code; hierarchy + controls completeness pass; **G3** single sign-off → push via `jpmc_adapters`; keys in `jira_trace.json`. (FR-JR-*, D11.6)
 - **Metrics:** MVP metric set computes from telemetry with no manual entry. (FR-MX-*)
 
 ## C3. Contract traceability (the spine that must hold end to end)
 
 ```
-domain tag vocabulary (D5)
-      │  every topic ⊆ vocabulary; every required topic has a producing adapter
+operator disposition + routing matrix (D11.3)
+      │  section ← only its routed classes; passages via index + must_capture
       ▼
-brd_profile.topic ──► BRD section (must_capture)
-      │  traces_to
+SI §7 Deliverable (D-id) ──► §8 Requirement (R-id, assertions[])
+      │  Arm 1: per assertion → landing points + closure          Arm 2: claims → verdicts
       ▼
-frd_profile.topic ──► FRD section (functional_kind, testable)
-      │  epic_must_link
+§16 impact entry (assertion × code location) ──► story (names its code location)
+      │  epic = R-id · deliverable = D-id · initiative = the SI
       ▼
-jira_plan epic ──► FRD requirement ids ──► (push) jira_trace.json
+jira_plan (4-level) ──► (G3, push) jira_trace.json
 ```
-Each arrow is **machine-checkable**: the build verifies vocabulary containment (D5); `frd_validator` verifies BRD→FRD `traces_to`; `jira_validator` verifies FRD↔epic bidirectional links. A break anywhere fails the corresponding gate.
+Each arrow is **machine-checkable**: §10.5′ verifies disposition-class totality at build; the
+validators verify §15→§4, §8→§7, assertion-verdict completeness, §16↔story coverage, and
+story-names-location (D-A23 families). A break anywhere fails the corresponding gate.
 
 ## C4. §18 resolution → requirement map
 
@@ -594,6 +769,7 @@ Each arrow is **machine-checkable**: the build verifies vocabulary containment (
 | 8 | Files = artifacts; append-only JSONL ledger + per-run state/decision files (**SQLite deferred**); `UI_INPUT` immutable; per-stage idempotency | FR-XS-15…18 |
 | 9 | Hand-author overlays; parity via `overlay_manifest.yaml`; instruction file generated | FR-XS-19…21 |
 | 10 | Manual start MVP; Claude Code + Copilot **co-equal**; Copilot/VDI command-approval **validated — PASSED**; allow-list home = user-scope, centrally provisioned | FR-XS-22…26 |
+| **11** | **ADR-008 pivot**: SI 18-section contract; disposition + index routing; purpose-based code impact + signal profile; gates re-mapped; 4-level Jira; tag chain + FRD retired | FR-SI-01…08, FR-EN-01…07, FR-DC-24…29, amended FR-JR-01…04 |
 
 ## C5. Handed forward to the tech spec (explicitly not decided here)
 
@@ -604,9 +780,9 @@ Each arrow is **machine-checkable**: the build verifies vocabulary containment (
 - A **direct Claude API execution path** is **deferred** — MVP generation runs entirely in-session (Claude Code / Copilot); pivot to API only if the in-session approach proves insufficient (FR-XS-04).
 - **Telemetry event schema** backing the Part A6 metrics.
 - The **Copilot/VDI validation task** is **PASSED** (D10, runbook `COPILOT_VDI_VALIDATION.md`) — not an open question. Production allow-list provisioning (central/MDM) is an onboarding/ops task, not a design decision.
-- **Multi-system / cross-repo code impact — deferred (FR-DC-13).** MVP is single-repo. The deferred design reuses the existing patterns one tier up ("fractal"): a **system tier** that discovers impacted repos by matching the requirement against a cached corpus of **coarse code_maps** (coarse-map-as-discovery), backed by a *thin* repo inventory (enumeration + ownership + LOB filter) and an architecture-metadata cross-check for config-driven edges; then the existing **code tier** within each impacted repo. Cross-repo analysis happens **only at integration seams** — match a producer's outbound call site to the consumer's inbound handler, check whether the contract changes, raise contract-break flags, and descend into the consumer only if the contract breaks (never an N×N all-function trace). Staged adoption: (1) single-repo [MVP] → (2) explicit multi-repo (operator names the repos; stitch at contracts) → (3) registry-filtered coarse-map discovery. Forward-compat hook: reserve `external_calls`/`exposes` in `code_map.json` now (FR-DC-13).
+- **Multi-system / cross-repo code impact — deferred (FR-DC-13).** MVP is single-repo. The deferred design reuses the existing patterns one tier up ("fractal"): a **system tier** discovers impacted repos from a cached corpus of coarse code_maps, then the existing **code tier** runs within each; cross-repo analysis happens **only at integration seams** (contract-break detection, descend only on break — never an N×N trace). Staged adoption: single-repo [MVP] → explicit multi-repo → registry-filtered discovery. Forward-compat hook: `external_calls`/`exposes` reserved (unpopulated) in `code_map.json` now (FR-DC-13). **Full staged-adoption design + rationale → [`docs/design/ADR-007`](design/ADR-007-cross-repo-code-impact.md).**
 - **Code-map extractor + onboarding gate — mechanics handed to tech spec (FR-DC-14…17).** *Decided:* adapt-at-onboarding-then-**freeze** (the model proposes/refines an extractor against real code, a human freezes & commits it, it runs deterministically thereafter) — **not** runtime self-refinement, because a self-modifying extractor breaks map reproducibility. *Decided:* a content change **rebuilds the map** while the extractor **stays frozen**; only a structural pattern the extractor cannot handle **flags for human re-onboarding** — keeping these two cases separate avoids re-onboarding on every commit yet doesn't go blind to genuinely new idioms. *Decided:* a **blend** (deterministic tooling for edges, model for `purpose`/`tags`) over model-for-everything, because tooling is more accurate/cheaper on resolvable edges and the model is needed for semantics. **Tech spec to define:** the **onboarding-manifest schema** (frozen extractors per language + per-repo content hashes); the **3-branch gate algorithm** (FR-DC-15); the **coverage threshold** that triggers re-onboarding (FR-DC-16); the **dispatcher + per-language extractor normalization contract** (detect language → route to extractor → normalize output to the `code_map` schema → model-only fallback when no extractor exists); and the **external-build → VDI-port** handling (the frozen extractor is plumbing that ports unchanged; verify the per-language tooling exists or is provisioned on the VDI; the model-only fallback covers its absence). *Toolchain amendment (ADR-001, 2026-06-19): the C extractor uses **`tree-sitter` + `tree-sitter-c`** (Python deps), not `ctags`/`cscope` — chosen because the AppLocker-locked VDI cannot cleanly provision the PATH binaries while pip runs in-policy, and tree-sitter preserves every static-analysis blind spot (empirically verified against the TASK-005 oracle). The port check becomes "import succeeds in the venv" rather than "binary on PATH."*
-- **Agent-assisted extractor onboarding — named, deferred (FR-DC-19).** *Decided:* the Branch-A "no frozen extractor yet" path gets a dedicated human-gated onboarding skill (`extractor_onboard`) that proposes/refines an extractor and emits a reviewable enhancement artifact for human freeze — **not** built this slice, because slice-1's only language (C) is onboarded manually (TASK-009/012) and the model-only fallback covers any unonboarded language in the interim. *Rationale:* preserves the FR-DC-14 freeze invariant (the skill proposes, a human freezes; nothing self-refines at runtime) while giving the "build the extractor on the fly for a new repo/language" case a defined home rather than ad-hoc re-derivation when the second language lands. **Phase 5 to define:** the `extractor_onboard` contract — sample selection, proposal-artifact shape, coverage-estimate + unresolved-pattern report, and the freeze hand-off to `onboarding_manifest.yaml`.
+- **Agent-assisted extractor onboarding — named, deferred (FR-DC-19).** The Branch-A "no frozen extractor yet" path gets a dedicated human-gated skill (`extractor_onboard`) that proposes/refines an extractor and emits a reviewable artifact for human freeze — not built this slice (C is onboarded manually, TASK-009/012; the model-only fallback covers the interim), preserving the FR-DC-14 freeze invariant. Full design (incl. the Phase-5 contract to define) + rationale → [`docs/design/ADR-006`](design/ADR-006-extractor-onboarding.md).
 ---
 
 *End of requirements. Next: tech spec → per-tool task lists → UI design.*
