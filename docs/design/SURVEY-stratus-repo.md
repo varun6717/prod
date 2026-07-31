@@ -140,13 +140,13 @@ cannot be determined, say so explicitly rather than guessing.
    materially different build.
 4. Re-confirm the module-grouping signal priority in D-A20 against 5a–5d.
 
-## Companion survey — still outstanding
+## Companion survey — written, not yet run
 
-The doc arm has the same open question: **D-A18's per-artifact index assumes the source documents carry
-numbered substructure** (clauses, headings) to key entries on. The degraded case is a flat-prose
-document needing synthesised paragraph boundaries. That needs the same treatment — a survey of the real
-Mastercard/Visa PDFs in `fixtures/pdf/` (and whatever the live SharePoint corpus looks like) to confirm
-structure is navigable.
+→ **`SURVEY-doc-structure.md`** covers the doc arm: whether source documents carry the navigable
+substructure D-A18's per-artifact index keys on. Both arms share the same failure mode — **flat prose
+PDF** (doc side) and **flat directory tree** (code side) — and the code side already proved to *be* the
+degraded case, so the doc side is worth measuring rather than assuming.
 
-Both arms share this failure mode: **flat prose PDF** (doc side) and **flat directory tree** (code
-side). The code side is now measured. The doc side is not.
+That file also carries **three follow-up items for this survey** (graph isolation, symbol presence, and
+the unanalyzable intersection). Item 6 — graph isolation — is the one that could still change the
+design, since degree-zero files become singleton modules and a large population breaks tier-1 economy.
