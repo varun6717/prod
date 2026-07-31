@@ -997,6 +997,33 @@ It also makes the two arms **symmetric**: `code_map.json` is a per-component ind
 `purpose`; this is a per-subsection index with a model-written summary. Same architecture both sides —
 and it closes ADR-005 open-Q #2 (the doc-side analog), i.e. TASK-067's purpose.
 
+#### Two files per artifact (V-confirmed)
+
+```
+context_set/sharepoint/
+  mc_mandate_2027.md           ← FULL extract — nothing condensed
+  mc_mandate_2027.index.json   ← heading + summary + line range per entry
+```
+
+**The summary is never what gets sent.** It is what the agent reads to *choose*; the agent then pulls the
+**actual extracted text** at the selected line ranges. So the index is a table of contents with better
+descriptions — a routing aid, never a substitute for content, and no information is lost.
+
+```
+1. agent reads index         headings + summaries       ← small, selection only
+2. agent selects entries     "2.1, 2.2 look relevant"
+3. agent reads lines 92–206  the REAL extracted text    ← full fidelity
+```
+
+**Summaries are always generated**, not conditional. The alternatives considered were (a) index on
+headings alone — free and deterministic, but mandate documents are exactly the genre full of
+`General Provisions` / `Background` / `Appendix B` headings, and a heading titled "Background" may hold
+precisely what §2 needs; and (b) heading + the section's first N lines — free, but noisy when a section
+opens with boilerplate. Summaries also carry specifics no heading can (*"cites 2026 dispute volumes"* is
+what §2's `must_capture` "what it costs" is hunting for). Cost is one cheap pass per artifact, cached,
+and **only for artifacts over the whole-read threshold**. A uniform rule beats a heading-quality
+heuristic that could misfire silently; the conditional remains available later as a pure optimisation.
+
 #### Shape
 
 ```json
