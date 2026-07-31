@@ -11,6 +11,9 @@ __pycache__/
 # scratch / throwaway probes
 scratch_*.py
 
+# Personal working notes — not source state
+notes/
+
 # Run-workspace cloned repos: reproducible by re-cloning the source (clone.py); not source state
 runs/*/repo/
 runs/*/.clone_descriptor.json

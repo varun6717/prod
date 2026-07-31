@@ -6,9 +6,11 @@
 # `hydrate.py` then pulls `core/` + `overlays/<tool>/` from the published tree at `registry_sha`.
 #
 # What this is NOT: the external-build *control* docs (CLAUDE.md, TASK_LIST.md), this build's
-# run logs (docs/ACCEPTANCE*.md, docs/ENV_PRECHECK.md), working notes (docs/design/),
-# fixtures/, runs/, and .git/ are never published — they are build-time scaffolding, not the
-# registry the VDI hydrates.
+# run logs (docs/ACCEPTANCE*.md, docs/ENV_PRECHECK.md), design working files (the
+# PDLC_Configurator.jsx mockup), fixtures/, runs/, and .git/ are never published — they are
+# build-time scaffolding, not the registry the VDI hydrates. The docs/design/ ADRs *are*
+# published: REQUIREMENTS.md's deferred-requirement stubs cite them normatively, so the
+# shipped citation graph must resolve.
 schema_version: 1
 
 include:
@@ -33,6 +35,16 @@ include:
     - docs/code_impact_assess.skill.md
     - docs/code_map_build.skill.md
     - docs/max-autonomy.skill.md
+    # ADRs — cited normatively by REQUIREMENTS.md deferred-requirement stubs (FR-DC-19…23,
+    # C5) and by shipped skills (ADR-001/002/003 in code_map_build); links must resolve.
+    - docs/design/README.md
+    - docs/design/ADR-001-c-extractor-tree-sitter.md
+    - docs/design/ADR-002-polyglot-partition-dispatch.md
+    - docs/design/ADR-003-agent-assisted-vocabulary.md
+    - docs/design/ADR-004-agent-assisted-profile-integration.md
+    - docs/design/ADR-005-agent-assisted-adapter-onboarding.md
+    - docs/design/ADR-006-extractor-onboarding.md
+    - docs/design/ADR-007-cross-repo-code-impact.md
 
 # Never published, even when nested under an included tree — non-determinism, caches, VCS.
 exclude:
