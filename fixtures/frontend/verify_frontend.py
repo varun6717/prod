@@ -103,6 +103,21 @@ def main() -> int:
     check(bb.get("repo_url") and bb.get("seal_id") == "SEAL-12345",
           "bitbucket source carries repo_url + seal_id")
 
+    print("\nDispositions — D-A12: operator-declared per doc source, auto-set for code:")
+    check(all(isinstance(s.get("disposition"), list) and s["disposition"]
+              for s in config["sources"]),
+          "every source carries a non-empty disposition LIST (one-or-more, default one)")
+    check(sp["disposition"] == ["technical_specification"],
+          "SharePoint carries the OPERATOR'S pick, not the default "
+          f"(form said technical_specification, got {sp['disposition']})")
+    check(cf["disposition"] == ["product_domain_knowledge"],
+          "Confluence falls back to its type DEFAULT when the operator leaves it alone "
+          f"(got {cf['disposition']})")
+    check(bb["disposition"] == ["codebase"],
+          f"Bitbucket is auto-set [codebase] — never operator-chosen (got {bb['disposition']})")
+    check("codebase" not in sp["disposition"] + cf["disposition"],
+          "no doc source can claim `codebase` (it is what routes the code arm)")
+
     print("\nMatches the locked example contract on operator-entered values:")
     check(config["project_metadata"] == example["project_metadata"], "project_metadata matches")
     check(config["domain"] == example["domain"]
@@ -113,6 +128,10 @@ def main() -> int:
           and config["frame"]["scope_hints"] == example["frame"]["scope_hints"]
           and config["frame"]["stakeholders"] == example["frame"]["stakeholders"],
           "frame intent/scope_hints/stakeholders match")
+    check(config["frame"].get("overview", "").strip()
+          == example["frame"]["overview"].strip(),
+          "frame.overview emitted and matches the example (D-A13: §1 identity, seeds §7, "
+          "Arm 1's query context)")
     check(str(example["frame"]["key_dates"]["compliance_deadline"])
           == config["frame"]["key_dates"]["compliance_deadline"],
           "frame.key_dates.compliance_deadline matches")

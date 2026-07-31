@@ -22,25 +22,39 @@ project_metadata:
   requestor:        "Varun Munjal"
   requestor_sid:    "vmunjal"                      # user / LDAP id
 
-# requirement frame — the operator's seed that orients BRD authoring (the author fills the rest)
+# requirement frame — the operator's seed that orients SI authoring (the author fills the rest).
+# `overview` (ADR-008 D-A13/D-A14) is the free-form Initiative Overview: it supplies §1's
+# initiative identity, seeds the §7 deliverables, and is the semantic query context Arm 1 matches
+# against code — prose does that far better than concatenated key-values.
 frame:
   title: "Discover Brand Routing"
   intent: "Implement Discover as a routable card brand end-to-end"
+  overview: >
+    Merchant Services must accept Discover as a first-class routable brand across
+    authorization, routing and settlement reconciliation. Today brand identification relies on
+    PAN-range lookup, which cannot distinguish co-badged products; the mandate introduces an
+    explicit brand indicator carried on the authorization message. Delivery spans the
+    authorization parser, the routing tables, settlement reconciliation, and a certification
+    package for the network.
   scope_hints: ["routing", "settlement reconciliation touchpoints"]
   stakeholders: ["Payments Eng", "Brand Compliance"]
   key_dates: { compliance_deadline: 2026-09-30 }
 
-# configured sources — slice 1: one PDF + one Stratus C repo. auth resolved at the seam, never inline.
+# configured sources — one PDF + one Stratus C repo. auth resolved at the seam, never inline.
+# `disposition` (D-A12) declares the ROLE each artifact plays in THIS run — orthogonal to `type`
+# (where it came from). Always a list ("one or more", default one); `codebase` is auto-set for
+# repo sources and never operator-chosen.
 sources:
-  - type: file                      # PDF document source by direct path (TASK-020 → core/scripts/ingest_file.py)
+  - type: file                      # PDF document source by direct path (core/scripts/ingest_file.py)
     path: "fixtures/pdf/mastercard_mandate_part1_2026.pdf"   # local raw document staged for pdf_extract
     source: sharepoint              # logical provenance label (partitions context_set/<source>/)
-    # Phase-5 deferred: pull this PDF from SharePoint via a "write one more connector"
-    #   ingest_sharepoint.py (§11) — source-type-keyed, same descriptor contract; nothing
-    #   downstream changes. It would carry: type: sharepoint, url, auth_ref: jpmc_adapters:sharepoint.
-  - type: bitbucket                 # code source → git clone into repo/ for code_map
+    disposition: [business_requirement]   # the ask: obligation, scope, deadline → §2/§4/§8/§15
+    # `file` is local-testing-only — in production PDFs always arrive via type: sharepoint
+    # (ingest_sharepoint.py), same descriptor contract; nothing downstream changes.
+  - type: bitbucket                 # code source → git clone into repo/ for the code map
     seal_id: SEAL-12345
     repo_url: "https://bitbucket.jpmc.net/scm/pbi/merchant-routing-svc.git"
+    disposition: [codebase]         # AUTO-SET, non-editable — routes down the code arm (D-A12)
     # ref: feature/c_repo           # OPTIONAL branch/tag/commit — clone.py pins to it (--ref);
     #                               # omit to clone the repo's default branch. Needed for a
     #                               # one-repo/two-feature layout (code on a feature branch).

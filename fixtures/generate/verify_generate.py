@@ -77,8 +77,9 @@ def main() -> int:
 
         # copilot prompts land at .github/prompts/<p>.prompt.md (GitHub Copilot's discovered layout)
         prompts = sorted(p.name[:-len(".prompt.md")] for p in (dest / ".github" / "prompts").glob("*.prompt.md"))
-        check(prompts == ["start-brd", "start-frd", "start-ingest", "start-jira"],
-              f".github/prompts/ has start-ingest + start-brd/frd/jira (got {prompts})")
+        check(prompts == ["start-enrich", "start-ingest", "start-jira", "start-si"],
+              f".github/prompts/ has the ADR-008 stage set — start-ingest + "
+              f"start-si/enrich/jira (got {prompts})")
 
         check((dest / "core" / "overlay_manifest.yaml").is_file(), "core/ hydrated")
         # domain seam pruned — only payment_brand profiles/templates hydrated.
@@ -93,6 +94,9 @@ def main() -> int:
               "context_set/ present and empty (ready for ingest)")
         check((dest / "repo").is_dir() and not any((dest / "repo").iterdir()),
               "repo/ present and empty (clone happens at run)")
+        check((dest / "solution_intent").is_dir()
+              and not any((dest / "solution_intent").iterdir()),
+              "solution_intent/ present and empty (v1/v2/enrichment.json land at run — ADR-008)")
         # Incremental run artifacts must NOT exist yet — they are run output, not Generate's.
         check(not any((dest / n).exists() for n in ("BRD.md", "FRD.md", "jira_plan.json")),
               "no BRD.md/FRD.md/jira_plan.json (incremental run artifacts, not laid at Generate)")

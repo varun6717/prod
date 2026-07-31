@@ -12,10 +12,14 @@
  *   - frame.title   — seeded from project_name (§3.1: project_name "also seeds frame.title").
  *   - auth_ref      — injected per source type at emit; the operator never enters a secret
  *                     (§7, FR-DC-12). Pointer only.
- *   - sources       — SharePoint PDF, Bitbucket code, and Confluence KB pages (TASK-063B) are
- *                     emitted; one Confluence link = one type:confluence source. Lucid is still
- *                     shown in the UI but deferred — never emitted.
- *   - jira          — omitted; deferred this slice (BRD → FRD only).
+ *   - sources       — SharePoint PDF, Bitbucket code, and Confluence KB pages are emitted; one
+ *                     Confluence link = one type:confluence source. Lucid is still shown in the
+ *                     UI but deferred — never emitted.
+ *   - disposition   — per source, always a LIST (D-A12). Doc sources carry the operator's
+ *                     selection; code sources are auto-set ["codebase"] and non-editable.
+ *   - frame.overview— the free-form Initiative Overview (D-A13/D-A14): §1 identity, seeds §7
+ *                     deliverables, and is Arm 1's semantic query context.
+ *   - jira          — omitted; the push config lands with the Jira layer.
  */
 
 // The locked registry pin (matches fixtures/UI_INPUT.example.yaml). Until TASK-053 wires real
@@ -31,13 +35,29 @@ const AUTH_REF = {
 
 const trimmed = (x) => (x ?? "").toString().trim();
 
+// D-A12 disposition defaults per doc type — mirrors core/scripts/dispositions.py. These are
+// the row's STARTING selection; the operator changes it in the UI. Code sources never appear
+// here: `codebase` is auto-set and non-editable.
+export const DOC_DISPOSITION_DEFAULT = {
+  sharepoint: "business_requirement",
+  confluence: "product_domain_knowledge",
+};
+
+// A doc row's disposition: whatever the operator picked, else the type's default. Always a
+// one-element list — the contract is "one or more", defaulting to one.
+const dispositionOf = (item, type) => [trimmed(item?.disp) || DOC_DISPOSITION_DEFAULT[type]];
+
 export function buildConfig(form, { registrySha = DEFAULT_REGISTRY_SHA } = {}) {
   const sources = [];
 
   // SharePoint PDF document sources → type:sharepoint (TASK-055 connector).
   for (const it of form.pdf ?? []) {
     const url = trimmed(it.url);
-    if (url) sources.push({ type: "sharepoint", url, auth_ref: AUTH_REF.sharepoint });
+    if (url) sources.push({
+      type: "sharepoint", url,
+      disposition: dispositionOf(it, "sharepoint"),
+      auth_ref: AUTH_REF.sharepoint,
+    });
   }
 
   // Bitbucket code repo sources → type:bitbucket (clone.py, TASK-054). seal + repo_url.
@@ -50,6 +70,9 @@ export function buildConfig(form, { registrySha = DEFAULT_REGISTRY_SHA } = {}) {
     if (repo_url || seal_id) {
       const src = { type: "bitbucket", seal_id, repo_url };
       if (ref) src.ref = ref;
+      // Auto-set, non-editable (D-A12): a repo URL *is* the codebase, and it routes down the
+      // code arm rather than the doc arm. The operator is never asked.
+      src.disposition = ["codebase"];
       src.auth_ref = AUTH_REF.bitbucket;
       sources.push(src);
     }
@@ -59,7 +82,11 @@ export function buildConfig(form, { registrySha = DEFAULT_REGISTRY_SHA } = {}) {
   // page, exactly like a PDF; each emits its own source so the orchestrator fans out per page.
   for (const it of form.confluence ?? []) {
     const url = trimmed(it.url);
-    if (url) sources.push({ type: "confluence", url, auth_ref: AUTH_REF.confluence });
+    if (url) sources.push({
+      type: "confluence", url,
+      disposition: dispositionOf(it, "confluence"),
+      auth_ref: AUTH_REF.confluence,
+    });
   }
 
   // Registry repo is optional in the UI: when given, the operator points Generate at a live
@@ -87,6 +114,7 @@ export function buildConfig(form, { registrySha = DEFAULT_REGISTRY_SHA } = {}) {
     frame: {
       title: trimmed(form.project_name),
       intent: trimmed(form.intent),
+      overview: trimmed(form.overview),
       scope_hints: [...(form.scope_hints ?? [])],
       stakeholders: [...(form.stakeholders ?? [])],
     },

@@ -29,14 +29,16 @@ The resulting workspace is the §2.2 layout::
       UI_INPUT.yaml                      # immutable run config — the run's identity
       CLAUDE.md | copilot-instructions.md
       .claude/agents/ | *.agent.md       # hydrated overlay wrappers, lifted to run root
-      prompts/                           # start-ingest, start-brd, start-frd, start-jira
+      prompts/                           # start-ingest, start-si, start-enrich, start-jira
       core/                              # hydrated shared core (domain-pruned seams)
       repo/                              # empty — code clone happens at run (clone.py)
       context_set/                       # empty — ingestion fills it at run
+      solution_intent/                   # empty — v1.md/v2.md/enrichment.json land at run
       ledger/                            # telemetry.jsonl, run_state.json, decisions.jsonl
 
-``BRD.md`` / ``FRD.md`` / ``jira_*.json`` are *incremental run artifacts* (§3.7/§3.8) — the
-run stages create them, not Generate, so they are absent at G0.
+``solution_intent/`` contents and ``jira_plan.json`` / ``jira_trace.json`` are *incremental
+run artifacts* (§3.7/§3.8) — the run stages create them, not Generate, so the directory is
+present but empty at G0.
 
 **Reproducibility (NFR-01, FR-XS-10).** The scaffold is a pure function of
 ``UI_INPUT.yaml`` + the pinned ``registry_sha``. ``registry_sha`` pins the core/profiles;
@@ -74,9 +76,10 @@ from generate_instruction import render_instruction_file
 _OVERLAY_SKIP_NAMES = {"launch.md", "VDI_PREREQUISITES.md", ".gitkeep", "__pycache__"}
 
 # Empty workspace dirs Generate creates so the §2.2 skeleton is complete at G0; the run
-# stages fill them (clone.py → repo/, ingestion → context_set/). Present-but-empty makes
-# the "ready for ingest" state inspectable rather than implicit.
-_EMPTY_RUN_DIRS = ("context_set", "repo")
+# stages fill them (clone.py → repo/, ingestion → context_set/, the SI author →
+# solution_intent/). Present-but-empty makes the "ready for ingest" state inspectable
+# rather than implicit.
+_EMPTY_RUN_DIRS = ("context_set", "repo", "solution_intent")
 
 
 def _now_iso() -> str:

@@ -207,6 +207,7 @@ connector's placeholder per hard rule **S**, done as connectors land on the VDI 
 **Phase D · Milestone D0 — Cutover groundwork**
 - [x] TASK-100 — Retirement sweep: 41 ⛔ files deleted (`frd_*` skills/validator, vocabulary + taggers, vocab checks, BRD/FRD + tag-lane fixtures, seed docs + `brd_frd_overview.html`, old run workspace); `build_checks.py` re-cut to §10.2/10.3/10.4 (§10.3 requires `brd_profile` transitionally); ADR-003/004/005 superseded-by banners; `--demo` re-cut and green
 - [x] TASK-101 — Manifest split (D-A22): `extractor_manifest.yaml` (per-language freeze, schema v2) + `cache/` home (`code_maps/index.yaml` contract in `cache/README.md`; gitignored; old `repos[]` record NOT migrated — it described the pre-profile tagged map); `registry_manifest.yaml` shrunk to `trees: [core/, overlays/, docs/]` (schema v2); `onboarding_manifest.yaml` deleted; `validate_onboarding.py`/`gate.py` repointed (full recasts stay TASK-113/115). Proof: reference grep empty, staged publish 94 files w/ green gate + correct boundary, §10 3/3
+- [x] TASK-103 — `UI_INPUT` v2 (D-A12/D-A13): `core/scripts/dispositions.py` is the single taxonomy definition (shared by backend validation + the §10.5′ check at TASK-108); every source carries `disposition` as a **list** (one-or-more, default one), `codebase` auto-set for repo sources and rejected on doc sources (and vice versa); `frame.overview` required (§1 identity, seeds §7, Arm 1's query context); UI gains a per-doc-row disposition selector + Initiative Overview; scaffold gains `solution_intent/`. Proof: 8 validation probes (7 reject, multi-disposition accepts), emit honors operator pick *and* type default, all 8 fixture verifies green, §10 3/3. Also fixed two TASK-100/102 fallouts: `verify_generate`'s stale prompt names, `verify_registry`'s negative test deleting the retired vocabulary
 - [x] TASK-102 — Runtime-tool seam re-cut: `overlay_manifest.yaml` transcribed from D11.7 (8 roles — `solution_intent_*` ← `brd_*`, + `claim_verifier`/`disposition_walkthrough`, `frd_*` out; `prompt_files [start-ingest, start-si, start-enrich, start-jira]`; invocability = D-A23 interactive set); renames landed (skills + `solution_intent_validator.py` + wrappers + prompts, both tools) with identifier swaps; 4 new-role wrappers + 4 skill stubs (`claim_verifier`/`disposition_walkthrough`/`jira_author`/`jira_validator` — full content TASK-119/120/122/123); `instruction_file.template.md` stage narrative re-cut to SI→enrichment→Jira; `generate_instruction.py` gestures re-pointed; parity `_demo` re-cut. Proof: §10.2 green (8+4 both tools), demo green, §10 3/3, no `brd_`/`frd_` filename remains, every wrapper pointer resolves
 
 ---
@@ -239,7 +240,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ## Open index (tick here; then collapse the task into the done ledger above)
 
 **Milestone D1 — Input side (UI_INPUT, routing, index, Jira ingest)**
-- [ ] TASK-103 — `UI_INPUT` v2: dispositions + `frame.overview` + run scaffold · `Sonnet`
 - [ ] TASK-104 — Ledger stages + enrichment event vocabulary · `Sonnet`
 - [ ] TASK-105 — Manifest v2 + disposition routing + adapter shrink · `Sonnet`
 - [ ] TASK-106 — Per-artifact index + completeness (guardrail 7) · `Opus`
@@ -278,25 +278,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ---
 
 ## Milestone D1 — Input side
-
-### TASK-103 — `UI_INPUT` v2: dispositions + `frame.overview` + run scaffold
-- **Depends on:** TASK-102.
-- **Model:** Sonnet — the contract is fully specified.
-- **Reads:** §3.1 (amended) · §2.2 · D-A12 (taxonomy, `Codebase` auto, `Other` second-class,
-  multi-disposition) · D-A13 (`overview`'s two jobs) · impact §6.
-- **Creates / edits:** `core/scripts/generate.py` (validate the amended §3.1; scaffold gains
-  `solution_intent/`); `app/backend/{app,service,validation}.py`;
-  `app/frontend/src/PDLCConfigurator.jsx` (per-source disposition selector — 6 operator classes,
-  multi allowed, defaults to one; repo rows show auto-set non-editable `Codebase`; `Other` marked
-  "background only — not citable"; Initiative Overview textarea in the frame tab);
-  `app/frontend/src/emit.js` + `scripts/emit_cli.mjs`; `fixtures/UI_INPUT.example.yaml`;
-  `fixtures/frontend/{sample_form.json,verify_frontend.py}`;
-  `fixtures/generate/{verify_generate,verify_backend}.py`; `runs/_template/` (add
-  `solution_intent/.gitkeep`).
-- **Acceptance:** emitted `UI_INPUT.yaml` carries `disposition:` per doc source + `frame.overview`;
-  backend rejects a doc source with missing/unknown disposition; repo rows auto-`Codebase`;
-  Generate produces the §2.2 scaffold with `solution_intent/`; all four verifies green.
-- **Proof:** `verify_frontend.py` + `verify_generate.py` + `verify_backend.py` green.
 
 ### TASK-104 — Ledger stages + enrichment event vocabulary
 - **Depends on:** TASK-103.

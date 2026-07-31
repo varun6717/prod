@@ -14,7 +14,22 @@ the proof harness, or a CLI without pulling the web stack.
 """
 from __future__ import annotations
 
+import sys
+from pathlib import Path
 from typing import Any
+
+# The D-A12 taxonomy lives in core (one definition, shared with the §10.5′ build check) —
+# reached the same way service.py reaches generate.py.
+_SCRIPTS = Path(__file__).resolve().parents[2] / "core" / "scripts"
+if str(_SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS))
+
+from dispositions import (  # noqa: E402  (core/scripts/dispositions.py)
+    ALL_DISPOSITIONS,
+    CODE_SOURCE_TYPES,
+    CODEBASE_DISPOSITION,
+    OPERATOR_DISPOSITIONS,
+)
 
 # §6.4 / FR-XS-06 — the only two runtime tools the overlays realize.
 _RUNTIME_TOOLS = ("claude", "copilot")
@@ -28,9 +43,11 @@ _PROJECT_METADATA_KEYS = (
     "requestor_sid",
 )
 
-# §3.1 ``frame`` — the operator's authoritative seed. title + intent orient BRD authoring;
-# scope_hints/stakeholders/key_dates are optional refinements (the author fills the rest).
-_FRAME_REQUIRED_KEYS = ("title", "intent")
+# §3.1 ``frame`` — the operator's authoritative seed. ``overview`` is the free-form Initiative
+# Overview added by ADR-008 (D-A13/D-A14): it supplies §1's initiative identity, **seeds the §7
+# deliverables**, and is the semantic query context Arm 1 matches against code — so it is
+# required, not decorative. scope_hints/stakeholders/key_dates stay optional refinements.
+_FRAME_REQUIRED_KEYS = ("title", "intent", "overview")
 
 # Per-source-type required instance fields (§3.1 ``sources[]``, §6.6.2 connector contract).
 # Every source carries a ``type``; the rest is what that type's connector needs to locate the
@@ -140,6 +157,42 @@ def _validate_sources(sources: Any) -> list[str]:
             for field in required
             if not _is_nonempty_str(src.get(field))
         )
+        errors.extend(_validate_disposition(src.get("disposition"), stype, where))
+    return errors
+
+
+def _validate_disposition(value: Any, stype: str, where: str) -> list[str]:
+    """Validate ``sources[].disposition`` against the D-A12 taxonomy (§3.1 amendment).
+
+    Always a **list** — "one or more", defaulting to one (multi is allowed because mixed
+    documents are real). A single shape keeps every consumer's parse trivial; the UI emits
+    a one-element list rather than a bare string.
+
+    Two asymmetries the taxonomy encodes: ``codebase`` is auto-set for code sources and may
+    not be operator-chosen, and a doc source may never carry it — that is what keeps the
+    code arm and doc arm from crossing.
+    """
+    field = f"{where}.disposition"
+    if not isinstance(value, list) or not value:
+        return [f"{field} — required non-empty list of D-A12 classes "
+                f"(operator-selectable: {list(OPERATOR_DISPOSITIONS)}); "
+                f"code sources carry [{CODEBASE_DISPOSITION!r}] (§3.1, D-A12)"]
+
+    errors: list[str] = []
+    unknown = [d for d in value if d not in ALL_DISPOSITIONS]
+    if unknown:
+        errors.append(f"{field} — unknown disposition(s) {unknown}; "
+                      f"known: {list(ALL_DISPOSITIONS)} (D-A12)")
+    if len(set(value)) != len(value):
+        errors.append(f"{field} — duplicate entries {value}")
+
+    if stype in CODE_SOURCE_TYPES:
+        if value != [CODEBASE_DISPOSITION]:
+            errors.append(f"{field} — code source type {stype!r} is auto-set to "
+                          f"[{CODEBASE_DISPOSITION!r}], not operator-chosen; got {value} (D-A12)")
+    elif CODEBASE_DISPOSITION in value:
+        errors.append(f"{field} — {CODEBASE_DISPOSITION!r} is auto-set for code sources only; "
+                      f"a {stype!r} source cannot declare it (D-A12)")
     return errors
 
 

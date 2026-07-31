@@ -194,8 +194,9 @@ export default function PDLCConfigurator(){
     working_path:"", domain:"payment_brand", runtime_tool:"copilot",
     registry_url:"", registry_ref:"",
     project_name:"", application_name:"", lob:"", requestor:"", requestor_sid:"",
-    intent:"", scope_hints:["routing"], stakeholders:[], compliance_deadline:"",
-    pdf:[{url:""}], code:[{seal:"",url:"",branch:""}], confluence:[{url:""}], lucid:[{url:""}],
+    intent:"", overview:"", scope_hints:["routing"], stakeholders:[], compliance_deadline:"",
+    pdf:[{url:"",disp:"business_requirement"}], code:[{seal:"",url:"",branch:""}],
+    confluence:[{url:"",disp:"product_domain_knowledge"}], lucid:[{url:""}],
     score_threshold:"85",
   });
   // Config is immutable after Generate (FR-XS-16): any edit discards the generated scaffold,
@@ -303,6 +304,9 @@ export default function PDLCConfigurator(){
 
             <div className="rule"><span className="rule-i">B</span><span className="rule-l">Requirement Frame · BRD seed</span></div>
             <Field label="Intent" hint="→ frame.intent — one line: what we're implementing"><Text area value={f.intent} onChange={v=>set("intent",v)} placeholder="Implement Discover as a routable card brand end-to-end"/></Field>
+            <Field label="Initiative Overview" hint="→ frame.overview — prose. Names §1's initiative identity, seeds the §7 deliverables, and is what code matching reads.">
+              <Text area value={f.overview} onChange={v=>set("overview",v)}
+                placeholder="A paragraph or two: what this initiative is, why now, what it spans end-to-end. Written for a reader who knows nothing about it."/></Field>
             <Field label="Compliance Deadline" hint="→ frame.key_dates.compliance_deadline"><Text value={f.compliance_deadline} onChange={v=>set("compliance_deadline",v)} placeholder="2026-09-30"/></Field>
             <Field label="Scope Hints" hint="→ frame.scope_hints[] · Enter to add">
               <div className="tinput"><input value={chipDraft} placeholder="add a scope hint…"
@@ -327,11 +331,11 @@ export default function PDLCConfigurator(){
                 Add more than one of any type (e.g. two code repos).</p></div>
 
             <SourceRow type="sharepoint" name="SharePoint — PDF" ph="https://sharepoint.jpmc.net/sites/PBI/Specs"
-              items={f.pdf} onItem={(i,k,v)=>setItem("pdf",i,k,v)} onAdd={()=>addItem("pdf",{url:""})} onRemove={i=>rmItem("pdf",i)}/>
+              items={f.pdf} onItem={(i,k,v)=>setItem("pdf",i,k,v)} onAdd={()=>addItem("pdf",{url:"",disp:"business_requirement"})} onRemove={i=>rmItem("pdf",i)}/>
             <SourceRow type="bitbucket" name="Bitbucket — Code Repo (Stratus)" bitbucket ph="https://bitbucket.jpmc.net/scm/pbi/merchant-routing-svc.git"
               items={f.code} onItem={(i,k,v)=>setItem("code",i,k,v)} onAdd={()=>addItem("code",{seal:"",url:"",branch:""})} onRemove={i=>rmItem("code",i)}/>
             <SourceRow type="confluence" name="Confluence" ph="https://confluence.jpmc.net/display/PBI/Discover"
-              items={f.confluence} onItem={(i,k,v)=>setItem("confluence",i,k,v)} onAdd={()=>addItem("confluence",{url:""})} onRemove={i=>rmItem("confluence",i)}/>
+              items={f.confluence} onItem={(i,k,v)=>setItem("confluence",i,k,v)} onAdd={()=>addItem("confluence",{url:"",disp:"product_domain_knowledge"})} onRemove={i=>rmItem("confluence",i)}/>
             <SourceRow type="lucid" name="Lucid" ph="https://lucid.app/lucidchart/…"
               items={f.lucid} onItem={(i,k,v)=>setItem("lucid",i,k,v)} onAdd={()=>addItem("lucid",{url:""})} onRemove={i=>rmItem("lucid",i)}
               deferred badge="5B — deferred"/>
@@ -412,9 +416,21 @@ export default function PDLCConfigurator(){
   );
 }
 
+// D-A12 disposition taxonomy — the role an artifact plays IN THIS RUN, orthogonal to its type.
+// Mirrors core/scripts/dispositions.py (the backend rejects anything outside it). `codebase` is
+// absent on purpose: it is auto-set for repo sources and never offered to the operator.
+const DISPOSITIONS=[
+  {key:"business_requirement",    label:"Business Requirement",    hint:"the ask — mandates, BRDs: obligation, scope, deadline"},
+  {key:"technical_specification", label:"Technical Specification", hint:"normative detail — network specs, tech letters, field formats"},
+  {key:"product_domain_knowledge",label:"Product Domain Knowledge",hint:"how the product works today — KB, product guides"},
+  {key:"architecture",            label:"Architecture",            hint:"system design — architecture docs, diagrams, integration maps"},
+  {key:"prior_artifact",          label:"Prior Artifact",          hint:"decisions already made — reference only, never a primary citation"},
+  {key:"other",                   label:"Other",                   hint:"background context only — not citable as a primary source"},
+];
+
 function SourceRow({type,name,bitbucket,ph,items,onItem,onAdd,onRemove,deferred=false,badge}){
-  // Out-of-scope connectors (Confluence, Lucid) are shown for the roadmap but disabled and
-  // never emitted into sources[] — only the 5A-live types (SharePoint, Bitbucket) wire through.
+  // Out-of-scope connectors (Lucid) are shown for the roadmap but disabled and never emitted.
+  // Doc rows carry an operator-chosen `disposition` (D-A12); code rows show it as auto-set.
   return (
     <div className="srow" style={deferred?{opacity:.5}:undefined} aria-disabled={deferred||undefined}>
       <div className="srow-hd">
@@ -441,6 +457,19 @@ function SourceRow({type,name,bitbucket,ph,items,onItem,onAdd,onRemove,deferred=
             {bitbucket && <div>
               <label className="flabel">Branch / ref · optional</label>
               <div className="tinput"><input value={it.branch||""} placeholder="feature/c_repo · default branch if blank" disabled={deferred} onChange={e=>onItem(i,"branch",e.target.value)}/></div>
+            </div>}
+            {!bitbucket && !deferred && <div>
+              <label className="flabel">Disposition · what this is for</label>
+              <div className="tinput">
+                <select value={it.disp||"business_requirement"} onChange={e=>onItem(i,"disp",e.target.value)}>
+                  {DISPOSITIONS.map(d=><option key={d.key} value={d.key}>{d.label}</option>)}
+                </select>
+              </div>
+              <div className="fhint">{(DISPOSITIONS.find(d=>d.key===(it.disp||"business_requirement"))||{}).hint}</div>
+            </div>}
+            {bitbucket && <div>
+              <label className="flabel">Disposition</label>
+              <div className="authref"><b>codebase</b> — auto-set for a repo source, not editable</div>
             </div>}
           </div>
         ))}
@@ -482,15 +511,16 @@ function buildYaml(f,generated){
   L.push(`${k("frame:")}  <span class="yc"># BRD seed</span>`);
   L.push(`  ${k("title:")} ${v(f.project_name)}`);
   L.push(`  ${k("intent:")} ${v(f.intent)}`);
+  L.push(`  ${k("overview:")} ${v(f.overview)}`);
   L.push(`  ${k("scope_hints:")} ${hints}`);
   L.push(`  ${k("stakeholders:")} ${stk}`);
   L.push(`  ${k("key_dates:")} { ${k("compliance_deadline:")} ${v(f.compliance_deadline)} }`);
   L.push("");
   L.push(`${k("sources:")}`);
   let any=false;
-  f.pdf.forEach(it=>{if(it.url){any=true;L.push(`  - ${k("type:")} ${v("sharepoint")}`);L.push(`    ${k("url:")} ${v(it.url)}`);L.push(`    ${k("auth_ref:")} ${s("jpmc_adapters:sharepoint")}`);}});
-  f.code.forEach(it=>{if(it.url||it.seal){any=true;L.push(`  - ${k("type:")} ${v("bitbucket")}`);L.push(`    ${k("seal_id:")} ${v(it.seal)}`);L.push(`    ${k("repo_url:")} ${v(it.url)}`);if(it.branch&&it.branch.trim())L.push(`    ${k("ref:")} ${v(it.branch.trim())}`);L.push(`    ${k("auth_ref:")} ${s("jpmc_adapters:bitbucket")}`);}});
-  f.confluence.forEach(it=>{if(it.url){any=true;L.push(`  - ${k("type:")} ${v("confluence")}`);L.push(`    ${k("url:")} ${v(it.url)}`);L.push(`    ${k("auth_ref:")} ${s("jpmc_adapters:confluence")}`);}});
+  f.pdf.forEach(it=>{if(it.url){any=true;L.push(`  - ${k("type:")} ${v("sharepoint")}`);L.push(`    ${k("url:")} ${v(it.url)}`);L.push(`    ${k("disposition:")} [${v(it.disp||"business_requirement")}]`);L.push(`    ${k("auth_ref:")} ${s("jpmc_adapters:sharepoint")}`);}});
+  f.code.forEach(it=>{if(it.url||it.seal){any=true;L.push(`  - ${k("type:")} ${v("bitbucket")}`);L.push(`    ${k("seal_id:")} ${v(it.seal)}`);L.push(`    ${k("repo_url:")} ${v(it.url)}`);if(it.branch&&it.branch.trim())L.push(`    ${k("ref:")} ${v(it.branch.trim())}`);L.push(`    ${k("disposition:")} [${v("codebase")}]  ${s("# auto-set")}`);L.push(`    ${k("auth_ref:")} ${s("jpmc_adapters:bitbucket")}`);}});
+  f.confluence.forEach(it=>{if(it.url){any=true;L.push(`  - ${k("type:")} ${v("confluence")}`);L.push(`    ${k("url:")} ${v(it.url)}`);L.push(`    ${k("disposition:")} [${v(it.disp||"product_domain_knowledge")}]`);L.push(`    ${k("auth_ref:")} ${s("jpmc_adapters:confluence")}`);}});
   f.lucid.forEach(it=>{if(it.url){any=true;L.push(`  - ${k("type:")} ${v("lucid")}`);L.push(`    ${k("url:")} ${v(it.url)}`);L.push(`    ${k("auth_ref:")} ${s("jpmc_adapters:lucid")}`);}});
   if(!any)L.push(`  <span class="yc"># add sources in Stage 3</span>`);
   L.push("");

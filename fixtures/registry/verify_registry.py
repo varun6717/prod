@@ -63,8 +63,10 @@ def _broken_source(into: Path) -> Path:
     for sub in ("core", "overlays", "docs", "fixtures"):
         shutil.copytree(_REPO_ROOT / sub, src / sub,
                         ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".git"))
-    # Delete a required seam artifact → §10.3 (and §10.5) go red.
-    (src / "core" / "profiles" / _DOMAIN / f"vocabulary.{_DOMAIN}.yaml").unlink()
+    # Delete a required seam artifact → §10.3 goes red. `adapter.yaml` is the choice that
+    # survives the ADR-008 re-cut: the vocabulary this used to delete no longer exists
+    # (D-A22), and brd_profile is itself replaced by si_profile at TASK-108.
+    (src / "core" / "profiles" / _DOMAIN / "adapter" / "adapter.yaml").unlink()
     return src
 
 
