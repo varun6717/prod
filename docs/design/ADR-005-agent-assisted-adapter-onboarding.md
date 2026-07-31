@@ -1,5 +1,10 @@
 # ADR-005 — Agent-assisted adapter onboarding: a guided helper to design a domain's pre-processing pack (propose-never-bless)
 
+> ⛔ **Superseded by ADR-008 (2026-07-31).** `adapter.yaml` loses `emits` and the tag lanes — the
+> doc pipeline is domain-agnostic extract + index (D-A18/D-A19), so the emit-derivation idea has
+> no target. Open-Q #1 (the `ONBOARD_INPUT` shape) stays valid for the re-scoped domain
+> onboarding; open-Q #2 is answered by the per-artifact index (D-A18). Kept for history.
+
 **Status:** **Accepted** — ruled by operator **V**, 2026-06-20. Deferred (W); named now, built in Phase 5 (port / second domain). No in-slice build, no pinned-contract change.
 **Amends:** `REQUIREMENTS.md` (new `FR-DC-23` W, in the FR-DC cluster beside FR-DC-19/20/22); `TECH_SPEC.md` §6.6.3 (forward-compat note — the agent-assisted adapter aid respects build-time registration); `TASK_LIST.md` (Phase 5 named follow-on). No normative schema change — `adapter.yaml` (§6.6.3) already admits additional `docs_pipeline` skills additively; no reserved hook, no Python.
 

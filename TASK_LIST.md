@@ -204,6 +204,9 @@ connector's placeholder per hard rule **S**, done as connectors land on the VDI 
 - [x] TASK-063 — Confluence connector `ingest_confluence.py` — mirrors `ingest_sharepoint.py`; `pull_page()` emits the exact `ingest_file` descriptor; `_fetch_confluence` is the lone `[TBD — VDI]` placeholder (`set_fetcher` seam for tests); lazy auth; `main()` stages multiple pages (one link = one page). Fixtures `fixtures/confluence/{discover_routing_kb,message_format_kb}.html` + `verify_confluence.py` (13 checks). **VDI:** edit `_fetch_confluence` with the real REST call + auth; no other change.
 - [x] TASK-063B — Per-source-type doc-pipeline routing — two-lane `docs_pipeline` + `confluence_tag` + §10.5 lane union. *(Mechanism retired by ADR-008/D-A19 at TASK-100/105 — routing is now by operator disposition; the connector + UI row survive.)*
 
+**Phase D · Milestone D0 — Cutover groundwork**
+- [x] TASK-100 — Retirement sweep: 41 ⛔ files deleted (`frd_*` skills/validator, vocabulary + taggers, vocab checks, BRD/FRD + tag-lane fixtures, seed docs + `brd_frd_overview.html`, old run workspace); `build_checks.py` re-cut to §10.2/10.3/10.4 (§10.3 requires `brd_profile` transitionally); ADR-003/004/005 superseded-by banners; `--demo` re-cut and green
+
 ---
 
 ## Disposition of the pre-pivot open tasks (TASK-056, 064–083 — none carries over verbatim)
@@ -234,7 +237,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ## Open index (tick here; then collapse the task into the done ledger above)
 
 **Milestone D0 — Cutover groundwork**
-- [ ] TASK-100 — Retirement sweep + §10 re-cut to the surviving checks · `Sonnet`
 - [ ] TASK-101 — Manifest split: `extractor_manifest` + map cache + registry-manifest shrink · `Sonnet`
 - [ ] TASK-102 — Runtime-tool seam re-cut (manifest, renames, new-role stubs, parity) · `Sonnet`
 
@@ -278,33 +280,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ---
 
 ## Milestone D0 — Cutover groundwork
-
-### TASK-100 — Retirement sweep + §10 re-cut to the surviving checks
-- **Depends on:** `docs/design/ADR-008-impact-analysis.md`; V-flags 1–3 resolved 2026-07-31
-  (delete old run workspace · delete the 4 seed docs · add ADR banners).
-- **Model:** Sonnet — mechanical but wide; the file list is fully enumerated.
-- **Reads:** impact §§1–9 (every ⛔ row) · D-A0, D-A22, D-A23 family 1 · `build_checks.py`.
-- **Creates / edits:** deletions below; `core/scripts/build_checks.py`; ADR-003/004/005 banners;
-  commit of the pending working-tree housekeeping (`.gitignore` `notes/` ignore, `NOTES.md`
-  deletion, V's interim `registry_manifest.yaml` ADR additions — superseded at TASK-101 but
-  committed as-is first so history keeps V's edit).
-- **Do:** Delete (git history preserves everything): `core/skills/frd_{author,validator}.skill.md`;
-  `core/scripts/frd_validator.py` (its G3 formula is salvaged **from git history** at TASK-123);
-  `core/scripts/checks/{check_vocab_containment,vocab_adequacy}.py`;
-  `core/profiles/payment_brand/{vocabulary.payment_brand,frd_profile.payment_brand}.yaml`;
-  `core/profiles/payment_brand/adapter/{article_summarize,confluence_tag}.skill.md`;
-  `fixtures/{adapter_routing,brd_author,brd_validator,frd_author,frd_validator,code_impact}/`
-  (the two `code_impact` oracles' closure content is salvage material for TASK-118);
-  `docs/brd_frd_overview.html`; `docs/{brd_author,code_impact_assess,code_map_build}.skill.md`;
-  `runs/r-2026-06-17-001/`. **Overlay files are NOT touched here** — TASK-102 does the seam
-  atomically so §10.2 never breaks. Re-cut `build_checks.py`: unregister §10.1 + §10.5; amend
-  §10.3 to stop requiring `vocabulary`/`frd_profile` (still requires `adapter.yaml` +
-  `brd_profile` transitionally, until TASK-108 swaps in `si_profile`). Add the one-line
-  superseded-by-ADR-008 banner to ADR-003/004/005.
-- **Acceptance:** no ⛔ file from impact §§1–9 remains except those owned by later tasks
-  (`onboarding_manifest` → 101; `brd_profile` → 108; overlay `frd_*` → 102); `build_checks.py`
-  runs exactly §10.2/§10.3/§10.4 and is green; working tree clean.
-- **Proof:** `git status` clean; `build_checks.py` output lists 3 checks, all green.
 
 ### TASK-101 — Manifest split: `extractor_manifest` + map cache + registry-manifest shrink
 - **Depends on:** TASK-100.

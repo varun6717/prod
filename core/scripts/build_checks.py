@@ -1,26 +1,26 @@
 #!/usr/bin/env python3
-"""build_checks.py — the five §10 build checks in one runner (FR-DC-09, FR-XS-01/20, NFR-06).
+"""build_checks.py — the §10 build checks in one runner (FR-DC-09, FR-XS-01/20, NFR-06).
 
-"Author by hand; verify by spec." This runner is the *verify* half: it executes all five
-§10 checks over the registered seam and exits non-zero if ANY fails, naming every offender.
+"Author by hand; verify by spec." This runner is the *verify* half: it executes every
+REGISTERED §10 check over the seam and exits non-zero if ANY fails, naming every offender.
 It is the build's single green/red signal that the seam is internally consistent before the
 spine runs on it.
 
-  §10.1  vocabulary containment   — profile topics + adapter emit-tags (+ code_map) ⊆ V.
-                                    (delegated to checks/check_vocab_containment.py, TASK-046)
+Post-ADR-008 register (TASK-100 re-cut — §10 shrinks 5 → 4, D-A23 family 1):
+
   §10.2  overlay parity           — both overlays realize every role at the same shared skill.
                                     (delegated to checks/check_overlay_parity.py, TASK-047)
-  §10.3  domain artifact presence — the seam files for UI_INPUT.domain exist (jira excluded
-                                    this slice — only when L4/Jira is in run scope).
+  §10.3  domain artifact presence — the seam files for UI_INPUT.domain exist (jira_template
+                                    required only when L4/Jira is in run scope).
   §10.4  connector coverage       — every UI_INPUT source type has a non-domain-branching
                                     connector (code type → clone.py).
-  §10.5  adapter coverage/no-drift— adapter emits ⊆ V; every required topic has a producing
-                                    skill; the emit-map agrees per-tag with vocabulary
-                                    `emitted_by` (the F1 reconciliation, TASK-017); every
-                                    adapter skill file exists.
+  §10.5′ disposition-class totality — registers at TASK-108 with the SI profile (every SI
+                                    section routed ≥1 input class; every UI class in the
+                                    matrix). Not yet registered.
 
-§10.3/10.4/10.5 are implemented here; §10.1/10.2 reuse the dedicated check modules. Domain
-and sources are read from a UI_INPUT (default ``fixtures/UI_INPUT.example.yaml``).
+Retired by ADR-008: §10.1 vocabulary containment (the vocabulary is deleted, D-A22) and
+§10.5 adapter emit no-drift (`emits` is deleted, D-A19). Transitional note: §10.3 requires
+`brd_profile` until TASK-108 swaps in `si_profile`.
 """
 from __future__ import annotations
 
@@ -37,9 +37,7 @@ REPO_ROOT = SCRIPTS_DIR.parent.parent
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
-from checks.check_vocab_containment import check_containment            # §10.1
 from checks.check_overlay_parity import check_parity                    # §10.2
-from checks.check_vocab_containment import adapter_emit_tags, load_vocabulary, profile_topics
 
 # Source types whose connector is the shared git clone (D7 / §10.4 "code type → clone.py").
 CODE_SOURCE_TYPES = {"bitbucket"}
@@ -59,12 +57,11 @@ def check_domain_artifacts(domain: str, *, jira_in_scope: bool = False,
                            repo_root: Path = REPO_ROOT) -> CheckResult:
     pdir = repo_root / "core" / "profiles" / domain
     required = [
+        # brd_profile is TRANSITIONAL — TASK-108 replaces it with si_profile.<domain>.yaml.
         pdir / f"brd_profile.{domain}.yaml",
-        pdir / f"frd_profile.{domain}.yaml",
-        pdir / f"vocabulary.{domain}.yaml",
         pdir / "adapter" / "adapter.yaml",
     ]
-    if jira_in_scope:   # ONLY when L4 (Jira) is in run scope — out of slice by default
+    if jira_in_scope:   # ONLY when L4 (Jira) is in run scope — required from TASK-122 on
         required.append(repo_root / "core" / "templates" / domain / f"jira_template.{domain}.yaml")
     missing = [str(p.relative_to(repo_root)) for p in required if not p.exists()]
     return CheckResult("§10.3 domain artifacts", not missing,
@@ -124,80 +121,7 @@ def check_connector_coverage(sources: Sequence[dict], *,
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# §10.5 — adapter coverage + consistency (§6.6.3, D5/FR-DC-09)
-# ──────────────────────────────────────────────────────────────────────────────
-def _vocab_emitted_by(vocab_path: Path) -> dict[str, set[str]]:
-    data = yaml.safe_load(vocab_path.read_text()) or {}
-    return {tag: set(meta.get("emitted_by") or [])
-            for tag, meta in (data.get("tags") or {}).items()}
-
-
-def _required_topics(repo_root: Path, domain: str) -> set[str]:
-    pdir = repo_root / "core" / "profiles" / domain
-    out: set[str] = set()
-    for prof in (f"brd_profile.{domain}.yaml", f"frd_profile.{domain}.yaml"):
-        data = yaml.safe_load((pdir / prof).read_text()) or {}
-        for section in data.get("sections") or []:
-            for req in section.get("requirements") or []:
-                if req.get("required") and req.get("topic"):
-                    out.add(req["topic"])
-    return out
-
-
-def check_adapter_coverage(domain: str = "payment_brand", *,
-                           repo_root: Path = REPO_ROOT) -> CheckResult:
-    pdir = repo_root / "core" / "profiles" / domain
-    adapter_path = pdir / "adapter" / "adapter.yaml"
-    A = yaml.safe_load(adapter_path.read_text()) or {}
-    emit_map = {t: set(s) for t, s in adapter_emit_tags(adapter_path).items()}  # tag -> {skills}
-    vocab = set(load_vocabulary(pdir / f"vocabulary.{domain}.yaml"))
-    vocab_emitted = _vocab_emitted_by(pdir / f"vocabulary.{domain}.yaml")
-
-    violations: list[str] = []
-
-    # (a) emits(A) ⊆ V
-    for tag in sorted(emit_map):
-        if tag not in vocab:
-            violations.append(f"adapter emits tag {tag!r} not in vocabulary")
-
-    # (b) every required:true topic has a producing skill in the pack
-    for topic in sorted(_required_topics(repo_root, domain)):
-        if topic not in emit_map:
-            violations.append(f"required topic {topic!r} has no producing adapter skill")
-
-    # (c) per-tag no-drift: adapter emit-map == vocabulary `emitted_by` (F1 reconciliation)
-    for tag in sorted(set(emit_map) | set(vocab_emitted)):
-        a, v = emit_map.get(tag, set()), vocab_emitted.get(tag, set())
-        if a != v:
-            violations.append(f"emit-map drift on {tag!r}: adapter={sorted(a)} "
-                              f"vs vocabulary.emitted_by={sorted(v)}")
-
-    # (d) every adapter skill file exists. docs_pipeline skills live in the pack dir;
-    #     code_pipeline skills are the SHARED core skill (referenced, not copied — D7).
-    #     docs_pipeline may be a bare list (legacy = `default`) or a per-type mapping (TASK-063B);
-    #     a mapping MUST carry a `default` fallback. Skills are checked across all variants.
-    docs = A.get("docs_pipeline")
-    if isinstance(docs, dict):
-        if "default" not in docs:
-            violations.append("docs_pipeline mapping must include a `default` pipeline (TASK-063B)")
-        docs_variants = list(docs.values())
-    else:
-        docs_variants = [docs or []]
-    docs_skills = {step.get("skill") for variant in docs_variants for step in (variant or [])
-                   if isinstance(step, dict) and step.get("skill")}
-    for skill in sorted(docs_skills):
-        if not (pdir / "adapter" / f"{skill}.skill.md").exists():
-            violations.append(f"missing docs_pipeline skill file: adapter/{skill}.skill.md")
-    for step in A.get("code_pipeline") or []:
-        skill = step.get("skill")
-        if skill and not (repo_root / "core" / "skills" / f"{skill}.skill.md").exists():
-            violations.append(f"missing code_pipeline (core) skill file: core/skills/{skill}.skill.md")
-
-    return CheckResult("§10.5 adapter coverage/no-drift", not violations, violations)
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Runner — all five
+# Runner — all registered checks
 # ──────────────────────────────────────────────────────────────────────────────
 def _safe(name: str, fn) -> CheckResult:
     """Run a check, converting any exception (e.g. a missing seam file) into a clean FAIL —
@@ -209,42 +133,34 @@ def _safe(name: str, fn) -> CheckResult:
 
 
 def run_all(*, ui_input: str | Path | None = None, repo_root: Path = REPO_ROOT,
-            jira_in_scope: bool = False, code_map_path: str | Path | None = None) -> list[CheckResult]:
+            jira_in_scope: bool = False) -> list[CheckResult]:
     ui_path = Path(ui_input or (repo_root / "fixtures" / "UI_INPUT.example.yaml"))
     ui = yaml.safe_load(ui_path.read_text()) or {}
     domain = ui.get("domain", "payment_brand")
     sources = ui.get("sources") or []
 
-    def r1():   # §10.1 + §10.2 reuse the dedicated modules; map their violations to strings.
-        c = check_containment(domain, repo_root=repo_root, code_map_path=code_map_path)
-        return CheckResult("§10.1 vocabulary containment", c.ok, [str(v) for v in c.violations])
-
-    def r2():
+    def r2():   # §10.2 reuses the dedicated module; map its violations to strings.
         c = check_parity(repo_root=repo_root)
         return CheckResult("§10.2 overlay parity", c.ok, [str(v) for v in c.violations])
 
     return [
-        _safe("§10.1 vocabulary containment", r1),
         _safe("§10.2 overlay parity", r2),
         _safe("§10.3 domain artifacts",
               lambda: check_domain_artifacts(domain, jira_in_scope=jira_in_scope, repo_root=repo_root)),
         _safe("§10.4 connector coverage",
               lambda: check_connector_coverage(sources, repo_root=repo_root)),
-        _safe("§10.5 adapter coverage/no-drift",
-              lambda: check_adapter_coverage(domain, repo_root=repo_root)),
     ]
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     import argparse
 
-    parser = argparse.ArgumentParser(description="Run all five §10 build checks")
+    parser = argparse.ArgumentParser(description="Run all registered §10 build checks")
     parser.add_argument("--ui-input", default=None, help="UI_INPUT.yaml (default: fixtures example)")
-    parser.add_argument("--code-map", default=None, help="optional code_map.json for §10.1")
     parser.add_argument("--jira", action="store_true", help="treat L4/Jira as in scope (§10.3)")
     ns = parser.parse_args(argv)
 
-    results = run_all(ui_input=ns.ui_input, jira_in_scope=ns.jira, code_map_path=ns.code_map)
+    results = run_all(ui_input=ns.ui_input, jira_in_scope=ns.jira)
     failed = [r for r in results if not r.ok]
     for r in results:
         print(f"  [{'PASS' if r.ok else 'FAIL'}] {r.name}")
@@ -253,13 +169,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     if failed:
         print(f"\nBUILD CHECKS FAILED — {len(failed)}/{len(results)} check(s) red.", file=sys.stderr)
         return 1
-    print(f"\nBUILD CHECKS PASSED — all {len(results)} §10 checks green.")
+    print(f"\nBUILD CHECKS PASSED — all {len(results)} registered §10 checks green.")
     return 0
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Demonstration (TASK-048 fixture/proof — full seam green + each injected-failure red).
-# Run: python3 core/scripts/build_checks.py --demo
+# Demonstration (TASK-048 fixture/proof, re-cut at TASK-100 — seam green + each
+# injected failure red). Run: python3 core/scripts/build_checks.py --demo
 # ──────────────────────────────────────────────────────────────────────────────
 def _demo() -> None:
     import shutil
@@ -270,7 +186,7 @@ def _demo() -> None:
     for r in results:
         print(f"  [{'PASS' if r.ok else 'FAIL'}] {r.name}"
               + ("" if r.ok else f"  → {r.violations}"))
-    assert all(r.ok for r in results), "the real seam must pass all five §10 checks"
+    assert all(r.ok for r in results), "the real seam must pass every registered §10 check"
 
     # Injected-failure variants (each check goes red in isolation), against a temp repo copy.
     with tempfile.TemporaryDirectory(prefix="build-checks-") as tmp:
@@ -289,23 +205,14 @@ def _demo() -> None:
             shutil.rmtree(fresh)
 
         # §10.3 — delete a seam artifact
-        red("10.3 missing vocabulary",
-            lambda r: (r / "core/profiles/payment_brand/vocabulary.payment_brand.yaml").unlink())
+        red("10.3 missing profile",
+            lambda r: (r / "core/profiles/payment_brand/brd_profile.payment_brand.yaml").unlink())
         # §10.4 — connector that branches on domain
         red("10.4 domain-branch connector",
             lambda r: (r / "core/scripts/ingest_file.py").write_text(
                 "import sys\n\ndef run(domain):\n    if domain == 'payment_brand':\n        return 1\n    return 0\n"))
-        # §10.5 — drift the adapter emit-map (drop a tag from a skill's emits)
-        red("10.5 emit-map drift", _drift_adapter)
 
-    print("\nPASS — real seam green on all five §10 checks; each injected variant goes red.")
-
-
-def _drift_adapter(root: Path) -> None:
-    p = root / "core/profiles/payment_brand/adapter/adapter.yaml"
-    A = yaml.safe_load(p.read_text())
-    A["code_pipeline"][0]["emits"] = [t for t in A["code_pipeline"][0]["emits"] if t != "settlement"]
-    p.write_text(yaml.safe_dump(A, sort_keys=False))
+    print("\nPASS — real seam green on every registered §10 check; each injected variant goes red.")
 
 
 if __name__ == "__main__":

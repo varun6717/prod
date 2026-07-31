@@ -1,5 +1,10 @@
 # ADR-003 — Agent-assisted domain vocabulary: onboarding proposal + every-run adequacy check (propose, never bless)
 
+> ⛔ **Superseded by ADR-008 (2026-07-31).** The vocabulary — and with it tagging, containment
+> (§10.1), the adequacy detector (§5.4.1), and `vocab_sha` — is **deleted** (D-A19/D-A22). The
+> propose-never-bless governance pattern this ADR established lives on in the D-A21 onboarding
+> gate actions. Kept for history; do not build against it.
+
 **Status:** **Accepted** — ruled by operator **V**, 2026-06-20 (option **A**: forward-compat hook now + L1 deterministic detector in-slice + L2 deferred to port + L3 Phase 5).
 **Amends:** `REQUIREMENTS.md` (new `FR-DC-20` W / `FR-DC-21` S; a forward-compat **note** on D5); `TECH_SPEC.md` §3.6 (`vocab_gap_flag` record), §5.2 (`onboarding_manifest` gains `built_with_vocab_sha` + `adequacy_threshold`), §5.3 (`vocab_sha` added to the cache key), §5.4.1 (the L1 adequacy detector — `uncovered_concepts` aggregation + `untagged_ratio` floor, normative), §5.5 (`model_enrich` returns `uncovered_concepts`; purpose/tags separability), §10 (adequacy is a **runtime flag**, not a build gate); `TASK_LIST.md` (TASK-011 emission, TASK-012/013 hook + L1; Phase 5 gains L2/L3); `code_map_build.skill.md`.
 **Does not reopen:** D1–D10. D5's **12 tags stay frozen**; a vocabulary *amendment* is a human-gated **addition**, never a silent redefinition. Architectural invariants intact: deterministic/frozen extractor, model-free 3-branch gate, model owns `purpose`+`tags` only, deterministic `merge_edges`, and the §10.1/§10.5 **containment** check is unchanged. This ADR adds a complementary *adequacy* check; it does not weaken containment.

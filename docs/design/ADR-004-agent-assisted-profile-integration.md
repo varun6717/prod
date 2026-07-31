@@ -1,5 +1,10 @@
 # ADR-004 — Agent-assisted profile integration: routing a new tag into a profile section (gate 3, propose-never-bless)
 
+> ⛔ **Superseded by ADR-008 (2026-07-31).** Tags and the topic layer are deleted (D-A19); the
+> domain profiles collapse to the SI section contract + `jira_template` (D-A22). New-domain
+> profile authoring re-scopes accordingly (see `TASK_LIST.md` "Domain onboarding, re-scoped").
+> Kept for history; do not build against it.
+
 **Status:** **Accepted** — ruled by operator **V**, 2026-06-20. Deferred (W); named now, built at the port / second domain. No in-slice build, no pinned-contract change.
 **Amends:** `REQUIREMENTS.md` (new `FR-DC-22` W, in the FR-DC cluster beside FR-DC-19/20/21); `TECH_SPEC.md` §6.6.1 (forward-compat note — the agent-assisted profile aid respects build-time registration); `TASK_LIST.md` (Phase 5 named follow-on). No change to any normative schema (D1/D3a already admit a new `requirements[]` entry additively), no reserved hook, no Python.
 
