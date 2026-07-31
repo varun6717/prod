@@ -1,37 +1,37 @@
-# overlay_manifest.yaml — the parity source of truth for the runtime-tool seam (D9, FR-XS-20).
+# overlay_manifest.yaml — the parity source of truth for the runtime-tool seam (D9 as
+# amended by D11.7 / ADR-008 D-A23, FR-XS-20).
 #
-# This is the D9-normative block, reproduced UNCHANGED from docs/REQUIREMENTS.md D9
-# (== docs/TECH_SPEC.md §10.2). It is a transcription, not a design: do not edit the
-# role set, skills, invocability, prompt files, or launch methods here — they are pinned by
-# D9. A change belongs in D9 first, then transcribed back.
+# This is the D9/D11.7-normative block, transcribed UNCHANGED from docs/REQUIREMENTS.md.
+# It is a transcription, not a design: do not edit the role set, skills, invocability,
+# prompt files, or launch methods here — they are pinned by D11.7. A change belongs in the
+# requirements first, then transcribed back.
 #
-# What it is (D9): the two tool overlays (claude, copilot) are HAND-AUTHORED and native;
-# only the instruction file is generated (one template → CLAUDE.md | copilot-instructions.md).
-# This manifest is parity TOOLING, not a generator: the §10.2 build check (TASK-047) asserts
-# each overlay realizes EVERY role here with a wrapper pointing at the correct shared skill,
-# ships EVERY prompt file, and that wrapper `user_invocable` matches this manifest. The build
-# MUST fail if either overlay omits a listed role or prompt (FR-XS-20). "Author by hand;
-# verify by spec."
+# What it is (D9, decision stands): the two tool overlays (claude, copilot) are HAND-AUTHORED
+# and native; only the instruction file is generated (one template → CLAUDE.md |
+# copilot-instructions.md). This manifest is parity TOOLING, not a generator: the §10.2 build
+# check asserts each overlay realizes EVERY role here with a wrapper pointing at the correct
+# shared skill, ships EVERY prompt file, and that wrapper `user_invocable` matches. The build
+# MUST fail if either overlay omits a listed role or prompt. "Author by hand; verify by spec."
+#
+# Execution modes (D-A23): interactive — solution_intent_author (discovery questions),
+# disposition_walkthrough (the one human checkpoint of enrichment); analytical (unattended) —
+# everything else. `user_invocable` mirrors that split.
 #
 # Consumed by:
-#   - §10.2 overlay-parity check (TASK-047) — roles + prompt_files present in both overlays.
-#   - instruction-file generation (§6, TASK-026/031) — {{roles}} ← roles (name→skill,
-#     user_invocable); {{prompt_files}} ← prompt_files; {{stage_transition}} ←
-#     overlays[tool].launch + gesture.
-#
-# Plumbing scripts (merge_manifest, hydrate, metrics_scan) and jpmc_adapters are NOT here —
-# they are shared core with no per-tool wrapper (§4 / TECH_SPEC line 380).
+#   - §10.2 overlay-parity check — roles + prompt_files present in both overlays.
+#   - instruction-file generation (§6, TASK-026/031) — {{roles}} ← roles;
+#     {{prompt_files}} ← prompt_files; {{stage_transition}} ← overlays[tool].launch + gesture.
 
 roles:
-  - { name: brd_author,       skill: brd_author,       user_invocable: true }
-  - { name: frd_author,       skill: frd_author,       user_invocable: true }
-  - { name: brd_validator,    skill: brd_validator,    user_invocable: false }
-  - { name: frd_validator,    skill: frd_validator,    user_invocable: false }
-  - { name: jira_author,      skill: jira_author,      user_invocable: false }
-  - { name: jira_validator,   skill: jira_validator,   user_invocable: false }
-  - { name: source_processor, skill: source_processor, user_invocable: false }
-  - { name: code_impact,      skill: code_impact,      user_invocable: false }
-prompt_files: [start-ingest, start-brd, start-frd, start-jira]
+  - { name: source_processor,          skill: source_processor,          user_invocable: false }
+  - { name: solution_intent_author,    skill: solution_intent_author,    user_invocable: true }
+  - { name: solution_intent_validator, skill: solution_intent_validator, user_invocable: false }
+  - { name: code_impact,               skill: code_impact,               user_invocable: false }   # enrichment Arm 1
+  - { name: claim_verifier,            skill: claim_verifier,            user_invocable: false }   # enrichment Arm 2
+  - { name: disposition_walkthrough,   skill: disposition_walkthrough,   user_invocable: true }    # D-A17, interactive
+  - { name: jira_author,               skill: jira_author,               user_invocable: false }
+  - { name: jira_validator,            skill: jira_validator,            user_invocable: false }
+prompt_files: [start-ingest, start-si, start-enrich, start-jira]
 overlays:
   claude:  { instruction_file: CLAUDE.md,                       agents_dir: .claude/agents/, prompts_dir: prompts,        prompt_ext: .md,        launch: terminal_interactive }
   copilot: { instruction_file: .github/copilot-instructions.md, agents_glob: "*.agent.md",   prompts_dir: .github/prompts, prompt_ext: .prompt.md, launch: agent_mode }

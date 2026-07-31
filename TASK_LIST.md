@@ -207,6 +207,7 @@ connector's placeholder per hard rule **S**, done as connectors land on the VDI 
 **Phase D · Milestone D0 — Cutover groundwork**
 - [x] TASK-100 — Retirement sweep: 41 ⛔ files deleted (`frd_*` skills/validator, vocabulary + taggers, vocab checks, BRD/FRD + tag-lane fixtures, seed docs + `brd_frd_overview.html`, old run workspace); `build_checks.py` re-cut to §10.2/10.3/10.4 (§10.3 requires `brd_profile` transitionally); ADR-003/004/005 superseded-by banners; `--demo` re-cut and green
 - [x] TASK-101 — Manifest split (D-A22): `extractor_manifest.yaml` (per-language freeze, schema v2) + `cache/` home (`code_maps/index.yaml` contract in `cache/README.md`; gitignored; old `repos[]` record NOT migrated — it described the pre-profile tagged map); `registry_manifest.yaml` shrunk to `trees: [core/, overlays/, docs/]` (schema v2); `onboarding_manifest.yaml` deleted; `validate_onboarding.py`/`gate.py` repointed (full recasts stay TASK-113/115). Proof: reference grep empty, staged publish 94 files w/ green gate + correct boundary, §10 3/3
+- [x] TASK-102 — Runtime-tool seam re-cut: `overlay_manifest.yaml` transcribed from D11.7 (8 roles — `solution_intent_*` ← `brd_*`, + `claim_verifier`/`disposition_walkthrough`, `frd_*` out; `prompt_files [start-ingest, start-si, start-enrich, start-jira]`; invocability = D-A23 interactive set); renames landed (skills + `solution_intent_validator.py` + wrappers + prompts, both tools) with identifier swaps; 4 new-role wrappers + 4 skill stubs (`claim_verifier`/`disposition_walkthrough`/`jira_author`/`jira_validator` — full content TASK-119/120/122/123); `instruction_file.template.md` stage narrative re-cut to SI→enrichment→Jira; `generate_instruction.py` gestures re-pointed; parity `_demo` re-cut. Proof: §10.2 green (8+4 both tools), demo green, §10 3/3, no `brd_`/`frd_` filename remains, every wrapper pointer resolves
 
 ---
 
@@ -236,9 +237,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 # OPEN WORK
 
 ## Open index (tick here; then collapse the task into the done ledger above)
-
-**Milestone D0 — Cutover groundwork**
-- [ ] TASK-102 — Runtime-tool seam re-cut (manifest, renames, new-role stubs, parity) · `Sonnet`
 
 **Milestone D1 — Input side (UI_INPUT, routing, index, Jira ingest)**
 - [ ] TASK-103 — `UI_INPUT` v2: dispositions + `frame.overview` + run scaffold · `Sonnet`
@@ -276,35 +274,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 - [ ] TASK-125 — `metrics_scan` re-cut (amended FR-MX-02) · `Sonnet`
 - [ ] TASK-126 — Docs re-cut (`SKILLS_INDEX`, `BUILD_OVERVIEW`, `design/README`, `CLAUDE.md`) · `Sonnet`
 - [ ] TASK-127 — End-to-end acceptance + registry re-publish (lifts the publish suspension) · `Opus`
-
----
-
-## Milestone D0 — Cutover groundwork
-
-### TASK-102 — Runtime-tool seam re-cut (manifest, renames, new-role stubs, parity)
-- **Depends on:** TASK-100 (amended runner), TASK-101.
-- **Model:** Sonnet — mechanical; contents recast in D2/D4 tasks.
-- **Reads:** D-A23 (role table + prompt list + execution modes) · D11.7 · §4 · §6.3 · §10.2 ·
-  impact §5.
-- **Creates / edits:** `core/overlay_manifest.yaml` rewritten (8 roles: `source_processor`,
-  `solution_intent_author`, `solution_intent_validator`, `code_impact`, `claim_verifier`,
-  `disposition_walkthrough`, `jira_author`, `jira_validator`; per-role execution mode —
-  interactive: author + walkthrough; analytical: rest; `prompt_files: [start-ingest, start-si,
-  start-enrich, start-jira]`; per-tool paths/launch). **Renames (git mv, content recast later):**
-  `core/skills/brd_author.skill.md → solution_intent_author.skill.md`, `brd_validator.skill.md →
-  solution_intent_validator.skill.md`, `core/scripts/brd_validator.py →
-  solution_intent_validator.py` (+ import/caller repoints); overlay wrappers + prompts renamed in
-  both tools (`brd_*` → `solution_intent_*`, `start-brd → start-si`, `start-frd → start-enrich`).
-  **Delete** overlay `frd_{author,validator}` ×2 tools. **New:** thin `claim_verifier` +
-  `disposition_walkthrough` wrappers ×2 tools + stub `core/skills/{claim_verifier,
-  disposition_walkthrough}.skill.md` (one-paragraph role statement + "content lands TASK-119/120").
-  `start-ingest` ×2 surfaces `start-si`; `start-jira` ×2 notes it follows G2. `launch.md` ×2 +
-  `core/instruction_file.template.md` + `generate_instruction.py`: stage names
-  (`si_v1 → enrichment → si_v2 → jira`). Amend `check_overlay_parity.py` to the new role/prompt
-  lists.
-- **Acceptance:** §10.2 green (8 roles + 4 prompts, both tools); no `brd_`/`frd_` filename remains
-  under `overlays/` or `core/skills/`; every wrapper's skill pointer resolves to an existing file.
-- **Proof:** `build_checks.py` green; `ls overlays/**` shows the new set.
 
 ---
 

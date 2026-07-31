@@ -46,11 +46,11 @@ _TAIL = {
         "start_gesture": (
             "open a Claude Code **terminal session** at the run working path and invoke "
             "`/start-ingest` (the Layer-1 kickoff prompt — it fires the data-&-context fan-out; "
-            "it then surfaces `/start-brd` for the BRD stage)."
+            "it then surfaces `/start-si` for the Solution Intent stage)."
         ),
         "stage_transition": (
             "at the close of each stage, surface the advance gesture — **`/clear` or a new "
-            "session**, then invoke the next stage prompt (`/start-frd`). The operator performs "
+            "session**, then invoke the next stage prompt (e.g. `/start-si` → `/start-enrich` → `/start-jira`). The operator performs "
             "it; you never self-issue it."
         ),
     },
@@ -63,11 +63,11 @@ _TAIL = {
         "start_gesture": (
             "open VS Code **Copilot agent mode** at the run working path and run the "
             "`start-ingest` prompt file (the Layer-1 kickoff — it fires the data-&-context "
-            "fan-out, then surfaces `start-brd` for the BRD stage)."
+            "fan-out, then surfaces `start-si` for the Solution Intent stage)."
         ),
         "stage_transition": (
             "at the close of each stage, surface the advance gesture — **`Ctrl+N`** for a fresh "
-            "agent, then run the next stage prompt file (`start-frd`). The operator performs it; "
+            "agent, then run the next stage prompt file (e.g. `start-si` → `start-enrich` → `start-jira`). The operator performs it; "
             "you never self-issue it."
         ),
     },

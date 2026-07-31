@@ -1,4 +1,4 @@
-<!-- GENERATED — do not edit. Source of truth: core/instruction_file.template.md (TECH_SPEC §6.3, FR-XS-07, D9). -->
+<!-- GENERATED — do not edit. Source of truth: core/instruction_file.template.md (TECH_SPEC §6.3, FR-XS-07, D9/D11.7). -->
 <!-- Emitted at Generate by core/scripts/generate_instruction.py as CLAUDE.md | copilot-instructions.md, keyed by runtime_tool. -->
 <!-- Body is single-source across both tools; only the runtime-tool tail at the bottom differs (NFR-02). Regenerate — never hand-edit. -->
 
@@ -20,12 +20,11 @@ human gates, and surface (never self-issue) the stage-transition gesture between
 This run is pinned to `registry_sha` — read only what already exists at that SHA. `UI_INPUT.yaml`
 is immutable post-Generate; any re-configuration is a new `run_id`, not an edit here.
 
-## Scope — this slice
+## Scope — this pipeline (ADR-008)
 
-**BRD → FRD only.** No Jira push. The `jira_author` / `jira_validator` roles and the
-`start-jira` prompt are present for parity but are **out of scope this slice** — do not invoke
-them and do not write to any external system. The only deferred external mutation in the whole
-design is the Jira push, and it is not part of this run.
+**Solution Intent v1 → enrichment → v2 → Jira 4-level plan.** The **only** external mutation in
+the whole design is the Jira push — it happens exclusively at **G3**, operator-confirmed, after
+the plan review. Never write to any external system anywhere else in the run.
 
 ## Roles available
 
@@ -37,51 +36,65 @@ rest are subagents you (or an authoring agent) spawn — autonomous, returning a
 
 ## Run order
 
-1. **Layer 1 — Data & context.** *Operator fires this with the `start-ingest` prompt (the run
-   kickoff); you stay the orchestrator.* Fan out one `source_processor` subagent per
-   `UI_INPUT.sources[]` entry; each runs the source-type connector then the domain adapter, writing
-   its slice. For the code source, `source_processor` hands off to a `code_map_build` subagent
-   (`code_map.json`, cached by `commit_sha`). After fan-out, call `merge_manifest.py` to fan in
-   `context_set/index.json`. Close by surfacing `start-brd`.
-2. **Layer 2 — BRD.** The operator starts `brd_author` (own session). It loads `UI_INPUT` ·
-   `brd_profile` · `index.json` · `code_map.json`, and delegates `code_impact` subagents for
-   requirement-level code-impact + scope **Flags**. `brd_validator` scores it. → **gate G1**.
-3. **Layer 3 — FRD.** The operator starts `frd_author` (own session) against the **accepted**
-   `BRD.md` + `frd_profile` + `context_set/`. `frd_validator` scores traceability + testability.
-   → **gate G2**.
+1. **Data & context.** *Operator fires this with the `start-ingest` prompt (the run kickoff);
+   you stay the orchestrator.* Fan out one `source_processor` subagent per `UI_INPUT.sources[]`
+   entry; each runs the source-type connector, then the doc lane (extract + per-artifact
+   **index**) or the code lane (`code_map_build` through the map gate → `context_set/code_map/`).
+   After fan-out, call `merge_manifest.py` to fan in `context_set/index.json`. Close by
+   surfacing `start-si`.
+2. **Solution Intent v1.** The operator starts `solution_intent_author` (own session). It loads
+   `UI_INPUT` · `si_profile` · `index.json` + the per-artifact indexes · `code_map/`, authors
+   the 18-section v1 (assertions enumerated, conditional sections dispositioned), and runs the
+   flag loop. `solution_intent_validator` scores it → **gate G1**; on acceptance `v1.md`
+   freezes.
+3. **Enrichment.** The operator starts `start-enrich`. Arm 1 (`code_impact`, per-assertion
+   impact + closure) and Arm 2 (`claim_verifier`, claim verdicts) run to completion,
+   accumulating findings in `enrichment.json`; then the **`disposition_walkthrough`** (the one
+   operator turn) resolves every escalation; the apply pass writes v2 (§16/§17/§18; §1
+   regenerated). `solution_intent_validator` scores enrichment → **gate G2**.
+4. **Jira.** The operator starts `start-jira` against the accepted v2 + `enrichment.json`.
+   `jira_author` emits the 4-level plan (`jira_plan.json`); `jira_validator` scores it →
+   **gate G3** → the operator confirms the push (`jira_trace.json` records the issue keys).
 
 ## Stages & prompt files
 
-The run is kicked off by `start-ingest` (Layer 1; keeps the orchestrator role). Each subsequent
-stage is started by re-pointing a fresh agent at `UI_INPUT.yaml` + the prior artifact via its
-prompt file. The overlay ships these prompt files:
+The run is kicked off by `start-ingest` (keeps the orchestrator role). Each subsequent stage is
+started by re-pointing a fresh agent at `UI_INPUT.yaml` + the prior artifact via its prompt
+file. The overlay ships these prompt files:
 
 {{prompt_files}}
 
 ## Human gates (D4)
 
 - **G0 — scaffold checkpoint:** the run scaffold is reviewed before authoring begins.
-- **G1 — BRD acceptance:** `brd_validator` returns a score + gap list; the **operator** accepts.
-  On acceptance, `BRD.md` is the spine at version vN.
-- **G2 — FRD acceptance:** `frd_validator` returns score + BRD→FRD traceability; the operator accepts.
-- **G3 — single Jira push gate** *(deferred this slice)*.
+- **G1 — SI v1 acceptance:** `solution_intent_validator` returns score + gap list; the
+  **operator** accepts. On acceptance `solution_intent/v1.md` is snapshotted — immutable.
+- **G2 — enrichment acceptance:** hard preconditions first (every escalation dispositioned;
+  every correction carries code provenance; every assertion verdicted), then score; the
+  operator accepts v2.
+- **G3 — Jira plan review + the single push gate:** the plan's trace + testability reviewed;
+  the push is the run's **only** external mutation and fires only on explicit confirmation.
 
 You **surface** each gate; the human **decides** it. Never self-accept.
 
 ## Hard rules — carry into every stage
 
-- **Cite-or-flag (FR-BR-06).** Every substantive artifact claim is grounded to a source / the
-  `UI_INPUT` frame / an operator answer, or marked `[TBD — unsourced]`. Never fabricate.
-- **BRD-as-spine (FR-XS-14).** When `BRD.md` is accepted (vN), FRD locks to that version;
-  re-opening the BRD bumps it to vN+1 and re-locks downstream.
-- **Human-mediated flag loop (FR-BR-08).** `code_impact` surfaces scope Flags; the **operator**
-  decides; you never auto-apply a scope change.
-- **Stage transitions are operator-performed (FR-XS-11).** Surface the next-stage gesture as the
-  closing line of a stage; the operator performs it. Never self-issue `/clear`, a new session, or
-  a fresh-agent gesture.
+- **Cite-or-flag with provenance (FR-SI-07).** Every substantive claim grounds to a source /
+  the `UI_INPUT` frame / an operator answer, or is `[TBD — unsourced]`. Provenance drives
+  enrichment authority: source-derived corrections auto-apply; operator/frame contradictions
+  **escalate** — never silently overrule a human. `Prior Artifact` sources are reference-only;
+  `Other` is never a sole citation. Never fabricate.
+- **v1 is frozen at G1; enrichment never deletes (D-A2/D-A7).** Corrections rewrite in place
+  with inline code provenance; discoveries append; `v1.md` + `enrichment.json` must reconstruct
+  v2 exactly.
+- **Escalations are operator-decided (D-A16/D-A17).** Ambiguous, scope-moving, or
+  human-overruling findings go through the disposition walkthrough; you never auto-apply them.
+- **Stage transitions are operator-performed (FR-XS-11).** Surface the next-stage gesture as
+  the closing line of a stage; the operator performs it. Never self-issue `/clear`, a new
+  session, or a fresh-agent gesture.
 - **In-session, no API (FR-XS-04).** All generation runs here in this session. No direct model API.
-- **Telemetry (D8).** Every invocation emits events to `telemetry.jsonl`; Layer 5 metrics are
-  computed by scanning them.
+- **Telemetry (D8).** Every invocation emits events to `telemetry.jsonl`; metrics are computed
+  by scanning them.
 
 ---
 

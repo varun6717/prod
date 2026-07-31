@@ -12,10 +12,10 @@ gesture — it does **not** auto-start the session.
 **Start gesture** (also surfaced by the generated `copilot-instructions.md` tail, FR-XS-22): open
 Copilot agent mode at the working path and run the `start-ingest` prompt file — the Layer-1
 kickoff that fires the data-&-context fan-out (`source_processor` ×N → `merge_manifest.py`). It
-keeps the orchestrator role and closes by surfacing `start-brd` for the BRD stage.
+keeps the orchestrator role and closes by surfacing `start-si` for the BRD stage.
 
 **Stage advance** (operator-performed, FR-XS-11): press **`Ctrl+N`** for a fresh agent, then run
-the next prompt file — `start-frd`, then `start-jira`. The agent **surfaces** these as the closing
+the next prompt file — `start-enrich`, then `start-jira`. The agent **surfaces** these as the closing
 line of a stage; it never self-issues them.
 
 **VDI prerequisite — terminal allow-list (FR-XS-26).** Agent mode runs the plumbing scripts as
@@ -24,4 +24,4 @@ runs without per-command approval stalls. This is **surfaced by Generate/onboard
 centrally — the scaffolder does NOT emit it.** See `overlays/copilot/VDI_PREREQUISITES.md`.
 
 **Prompt files shipped** (`overlays/copilot/.github/prompts/`): `start-ingest` (Layer-1 kickoff),
-`start-brd`, `start-frd`, `start-jira`.
+`start-si`, `start-enrich`, `start-jira`.

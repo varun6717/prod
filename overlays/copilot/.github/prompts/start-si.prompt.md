@@ -1,12 +1,12 @@
 ---
-description: Start the BRD stage — point a fresh agent at this run's UI_INPUT and act as brd_author.
+description: Start the BRD stage — point a fresh Copilot agent at this run's UI_INPUT and act as solution_intent_author.
 ---
 
 You are starting the **BRD stage** of this run.
 
 Read `UI_INPUT.yaml` (run config + the requirement frame; `domain` selects the profile), then
-act as the **`brd_author`** agent — load and execute `core/skills/brd_author.skill.md` (via the
-`.claude/agents/brd_author` wrapper) against this run's inputs:
+act as the **`solution_intent_author`** agent — load and execute `core/skills/solution_intent_author.skill.md` (via the
+`solution_intent_author.agent.md` wrapper) against this run's inputs:
 
 - `UI_INPUT.yaml`
 - `brd_profile.<domain>.yaml`
@@ -19,5 +19,5 @@ requirement-level code impact + scope **Flags**, and run the human-mediated flag
 **surface**, the operator **decides** (FR-BR-08).
 
 When the BRD is accepted at gate **G1**, close by **surfacing** the next-stage transition — do
-**not** perform it (FR-XS-11): tell the operator to `/clear` or start a new session, then run
-`/start-frd`. Never self-issue the transition.
+**not** perform it (FR-XS-11): tell the operator to press **`Ctrl+N`** for a fresh agent, then run
+the `start-enrich` prompt file. Never self-issue the transition.

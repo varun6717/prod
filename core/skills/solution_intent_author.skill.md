@@ -1,11 +1,11 @@
 ---
-name: brd_author
-type: Generation skill (interactive, chat-driven) — own session, user-invocable (/start-brd)
+name: solution_intent_author
+type: Generation skill (interactive, chat-driven) — own session, user-invocable (/start-si)
 layer: BRD generation
 consumes: UI_INPUT.yaml · brd_profile.<domain>.yaml · context_set/index.json · code_map.json
 produces: BRD.md
 delegates: code_impact (subagent)
-gate: G1 (via brd_validator)
+gate: G1 (via solution_intent_validator)
 ---
 
 # BRD Author
@@ -38,7 +38,7 @@ are never modified at runtime.
 ## Output
 
 - **`BRD.md`** — drafted incrementally, section by section, grounded with inline citations (§3.7).
-  Finalized after the `brd_validator` coverage pass and the G1 acceptance gate.
+  Finalized after the `solution_intent_validator` coverage pass and the G1 acceptance gate.
 
 ---
 
@@ -97,7 +97,7 @@ satisfied from the `UI_INPUT` frame / skill structure, not from tag routing.
 Merging `brd_profile.payment_brand.yaml` (TASK-015) over the baseline yields this plan. The profile
 deep-merges `business_context` / `scope_objectives` / `requirements` / `success_metrics` /
 `constraints_assumptions`, inserts the net-new `code_impact` `after:requirements`, and raises
-`constraints_assumptions` to required. (See `fixtures/brd_author/expected_section_plan.md`.)
+`constraints_assumptions` to required. (See `fixtures/solution_intent_author/expected_section_plan.md`.)
 
 | # | section                  | origin               | required | sources                  | topics |
 |---|--------------------------|----------------------|----------|--------------------------|--------|
@@ -149,7 +149,7 @@ Discovery completes before section authoring begins; the executive summary is st
 After discovery, iterate the merged authoring plan in order. For each section: read its profile entry,
 select context via the manifest, draft against each `must_capture`, probe unsatisfied requirements one
 topic at a time, and mark coverage. Write incrementally to `BRD.md`. Draft the executive summary last,
-then hand off to `brd_validator` (G1).
+then hand off to `solution_intent_validator` (G1).
 
 ## Per-section authoring loop
 
@@ -206,7 +206,7 @@ may be left thin.
 
 ### e. Mark coverage — per-section footer (§3.7)
 
-After drafting, emit a machine-readable coverage footer the `brd_validator` reads — one entry per topic,
+After drafting, emit a machine-readable coverage footer the `solution_intent_validator` reads — one entry per topic,
 valued by how its `must_capture` was satisfied (`source` / `frame` / `operator`, or `open` if still
 unsatisfied):
 
@@ -220,7 +220,7 @@ accumulating draft keeps earlier sections in view for the rest of the loop.
 ### Loop exit
 
 When every section has been drafted (executive summary last) and each required section's `must_capture`
-items are satisfied or explicitly `open`/`[TBD]`, hand off to `brd_validator` (G1).
+items are satisfied or explicitly `open`/`[TBD]`, hand off to `solution_intent_validator` (G1).
 
 ## Grounding & citation — cite-or-flag (FR-BR-06)
 
@@ -305,5 +305,5 @@ gate is the backstop** for any flag missed here.
 - Does not define domain sections / topics / requirements — the profile does.
 - Does not fetch source files by reasoning — it reads the manifest and loads by tag.
 - Does not perform the code impact itself — it delegates to `code_impact`.
-- Does not validate / score (that is `brd_validator`), and does not write to Jira.
+- Does not validate / score (that is `solution_intent_validator`), and does not write to Jira.
 - Does not change scope autonomously — scope changes are operator decisions.

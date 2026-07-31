@@ -24,4 +24,4 @@ step, and it is selected by `UI_INPUT.domain`, not branched in code.
 
 When Layer 1 is complete — `context_set/index.json` and `code_map.json` written — **surface** the
 next-stage transition; do **not** perform it (FR-XS-11): tell the operator to `/clear` or start a
-new session, then run `/start-brd`. Never self-issue the transition.
+new session, then run `/start-si`. Never self-issue the transition.
