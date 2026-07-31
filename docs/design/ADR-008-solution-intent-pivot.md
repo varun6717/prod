@@ -1,7 +1,7 @@
 # ADR-008 — Solution Intent pivot (BRD/FRD → Solution Intent, tag removal, disposition routing)
 
-**Status:** 🚧 **DRAFT — Phase A (decide) in progress.** Not yet binding. Becomes binding when
-Phase B (ladder re-cut) lands and this ADR is marked Accepted.
+**Status:** 🚧 **DRAFT — Phase A (decide) COMPLETE, all 8 items locked.** Not yet binding. Becomes
+binding when Phase B (ladder re-cut) lands and this ADR is marked Accepted.
 
 **Supersedes (when accepted):** D1, D3a, D5, D7 — and provisionally D4, D6, D9. Exact
 supersession list is finalised in Phase B.
@@ -44,7 +44,7 @@ writing tasks against a superseded spec produces work that must be redone.
 | 5 | Enrichment contract | ✅ **Locked** (§16 schema = per assertion × code location) | D-A6–D-A9, D-A15–D-A17 |
 | 6 | Code-impact without tags | ✅ **Locked** — module-first tier walk; `tags` removed from §3.3 | D-A19 |
 | 7 | Manifests | ✅ **Locked** — 5 artifacts, 3 granularities | D-A22 |
-| 8 | Gates + guardrails | ⬜ needs consolidation; **7 checks accumulated** | D-A1 |
+| 8 | Gates + guardrails | ✅ **Locked** — 3 check families, scoring rework, roles | D-A1, D-A23 |
 
 ### Decision index
 
@@ -73,6 +73,7 @@ writing tasks against a superseded spec produces work that must be redone.
 | **D-A20** | **Module derivation + `purpose` provenance** — measured against the real repo: flat tree, declared `Intention:` headers, versioned duplicates | 6 |
 | **D-A21** | **Onboarding gate report** (stage distribution) · **the consolidated 3-phase process** | 6 |
 | **D-A22** | **Manifests — a split, not a deletion**: 5 artifacts at 3 granularities | 7 |
+| **D-A23** | **Gates, guardrails, roles** — 3 check families · scoring rework · confirmed role list | 8 |
 
 > **The enrichment design is split** across **D-A6–D-A9** (arms, provenance, execution) and
 > **D-A15–D-A17** (Jira, §16 contract, disposition). Read both groups together.
@@ -1730,7 +1731,118 @@ The extractor/profile split is what delivers the "dynamic to other codebases" pr
 **Net:** not fewer files — but no hand-maintained enumerations, no mutable state in a frozen artifact, and
 every remaining file doing exactly one job.
 
-## Open — Phase A item 8
+### D-A23 · Gates, guardrails and roles (item 8)
+
+#### Correction: the guardrails are not all §10 replacements
+
+Earlier notes called the accumulated guardrails "replacements for §10.1/§10.5". That was wrong — they
+check **different artifacts at different times**, so they belong to three families. **§10 shrinks 5 → 4;
+it does not grow to 12.**
+
+#### Family 1 · Build checks (§10) — *is the registry internally consistent?*
+
+Developer-facing · `build_checks.py` · gates registry publish.
+
+| Check | Fate |
+|---|---|
+| §10.1 vocabulary containment | **dies** — no vocabulary |
+| §10.2 overlay parity | survives — amended role list (below) |
+| §10.3 domain artifacts | survives — no vocabulary; SI profile replaces brd/frd; `jira_template` added |
+| §10.4 connector coverage | survives unchanged |
+| §10.5 adapter emit no-drift | **dies** — no `emits` |
+| **§10.5′ disposition-class totality** *(new)* | every SI section has ≥1 input class routed to it; every class the UI offers appears in the D-A13 matrix |
+
+Only **one** new check lands in §10 — it is the only one testing *registry config*. Every other guardrail
+needs a produced artifact and therefore cannot run at build time at all.
+
+#### Family 2 · Context checks — *are the ingested artifacts complete?*
+
+Run at ingest · feed the coverage reports · surface at the onboarding gate and §18.
+
+| Check | Guards against |
+|---|---|
+| **Module totality** | a file in no module is invisible to tier 1 **forever** |
+| **Purpose totality** | every file has a purpose **or** appears in `unanalyzable[]` — never silently absent |
+| **`members[]` consistency** | `components[].members` must agree with `files[].module` |
+| **Index completeness** | `lines_total == lines_indexed`, every line in exactly one entry — what makes *"not in the index"* a defensible negative |
+
+#### Family 3 · Artifact checks — *is the produced work well-formed?*
+
+Run by the validators · enforced at gates.
+
+| Check | Gate |
+|---|---|
+| §15→§4 — every criterion traces to an objective; every objective measurable | G1 |
+| §7→§8 — every requirement traces to a deliverable | G1 *(load-bearing: builds the Jira hierarchy)* |
+| Every §8 **assertion** has a verdict | G2 |
+| Every §16 entry yields ≥1 story; every story traces to §16 or §7 | G3 |
+| Every story names a code location, or is flagged new-build / non-code | G3 |
+
+#### The scoring formulas break — `topic_coverage` is a tag construct
+
+G1 scores `0.7 × topic_coverage + 0.3 × citation_integrity`. **`topic_coverage` counts satisfied profile
+topics**, and topics die with the vocabulary — the formula loses its denominator, exactly like
+`adequacy_threshold` (D-A22). Successors:
+
+```
+G1   0.7 × section_coverage + 0.3 × citation_integrity
+        ↑ must_capture items satisfied per section — survives tag removal
+          intact, because it is a checklist, not a controlled vocabulary
+
+G2   0.5 × verdict_completeness + 0.5 × impact_coverage        ← PROPOSED, new
+        ↑ assertions verdicted / total   ↑ requirements with §16 entries / total
+     hard preconditions: every escalation dispositioned ·
+                         every correction carries code provenance
+
+G3   0.5 × traceability + 0.5 × testability
+        ↑ inherited nearly intact from frd_validator
+```
+
+**G1's shape barely changes. G2 needs a formula it never had** — it previously scored the FRD and now
+gates enrichment, a different thing entirely. The G2 proposal above is the one piece of item 8 that is
+genuine design rather than bookkeeping, and it should be validated against a real run before freezing.
+
+**D4 is preserved throughout:** scores inform, never auto-advance. Every gate stays an operator act.
+
+#### The role list (V-confirmed)
+
+| Role | Change |
+|---|---|
+| `source_processor` | unchanged |
+| `solution_intent_author` | ← `brd_author` |
+| `solution_intent_validator` | ← `brd_validator` |
+| `code_impact` | unchanged — is enrichment **Arm 1** |
+| `claim_verifier` | **new** — enrichment **Arm 2** |
+| `disposition_walkthrough` | **new** — D-A17 |
+| `jira_author` · `jira_validator` | unchanged |
+| ~~`frd_author`~~ · ~~`frd_validator`~~ | **retired** (D-A0) |
+
+Still 8 roles. `prompt_files` re-point to `[start-ingest, start-si, start-enrich, start-jira]`.
+
+**Arm 1 and Arm 2 stay separate roles** — not for taxonomy (both are analytical) but for **independent
+re-runnability**: D-A8's conditional re-run means an escalation that adds a requirement re-runs Arm 1 for
+*that requirement*, while Arm 2's verdicts on untouched sections remain valid. Merged, that good work
+would be discarded.
+
+Execution modes, for overlay generation: **interactive** — `solution_intent_author` (discovery questions),
+`disposition_walkthrough`. **Analytical (unattended)** — everything else.
+
+---
+
+# ✅ Phase A complete — all 8 items locked
+
+Next: **Phase B — re-cut the ladder.** Mark this ADR Accepted, finalise the supersession list, then amend
+`REQUIREMENTS.md` (D1, D3a, D4, D5, D6, D7, D9 + the FR clusters) and `TECH_SPEC.md` (§3.1 disposition ·
+§3.2 the doc index · §3.3 the code-map reshape · §5 code impact · §6.6 adapter/profiles · §9 gates ·
+§10 checks).
+
+**Outstanding evidence — neither blocks Phase B, both de-risk Phase D:**
+
+1. **Extended code survey** — graph isolation (degree zero both directions), symbol presence, stage-B
+   sample rate. The isolation number is the one that could still change the design, since it decides
+   whether tier-1 economy holds.
+2. **Doc-side survey** — whether the mandates carry the numbered substructure D-A18's index assumes.
+   **The last unmeasured assumption in the design.**
 
 Nothing below is decided. Items 3 and 4 carry the risk: item 3 (the routing matrix) **sizes**
 item 4, and item 4 (retrieval within a class) is the only step where the honest answer may be
