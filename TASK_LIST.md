@@ -555,6 +555,40 @@ the generic core — the port is a separate, later artifact (thin overlay files 
 is the only thing the port touches. Real API/secret calls follow hard rule **S**: one isolated
 placeholder function per call, edited in place on the VDI.
 
+## Build the structure here; defer only the call (V, 2026-07-31 · ADR-008 D-A24)
+
+For **every** source type, the **connector script, the agent/skill, and the UI wiring are all built
+here**. Only the real API call is deferred to the VDI. A **mock fixture** stands in for what the API
+would return, so the full pipeline — ingest → extract → index → route → author — runs end-to-end
+offline.
+
+**Mocks are per source TYPE, not per disposition.** Dispositions are operator *labels* with no fetching
+involved; source types are where API calls live. The same mock PDF can be dispositioned `Business
+Requirement` in one run and `Technical Specification` in another.
+
+| Source type | Mock | Placeholder to fill on the VDI |
+|---|---|---|
+| `sharepoint` → PDF | ✅ `fixtures/pdf/`, `fixtures/sharepoint/` | `ingest_sharepoint.py :: _download_pdf` |
+| `confluence` → HTML | ✅ `fixtures/confluence/` | `ingest_confluence.py :: _fetch_confluence` |
+| `bitbucket` → repo | ✅ `fixtures/c_repo/`, `fixtures/code_clone/` | `clone.py` |
+| `jira` → issue payload | ⬜ **new** | `ingest_jira.py :: _fetch_issue` **(new)** |
+| Jira **push** | ⬜ **new** | `jpmc_adapters/jira.py` **(new)** |
+
+**PDFs always arrive via SharePoint** — the `file` source type is local-testing-only, never production.
+
+## Two lists, disjoint by construction
+
+**`VDI_WIRING.md`** holds the environment wiring Copilot performs on the VDI. The split is by **kind of
+work**, not by audience:
+
+- **This file** — what gets **built**: generic, testable here, full specs
+- **`VDI_WIRING.md`** — what gets **wired**: environment-specific, untestable here, **no specs**
+
+**No task appears in both, and a VDI item is never a spec** — it merely names a placeholder this list
+already built. *(A previous `TASK_VDI.md` was deleted on 2026-07-29 precisely because it duplicated
+specs and drifted: it claimed canonical specs lived here when four tasks existed only there. Splitting
+by kind-of-work removes the possibility.)*
+
 **Carry these port notes forward:** the JPMC-side D5 table still needs the TASK-061 `code_map_build`
 fix for `card_brand`/`message_format`; the JPMC-side spec still needs the TASK-063B §6.6.3/§10.5
 `docs_pipeline` routing extension and the D9 `start-ingest` amendment.

@@ -74,6 +74,7 @@ writing tasks against a superseded spec produces work that must be redone.
 | **D-A21** | **Onboarding gate report** (stage distribution) · **the consolidated 3-phase process** | 6 |
 | **D-A22** | **Manifests — a split, not a deletion**: 5 artifacts at 3 granularities | 7 |
 | **D-A23** | **Gates, guardrails, roles** — 3 check families · scoring rework · confirmed role list | 8 |
+| **D-A24** | **Build-and-port discipline** — mock per source *type* · two disjoint task lists | — |
 
 > **The enrichment design is split** across **D-A6–D-A9** (arms, provenance, execution) and
 > **D-A15–D-A17** (Jira, §16 contract, disposition). Read both groups together.
@@ -1853,6 +1854,55 @@ would be discarded.
 
 Execution modes, for overlay generation: **interactive** — `solution_intent_author` (discovery questions),
 `disposition_walkthrough`. **Analytical (unattended)** — everything else.
+
+### D-A24 · Build-and-port discipline for the new design (V, 2026-07-31)
+
+Extends hard rule **S** to everything ADR-008 adds. Three parts.
+
+#### 1 · The port model is unchanged
+
+The VDI holds the real API keys; every connection is rebuilt there against JPMC endpoints. Generic code
+is built and proven **here**; each real API/secret call is **isolated in its own function** carrying a
+`[TBD — VDI]` placeholder, edited **in place** on the VDI. No `/vdi` plugin folder.
+
+#### 2 · Build the structure, defer the call — and mock the data
+
+For every new source type the **connector script, the agent/skill, and the UI wiring are all built
+here**. Only the real API call is deferred. A **mock fixture** stands in for what the API would return,
+so the full pipeline — ingest → extract → index → route → author — runs end-to-end offline.
+
+**Mocks are per source TYPE, not per disposition.** Dispositions (D-A12) are operator *labels* with no
+fetching involved; source types are where API calls live. The same mock PDF can be dispositioned
+`Business Requirement` in one run and `Technical Specification` in another.
+
+| Source type | Mock | Placeholder function |
+|---|---|---|
+| `sharepoint` → PDF | ✅ `fixtures/pdf/`, `fixtures/sharepoint/` | `ingest_sharepoint.py :: _download_pdf` |
+| `confluence` → HTML | ✅ `fixtures/confluence/` | `ingest_confluence.py :: _fetch_confluence` |
+| `bitbucket` → repo | ✅ `fixtures/c_repo/`, `fixtures/code_clone/` | `clone.py` |
+| `jira` → issue payload | ⬜ **new** | `ingest_jira.py :: _fetch_issue` **(new)** |
+| Jira **push** (the only external mutation) | ⬜ **new** | `jpmc_adapters/jira.py` **(new)** |
+
+**Only Jira is genuinely new.** And **PDFs always arrive via SharePoint** — the `file` source type is
+local-testing-only, never a production path.
+
+#### 3 · Two task lists, disjoint by construction
+
+Phase D produces **two** lists. The split is by **kind of work**, not by audience:
+
+| | **Main build list** (`TASK_LIST.md`) | **VDI wiring list** (`VDI_WIRING.md`) |
+|---|---|---|
+| Contains | what gets **built** — generic, testable here | what gets **wired** — environment-specific, untestable here |
+| Example | *build `ingest_jira.py` with `_fetch_issue` placeholder + mock fixture + verify script* | *fill `_fetch_issue` with the real Jira REST call; set `PDLC_AUTH_JIRA`* |
+| Specs live | here | **also here** — a VDI item merely *names* the placeholder |
+
+**No task appears in both, and a VDI item is never a spec.**
+
+> **Why this rule exists — direct evidence from this repo.** `TASK_VDI.md` existed and was **deleted on
+> 2026-07-29** because it had drifted: it claimed "the full canonical spec is in `TASK_LIST.md`", which
+> was **false for four tasks**, and the checkbox truth had silently migrated into the VDI file. Two files
+> specifying the same tasks, neither complete. Disjointness by kind-of-work is what prevents the repeat —
+> neither list is the canonical source for the other's items, so there is nothing to drift.
 
 ---
 
