@@ -79,9 +79,12 @@ writing tasks against a superseded spec produces work that must be redone.
 > **The enrichment design is split** across **D-A6–D-A9** (arms, provenance, execution) and
 > **D-A15–D-A17** (Jira, §16 contract, disposition). Read both groups together.
 
-#### Mechanical guardrails accumulated for item 8
+#### Mechanical guardrails accumulated during Phase A — index only
 
-Replacing §10.1 (vocabulary containment) and §10.5 (emit-map no-drift), which die with tags:
+> **Authoritative sorting is D-A23**, which corrected the original framing: these are **not** all §10
+> replacements. They split into three families — build checks (§10, registry config), context checks
+> (ingest, coverage reports), artifact checks (validators, at gates) — and §10 itself shrinks 5 → 4.
+> D-A23 also adds checks not on this list (module/purpose totality, `members[]` consistency).
 
 1. §15 → §4 — every success criterion traces to an objective; every objective is measurable
 2. §7 → §8 — every requirement traces to a deliverable *(load-bearing: builds the Jira hierarchy)*
@@ -103,7 +106,8 @@ Replacing §10.1 (vocabulary containment) and §10.5 (emit-map no-drift), which 
   `frd_*` layer retires (`frd_author`, `frd_validator` skill + `.py`, `frd_profile`, G2 as
   traceability, most of `metrics_scan`).
 - **Both runtime tools stay** (Claude Code + Copilot). `overlay_manifest.yaml` and the §10.2
-  parity check survive. Guardrail loss from tag removal is 5 checks → 3, not → 2.
+  parity check survive. Guardrail loss from tag removal is 5 checks → 3, not → 2. *(D-A23 later adds
+  one new §10 check — disposition-class totality — so the final count is 4.)*
 - **TASK-056 is parked** — it validates UI → Generate → BRD/FRD, and both ends are moving. Its
   surviving half (*the pipe works end to end*) folds into the new acceptance task at the end of
   Phase D.
@@ -492,7 +496,7 @@ requirement reaches becomes detectable at SI time.
 
 ### D-A10 · Conditional sections — dispositioned, never absent
 
-Not all 17 sections apply to every change. But **an omitted section and a forgotten section look
+Not all 18 sections apply to every change. But **an omitted section and a forgotten section look
 identical**, so a conditional section is never simply left out. Three legitimate end states, all
 visible in the document:
 
@@ -545,8 +549,8 @@ Worked contrast (Mastercard mandate):
 | §15 | "100% of Mastercard transactions carry the new indicator by 2027-07-01; zero certification defects" | "Remain compliant" *(an objective, not a measure)* |
 
 **§15's boundary doubles as a mechanical guardrail** — an objective with no success criterion is
-unmeasurable; a criterion with no objective is orphaned. Both are statically checkable. **Carry to
-item 8** as a candidate replacement for the structural checking lost when §10.1 dies.
+unmeasurable; a criterion with no objective is orphaned. Both are statically checkable. *(Resolved in
+D-A23: landed as an **artifact check at G1**, family 3 — not a §10 build check.)*
 
 ### D-A12 · Disposition taxonomy (item 2)
 
@@ -1970,17 +1974,7 @@ Next: **Phase B — re-cut the ladder.** Mark this ADR Accepted, finalise the su
 1. **Extended code survey** — graph isolation (degree zero both directions), symbol presence, stage-B
    sample rate. The isolation number is the one that could still change the design, since it decides
    whether tier-1 economy holds.
-2. **Doc-side survey** — whether the mandates carry the numbered substructure D-A18's index assumes.
-   **The last unmeasured assumption in the design.**
-
-Nothing below is decided. Items 3 and 4 carry the risk: item 3 (the routing matrix) **sizes**
-item 4, and item 4 (retrieval within a class) is the only step where the honest answer may be
-"we need infrastructure we do not have."
-
-Leading candidate for item 4, to be pressure-tested: **structural segmentation + agent
-progressive read** — split each document by its own structure (headings, TOC, numbered clauses),
-then let the agent navigate that outline and pull what a section needs. Zero new infrastructure
-(material on a VDI, where "we need an approved embedding model" is a procurement conversation);
-exploits the fact that network mandates and specs are highly structured; the index is *derived*,
-not authored, so the entire F1+3 drift class cannot occur; degrades gracefully (poor outline → the
-agent reads more), unlike tags, where an under-applied tag makes content silently invisible.
+2. **Doc-side survey** — **partially answered by screenshots 2026-07-31**: the real Visa Technical
+   Letter is **WELL-STRUCTURED** (numbered articles + tables; entry sizes skew *small*, so a tiny-entry
+   **merge** policy matters more than the planned subdivide policy). Still open: **extraction fidelity**
+   (does `pdf_extract` preserve the hierarchy?) and corpus-wide numbers. See `SURVEY-doc-structure.md`.
