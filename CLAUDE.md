@@ -6,9 +6,9 @@
 
 ## What this repo is
 
-You are building **PDLC_App_v2** — an agentic **BRD → FRD → Jira** generation pipeline for JPMC Merchant Services. Five layers: **Data & context → BRD → FRD → Jira epics → Metrics**. This repo is the **external Claude Code build**; it is validated here, then ported to the JPMC VDI later via thin overlays (the port artifact is produced separately — not your concern in this repo).
+You are building **PDLC_App_v2** — an agentic **Solution Intent → enrichment → Jira** generation pipeline for JPMC Merchant Services (per **ADR-008**, accepted 2026-07-31; BRD/FRD are retired). Five layers: **Data & context → Solution Intent v1 → enrichment (v2) → Jira (4-level plan) → Metrics**. This repo is the **external Claude Code build**; it is validated here, then ported to the JPMC VDI later (see `VDI_WIRING.md`).
 
-**First slice (what you are building now):** single domain `payment_brand`; single repo; **BRD → FRD only** (no Jira push); one PDF input + one Stratus C repo. Breadth (Jira, multi-input, multi-repo, more languages, multi-domain) is explicitly deferred — see `TASK_LIST.md` Phase 5.
+**Current slice (post-ADR-008):** single domain `payment_brand`; single repo; **Solution Intent v1 → enrichment → v2** (Jira 4-level plan follows; push behind G3); mock-fixture inputs per source type (D-A24) + one Stratus C repo. Breadth (multi-repo, more languages, multi-domain, cross-language closure) stays deferred.
 
 ---
 
@@ -16,7 +16,7 @@ You are building **PDLC_App_v2** — an agentic **BRD → FRD → Jira** generat
 
 All design docs live in **`./docs/`**. They are authoritative and frozen; you implement against them, you do not redesign them.
 
-1. **`docs/REQUIREMENTS.md`** — WHAT / WHY. FR/NFR IDs, MoSCoW, the ten resolved decisions **D1–D10**. Every requirement *rationale* ("Why: …") is a binding constraint. **Do not reopen D1–D10.**
+1. **`docs/REQUIREMENTS.md`** — WHAT / WHY. FR/NFR IDs, MoSCoW, the resolved decisions **D1–D11**. **Read the ADR-008 supersession notice at its head first**: several D-blocks are ⛔ superseded or 🔧 amended by **D11** (the Solution Intent pivot) — never build against a ⛔ block. **Do not reopen D1–D11**; `docs/design/ADR-008-solution-intent-pivot.md` (Accepted) is normative for the new subsystems.
 2. **`docs/TECH_SPEC.md`** — HOW. On-disk schemas, the code-impact subsystem (extractor / dispatcher / onboarding gate), the seams, `jpmc_adapters`, telemetry→metrics, gate thresholds, build checks. **Every YAML/JSON block here is a contract; field names are part of it.** Build directly off these.
 3. Supporting context (read when a task cites them): `docs/SKILLS_INDEX.md`, `docs/BUILD_OVERVIEW.md`, `docs/brd_frd_overview.html`, `docs/COPILOT_VDI_VALIDATION.md`, and the seed skills `docs/brd_author.skill.md`, `docs/code_impact_assess.skill.md`, `docs/code_map_build.skill.md`, `docs/max-autonomy.skill.md`.
 
@@ -58,7 +58,7 @@ Durable state lives in **files and git**, never in the conversation. Never rely 
 - **Ladder discipline.** Requirements define WHAT/WHY; the tech spec defines HOW; the task list defines the build sequence. If a task would change a pinned contract or reopen D1–D10, **stop and flag it** — that is out of scope.
 - **Two seams only (FR-XS-01):** the **domain seam** (adapter / profiles / template / vocabulary) and the **runtime-tool seam** (instruction file / wrappers / prompt files / launch). The per-language **extractor** is the one non-domain variation point, governed by the onboarding gate. Nothing else varies.
 - **Binding rationales (never violate):** the structural extractor is **deterministic and frozen** — never model-rewritten at runtime; the map-build gate is **model-free**; the model owns only `purpose` + `tags` in the code map; ingestion **never branches on domain**; the only external mutation is the (deferred) Jira push; scope changes are **operator-decided** (human-mediated flag loop).
-- **MVP scope:** single domain `payment_brand`; single repo; **in-session execution** (no direct Claude API); files-as-artifacts + **JSONL ledger** (no SQLite); **BRD → FRD only** this slice.
+- **MVP scope:** single domain `payment_brand`; single repo; **in-session execution** (no direct Claude API); files-as-artifacts + **JSONL ledger** (no SQLite); **Solution Intent v1 → v2** this slice (ADR-008).
 - **Cite-or-flag:** every substantive artifact claim is grounded to a source/frame/operator answer or marked `[TBD — unsourced]`. Never invent.
 
 ---
