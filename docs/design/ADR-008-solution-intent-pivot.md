@@ -1104,6 +1104,58 @@ So Arm 1 fans out; section authoring stays **sequential, carrying the draft forw
 twenty pages and you would be back to sparse coverage with no signal — the exact tag failure mode being
 escaped.
 
+#### Selection is model-driven — deliberately kept simple (V, 2026-07-31)
+
+```
+1. the section knows what it needs      ← must_capture (SI profile, artifact-agnostic)
+2. model scans the index                ← headings + summaries, ~15–30 entries
+3. model selects relevant entries
+4. model pulls those line ranges        ← from the .md extract
+5. still short? widen — more entries, or the whole document if small
+```
+
+**`must_capture` IS the universal SI-section → query mapping.** It is declared per section in the SI
+profile, is artifact-agnostic, and doubles as what G1 scores section coverage against — one artifact
+doing two jobs, nothing extra to maintain.
+
+**Two additions were considered and rejected as premature:**
+
+- **Keyword mapping per SI section** — a fixed keyword list matched literally. Rejected: it reinherits
+  the brittleness that made tags worth removing, in both directions. *Miss:* §2 keywords
+  `[current, today, existing, limitation]` score **zero** against the real Visa `BUSINESS OVERVIEW`
+  text ("Visa is expanding its approach to improving e-commerce transaction performance"), which is
+  exactly §2's material. *False hit:* `Business Reason` — "Enhancement to **Existing** Product" — matches
+  §2 but is §4 material. An index is 15–30 entries, so semantic matching costs one cheap call; the
+  saving rounds to nothing while the robustness loss is real.
+- **Exact-identifier matching as a separate mechanism** (`field 48`, `subelement 92`, `Table 11.2.6.D`).
+  Rejected: it is simply *the model reading*. A summary containing "Field 48 subelement 92: positions
+  1–2, EBCDIC" already matches an assertion about field 48.
+
+**Accepted cost:** selection is model judgment, therefore **not deterministic** — two runs may pick
+slightly different entries. This is *visible, not silent*: the citation trail records exactly which
+entries were pulled, and **G1 is where selection quality is tested** — an unsatisfied `must_capture` is a
+detectable gap.
+
+#### Template profiles — PARKED, not adopted
+
+The real Visa Technical Letter (measured 2026-07-31) follows a **published section skeleton** — `In Brief`
+· `BUSINESS OVERVIEW` · `REFERENCE` · `Business Reason` · `IMPACT CONSIDERATIONS` (Acquirer/Issuer) ·
+`TECHNICAL CHANGES` · numbered tables `11.2.6.A–F` · `IMPLEMENTATION AND ACTIVATION` · `TESTING
+REQUIREMENTS`. A per-family "template profile" could route recognised sections deterministically.
+
+**Not built, because its main justification dissolved.** It was chiefly motivated by **section-level
+disposition** — a Visa TL carries business content (`BUSINESS OVERVIEW`) *and* technical content
+(`TECHNICAL CHANGES`), so a single document-level disposition starves §2. But **D-A12 already permits
+multi-disposition**: mark the letter `Business Requirement` **and** `Technical Specification`, and §2
+routes to it, scans the index, finds `BUSINESS OVERVIEW`. An operator toggle replaces a per-family
+profile.
+
+**Promote only on evidence:** if letters arrive on a release cadence and selection proves noisy or
+expensive at volume. If promoted, two rules from the analysis hold — match **per section, not per
+document** (graceful degradation: recognised → template, unrecognised → summary), and build the profile
+from **N samples, not one** (a single article's idiosyncrasies are not the template). Summaries are
+generated **always** regardless, since the widen-on-unsatisfied-`must_capture` path requires them.
+
 #### Degraded case to check against real fixtures
 
 A document with **no substructure** — 40 pages, five headings, flat prose beneath. Boundaries must then be

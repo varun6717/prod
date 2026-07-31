@@ -1,6 +1,8 @@
 # SURVEY — document structure + index viability (doc arm)
 
-**Status:** ⬜ not yet run · **Run on:** the VDI, with Copilot, against the **real** document corpus
+**Status:** 🟡 **PARTIALLY ANSWERED by screenshots 2026-07-31** (Visa VisaNet Global Technical Letter,
+Article 11.2.6) — verdict **WELL-STRUCTURED**. Full run still wanted for corpus-wide numbers and
+extraction fidelity. · **Run on:** the VDI, with Copilot, against the **real** document corpus
 **Feeds:** `ADR-008-solution-intent-pivot.md` → **D-A18** (item 4, retrieval within a class)
 **Companion to:** `SURVEY-stratus-repo.md` (code arm — ✅ run 2026-07-29)
 
@@ -23,6 +25,19 @@ it is the weakest case, and it is what the real fixtures must be checked against
 **This is the last unmeasured assumption in the design.** The code arm was measured on 2026-07-29 and the
 result inverted a signal ranking and caught a 5.7× coverage under-report — so measuring rather than
 assuming has already paid for itself once here.
+
+## Screenshot findings — 2026-07-31 (partial, one article)
+
+| Question | Finding |
+|---|---|
+| **Structure coverage** | **WELL-STRUCTURED.** Numbered articles (`11.2.6`), numbered tables (`Table 11.2.6.A–F`) each with descriptive titles, two clear heading levels, running headers, per-chapter pagination. **No TOC needed — the numbering *is* the index.** |
+| **Entry size** | **Skews SMALL, not large** — the opposite of what was planned for. ~7 pages (11-51→11-57) across ~15 sections. Some sections are a single sentence (*"ACTIVATION DETAILS — There are no activation requirements…"*). **A merge policy for tiny entries matters more than a subdivide policy for oversized ones.** |
+| **Heading informativeness** | **Mixed** — roughly half are template boilerplate (`BUSINESS OVERVIEW`, `Business Reason`, `REFERENCE`, `IMPACT CONSIDERATIONS`), half are specific (`Key V.I.P. and BASE II Fields and Positions`). **Confirms summaries are required**; heading-only indexing would have failed. |
+| **Cross-references** | **Real and frequent** — `Article 1.1`, `Article 11.2.5`, `Appendix E`, plus external specs. Pulling one article may be insufficient. |
+| **Mixed content** | The letter carries **business rationale AND technical detail** in one artifact → a case for **multi-disposition** (D-A12), not a new mechanism. |
+
+Still open: corpus-wide numbers (this is one article), **extraction fidelity** (does `pdf_extract`
+preserve this?), and whether other Visa article types or Mastercard documents differ.
 
 ## The two numbers that decide it
 
