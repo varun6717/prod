@@ -3,8 +3,8 @@
 
 This is the regression gate that grades the frozen C extractor against the
 **human-signed-off** oracle (`fixtures/c_repo/expected_code_map.json`, TASK-005)
-and proves the freeze recorded in `core/onboarding_manifest.yaml` (§5.2) is
-honest. It is deterministic and model-free — exactly the property the freeze
+and proves the freeze recorded in `core/extractor_manifest.yaml` (D-A22 split;
+was §5.2's onboarding_manifest) is honest. It is deterministic and model-free — exactly the property the freeze
 exists to guarantee (FR-DC-14): the same fixture in always grades the same way.
 
 What it checks (all HARD unless marked NOTE):
@@ -55,7 +55,7 @@ from core.extractors import (  # noqa: E402  (path set above)
 
 FIXTURE = REPO_ROOT / "fixtures" / "c_repo"
 ORACLE = FIXTURE / "expected_code_map.json"
-MANIFEST = REPO_ROOT / "core" / "onboarding_manifest.yaml"
+MANIFEST = REPO_ROOT / "core" / "extractor_manifest.yaml"   # per-language freeze (D-A22 split)
 EXTRACTOR = REPO_ROOT / "core" / "extractors" / "c_extractor.py"
 
 # Structural fields the extractor owns (§3.3 / §5.5). The model fields
@@ -154,7 +154,7 @@ def main() -> int:
     # ── 3. coverage floor (§5.4) ───────────────────────────────────────────────
     floor_raw = _manifest_scalar(manifest_text, "coverage_floor")
     if floor_raw is None:
-        failures.append("coverage_floor not found in onboarding_manifest.yaml")
+        failures.append("coverage_floor not found in extractor_manifest.yaml")
     else:
         floor = float(floor_raw)
         if cov["coverage"] < floor:
@@ -180,7 +180,7 @@ def main() -> int:
         ["git", "hash-object", str(EXTRACTOR)], cwd=REPO_ROOT, text=True
     ).strip()
     if recorded_sha is None:
-        failures.append("extractor_sha not found in onboarding_manifest.yaml")
+        failures.append("extractor_sha not found in extractor_manifest.yaml")
     elif not live_sha.startswith(recorded_sha):
         failures.append(
             f"FREEZE DRIFT: manifest extractor_sha={recorded_sha} but live "

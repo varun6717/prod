@@ -206,6 +206,7 @@ connector's placeholder per hard rule **S**, done as connectors land on the VDI 
 
 **Phase D · Milestone D0 — Cutover groundwork**
 - [x] TASK-100 — Retirement sweep: 41 ⛔ files deleted (`frd_*` skills/validator, vocabulary + taggers, vocab checks, BRD/FRD + tag-lane fixtures, seed docs + `brd_frd_overview.html`, old run workspace); `build_checks.py` re-cut to §10.2/10.3/10.4 (§10.3 requires `brd_profile` transitionally); ADR-003/004/005 superseded-by banners; `--demo` re-cut and green
+- [x] TASK-101 — Manifest split (D-A22): `extractor_manifest.yaml` (per-language freeze, schema v2) + `cache/` home (`code_maps/index.yaml` contract in `cache/README.md`; gitignored; old `repos[]` record NOT migrated — it described the pre-profile tagged map); `registry_manifest.yaml` shrunk to `trees: [core/, overlays/, docs/]` (schema v2); `onboarding_manifest.yaml` deleted; `validate_onboarding.py`/`gate.py` repointed (full recasts stay TASK-113/115). Proof: reference grep empty, staged publish 94 files w/ green gate + correct boundary, §10 3/3
 
 ---
 
@@ -237,7 +238,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ## Open index (tick here; then collapse the task into the done ledger above)
 
 **Milestone D0 — Cutover groundwork**
-- [ ] TASK-101 — Manifest split: `extractor_manifest` + map cache + registry-manifest shrink · `Sonnet`
 - [ ] TASK-102 — Runtime-tool seam re-cut (manifest, renames, new-role stubs, parity) · `Sonnet`
 
 **Milestone D1 — Input side (UI_INPUT, routing, index, Jira ingest)**
@@ -280,25 +280,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ---
 
 ## Milestone D0 — Cutover groundwork
-
-### TASK-101 — Manifest split: `extractor_manifest` + map cache + registry-manifest shrink
-- **Depends on:** TASK-100.
-- **Model:** Sonnet.
-- **Reads:** D-A22 (the whole block: three-jobs analysis, end-state table) · §2.1 · §5.2
-  (struck-through) · impact §4.
-- **Creates / edits:** `core/extractor_manifest.yaml` (from `onboarding_manifest.extractors[]`:
-  per-language `path`, `extractor_sha`, tools, globs, coverage floor); `cache/code_maps/index.yaml`
-  home (**mutable, outside the registry** — gitignore `cache/`, commit `cache/README.md` stating
-  the contract; `repos[]` build records move here); shrink `core/registry_manifest.yaml` to
-  `include.trees: [core/, overlays/, docs/]` + excludes (54 lines → ~6; supersedes the hand-listed
-  file enumeration, including V's interim ADR additions); delete `core/onboarding_manifest.yaml`;
-  repoint every reader (`hydrate.py`, `publish_registry.py`, `validate_onboarding.py`, the gate
-  code — `grep -rn onboarding_manifest` must end empty; full gate/validate recast waits for
-  TASK-113/115, this task only keeps them importable).
-- **Acceptance:** no code references `onboarding_manifest.yaml`; `hydrate.py` copies correctly
-  from the trees manifest (local dry-run); `publish_registry.py` honors excludes; `cache/` is
-  ignored; checks green.
-- **Proof:** local hydrate dry-run + `build_checks.py` green + empty grep.
 
 ### TASK-102 — Runtime-tool seam re-cut (manifest, renames, new-role stubs, parity)
 - **Depends on:** TASK-100 (amended runner), TASK-101.

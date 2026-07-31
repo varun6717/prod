@@ -31,3 +31,7 @@ cred.env
 # registry tree. It is a generated copy of core/ + overlays/ + docs; after ANY change under
 # those, refresh it with `python core/scripts/publish_registry.py --stage registry_repo --force`
 # (the §10-gated rebuild) before committing, or it goes stale.
+
+# Mutable build state (D-A22) — everything under cache/ except its README
+cache/*
+!cache/README.md

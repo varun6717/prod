@@ -9,7 +9,9 @@ model participates**, by construction: there is no model call anywhere in this f
 
 The `code_map_build` skill (§5.5) orchestrates around these: it gathers the signals
 (``detect_language``/``extractor_for`` from ``core.extractors``, the repo commit, the
-manifest entry), calls ``select_branch`` to decide, then performs the branch's
+cache record from ``cache/code_maps/index.yaml`` — D-A22; TASK-115 recasts this gate
+to the 4-branch `(commit_sha, profile_sha)` form), calls ``select_branch`` to decide,
+then performs the branch's
 *action* (reuse the cached map / run the frozen extractor over a file set / re-tag).
 The actions involve the extractor (deterministic) and model enrichment (purpose/tags
 only); the **decision** here never does. Keeping the decision a pure function is what
@@ -63,9 +65,10 @@ def select_branch(
                          None ⇒ pass ``None`` here.)
       vocab_sha:         the manifest's current vocabulary version.
       content_hash_new:  the repo's current commit_sha.
-      repo_cache:        the manifest ``repos[]`` entry for this repo, or ``None`` if the
-                         repo has never been built. Must carry ``content_hash``,
-                         ``built_with_extractor_sha``, ``built_with_vocab_sha`` when present.
+      repo_cache:        the ``cache/code_maps/index.yaml`` record for this repo (D-A22),
+                         or ``None`` if the repo has never been built. Must carry
+                         ``content_hash``, ``built_with_extractor_sha``,
+                         ``built_with_vocab_sha`` when present.
 
     Returns a :class:`GateDecision`. Pure — no I/O, no model, no git; same inputs →
     same branch, every time.
