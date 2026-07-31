@@ -342,7 +342,13 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
   `emit.js` + `verify_frontend.py`; §10.4 connector inventory gains the `jira` row.
 - **Acceptance:** mock fetch → staged extract + descriptor byte-shape-identical to the other
   connectors; §10.4 green including `jira`; UI emits the row.
-- **Proof:** `fixtures/jira/verify_jira.py` green; `build_checks.py` green.
+- **Proof:** `fixtures/jira/verify_jira.py` green; `build_checks.py` green; **plus
+  `npx vite build`** — see the note below.
+- **Note (learned at TASK-103):** the fixture verifies exercise `emit.js` through the Node CLI
+  bridge and never compile `PDLCConfigurator.jsx`, so a JSX edit can be syntactically broken and
+  still show "all verifies green". **Any task touching the component must run `npx vite build`
+  as part of its proof.** `dispositions.py` already seeds `"jira": "prior_artifact"`, so the
+  disposition side is a UI row + fixture, not a contract change.
 
 ---
 
@@ -733,6 +739,13 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
   `D→R→§16→story→(stub) key` is intact; checks + metrics green; registry re-published and
   re-hydrated successfully.
 - **Proof:** the run workspace + ledger + `docs/ACCEPTANCE_SI.md`.
+- **Open question to settle here (raised 2026-07-31):** `docs/` is **published** to the registry
+  (it is in `registry_manifest.trees`) but **not hydrated** into a run workspace — `hydrate.py`
+  copies only `core/` + `overlays/<tool>/`. Yet the instruction file and the skills cite paths
+  like `docs/TECH_SPEC.md §5.3`, which therefore resolve against the registry checkout rather
+  than relative to where the agent is working. Confirm during the real run whether agents can
+  actually follow those citations. If not, the fix is adding `docs/` to `hydrate.py`'s copy set
+  — a one-line change, not a design change.
 
 ---
 
