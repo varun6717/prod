@@ -3,20 +3,23 @@ Generate synthetic Payment Brand PDF fixtures for PDLC_App_v2.
 
 Produces two parts of the same Mastercard mandate (MCS-2026-R3) to exercise
 multi-file processing: both files belong to one card brand / one requirement
-so the pipeline must aggregate them. A BRD section loading 'mandate' pulls
-Part 1; a section loading 'message_format' pulls Part 2; a section loading
-'routing' might need both — exactly what selective-read aggregation tests.
+so the pipeline must aggregate them.
 
-  mastercard_mandate_part1_2026.pdf  — mandate/brand-rules/certification-heavy
-      topics: mandate, compliance_deadline, brand_rules, card_brand, certification
+The two parts also make the D-A12 **disposition split** concrete — the split is
+why Business Requirement and Technical Specification are separate classes at all:
 
-  mastercard_mandate_part2_2026.pdf  — technical spec, interchange/routing/format-heavy
-      topics: message_format, interchange_fees, routing, reporting,
-              compliance_deadline, card_brand
+  mastercard_mandate_part1_2026.pdf  — the ASK: mandate overview, brand rules,
+      certification gates, compliance deadline.
+      disposition: [business_requirement]   → routes to §2 / §4 / §8 / §15
 
-Together all 9 acceptance-required tags are covered:
-  mandate, compliance_deadline, brand_rules, card_brand, certification,
-  routing, message_format, interchange_fees, reporting
+  mastercard_mandate_part2_2026.pdf  — the NORMATIVE DETAIL: ISO 8583 DE 48
+      subelements, interchange tiers, Banknet/Reg II routing, reporting.
+      disposition: [technical_specification] → routes to §8 / §10, and is the
+      primary input Arm 1 matches against code
+
+Same corpus, different destinations. An SI section routes on `disposition`
+(D-A13 matrix), then reads whole or via the per-artifact index (D-A18) — there
+are no tags on either side any more.
 """
 import os
 from reportlab.lib.pagesizes import LETTER

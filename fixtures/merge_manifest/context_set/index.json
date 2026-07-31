@@ -8,24 +8,25 @@
       "source": "confluence",
       "url": "https://confluence.jpmc.net/display/PBI/Discover",
       "ingest_ts": "2026-06-22T11:31:02Z",
-      "adapter": "article_summarize",
-      "topics": [
-        "mandate",
-        "compliance_deadline"
+      "adapter": "pdf_extract",
+      "disposition": [
+        "business_requirement",
+        "technical_specification"
       ],
-      "descriptor": "Discover routing mandate; ID DSC-2231; deadline 2026-09-30"
+      "descriptor": "Discover routing mandate; ID DSC-2231; deadline 2026-09-30",
+      "index_path": "context_set/confluence/discover_mandate.index.json"
     },
     {
       "path": "context_set/confluence/zeta_routing.md",
       "source": "confluence",
       "url": "https://confluence.jpmc.net/display/PBI/Zeta",
       "ingest_ts": "2026-06-22T11:02:00Z",
-      "adapter": "article_summarize",
-      "topics": [
-        "routing",
-        "card_brand"
+      "adapter": "pdf_extract",
+      "disposition": [
+        "product_domain_knowledge"
       ],
-      "descriptor": "Zeta routing update; ID ZET-9; deadline 2026-12-01"
+      "descriptor": "Zeta routing update; ID ZET-9; effective 2026-12-01",
+      "index_path": null
     }
   ],
   "sources_status": [

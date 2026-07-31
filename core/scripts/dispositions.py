@@ -7,8 +7,10 @@ orthogonal to source **type**: type is *where it came from* (`sharepoint`, `conf
 was **derived** from type; D-A12 makes it **operator-declared**, because the same PDF is a
 `business_requirement` in one run and a `technical_specification` in the next.
 
-One definition, three consumers — this module exists so they cannot drift:
+One definition, four consumers — this module exists so they cannot drift:
   - ``app/backend/validation.py``      — rejects an unknown/missing disposition at POST time
+  - ``core/scripts/merge_manifest.py`` — rejects a manifest entry with no valid disposition at
+                                         fan-in (an unroutable entry is one silently never read)
   - ``core/scripts/checks/…`` (§10.5′) — asserts every class the UI offers is routed by the
                                          SI profile's D-A13 matrix (TASK-108)
   - the SI profile / routing matrix     — ``classes`` per section keys on these exact strings

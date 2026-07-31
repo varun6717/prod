@@ -24,7 +24,7 @@ admits the document source as "SharePoint connector, **or a direct file path**".
 the PDF from SharePoint is a deferred "write one more connector" follow-on
 (``ingest_sharepoint.py``, §11): purely additive and source-type-keyed off the same
 contract — it would stage the same raw document + emit the same descriptor shape, so
-nothing downstream (``pdf_extract → article_summarize``) changes when
+nothing downstream (the ``docs_pipeline`` extract lane) changes when
 it lands. That is the seam absorbing the change where it is designed to (FR-XS-01).
 
 **Auth (FR-DC-12).** Any ``auth_ref`` is a **pointer** resolved at the seam (§7); the

@@ -1,46 +1,41 @@
-# adapter.yaml — the payment_brand pre-processing adapter pack manifest (§6.6.3).
+# adapter.yaml — the payment_brand pre-processing adapter pack manifest (§6.6.3, as
+# amended by ADR-008).
 #
 # This is the swappable DOMAIN SEAM for pre-processing: the generic `source_processor`
 # reads this file to know the run order + routing; it carries no domain knowledge itself.
 # A new domain = "write one more pack"; the core never changes (FR-XS-01).
 #
-# Contract (§6.6.3), enforced by build check §10.5 (TASK-021):
-#   (a) every skill's `emits` ⊆ the domain vocabulary (D5).
-#   (b) the pack collectively produces EVERY `required: true` topic across brd_profile +
-#       frd_profile (a required topic with no producing skill is a build error).
-#   (c) this emit-map agrees, PER TAG, with vocabulary.payment_brand.yaml's `emitted_by`
-#       column (no drift).
+# ── What ADR-008 removed, and why this file is now nearly empty ────────────────────────
+# The tag vocabulary is deleted (D-A19/D-A22), and with it everything this file used to
+# carry: the per-skill tag-emission map, the §10.5 drift check that map
+# existed to satisfy (including the F1+3 reconciliation), and both tagging skills
+# (`article_summarize`, `confluence_tag`). Doc pre-processing is now DOMAIN-AGNOSTIC —
+# extract the structure, then index it (D-A18) — so the pack's remaining domain content is
+# not here at all: it is the SI section profile (`must_capture` / `probe_if_missing` per
+# section) and `jira_template`. Whether `adapter.yaml` stays per-domain is an open
+# consolidation call (D-A18 note); it survives this slice as the run-order/routing
+# declaration `source_processor` reads.
 #
-# Run order is per source class: docs_pipeline is ORDERED (pdf_extract runs first — it
-# extracts structure with NO tags; the single tagger runs after it). code sources route to
-# the SHARED core skill core/skills/code_map_build.skill.md (code processing never varies
-# by domain, D7) — it is referenced here, not copied into the pack.
-#
-# ── F1 + emit-map reconciliation (TASK-017, V-approved; see vocabulary r2 note) ────────
-# §6.6.3's normative adapter instance drifted from D5/vocabulary on FOUR tags (only
-# mandate/F1 was documented). Reconciled holistically against REALITY:
-#   • Class 1 — adapter under-listed a DOC emitter; vocabulary is right → fixed HERE:
-#       article_summarize.emits gains `mandate` (F1) and `transaction_flow` (vocabulary
-#       lists both as emitted_by article_summarize; §6.6.3 had omitted them).
-#   • Class 2 — vocabulary under-listed code_map_build; the code skill is right → fixed in
-#       vocabulary r2 (card_brand, message_format gained code_map_build). No change here —
-#       code_pipeline already emits them, matching code_map_build.skill.md CODE_MAP_TAGS.
-# After both, all 12 per-tag mappings match and §10.5 passes (verified at TASK-017,
-# re-gated at TASK-021).
+# Routing here is by source TYPE (which connector) and source CLASS (which lane) — NEVER
+# by `domain` (D7). What an artifact is FOR is not decided in this file at all: that is the
+# operator's per-source `disposition` (D-A12), carried onto the manifest entry and consumed
+# by the D-A13 routing matrix at authoring time. Ingestion only carries it.
 
 domain: payment_brand                # PBI — Payment Brand
 
-docs_pipeline:                       # ORDERED per variant; routed by source `type` (TASK-063B).
-                                     # Either form is valid: a BARE LIST (legacy) == the `default`
-                                     # lane; or a MAPPING keyed by source type with a required
-                                     # `default` fallback. Routes by TYPE, never `domain` (D7).
-  default:                           # PDFs / files (type: file, sharepoint) — extract then tag (2-step lane)
-    - { skill: pdf_extract,        emits: [] }                                              # structural extraction; NO tags
-    - { skill: article_summarize,  emits: [brand_rules, message_format, interchange_fees, reporting, mandate, transaction_flow, card_brand, routing, certification, compliance_deadline] }  # SOLE doc tagger — owns ALL 10 doc-side tags (change_type_assess removed; change_type field dropped — see notes/change_type_removal.md)
-  confluence:                        # Confluence KB pages (type: confluence) — TAG-ONLY (TASK-063B).
-                                     # No pdf_extract (already text), no article_summarize (a KB is
-                                     # reference, not an article). One skill reads the staged page and tags it.
-    - { skill: confluence_tag,     emits: [brand_rules, card_brand, message_format, routing, transaction_flow, error_handling] }
+docs_pipeline:                       # ORDERED; runs per non-code (document) source.
+                                     # Bare-list form == the `default` lane. The per-type
+                                     # MAPPING form (one key per source `type` + a required
+                                     # `default`, TASK-063B) still stands in §6.6.3 and
+                                     # `source_processor` still selects on it — this pack
+                                     # simply has one lane now that the tag lanes are gone.
+                                     # When the pack gains `confluence_extract` /
+                                     # `jira_extract` (§6.6.3) they become type keys here.
+  - { skill: pdf_extract }           # structural extraction → the .md extract + the manifest
+                                     # entry stub. The per-artifact index step (`doc_index`,
+                                     # D-A18) joins this lane at TASK-106.
 
-code_pipeline:                       # code sources route to the SHARED core skill (D7); not copied into the pack
-  - { skill: code_map_build,     emits: [routing, settlement, transaction_flow, error_handling, message_format, card_brand] }
+code_pipeline:                       # code sources route to the SHARED core skill (D7); it is
+                                     # referenced, not copied into the pack — code processing
+                                     # never varies by domain.
+  - { skill: code_map_build }

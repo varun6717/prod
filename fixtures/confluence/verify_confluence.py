@@ -7,7 +7,8 @@ is the only unwired piece; everything else is proven here (§6.6.2, §3.2, FR-DC
   1. **Local-path convenience** stages the fixture page and emits a descriptor whose **keys are
      identical to ``ingest_file.py``'s** — so the doc pipeline reads it unchanged (parity).
   2. **Multiple links → independent entries.** Two Confluence pages stage to two distinct
-     ``staged_path``s with their own descriptors — the foundation for tagging them separately.
+     ``staged_path``s with their own descriptors — the foundation for each carrying its own
+     operator-declared ``disposition`` (D-A12: one link = one source row = one disposition).
   3. **Injected fetcher** (the VDI seam stand-in) stages an ``https://`` page through the auth
      seam; with a stub token backend the secret (a canary) appears NOWHERE in the descriptor or
      the staged file, and the fetcher receives the resolved handle.

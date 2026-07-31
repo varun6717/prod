@@ -212,6 +212,7 @@ connector's placeholder per hard rule **S**, done as connectors land on the VDI 
 
 **Phase D · Milestone D1 — Input side**
 - [x] TASK-104 — Ledger stages + enrichment event vocabulary: stage vocabulary → `ingest / si_v1 / enrichment / si_v2 / jira` (both schemas + `telemetry.STAGES` + `ledger.SLICE_STAGES`; `code_map` folds into `ingest` as the code lane of the fan-out, `jira` merges authoring+push — the `jira_push` *event* survives); three enrichment events with typed emitters — `verdict` (`finding_id`, `arm` `impact`|`claim`, `verdict`, `route`), `escalation` (`reason` = the four D-A16 triggers, `severity` for D-A17 triage), `disposition` (`call` `accept|reject|reroute|defer` — the D-A16 defer path, `target`); `decisions.py` gains the `disposition` walkthrough record — the **only** place the operator's rationale is written (writer enforces `reject` has no `target`, placing calls do); `runs/_template/ledger/` refreshed to 5 stages. **`verdict.route` is the M12 enrichment-yield feed** (corrections/derived impacts/auto-fills = three counts over one field). Proof: 10 negative + 9 positive schema cases incl. retired-stage rejection in both ledgers, full-pipeline `_demo` (M01 $/SI-v1, M02 $/enrichment, M12 yield, G2's every-escalation-answered precondition all derivable), §10 3/3, all 8 fixture verifies green. *(Left for their owners: `validation.artifact` stays `brd/frd/jira` → TASK-110/121/123; `metrics_scan.py` still pre-pivot → TASK-125, now carrying a STALE banner; `vocab_gap_flag` kept until §3.6 consolidates — its producer died at TASK-100.)*
+- [x] TASK-105 — Manifest v2 + disposition routing + adapter shrink: entry shape v2 in `merge_manifest.py` (`topics`/`change_type` out, `disposition` list + `index_path` in; `index_path` **normalized to null** so the field is always present; entries with no/empty/non-list/unknown `disposition` and entries still carrying a retired field are **rejected loudly at fan-in** — an unroutable entry is one silently never read, the exact invisibility the totality rule targets; `merge_manifest` becomes the 4th consumer of `dispositions.py`); `source_processor.skill.md` routing rule replaced — **two keys, neither is `domain`**: `type` → connector + lane, operator `disposition` → which SI sections may read it (copied verbatim, never inferred, never branched on); `adapter.yaml` shrunk to `domain` + `docs_pipeline: [pdf_extract]` + `code_pipeline: [code_map_build]` (the `emits` map, both tag lanes and the F1+3 reconciliation gone with the vocabulary; the 063B per-type mapping *mechanism* still stands — the pack just has one lane); `pdf_extract.skill.md` de-tagged and **takes over the entry `descriptor`** as a *transcribed* identification line (title/ID/part-of-N/printed dates), the interpretive summaries staying with `doc_index` at TASK-106 — ⚠ contract detail the ladder does not pin, flagged for V. Fixtures re-cut: `merge_manifest/` (exercises multi-disposition + a carried `index_path` **and** a normalized null), `pdf/expected_manifest_entries.json` + `gen_fixtures.py` (the two mandate parts now demonstrate the D-A12 BizReq/TechSpec split that motivated the taxonomy), `verify_confluence.py` + both connector docstrings de-tagged. Proof: new `merge_manifest.py --demo` — corpus merge, D8c failed-source row, byte-identical replay vs the committed oracle, 6 rejection negatives; both acceptance greps literally clean; §10 3/3; all 8 verifies green. *(Left for its owner: §10.5's "every `docs_pipeline` skill file exists / mapping carries a `default`" residue is **not** implemented in `build_checks.py` — a dangling pack pointer is currently unchecked; §10.3 is re-cut at TASK-108.)*
 
 ---
 
@@ -243,7 +244,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ## Open index (tick here; then collapse the task into the done ledger above)
 
 **Milestone D1 — Input side (UI_INPUT, routing, index, Jira ingest)**
-- [ ] TASK-105 — Manifest v2 + disposition routing + adapter shrink · `Sonnet`
 - [ ] TASK-106 — Per-artifact index + completeness (guardrail 7) · `Opus`
 - [ ] TASK-107 — `ingest_jira.py` connector (Prior Artifact source type) · `Sonnet`
 
@@ -280,26 +280,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ---
 
 ## Milestone D1 — Input side
-
-### TASK-105 — Manifest v2 + disposition routing + adapter shrink
-- **Depends on:** TASK-103.
-- **Model:** Sonnet.
-- **Reads:** §3.2 (amended — entry shape + replaced routing rule) · D-A12/13 · §6.6.3 (amended) ·
-  impact §§2, 4, 7.
-- **Creates / edits:** `core/scripts/merge_manifest.py` (entries: drop `topics`/`change_type`;
-  gain `disposition` — copied from `UI_INPUT`, and `index_path` — populated once TASK-106 emits
-  it, null until then; `sources_status` semantics unchanged — failed sources marked, never
-  dropped); `core/skills/source_processor.skill.md` (route by source *type* to a connector and by
-  the run config's *disposition* into the manifest — code sources → code lane, doc sources →
-  extract lane; **no tag lanes; never branches on `domain`**);
-  `core/profiles/payment_brand/adapter/adapter.yaml` (drop `emits` + the two-lane
-  `docs_pipeline`; keep the pack pointers: `pdf_extract`, `code_pipeline → code_map_build`);
-  `pdf_extract.skill.md` (strip emit/tag references — extraction contract itself unchanged,
-  D-A18); re-cut `fixtures/merge_manifest/` (5 files) + `fixtures/pdf/expected_manifest_entries.json`
-  + `fixtures/confluence/verify_confluence.py` (drop tag assertions).
-- **Acceptance:** `index.json` entries carry `disposition` (+ `index_path` field); no `topics`/
-  `change_type` anywhere in the ingest path; `grep -rn "emits" core/profiles` empty; fixtures green.
-- **Proof:** merge over the mock corpus → expected entries match; verifies green.
 
 ### TASK-106 — Per-artifact index + completeness (guardrail 7)
 - **Depends on:** TASK-105.

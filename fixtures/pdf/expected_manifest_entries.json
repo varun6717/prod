@@ -3,16 +3,18 @@
     "path": "context_set/sharepoint/mastercard_mandate_part1_2026.md",
     "source": "sharepoint",
     "url": "fixtures/pdf/mastercard_mandate_part1_2026.pdf",
-    "adapter": "article_summarize",
-    "topics": ["mandate", "compliance_deadline", "brand_rules", "card_brand", "certification"],
-    "descriptor": "Mastercard brand mandate MCS-2026-R3 Part 1 of 2; mandate overview, MDES token brand rules (BR-01–BR-05), and MAC Level 2 certification gates; compliance deadline 2026-09-30"
+    "adapter": "pdf_extract",
+    "disposition": ["business_requirement"],
+    "descriptor": "Mastercard Brand Implementation Mandate MCS-2026-R3, Part 1 of 2: Mandate Overview, Brand Rules & Certification; Version 1.2, Approved-Final; Compliance Deadline 2026-09-30",
+    "index_path": null
   },
   {
     "path": "context_set/sharepoint/mastercard_mandate_part2_2026.md",
     "source": "sharepoint",
     "url": "fixtures/pdf/mastercard_mandate_part2_2026.pdf",
-    "adapter": "article_summarize",
-    "topics": ["message_format", "interchange_fees", "routing", "reporting", "compliance_deadline", "card_brand"],
-    "descriptor": "Mastercard mandate MCS-2026-R3-T Part 2 of 2; ISO 8583 DE 48.66/48.77/48.78 additions, revised interchange tiers with token-enhanced rates, Banknet and Reg II routing rules, DSR and Reg II reporting obligations; network effective 2026-07-01"
+    "adapter": "pdf_extract",
+    "disposition": ["technical_specification"],
+    "descriptor": "Mastercard Brand Implementation Mandate MCS-2026-R3-T, Part 2 of 2: Message Formats, Interchange & Routing; Version 1.2, Approved-Final; Network Effective Date 2026-07-01; Compliance Deadline 2026-09-30",
+    "index_path": null
   }
 ]
