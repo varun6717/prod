@@ -55,9 +55,9 @@ Durable state lives in **files and git**, never in the conversation. Never rely 
 
 ## Hard rules (carry these into every task)
 
-- **Ladder discipline.** Requirements define WHAT/WHY; the tech spec defines HOW; the task list defines the build sequence. If a task would change a pinned contract or reopen D1–D10, **stop and flag it** — that is out of scope.
-- **Two seams only (FR-XS-01):** the **domain seam** (adapter / profiles / template / vocabulary) and the **runtime-tool seam** (instruction file / wrappers / prompt files / launch). The per-language **extractor** is the one non-domain variation point, governed by the onboarding gate. Nothing else varies.
-- **Binding rationales (never violate):** the structural extractor is **deterministic and frozen** — never model-rewritten at runtime; the map-build gate is **model-free**; the model owns only `purpose` + `tags` in the code map; ingestion **never branches on domain**; the only external mutation is the (deferred) Jira push; scope changes are **operator-decided** (human-mediated flag loop).
+- **Ladder discipline.** Requirements define WHAT/WHY; the tech spec defines HOW; the task list defines the build sequence. If a task would change a pinned contract or reopen D1–D11, **stop and flag it** — that is out of scope.
+- **Two seams only (FR-XS-01):** the **domain seam** (SI section profile / `jira_template` — the vocabulary is deleted per ADR-008) and the **runtime-tool seam** (instruction file / wrappers / prompt files / launch). Non-domain variation points: the per-language **extractor** (onboarding gate) and the per-repo **signal profile** (D11.4 gate). Nothing else varies.
+- **Binding rationales (never violate):** the structural extractor is **deterministic and frozen** — never model-rewritten at runtime; the map-build gate is **model-free**; the model owns only `purpose` **text** in the code map (tags are deleted; module membership + edges are deterministic per the frozen signal profile); ingestion **never branches on domain**; the only external mutation is the (deferred) Jira push; scope changes are **operator-decided** (human-mediated flag loop).
 - **MVP scope:** single domain `payment_brand`; single repo; **in-session execution** (no direct Claude API); files-as-artifacts + **JSONL ledger** (no SQLite); **Solution Intent v1 → v2** this slice (ADR-008).
 - **Cite-or-flag:** every substantive artifact claim is grounded to a source/frame/operator answer or marked `[TBD — unsourced]`. Never invent.
 
