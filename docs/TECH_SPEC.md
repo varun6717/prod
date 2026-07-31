@@ -1,5 +1,28 @@
 # Technical Specification — PDLC_App_v2
 
+> ## ⚡ ADR-008 supersession notice (2026-07-31) — read before relying on any section
+>
+> The pipeline is now **Solution Intent → enrichment → Jira** (see `REQUIREMENTS.md` D11 and
+> [`ADR-008`](design/ADR-008-solution-intent-pivot.md), whose **D-A blocks are normative for the new
+> subsystems** until this spec's next consolidation). Per-section disposition:
+>
+> | Section | Status |
+> |---|---|
+> | §2 layout | 🔧 `BRD.md`/`FRD.md` → `solution_intent/`; `code_map.json` → `code_map/` (2 files); indexes beside extracts; `code_profiles/` + `cache/` added |
+> | §3.1 `UI_INPUT` | 🔧 each source gains `disposition:` (D-A12); `frame` gains `overview:`; `runtime_tool` unchanged |
+> | §3.2 manifest | 🔧 `topics`/`change_type` retired; entries gain `disposition` + `index_path`; **routing rule replaced** (see amendment in-section) |
+> | §3.3 code map | 🔧 amended per D11.4 (no `tags`; purpose provenance; `members[]`; two files; signal profile) |
+> | §3.4–3.6 ledger | ✅ survive; event vocabulary gains enrichment events (`verdict`, `escalation`, `disposition`) |
+> | §3.7 artifacts | ⛔ **replaced in-section** — SI v1/v2 + `enrichment.json` |
+> | §3.8 jira plan | 🔧 4-level plan (D11.6); `trace.json` unchanged |
+> | §4 wiring | 🔧 role table per D11.7 (`solution_intent_*`, `claim_verifier`, `disposition_walkthrough`; `frd_*` retired) |
+> | §5 code impact | 🔧 extractor freeze + model fallback + dispatcher **stand**; `onboarding_manifest` splits (D-A22); gate gains 4th branch (profile change); §5.4.1 vocab detector ⛔ retired; §5.6 becomes the 3-tier walk (D-A19) |
+> | §6.6 seams | 🔧 `vocabulary.yaml` ⛔ deleted; `adapter.yaml` loses `emits` (doc pipeline is domain-agnostic: extract + index); profiles collapse to the SI section contract + `jira_template` |
+> | §7 adapters | ✅ survives unchanged |
+> | §8 telemetry | ✅ survives; metric names per FR-MX-02 (amended) |
+> | §9 gates | 🔧 **replaced in-section** — G1/G2/G3 re-scored per D-A23 |
+> | §10 checks | 🔧 **replaced in-section** — §10.1/§10.5 retired; §10.5′ added; net 4 checks |
+
 **Project:** PDLC_App_v2 · JPMC Merchant Services · AI Automation
 **Document type:** Technical design specification
 **Status:** Draft v1 — resolves everything `REQUIREMENTS.md` hands forward (kickoff §"What TECH_SPEC.md MUST resolve" + Part C5).
@@ -124,6 +147,13 @@ Each schema is normative. Types are JSON/YAML scalar types unless noted.
 
 ### 3.1 `UI_INPUT.yaml` — immutable run config (FR-XS-02, FR-XS-16, NFR-01)
 
+> 🔧 **ADR-008 amendment (normative).** Each `sources[]` entry gains **`disposition:`** — one or more
+> of `business_requirement | technical_specification | product_domain_knowledge | architecture |
+> prior_artifact | other` (FR-DC-24; `codebase` is auto-set for repo sources, non-editable; multi
+> allowed, default one). `frame:` gains **`overview:`** — the free-form Initiative Overview (feeds §1
+> identity, seeds §7 deliverables, and is Arm 1's semantic query context). Everything else below
+> stands; immutability + `run_id` semantics unchanged.
+
 The UI collects configuration only and emits exactly this. Immutable after Generate; re-configuring is a **new run** (new `run_id`, new file) — never an in-place edit.
 
 ```yaml
@@ -206,9 +236,35 @@ Always loaded by authoring agents; selective read routes off it. Assembled deter
 }
 ```
 
-**Routing rule (selective read, FR-BR-04, FR-DC-06).** For a profile section, load entries where `source ∈ section.sources` **and** `topics ∩ section.topics ≠ ∅`; expand on demand for cross-references. The manifest is always in view; no load-all path, no size threshold. `topics[]` values are drawn from the domain vocabulary (§10 build check). A **failed source** is recorded in `sources_status` with `status:"failed"` and a reason — never silently dropped (FR-DC-05, D8c).
+> 🔧 **ADR-008 amendment (normative — replaces the rule below).** Manifest entries drop `topics` +
+> `change_type` (retired with tags) and gain `disposition` (operator-declared, D-A12; multi allowed)
+> and `index_path` (the per-artifact index, present when the artifact exceeded the whole-read budget).
+>
+> **Routing rule (the two-level funnel, FR-SI-03 / FR-DC-26):** for an SI section, (1) load entries
+> where `disposition ∈ section.classes` per the D-A13 matrix — deterministic; (2) check the routed
+> **set** against the whole-read budget — under: read the extracts whole; over: consult each large
+> artifact's `index.json` (heading + summary + line range per subsection, D-A18), select entries by
+> matching the section's `must_capture` semantically, pull the cited line ranges from the `.md`
+> extract, and widen if `must_capture` remains unsatisfied. Selections are recorded as the citation
+> trail. The manifest is always in view; no load-all path.
 
-### 3.3 `context_set/code_map.json` — coarse code index (D6a, FR-DC-10, FR-DC-13)
+~~**Routing rule (selective read, FR-BR-04, FR-DC-06).** For a profile section, load entries where `source ∈ section.sources` **and** `topics ∩ section.topics ≠ ∅`; expand on demand for cross-references. `topics[]` values are drawn from the domain vocabulary (§10 build check).~~ A **failed source** is recorded in `sources_status` with `status:"failed"` and a reason — never silently dropped (FR-DC-05, D8c — unchanged).
+
+### 3.3 `context_set/code_map/` — coarse code index (D6a as amended by D11.4, FR-DC-10/13/27)
+
+> 🔧 **ADR-008 amendment (normative — D11.4 / D-A19–D-A22).** The map **splits into two files** so
+> tier 1 never loads file entries wholesale: **`code_map/components.json`** (modules — `purpose`,
+> explicit `members[]`, `cohesion`, `purpose_confidence`, + the signal-profile ref `profile_sha`, the
+> coverage report incl. `unanalyzable[]`, and `duplicates_requiring_disposition[]`) and
+> **`code_map/files.json`** (per file — `purpose`, **`purpose_source: declared | header_prose |
+> inferred | symbols`**, `purpose_verdict` (declared-vs-actual, `diverged` ⇒ `purpose_actual`),
+> `interfaces`, `depends_on`/`used_by`, `coverage`). **`tags[]` is deleted.** Module assignment is
+> deterministic per the repo's frozen signal profile (`code_profiles/<repo>.profile.yaml` — include-graph
+> primary, hub exclusion, size policy, frozen overrides); the model writes **purpose text only**.
+> Totality: every file in exactly one module; `unclustered` always passes tier 1. Cache key becomes
+> **`(commit_sha, profile_sha)`** + per-file content hash (FR-DC-29). Everything else in the block
+> below stands (map-don't-copy, both edge directions, per-file coverage, reserved
+> `external_calls`/`exposes`).
 
 Finalizes D6a. Adds the reserved cross-repo fields (unpopulated in MVP) and the extractor coverage report.
 
@@ -293,22 +349,38 @@ Per run; append-only. Every gate and flag decision: who, when, outcome, rational
 
 `vocab_gap_flag` (ADR-003 / FR-DC-21, §5.4.1) records the vocabulary-adequacy detector raising its hand. Two shapes, one record kind: the **primary** signal names a recurring `concept` the vocabulary lacks (with `evidence` files) — caught from the model's `uncovered_concepts`, so it covers a file that was *partially* tagged as well as one fully untagged; the **floor** signal records that `untagged_ratio` for an `arm` (`code` | `docs`) crossed `adequacy_threshold` (the deterministic, model-free safety net). Both carry the operator's disposition (`amend-vocab` | `accept-as-is`). It is the dictionary's twin of `reonboard_flag`; like it, the artifact is **never** auto-modified — a human decides.
 
-### 3.7 `BRD.md` / `FRD.md` — markdown artifacts (FR-BR-*, FR-FR-*)
+### 3.7 `solution_intent/` — the business artifact (FR-SI-\*, FR-EN-\*) *(replaces `BRD.md`/`FRD.md` per ADR-008)*
 
-Markdown (model-read + human-read). Section order = the merged baseline+profile plan (D2 merge). Required structural elements:
+```
+solution_intent/
+  v1.md              # code-blind draft — FROZEN at G1, immutable thereafter
+  v2.md              # the deliverable — v1 + enrichment applied per the D-A2 placement rules
+  enrichment.json    # permanent audit: every finding, its evidence, auto-applied|escalated,
+                     # operator disposition + rationale; v1 + this file reconstruct v2
+```
 
-- **BRD.md** — one `##` per section in `order`; executive summary **last**; every substantive claim carries an inline citation `[src: <provenance>]` or `[frame]` or `[operator]`, or is marked `[TBD — unsourced]` (FR-BR-06). Per section, a machine-readable coverage footer the validator reads:
+- **`v1.md` / `v2.md`** — one `##` per section of the **fixed 18-section contract** (D11.1), in order;
+  §1 executive summary authored/regenerated **last**. Every substantive claim carries `[src: <provenance>]`
+  / `[frame]` / `[operator]` or `[TBD — unsourced]` (FR-SI-07); v2 in-place corrections carry
+  `[code: <path:symbol>]` provenance; unverifiable current-state claims carry `[unverified against code]`.
+  Per section, the machine-readable coverage footer keys on **`must_capture` items** (not topics):
   ```
-  <!-- coverage: {mandate: source, brand_rules: operator, routing: source} -->
+  <!-- coverage: {what_is_broken_today: source, what_it_costs: source, why_now: operator} -->
   ```
-  The **code-impact section is business-framed** (impacted systems / scale / risk — no file/function detail; that goes to the FRD) (FR-BR-07).
-- **FRD.md** — sections by `functional_kind`; carries the **detailed technical code impact** forward (file/function detail) (FR-FR-03); a **traceability block** mapping every FRD topic → its BRD anchor(s) via `traces_to`, machine-checkable by `frd_validator`:
-  ```
-  <!-- traces: {routing_behavior.routing: [scope_objectives, requirements.routing]} -->
-  ```
-  Pinned to **BRD vN** in its header (`<!-- pinned_brd: v1 -->`).
+- **§7/§8/§16 carry stable IDs** (`D1…`, `R1…` + `deliverable:`, entries keyed `R-id × code location`) —
+  the FR-SI-05 trace chain. §8 requirements enumerate `assertions:` (a./b./c.…) per FR-SI-04.
+- **Conditional sections** render filled, `None identified`, or `Not applicable — <reason>` (FR-SI-06).
+- **`enrichment.json`** — per finding: `{id, arm, type, assertion_ref|claim_ref, evidence[],
+  verdict?, action: auto_applied|escalated, disposition?, rationale?, section_target}`. Escalated
+  scope-moving findings reuse the D6b Flags schema. Schema detail: D-A16.
 
-### 3.8 `jira_plan.json` / `jira_trace.json` — epic draft + push record (FR-JR-*, D3b)
+### 3.8 `jira_plan.json` / `jira_trace.json` — plan + push record (FR-JR-\* as amended, D11.6)
+
+> 🔧 **ADR-008 amendment.** The plan is **four-level**: `initiative` (from the SI) → `deliverables[]`
+> (D-ids) → `epics[]` (R-ids) → `stories[]`. Each story: `{epic: R-id, evidence: §16 entry id | "D-id
+> non-code", code_location | flag: new_build|non_code, acceptance_criteria}`. Authored **after G2**
+> from v2 + `enrichment.json`. `jira_trace.json` semantics unchanged (idempotent keys, now at all
+> pushed levels).
 
 ```json
 // jira_plan.json — drafted by jira_author; NO write to Jira
@@ -346,6 +418,16 @@ Markdown (model-read + human-read). Section order = the merged baseline+profile 
 ---
 
 ## 4. Skill ↔ agent ↔ profile wiring (per layer)
+
+> 🔧 **ADR-008 amendment (D11.7 — normative role list, 8 roles).** `source_processor` (unchanged) ·
+> `solution_intent_author` ← `brd_author` (interactive) · `solution_intent_validator` ← `brd_validator`
+> · `code_impact` (Arm 1; §5.6) · **`claim_verifier`** (Arm 2, new — extracts current-state claims from
+> verdict-eligible sections + implicit assumptions from §8 assertions, clusters by code region,
+> verdicts; never walks closure) · **`disposition_walkthrough`** (new, interactive — §9.5) ·
+> `jira_author` · `jira_validator` (§9.4). **`frd_author`/`frd_validator` retired.** Arms 1+2 stay
+> separate roles for independent re-runnability (a conditional re-run touches one arm's work, not
+> both). Prompts: `[start-ingest, start-si, start-enrich, start-jira]`. The wiring table below is
+> superseded where it references brd/frd roles.
 
 **Skill vs agent — the distinction this table makes explicit (FR-XS-08, BUILD_OVERVIEW §11).** A **skill** is the shared instruction module (`core/skills/<name>.skill.md`) — the substance: procedure, rules, sections. It is authored once and is tool-agnostic. An **agent** is the *actor that executes a skill*: it loads the skill and runs it against runtime input. The two usually share a name (`brd_author` the agent runs `brd_author.skill.md`) but are different artifacts in different places — the agent is realized as a **thin per-tool wrapper** in each overlay (`.claude/agents/brd_author.md` or `brd_author.agent.md`) whose body just points at the shared skill. Not every row is an agent-runs-skill pair: **plumbing** (`merge_manifest`, `metrics`) is a Python script with **no skill and no agent of its own**, and **`jpmc_adapters`** is an adapter **module** called at the push step — also not a skill.
 
@@ -391,7 +473,15 @@ This is the newest and densest block (FR-DC-14…17, handed forward in C5). It r
 - **Freeze** — commit it as a fixed, version-controlled artifact (recorded by `extractor_sha`).
 - **Onboarding manifest** — records which extractors are frozen (per language) and the content hash each map was built against (per repo).
 
-### 5.2 `core/onboarding_manifest.yaml` (normative)
+### 5.2 `core/onboarding_manifest.yaml` ~~(normative)~~
+
+> 🔧 **ADR-008 amendment (D-A22): this file SPLITS.** `extractors[]` → **`extractor_manifest.yaml`**
+> (per-language freeze — unchanged in content; FR-DC-14 stands). `repos[]` → **`cache/code_maps/
+> index.yaml`** (mutable build records, **outside** the frozen registry — it was mutable state inside
+> a SHA-pinned artifact). `adequacy_threshold` + `vocab_sha` ⛔ die with tags; the quality question
+> they answered is now the **onboarding gate's stage-distribution report** (D-A21) + per-module
+> `purpose_confidence`. New sibling: **`code_profiles/<repo>.profile.yaml`** (per-repo signal profile,
+> frozen at the gate — schema per D-A20/D-A21).
 
 ```yaml
 schema_version: 1
@@ -422,7 +512,14 @@ repos:
 
 `content_hash` is the repo **git commit_sha** (matches D6a/D8b's cache key). Incremental rebuild (below) derives the changed-file set by diffing commits, so a finer per-file hash is not stored — the commit pair is sufficient and deterministic.
 
-### 5.3 The 3-branch gate algorithm (deterministic, model-free — FR-DC-15)
+### 5.3 The ~~3~~ **4**-branch gate algorithm (deterministic, model-free — FR-DC-15 as amended)
+
+> 🔧 **ADR-008 amendment.** A **4th branch** joins the three below: **`profile_sha` changed ⇒ full
+> rebuild** — a signal-profile change can move every module boundary, so profile change invalidates
+> wholesale while commit change invalidates selectively. Branch 3 (incremental) recomputes structure +
+> clustering globally (cheap, deterministic; clustering is global, so "affected modules" is wider than
+> "modules containing changed files") and re-runs model purposes **only** for changed file hashes;
+> module purposes re-synthesise only for affected modules.
 
 Inputs are **only** deterministic signals: language detection, extractor presence, content hash, extractor sha. **No model participates in the branch decision.**
 
@@ -478,7 +575,13 @@ check_coverage(map, floor):
 
 Unresolved files are written to `code_map.json` with `coverage: coarse` and confirmed in the **deep pass** (`code_impact`). The re-onboarding decision is recorded in `decisions.jsonl` as `reonboard_flag` (§3.6). This cleanly separates "content changed → rebuild map" (Branch C) from "a structural pattern the tool can't handle → human decides" (this flag).
 
-#### 5.4.1 Vocabulary adequacy detector (L1 — ADR-003, FR-DC-21)
+#### 5.4.1 ~~Vocabulary adequacy detector~~ — ⛔ RETIRED (ADR-008; no vocabulary, nothing untagged)
+
+> The concern ("is our semantic layer adequate for this corpus?") survives and is answered better:
+> the **stage-distribution report** at the repo onboarding gate (human-authored vs model-inferred vs
+> uncovered, D-A21), per-module `purpose_confidence`, and the declared `unanalyzable[]` list surfaced
+> at §18. Purpose-only tier-1 misses recurring in one module are the drift signal (D-A19), reviewed at
+> re-onboarding — human-triggered, never auto-pivoted.
 
 `check_coverage` (above) is *extractor* adequacy — "does the frozen **tool** cover this repo's languages?". `check_vocab_adequacy` is the exact twin for *vocabulary* adequacy — "does the frozen **dictionary** cover this corpus's concepts?". It runs in the gate's post-build path beside `check_coverage`, reading two signals (a model byproduct + a deterministic floor):
 
@@ -535,7 +638,19 @@ The **dispatcher is the only place language varies.** Adding a language = "write
 
 **`uncovered_concepts` — the adequacy byproduct (ADR-003 / FR-DC-21).** Because the model cannot invent a tag, a concept the vocabulary lacks would otherwise vanish silently. So `model_enrich` returns a **third** value alongside `purpose`/`tags`: `uncovered_concepts[]`, the concepts it recognized in the file that **no** vocabulary tag covers. This is emitted in the same pass (the model already read the file), is **independent of the tag count**, and so catches both a fully-uncovered file (`tags: []`) *and* a partially-uncovered one (`tags: [routing]` but a secondary concept un-nameable). It does **not** land on the `code_map` entry — it routes nothing, so it goes to the ledger (§3.6) and feeds the adequacy detector (§5.4.1), not the map. The map's `tags` therefore stay exactly the in-vocabulary set.
 
-### 5.6 `code_impact` — coarse / deep (FR-BR-07, FR-BR-12/13, D6b/c)
+### 5.6 `code_impact` — the three-tier walk (FR-EN-01/05, D6b/c; replaces coarse/deep framing)
+
+> 🔧 **ADR-008 amendment (normative — D-A19).** The topics×tags coarse join is retired. Per
+> **assertion** (query = frame + requirement title + description + assertion, raw text — no keyword
+> extraction): **tier 1** vs `components[].purpose` (matched modules; low `purpose_confidence`
+> **widens**, never excludes) → **tier 2** vs `files[].purpose` within matched modules only → **tier
+> 3a** read selected source, confirm/refute landing points + verdict implicit assumptions → **tier
+> 3b** walk `depends_on`/`used_by` outward to closure (reaches files no tier selected). `purpose`
+> seeds; source establishes. Retrieval batches per **deliverable** (territory resolved once);
+> reasoning is per-assertion, independent, fan-out safe (anti-anchoring: share reference material,
+> never conclusions). Matches are **explainable** — each carries its reasoning into `enrichment.json`.
+> The old coarse/deep guardrails below stand where not superseded: deep reads only the flagged slice;
+> closure within-repo (FR-DC-13); Flags every run (D6b); material threshold (D6c).
 
 Unchanged from `code_impact_assess.skill.md`, now contractual:
 - **Coarse (early, map-only):** requirement topics × `code_map.json` tags/purpose → ranked candidate areas. Reads the map only. Threads high-level code context into early BRD sections.
@@ -624,6 +739,16 @@ Per-connector contract: consumes `UI_INPUT.sources[]` entries of its `type` + au
 **MVP-honest inventory — author only what the first slice consumes.** The first slice is one PDF document + one Bitbucket-cloned Stratus repo, so the slice authors **two** connectors: the **document/PDF source** (SharePoint connector, or a direct file path) and **Bitbucket** (`clone.py`). **Confluence and every other source-type are "write one more connector" follow-ons** (§11), not first-slice work. Build check **§10.4** asserts every `UI_INPUT.sources[].type` has a registered connector.
 
 #### 6.6.3 Adapter pack contract + `adapter.yaml` (the domain pre-processing seam)
+
+> 🔧 **ADR-008 amendment.** **`emits:` is deleted from every pipeline entry** (tags are gone), and the
+> doc pipeline becomes **domain-agnostic**: per-type lanes route to *extract* skills (`pdf_extract`,
+> `confluence_extract`, `jira_extract`) followed by the shared **`doc_index`** skill (builds the
+> per-artifact index for artifacts over the whole-read budget, D-A18; summaries always generated; the
+> extract/index two-file pairing per §3.2). Tagging skills (`article_summarize`-as-tagger,
+> `confluence_tag`) are retired. The pack's remaining domain content is the **SI section profile**
+> (`must_capture`/`probe_if_missing` per section) + **`jira_template`** — whether `adapter.yaml`
+> remains per-domain at all is a Phase-C/D consolidation call (D-A18 note). `docs_pipeline` per-type
+> routing + required `default` lane (063B) stand.
 
 The domain's pre-processing adapter is a **pack** of skills under `profiles/<domain>/adapter/`, declared by `adapter.yaml`. This pack is the swappable domain seam (docs → extract then tag; code → hand to `code_map_build`). The generic `source_processor` reads `adapter.yaml` to know the run order and routing; it carries no domain knowledge itself.
 
@@ -749,43 +874,55 @@ Six control points (D4): **G0** scaffold checkpoint, **GF** per-flag sub-gate, *
 
 `UI_INPUT.gates.score_threshold` defaults to **85** and applies to G1/G2/G3 (the single project-level value D4 calls for). On top of the soft score, each gate has **absolute hard preconditions** (non-scored) that must hold regardless of score.
 
-### 9.2 `brd_validator` score (feeds G1)
+### 9.2 `solution_intent_validator` score (feeds G1) *(replaces `brd_validator` per ADR-008/D-A23)*
 
 ```
-topic_coverage   = satisfied_required_topics / total_required_topics
-                   # "satisfied" = must_capture met, grounded by source/frame/operator, not [TBD — unsourced]
+section_coverage   = satisfied_required_must_capture_items / total_required_must_capture_items
+                     # per-section checklists (D11.1) — a checklist, not a topic vocabulary;
+                     # "satisfied" = grounded by source/frame/operator, not [TBD — unsourced]
 citation_integrity = cited_substantive_claims / total_substantive_claims
-brd_score = round(100 * (0.7 * topic_coverage + 0.3 * citation_integrity))
+si_score = round(100 * (0.7 * section_coverage + 0.3 * citation_integrity))
 ```
-**G1 passes iff:** `brd_score ≥ threshold` **AND** (hard) every `required:true` topic satisfied *or explicitly waived* **AND** (hard) all flags resolved/recorded in `decisions.jsonl`. The 0.7/0.3 weighting prevents passing on citations alone. Accept → `BRD.md` locked as **BRD vN**; reopen → vN+1.
+**G1 passes iff:** `si_score ≥ threshold` **AND** (hard) every required section satisfied and every
+conditional section dispositioned (FR-SI-06) **AND** (hard) §15→§4 + §8→§7 traces intact **AND**
+(hard) all flags resolved/recorded. Accept → `v1.md` **frozen**; reopen → v1.1 pre-freeze.
 
-### 9.3 `frd_validator` score (feeds G2)
-
-```
-traceability = frd_topics_with_valid_traces_to / total_frd_topics
-               # valid = traces_to resolves to a real BRD anchor; AND every BRD requirement is
-               #         traced by ≥1 FRD topic OR marked out-of-scope
-testability  = topics_with_acceptance_criteria / topics_requiring_them_by_functional_kind
-               # required for actor_flow, system_behavior, data_contract, error_state;
-               # nfr requires a measurable target instead
-frd_score = round(100 * (0.5 * traceability + 0.5 * testability))
-```
-**G2 passes iff:** `frd_score ≥ threshold` **AND** (hard) every BRD requirement traced or marked out-of-scope. Accept → `FRD.md` pinned to BRD vN.
-
-### 9.4 `jira_validator` score (feeds G3)
+### 9.3 enrichment score (feeds G2) *(new duty per ADR-008 — the old §9.3 FRD formula moved to §9.4)*
 
 ```
-coverage          = frd_areas_with_epic / total_frd_areas           # every FRD area → ≥1 epic
-link_integrity    = epics_linking_to_frd / total_epics              # every epic → ≥1 FRD requirement
-field_completeness = epics_with_all_required_and_controls_fields / total_epics
-jira_score = round(100 * (0.4 * coverage + 0.3 * link_integrity + 0.3 * field_completeness))
+verdict_completeness = assertions_and_claims_verdicted / total_in_verdict_population
+                       # population per D-A5 (factual current-state only; runtime-shaped skipped)
+impact_coverage      = requirements_with_section16_entries_or_dispositioned / total_requirements
+g2_score = round(100 * (0.5 * verdict_completeness + 0.5 * impact_coverage))
 ```
-**G3 passes iff:** `jira_score ≥ threshold` **AND** (hard) bidirectional traceability complete (`coverage = 1.0` **and** `link_integrity = 1.0`) **AND** (hard) all controls fields present on every epic. Because bidirectional traceability + controls completeness are absolute, G3's effective bar is stricter than the shared numeric default without needing a second number. Accept = one combined sign-off (review + authorize push). Push is idempotent (§7).
+**G2 passes iff:** `g2_score ≥ threshold` **AND** (hard) every escalated finding dispositioned via the
+walkthrough **AND** (hard) every in-place correction carries `[code:]` provenance **AND** (hard) §1
+regenerated after all corrections. Accept → `v2.md` accepted; Jira authoring may begin. *(Provisional
+formula — validate against the first real run before freezing, per D-A23.)*
 
-### 9.5 G0 / GF
+### 9.4 `jira_validator` score (feeds G3) *(absorbs the old FRD traceability/testability duty per D-A23)*
+
+```
+traceability = valid_links / total_links_required
+               # every epic → its §7 deliverable; every story → its epic AND (a §16 entry OR §7
+               # non-code work); every §16 entry → ≥1 story or an explicit disposition
+testability  = stories_with_acceptance_criteria_and_code_location / total_stories
+               # each story names the code it changes, or is flagged new-build / non-code
+field_completeness = issues_with_all_required_and_controls_fields / total_issues
+jira_score = round(100 * (0.4 * traceability + 0.3 * testability + 0.3 * field_completeness))
+```
+**G3 passes iff:** `jira_score ≥ threshold` **AND** (hard) hierarchy traceability complete
+(`traceability = 1.0`) **AND** (hard) all controls fields present. Accept = one combined sign-off
+(review the 4-level plan + authorize push). Push is idempotent (§7). G3 **requires G2** — stories
+derive from enrichment evidence and cannot be authored from v1 (FR-JR-01).
+
+### 9.5 G0 / GF / the disposition walkthrough
 
 - **G0** (checkpoint): after Generate-scaffold, before Run; operator inspects scaffold + `UI_INPUT.yaml`; proceed or regenerate. Reversible.
-- **GF** (sub-gate, loop): inside the BRD code-impact section; per returned flag, operator decides (surfaced one at a time with a recommendation); `material` decisions trigger a changed-surface-only `code_impact` re-run (§5.6). Recorded in `decisions.jsonl`.
+- **GF** (sub-gate, loop): per surfaced flag, operator decides (one at a time, with a recommendation); `material` decisions trigger a changed-surface-only re-run (§5.6). Recorded in `decisions.jsonl`.
+- **Disposition walkthrough** (enrichment-stage operator turn, D-A17): the same surface→wait→apply
+  pattern applied to escalated enrichment findings — triaged not enumerated, ordering-dependency
+  aware, resumable (status per finding in `enrichment.json`); proposes, never decides.
 
 ---
 
@@ -793,16 +930,11 @@ jira_score = round(100 * (0.4 * coverage + 0.3 * link_integrity + 0.3 * field_co
 
 Five deterministic checks run at Generate/CI; any failing fails the build. 10.1–10.2 are the original contract checks; 10.3–10.5 enforce the registration contracts of §6.6.
 
-### 10.1 Vocabulary containment (D5, FR-DC-09)
+### 10.1 ~~Vocabulary containment~~ — ⛔ RETIRED (ADR-008; the vocabulary is deleted)
 
-```
-load V = vocabulary.<domain>.yaml (the canonical tag set)
-assert topics(brd_profile.<domain>) ⊆ V
-assert topics(frd_profile.<domain>) ⊆ V
-assert tags(code_map.json)          ⊆ V         # checked when a map exists
-FAIL → name the offending topic/tag and the file.
-# (the "every required topic has a producing adapter" assertion is §10.5, machine-read from adapter.yaml)
-```
+> Replaced by **§10.5′** below at build time, plus the D-A23 **context checks** (module/purpose
+> totality, `members[]` consistency, index completeness — run at ingest, reported in coverage) and
+> **artifact checks** (§15→§4, §8→§7, assertion verdicts, §16↔story — run by validators at gates).
 
 ### 10.2 Overlay parity (D9, FR-XS-20)
 
@@ -841,18 +973,24 @@ for s in UI_INPUT.sources:
 FAIL → name the source type with no registered connector.
 ```
 
-### 10.5 Adapter coverage + consistency (§6.6.3, D5/FR-DC-09)
+### 10.5 ~~Adapter coverage + consistency~~ — ⛔ RETIRED (ADR-008; `emits` is deleted)
+
+The pipeline-routing residue survives inside §10.4/§10.3: every `docs_pipeline` skill file exists;
+a `docs_pipeline` mapping carries a `default` lane (063B). The emit-map assertions die with tags.
+
+### 10.5′ Disposition-class totality (D11.3, D-A23 — the new §10 check)
 
 ```
-load A = profiles/<domain>/adapter/adapter.yaml ; V = vocabulary.<domain>.yaml
-emits(A) = ∪ skill.emits over ALL docs_pipeline variants (default + any per-type lane) + code_pipeline
-assert emits(A) ⊆ V                                         # pack emits only known tags
-assert every required:true topic in (brd_profile ∪ frd_profile) ∈ emits(A)   # produced by SOME reachable lane
-assert emits(A) == V."emitted by" mapping                   # adapter.yaml and vocabulary cannot drift (per-tag, unioned)
-assert every adapter.yaml skill file (across all docs_pipeline variants) exists under profiles/<domain>/adapter/
-assert a docs_pipeline mapping carries a `default` lane                       # routing fallback is required (063B)
-FAIL → name the uncovered required topic, the drifting tag, the missing skill file, or the missing `default`.
+load M = the D-A13 routing matrix (declared with the SI section contract)
+load T = the disposition taxonomy offered by the UI (D-A12)
+assert every SI section (except §1/§17/§18) has ≥1 input source routed in M   # no orphan section
+assert every disposition class in T appears in ≥1 M cell                      # no orphan class
+assert every conditional section is marked conditional in the SI profile      # FR-SI-06 renders
+FAIL → name the orphan section or class.
 ```
+
+**§10 net: four checks** — 10.2 parity (amended roles) · 10.3 domain artifacts (SI profile +
+`jira_template`; no vocabulary) · 10.4 connector coverage (+ pipeline-file residue) · 10.5′ totality.
 
 ---
 

@@ -1,10 +1,12 @@
 # ADR-008 — Solution Intent pivot (BRD/FRD → Solution Intent, tag removal, disposition routing)
 
-**Status:** 🚧 **DRAFT — Phase A (decide) COMPLETE, all 8 items locked.** Not yet binding. Becomes
-binding when Phase B (ladder re-cut) lands and this ADR is marked Accepted.
+**Status:** ✅ **ACCEPTED 2026-07-31** — Phase B (ladder re-cut) landed. `REQUIREMENTS.md` v2 (D11 +
+supersession notice) and `TECH_SPEC.md` (per-section amendments) now bind; this ADR's D-A blocks are
+**normative for the new subsystems** until the next spec consolidation.
 
-**Supersedes (when accepted):** D1, D3a, D5, D7 — and provisionally D4, D6, D9. Exact
-supersession list is finalised in Phase B.
+**Supersedes:** D1, D2, D3a, D5 (⛔) · amends D3b, D4, D6a, D9 (🔧) · D6b/c, D7, D8, D10 survive.
+FR-BR-\*/FR-FR-\* retired → FR-SI-\*/FR-EN-\*; FR-DC-08/09/20/21/22/23 retired; FR-DC-24…29 added;
+FR-JR-01…04 amended. Full disposition table: `REQUIREMENTS.md` header.
 
 **Why this file exists now:** Phase A is a multi-session design discussion. Per `CLAUDE.md`,
 durable state lives in files and git, never in the conversation. Decisions are recorded here as
