@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 """metrics_scan.py — derive the MVP metrics from ``telemetry.jsonl`` (§8.2, FR-MX-01, NFR-06).
 
+⚠ **STALE post-ADR-008 — re-cut is TASK-125.** Every derivation below keys off the retired
+BRD/FRD stage vocabulary (`brd_authoring` / `frd_authoring` / `code_impact`), which TASK-104
+replaced with `ingest / si_v1 / enrichment / si_v2 / jira` — the schemas now REJECT the old
+names, so a real run's stream matches nothing here and the metrics come out empty. The
+self-contained `_demo` still passes only because it builds its own pre-pivot events. The
+amended metric set is FR-MX-02 (M01 $/SI-v1, M02 $/enrichment, M06 v1→v2 cycle, **M12
+enrichment yield** = the `verdict.route` counts auto_correct + auto_write + auto_fill).
+
 Read-only scan of the run ledger's telemetry stream. Every MVP metric (§8.2) is computed
 HERE from the events alone — **no metric is hand-entered** (NFR-06): the §8.1 events are
 the single source. The scan never writes, never blocks, and assigns no meaning beyond the

@@ -210,6 +210,9 @@ connector's placeholder per hard rule **S**, done as connectors land on the VDI 
 - [x] TASK-103 — `UI_INPUT` v2 (D-A12/D-A13): `core/scripts/dispositions.py` is the single taxonomy definition (shared by backend validation + the §10.5′ check at TASK-108); every source carries `disposition` as a **list** (one-or-more, default one), `codebase` auto-set for repo sources and rejected on doc sources (and vice versa); `frame.overview` required (§1 identity, seeds §7, Arm 1's query context); UI gains a per-doc-row disposition selector + Initiative Overview; scaffold gains `solution_intent/`. Proof: 8 validation probes (7 reject, multi-disposition accepts), emit honors operator pick *and* type default, all 8 fixture verifies green, §10 3/3. Also fixed two TASK-100/102 fallouts: `verify_generate`'s stale prompt names, `verify_registry`'s negative test deleting the retired vocabulary
 - [x] TASK-102 — Runtime-tool seam re-cut: `overlay_manifest.yaml` transcribed from D11.7 (8 roles — `solution_intent_*` ← `brd_*`, + `claim_verifier`/`disposition_walkthrough`, `frd_*` out; `prompt_files [start-ingest, start-si, start-enrich, start-jira]`; invocability = D-A23 interactive set); renames landed (skills + `solution_intent_validator.py` + wrappers + prompts, both tools) with identifier swaps; 4 new-role wrappers + 4 skill stubs (`claim_verifier`/`disposition_walkthrough`/`jira_author`/`jira_validator` — full content TASK-119/120/122/123); `instruction_file.template.md` stage narrative re-cut to SI→enrichment→Jira; `generate_instruction.py` gestures re-pointed; parity `_demo` re-cut. Proof: §10.2 green (8+4 both tools), demo green, §10 3/3, no `brd_`/`frd_` filename remains, every wrapper pointer resolves
 
+**Phase D · Milestone D1 — Input side**
+- [x] TASK-104 — Ledger stages + enrichment event vocabulary: stage vocabulary → `ingest / si_v1 / enrichment / si_v2 / jira` (both schemas + `telemetry.STAGES` + `ledger.SLICE_STAGES`; `code_map` folds into `ingest` as the code lane of the fan-out, `jira` merges authoring+push — the `jira_push` *event* survives); three enrichment events with typed emitters — `verdict` (`finding_id`, `arm` `impact`|`claim`, `verdict`, `route`), `escalation` (`reason` = the four D-A16 triggers, `severity` for D-A17 triage), `disposition` (`call` `accept|reject|reroute|defer` — the D-A16 defer path, `target`); `decisions.py` gains the `disposition` walkthrough record — the **only** place the operator's rationale is written (writer enforces `reject` has no `target`, placing calls do); `runs/_template/ledger/` refreshed to 5 stages. **`verdict.route` is the M12 enrichment-yield feed** (corrections/derived impacts/auto-fills = three counts over one field). Proof: 10 negative + 9 positive schema cases incl. retired-stage rejection in both ledgers, full-pipeline `_demo` (M01 $/SI-v1, M02 $/enrichment, M12 yield, G2's every-escalation-answered precondition all derivable), §10 3/3, all 8 fixture verifies green. *(Left for their owners: `validation.artifact` stays `brd/frd/jira` → TASK-110/121/123; `metrics_scan.py` still pre-pivot → TASK-125, now carrying a STALE banner; `vocab_gap_flag` kept until §3.6 consolidates — its producer died at TASK-100.)*
+
 ---
 
 ## Disposition of the pre-pivot open tasks (TASK-056, 064–083 — none carries over verbatim)
@@ -240,7 +243,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ## Open index (tick here; then collapse the task into the done ledger above)
 
 **Milestone D1 — Input side (UI_INPUT, routing, index, Jira ingest)**
-- [ ] TASK-104 — Ledger stages + enrichment event vocabulary · `Sonnet`
 - [ ] TASK-105 — Manifest v2 + disposition routing + adapter shrink · `Sonnet`
 - [ ] TASK-106 — Per-artifact index + completeness (guardrail 7) · `Opus`
 - [ ] TASK-107 — `ingest_jira.py` connector (Prior Artifact source type) · `Sonnet`
@@ -278,18 +280,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ---
 
 ## Milestone D1 — Input side
-
-### TASK-104 — Ledger stages + enrichment event vocabulary
-- **Depends on:** TASK-103.
-- **Model:** Sonnet.
-- **Reads:** §3.4–3.6 (banner note) · §8.1 · D-A16/17 (what a disposition record carries).
-- **Creates / edits:** `core/scripts/telemetry.py` + `schemas/{telemetry,run_state,decisions}.schema.json`
-  + `decisions.py`: `run_state` stages → `ingest / si_v1 / enrichment / si_v2 / jira`; new events
-  `verdict`, `escalation`, `disposition` (+ enrichment stage start/end); `decisions.jsonl` gains
-  the walkthrough record (finding id, operator call, rationale); `runs/_template/ledger/` refreshed.
-- **Acceptance:** schema validators accept the new events/stages and reject the old stage names;
-  existing emit() call sites still validate.
-- **Proof:** schema round-trip on fixture events; template ledger validates.
 
 ### TASK-105 — Manifest v2 + disposition routing + adapter shrink
 - **Depends on:** TASK-103.

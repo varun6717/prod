@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "run_state.schema.json",
-  "title": "run_state.json — current run state (TECH_SPEC §3.5, D8a/NFR-08)",
-  "description": "One per run; replaceable (last-write-wins). Makes resume explicit: a session reads this + the existing artifacts and continues from current_stage without redoing `done` stages (§9). Records run progress only — never artifact content (FR-XS-05).",
+  "title": "run_state.json — current run state (TECH_SPEC §3.5, D8a/NFR-08; ADR-008 stage vocabulary)",
+  "description": "One per run; replaceable (last-write-wins). Makes resume explicit: a session reads this + the existing artifacts and continues from current_stage without redoing `done` stages (§9). Stages are the ADR-008 pipeline (ingest → si_v1 → enrichment → si_v2 → jira); the BRD/FRD-era names are retired and rejected. Records run progress only — never artifact content (FR-XS-05).",
   "type": "object",
   "required": ["run_id", "current_stage", "stages"],
   "additionalProperties": false,
@@ -18,8 +18,8 @@
   },
   "$defs": {
     "stage": {
-      "enum": ["ingest", "code_map", "brd_authoring", "code_impact",
-               "frd_authoring", "jira_authoring", "jira_push"]
+      "description": "Kept identical to telemetry.schema.json's stage vocabulary — the two ledgers must never drift (telemetry.mark_stage advances both in lock-step).",
+      "enum": ["ingest", "si_v1", "enrichment", "si_v2", "jira"]
     },
     "stage_status": {
       "type": "object",

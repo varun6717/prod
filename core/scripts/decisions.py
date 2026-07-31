@@ -1,19 +1,27 @@
 #!/usr/bin/env python3
-"""`decisions.jsonl` writers — the gate + flag audit ledger (§3.6, NFR-03).
+"""`decisions.jsonl` writers — the gate + flag + walkthrough audit ledger (§3.6, NFR-03).
 
-Append-only, one JSON object per line. Four record `kind`s, all here so §3.6 lives
+Append-only, one JSON object per line. Five record `kind`s, all here so §3.6 lives
 in one place (the unified ledger-writing surface re-exports them via ``telemetry.py``):
 
   - ``gate`` — a human acceptance gate decision (G1/G2/G3): who/when/outcome/version.
     The audit twin of the ``gate_decision`` telemetry event (which feeds M04); the
     rationale-bearing record of the decision (NFR-03).
-  - ``flag`` — an operator disposition of a BRD-authoring flag (scope ripple, etc.):
+  - ``flag`` — an operator disposition of an SI-authoring flag (scope ripple, etc.):
     who/when/option/severity/**rationale** (D6c material-vs-advisory). Twin of the
     ``flag_decision`` telemetry event.
+  - ``disposition`` — the operator's call on an **escalated enrichment finding** at the
+    disposition walkthrough (D-A16/D-A17). Twin of the ``disposition`` telemetry event,
+    and the only place the **rationale** is written: `enrichment.json` records what each
+    finding was, this records *why the human decided what they decided*. Together with the
+    frozen `v1.md` they are what makes v2 reconstructable and auditable at G2.
   - ``reonboard_flag`` — the *extractor* coverage floor was tripped (§5.4, FR-DC-16):
     "a structural idiom the frozen tool can't parse — re-bless it?"
   - ``vocab_gap_flag`` — the *vocabulary* adequacy detector raised its hand
     (§5.4.1, ADR-003 / FR-DC-21): "a concept the frozen dictionary can't tag."
+    ⚠ Its producer (`checks/vocab_adequacy.py`) was deleted with the vocabulary in the
+    ADR-008 retirement sweep (TASK-100) and §5.4.1 is retired; the writer + schema branch
+    are kept only until §3.6 is consolidated, so nothing reading old ledgers breaks.
 
 ``reonboard_flag`` / ``vocab_gap_flag`` are the same shape of event: a **frozen artifact
 noticing it has been outgrown and asking a human**. Neither writer mutates the artifact —
@@ -34,6 +42,16 @@ from pathlib import Path
 from typing import Sequence
 
 DEFAULT_ACTOR = "vmunjal"
+
+# The operator's four possible calls at the disposition walkthrough (D-A16/D-A17). Kept in
+# lock-step with telemetry.schema.json's `call` enum. `defer` is not optional politeness —
+# an operator who genuinely cannot answer "have we ever done this?" must be able to say so,
+# or the walkthrough manufactures false certainty exactly where the design demands honesty.
+WALKTHROUGH_CALLS: tuple[str, ...] = ("accept", "reject", "reroute", "defer")
+
+# Calls that place the finding in an SI section (so `target` is required). `reject` is the
+# odd one out: the finding was wrong (an Arm 1 search miss) and is dropped, not placed.
+_PLACING_CALLS = frozenset({"accept", "reroute", "defer"})
 
 
 def _now_iso() -> str:
@@ -108,6 +126,51 @@ def flag(
         record["area"] = area
     record["option"] = option
     record["severity"] = severity
+    record["rationale"] = rationale
+    record["actor"] = actor
+    return append_decision(ledger_path, record)
+
+
+def disposition(
+    ledger_path: str | Path,
+    *,
+    finding_id: str,
+    call: str,
+    rationale: str,
+    target: str | None = None,
+    actor: str = DEFAULT_ACTOR,
+    ts: str | None = None,
+) -> dict:
+    """Write a ``disposition`` record (§3.6 / D-A16 / D-A17) — the walkthrough's audit line.
+
+    One record per **escalated** enrichment finding the operator dispositions. Most findings
+    never get one: grounded, unambiguous findings auto-apply and are recorded as ``verdict``
+    telemetry only. This kind exists for the ones needing judgment — ambiguous, scope-moving,
+    or would overrule a human.
+
+    ``finding_id`` points into ``enrichment.json`` (the ledger never inlines the finding —
+    FR-XS-05). ``call`` is one of ``WALKTHROUGH_CALLS``; ``target`` is the SI section it
+    landed in (``"§16"``, ``"§14"``, ``"§7"``, ``"§8"``, ``"§12"``, ``"§17"``) and is required
+    for every call except ``reject``, which drops the finding rather than placing it.
+
+    ``rationale`` is mandatory and is the whole point of the record: this is the *only* file
+    in the run that says **why**. The telemetry twin (``disposition`` event) carries the same
+    decision without the prose, so metrics can count dispositions without reading rationales.
+    """
+    if call not in WALKTHROUGH_CALLS:
+        raise ValueError(f"disposition call must be one of {WALKTHROUGH_CALLS} (D-A16); got {call!r}")
+    if call in _PLACING_CALLS and not target:
+        raise ValueError(f"disposition call {call!r} places the finding — `target` (the SI section) is required")
+    if call == "reject" and target:
+        raise ValueError("disposition call 'reject' drops the finding — it has no `target` section")
+    record: dict = {
+        "ts": ts or _now_iso(),
+        "kind": "disposition",
+        "finding_id": finding_id,
+        "call": call,
+    }
+    if target:
+        record["target"] = target
     record["rationale"] = rationale
     record["actor"] = actor
     return append_decision(ledger_path, record)

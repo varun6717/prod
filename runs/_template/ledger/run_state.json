@@ -5,13 +5,16 @@
     "ingest": {
       "status": "pending"
     },
-    "code_map": {
+    "si_v1": {
       "status": "pending"
     },
-    "brd_authoring": {
+    "enrichment": {
       "status": "pending"
     },
-    "frd_authoring": {
+    "si_v2": {
+      "status": "pending"
+    },
+    "jira": {
       "status": "pending"
     }
   }
