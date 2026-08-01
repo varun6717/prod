@@ -1,0 +1,361 @@
+{
+  "run_id": "r-2026-08-01-si1",
+  "project_key": "PBIROUTE",
+  "initiative": {
+    "local_id": "INIT",
+    "issue_type": "Initiative",
+    "summary": "1. Executive summary",
+    "description": "## 1. Executive summary\n\n*(Regenerated at enrichment: 9 findings applied to the body below.)*\n\nMastercard has issued brand mandate **MCS-2026-R3**, binding on JPMC Merchant Services, with full compliance required by **2026-09-30**. Enrichment has since checked v1's current-state claims against the Merchant Routing Service code and recorded the derived system impacts in \u00a716.",
+    "controls": {
+      "seal_id": "SEAL-12345",
+      "control_owner": "vmunjal",
+      "risk_classification": "medium"
+    }
+  },
+  "deliverables": [
+    {
+      "local_id": "D1",
+      "issue_type": "Deliverable",
+      "summary": "Authorization message layer update \u2014 new and modified ISO 8583 data elements",
+      "description": "code",
+      "kind": "code",
+      "parent": "INIT"
+    },
+    {
+      "local_id": "D2",
+      "issue_type": "Deliverable",
+      "summary": "Banknet routing update \u2014 endpoint selection, Regulation II, MDES token routing",
+      "description": "code",
+      "kind": "code",
+      "parent": "INIT"
+    },
+    {
+      "local_id": "D3",
+      "issue_type": "Deliverable",
+      "summary": "Interchange qualification update",
+      "description": "code",
+      "kind": "code",
+      "parent": "INIT"
+    },
+    {
+      "local_id": "D4",
+      "issue_type": "Deliverable",
+      "summary": "Downstream reporting changes \u2014 DSR, Regulation II quarterly, MDES coverage",
+      "description": "code + operational",
+      "kind": "code",
+      "parent": "INIT"
+    },
+    {
+      "local_id": "D5",
+      "issue_type": "Deliverable",
+      "summary": "MAC Level 2 certification package",
+      "description": "**non-code**",
+      "kind": "non_code",
+      "parent": "INIT"
+    }
+  ],
+  "epics": [
+    {
+      "local_id": "R1",
+      "issue_type": "Epic",
+      "parent": "D99",
+      "summary": "R1",
+      "assertion_refs": [
+        "R1.1",
+        "R1.2",
+        "R1.3"
+      ],
+      "controls": {
+        "seal_id": "SEAL-12345",
+        "control_owner": "vmunjal",
+        "risk_classification": "medium"
+      }
+    },
+    {
+      "local_id": "R2",
+      "issue_type": "Epic",
+      "parent": "D1",
+      "summary": "R2",
+      "assertion_refs": [
+        "R2.1",
+        "R2.2",
+        "R2.3",
+        "R2.4",
+        "R2.5"
+      ],
+      "controls": {
+        "seal_id": "SEAL-12345",
+        "control_owner": "",
+        "risk_classification": "medium"
+      }
+    },
+    {
+      "local_id": "R3",
+      "issue_type": "Epic",
+      "parent": "D1",
+      "summary": "R3",
+      "assertion_refs": [
+        "R3.1",
+        "R3.2",
+        "R3.3",
+        "R3.4"
+      ],
+      "controls": {
+        "seal_id": "SEAL-12345",
+        "control_owner": "vmunjal",
+        "risk_classification": "medium"
+      }
+    },
+    {
+      "local_id": "R4",
+      "issue_type": "Epic",
+      "parent": "D2",
+      "summary": "R4",
+      "assertion_refs": [
+        "R4.1",
+        "R4.2",
+        "R4.3",
+        "R4.4"
+      ],
+      "controls": {
+        "seal_id": "SEAL-12345",
+        "control_owner": "vmunjal",
+        "risk_classification": "medium"
+      }
+    },
+    {
+      "local_id": "R5",
+      "issue_type": "Epic",
+      "parent": "D2",
+      "summary": "R5",
+      "assertion_refs": [
+        "R5.1",
+        "R5.2",
+        "R5.3",
+        "R5.4"
+      ],
+      "controls": {
+        "seal_id": "SEAL-12345",
+        "control_owner": "vmunjal",
+        "risk_classification": "medium"
+      }
+    },
+    {
+      "local_id": "R6",
+      "issue_type": "Epic",
+      "parent": "D2",
+      "summary": "R6",
+      "assertion_refs": [
+        "R6.1",
+        "R6.2"
+      ],
+      "controls": {
+        "seal_id": "SEAL-12345",
+        "control_owner": "vmunjal",
+        "risk_classification": "medium"
+      }
+    },
+    {
+      "local_id": "R7",
+      "issue_type": "Epic",
+      "parent": "D3",
+      "summary": "R7",
+      "assertion_refs": [
+        "R7.1",
+        "R7.2",
+        "R7.3"
+      ],
+      "controls": {
+        "seal_id": "SEAL-12345",
+        "control_owner": "vmunjal",
+        "risk_classification": "medium"
+      }
+    },
+    {
+      "local_id": "R8",
+      "issue_type": "Epic",
+      "parent": "D1",
+      "summary": "R8",
+      "assertion_refs": [
+        "R8.1",
+        "R8.2",
+        "R8.3",
+        "R8.4"
+      ],
+      "controls": {
+        "seal_id": "SEAL-12345",
+        "control_owner": "vmunjal",
+        "risk_classification": "medium"
+      }
+    },
+    {
+      "local_id": "R9",
+      "issue_type": "Epic",
+      "parent": "D2",
+      "summary": "R9",
+      "assertion_refs": [
+        "R9.1",
+        "R9.2",
+        "R9.3"
+      ],
+      "controls": {
+        "seal_id": "SEAL-12345",
+        "control_owner": "vmunjal",
+        "risk_classification": "medium"
+      }
+    },
+    {
+      "local_id": "R10",
+      "issue_type": "Epic",
+      "parent": "D1",
+      "summary": "R10",
+      "assertion_refs": [
+        "R10.1",
+        "R10.2",
+        "R10.3"
+      ],
+      "controls": {
+        "seal_id": "SEAL-12345",
+        "control_owner": "vmunjal",
+        "risk_classification": "medium"
+      }
+    },
+    {
+      "local_id": "R11",
+      "issue_type": "Epic",
+      "parent": "D4",
+      "summary": "R11",
+      "assertion_refs": [
+        "R11.1",
+        "R11.2",
+        "R11.3",
+        "R11.4",
+        "R11.5"
+      ],
+      "controls": {
+        "seal_id": "SEAL-12345",
+        "control_owner": "vmunjal",
+        "risk_classification": "medium"
+      }
+    },
+    {
+      "local_id": "R12",
+      "issue_type": "Epic",
+      "parent": "D5",
+      "summary": "R12",
+      "assertion_refs": [
+        "R12.1",
+        "R12.2",
+        "R12.3",
+        "R12.4"
+      ],
+      "controls": {
+        "seal_id": "SEAL-12345",
+        "control_owner": "vmunjal",
+        "risk_classification": "medium"
+      }
+    }
+  ],
+  "stories": [
+    {
+      "local_id": "S1",
+      "issue_type": "Story",
+      "parent": "R1",
+      "evidence": "F-999",
+      "summary": "Update iso8583.c for R1.1",
+      "description": "Change grounded in F-301 at src/messaging/iso8583.c.",
+      "acceptance_criteria": "iso8583.c exhibits the asserted behaviour, verified by a regression test at that location.",
+      "code_location": "src/messaging/iso8583.c"
+    },
+    {
+      "local_id": "S2",
+      "issue_type": "Story",
+      "parent": "R2",
+      "evidence": "F-302",
+      "summary": "Update field_codec.c for R2.1",
+      "description": "Change grounded in F-302 at src/messaging/field_codec.c."
+    },
+    {
+      "local_id": "S3",
+      "issue_type": "Story",
+      "parent": "R4",
+      "evidence": "F-303",
+      "summary": "Update route_table.c for R4.1",
+      "description": "Change grounded in F-303 at src/routing/route_table.c.",
+      "acceptance_criteria": "route_table.c exhibits the asserted behaviour, verified by a regression test at that location.",
+      "code_location": "src/routing/route_table.c"
+    },
+    {
+      "local_id": "S4",
+      "issue_type": "Story",
+      "parent": "R6",
+      "evidence": "F-304",
+      "summary": "Update dispatch.c for R6.1",
+      "description": "Change grounded in F-304 at src/routing/dispatch.c.",
+      "acceptance_criteria": "dispatch.c exhibits the asserted behaviour, verified by a regression test at that location.",
+      "code_location": "src/routing/dispatch.c"
+    },
+    {
+      "local_id": "S5",
+      "issue_type": "Story",
+      "parent": "R11",
+      "evidence": "F-310",
+      "summary": "Build the capability for R11.5",
+      "description": "No implementation exists (F-310); build it.",
+      "acceptance_criteria": "The new component satisfies the assertion end to end and is covered by a test that fails without it.",
+      "flag": "new_build"
+    },
+    {
+      "local_id": "S6",
+      "issue_type": "Story",
+      "parent": "R11",
+      "evidence": "F-311",
+      "summary": "Update ledger_post.c for R11",
+      "description": "Change grounded in F-311 at src/settlement/ledger_post.c.",
+      "acceptance_criteria": "ledger_post.c exhibits the asserted behaviour, verified by a regression test at that location.",
+      "code_location": "src/settlement/ledger_post.c"
+    },
+    {
+      "local_id": "S7",
+      "issue_type": "Story",
+      "parent": "R12",
+      "evidence": "D5",
+      "flag": "non_code",
+      "summary": "Deliver D5 (non-code work package)",
+      "description": "Prepare and submit the non-code deliverable.",
+      "acceptance_criteria": "The deliverable is accepted by its external counterparty and the acceptance is recorded."
+    }
+  ],
+  "trace": {
+    "section16_entries": [
+      "F-301",
+      "F-310",
+      "F-311",
+      "F-302",
+      "F-303",
+      "F-304"
+    ],
+    "requirements": [
+      "R1",
+      "R2",
+      "R3",
+      "R4",
+      "R5",
+      "R6",
+      "R7",
+      "R8",
+      "R9",
+      "R10",
+      "R11",
+      "R12"
+    ],
+    "deliverables": [
+      "D1",
+      "D2",
+      "D3",
+      "D4",
+      "D5"
+    ]
+  },
+  "_comment": "Deliberately broken plan (TASK-123). Each defect targets exactly one G3 check: an epic whose deliverable does not exist (broken \u00a78\u2192\u00a77 trace), a story traced to nothing (invented work), a story with neither acceptance criteria nor a location, and an epic missing a controls field. The dropped-impact case is exercised by withholding a \u00a716 id from the covered set at check time."
+}

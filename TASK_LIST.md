@@ -246,6 +246,7 @@ connector's placeholder per hard rule **S**, done as connectors land on the VDI 
 
 **Phase D · Milestone D5 — Jira**
 - [x] TASK-122 — `jira_author` + `jira_template` (4-level plan): 🆕 `core/templates/payment_brand/jira_template.payment_brand.yaml` (the second half of the domain seam) + 🆕 `core/skills/jira_author.skill.md` + 🆕 `core/scripts/jira_plan.py`. Each level has **one** source (D-A15): Initiative ← the document · Deliverable ← §7 · Epic ← §8 **one per requirement** · Story ← §16 impacts *and* gaps *and* §7 non-code work, **v2 only** — which is why G3 follows G2 *for a reason* rather than by convention. **A requirement is epic-sized, not story-sized**; **§16's granularity IS story granularity** and is not re-litigated here. The **§8→§7 trace physically builds the parent chain**, so an orphan requirement yields an epic with no parent — which is what made it a G1 hard precondition. Exactly one of `code_location | flag`: a dispositioned gap becomes `new_build` with **no invented path**, and `non_code` carries certification/filing work that would otherwise appear in no plan at all. **The translation ADDS acceptance criteria** — they exist nowhere upstream, which is what makes story authoring a translation rather than a copy; and a **Technical Specification is never read off into stories** (it specifies the *external contract* and is code-blind about our system by construction — the network has never seen our codebase). **A latent bug the plan walk exposed:** the TASK-121 spine fixture generated finding ids like `F-3R11`, which violate the schema's `F-nnn` pattern — and only 2 of 6 §16 entries parsed, so the story-coverage check would have passed on a subset. Root cause: **`verify_spine` never validated its own record**; it does now, plus an explicit id-contract check. Proof: 🆕 `fixtures/jira_plan/verify_jira_plan.py` — **26 checks**: four levels from their declared sources, no orphan at any level, **all 6 §16 entries covered** both directions, gaps as `new_build`, non-code stories present, acceptance criteria absent from v2 (authored, not copied), SI ids carried verbatim as push idempotency anchors. §10.3 green with `jira_template` in scope; all 23 verifies green.
+- [x] TASK-123 — `jira_validator` + G3: 🆕 `core/scripts/jira_validator.py` + `core/skills/jira_validator.skill.md` — **G3 is the real technical-quality gate** (D-A1) and the last point at which anything is reviewable before the run's **only external mutation**. Scores `0.4×traceability + 0.3×testability + 0.3×field_completeness` per **§9.4** — noting that the task line item summarised it as `0.5/0.5`; the §9.4 block is normative, so the three-part form is implemented and the discrepancy is **flagged rather than silently resolved either way**. **The two guardrails run in opposite directions on purpose**: every §16 entry → ≥1 story catches a **dropped impact**; every story → §16/§7 catches an **invented story**. Checking only one passes a plan that is perfectly grounded and missing half the work, *or* one padded with fabrications — and both failures are silent. `traceability == 1.0` is **absolute, not "high"**: 0.98 means one piece of work is unaccounted for and there is no cheap way to find which after the push. ⚠️ **Observation worth V's attention (same shape as the G2 finding):** the deliberately-broken plan — broken §8→§7 hierarchy, an invented story, an untestable story, a missing controls field — still **scores 91**, above the 85 threshold. It is refused *only* by the hard checks. So at G3 the soft score is a weak signal and the hard preconditions carry the gate; the proof asserts this explicitly ("the score alone would have let it through"). 🆕 `fixtures/jira_plan/{plan_pass,plan_fail}.json` (one defect per hard check, so the report is checkable line by line). Proof: 🆕 `verify_jira_validator.py` — **22 checks**: each guardrail catching what the other misses, a dispositioned §16 entry legitimately excused, all three hard checks firing with named violations, a near-perfect plan still refused, and accept refused on an ineligible plan because what follows is irreversible. §10 4/4; all **24** verifies green.
 
 ---
 
@@ -277,7 +278,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ## Open index (tick here; then collapse the task into the done ledger above)
 
 **Milestone D5 — Jira (4-level plan + the only external mutation)**
-- [ ] TASK-123 — `jira_validator` + G3 · `Opus`
 - [ ] TASK-124 — Jira push seam + `jira_trace.json` · `Opus`
 
 **Milestone D6 — Metrics, docs, acceptance**
@@ -288,23 +288,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ---
 
 ## Milestone D5 — Jira (4-level plan + the only external mutation)
-
-### TASK-123 — `jira_validator` + G3
-- **Depends on:** TASK-122.
-- **Model:** Opus.
-- **Reads:** §9.4 (amended — absorbs the FRD formula) · D-A1 (G3 = the real technical-quality
-  gate) · D-A23 family 3 (the two story guardrails) · D-A15 (the reverse completeness check:
-  do the stories, together, satisfy the tech letter?) · the old `frd_validator.py` at git
-  `0d7d8aa` (salvage the scoring code, don't rewrite it).
-- **Creates / edits:** `core/skills/jira_validator.skill.md` + `core/scripts/jira_validator.py`:
-  `0.5×traceability + 0.5×testability` over the 4-level plan; hard checks — every §16 entry →
-  ≥1 story (dropped-impact catch); every story → §16/§7 (invented-story catch); every story names
-  code or is flagged; parent-chain integrity (no orphan epic/deliverable); the tech-letter
-  completeness pass where a TechSpec source exists. G3 wiring through `gate.py`;
-  `fixtures/jira_plan/{plan_pass,plan_fail}.json`.
-- **Acceptance:** pass/fail fixtures score correctly with named violations; G3 stays an operator
-  act (D4).
-- **Proof:** validator over both fixtures + the TASK-122 plan.
 
 ### TASK-124 — Jira push seam + `jira_trace.json`
 - **Depends on:** TASK-123, TASK-052 (auth seam).
