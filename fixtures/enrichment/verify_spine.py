@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import sys
 import tempfile
 from pathlib import Path
@@ -81,13 +82,13 @@ def build_findings(signals) -> dict:
                               evidence=[{"path": "src/settlement/reconciler.c"}],
                               reasoning="reconciler parses field 48; §13's A2 assumption is wrong"))
     # Arm 1 — impacts per requirement, plus a no-code gap
-    for rid, aid, path, why in [
+    for i, (rid, aid, path, why) in enumerate([
         ("R1", "R1.1", "src/messaging/iso8583.c", "field 48 build path carries the TRID"),
         ("R2", "R2.1", "src/messaging/field_codec.c", "codec table widens for 48.66/48.78"),
         ("R4", "R4.1", "src/routing/route_table.c", "BIN lookup resolves against MBT v2026-Q2"),
         ("R6", "R6.1", "src/routing/dispatch.c", "token BINs must reach the MDES endpoint"),
-    ]:
-        E.add(rec, E.make_finding(f"F-3{aid.replace('.', '')}", arm="impact",
+    ], start=1):
+        E.add(rec, E.make_finding(f"F-3{i:02d}", arm="impact",
                                   kind="derived_impact", business_visible=False,
                                   requirement_ref=rid, assertion_ref=aid, verdict="impacted",
                                   evidence=[{"path": path}], reasoning=why))
@@ -139,6 +140,12 @@ def main() -> int:
 
     # ── apply
     v2, report = A.apply_to_v2(v1, rec, regenerate_summary=_summary)
+
+    _check("the enrichment record itself validates against the schema", not E.validate(rec),
+           str(E.validate(rec)[:2]))
+    _check("every finding id follows the F-nnn contract",
+           all(re.fullmatch(r"F-\d{3,}", f["id"]) for f in rec["findings"]),
+           str([f["id"] for f in rec["findings"] if not re.fullmatch(r"F-\d{3,}", f["id"])][:3]))
 
     print("\n2) v1 is untouched; v2 exists:")
     _check("v1 is byte-identical after the run", v1_path.read_text(encoding="utf-8") == v1)

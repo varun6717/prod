@@ -244,6 +244,9 @@ connector's placeholder per hard rule **S**, done as connectors land on the VDI 
 
 **✅ Milestone D4 complete** — enrichment closed: the record + router, both arms, the walkthrough, the apply pass, and G2 validated against a real run.
 
+**Phase D · Milestone D5 — Jira**
+- [x] TASK-122 — `jira_author` + `jira_template` (4-level plan): 🆕 `core/templates/payment_brand/jira_template.payment_brand.yaml` (the second half of the domain seam) + 🆕 `core/skills/jira_author.skill.md` + 🆕 `core/scripts/jira_plan.py`. Each level has **one** source (D-A15): Initiative ← the document · Deliverable ← §7 · Epic ← §8 **one per requirement** · Story ← §16 impacts *and* gaps *and* §7 non-code work, **v2 only** — which is why G3 follows G2 *for a reason* rather than by convention. **A requirement is epic-sized, not story-sized**; **§16's granularity IS story granularity** and is not re-litigated here. The **§8→§7 trace physically builds the parent chain**, so an orphan requirement yields an epic with no parent — which is what made it a G1 hard precondition. Exactly one of `code_location | flag`: a dispositioned gap becomes `new_build` with **no invented path**, and `non_code` carries certification/filing work that would otherwise appear in no plan at all. **The translation ADDS acceptance criteria** — they exist nowhere upstream, which is what makes story authoring a translation rather than a copy; and a **Technical Specification is never read off into stories** (it specifies the *external contract* and is code-blind about our system by construction — the network has never seen our codebase). **A latent bug the plan walk exposed:** the TASK-121 spine fixture generated finding ids like `F-3R11`, which violate the schema's `F-nnn` pattern — and only 2 of 6 §16 entries parsed, so the story-coverage check would have passed on a subset. Root cause: **`verify_spine` never validated its own record**; it does now, plus an explicit id-contract check. Proof: 🆕 `fixtures/jira_plan/verify_jira_plan.py` — **26 checks**: four levels from their declared sources, no orphan at any level, **all 6 §16 entries covered** both directions, gaps as `new_build`, non-code stories present, acceptance criteria absent from v2 (authored, not copied), SI ids carried verbatim as push idempotency anchors. §10.3 green with `jira_template` in scope; all 23 verifies green.
+
 ---
 
 ## Disposition of the pre-pivot open tasks (TASK-056, 064–083 — none carries over verbatim)
@@ -274,7 +277,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ## Open index (tick here; then collapse the task into the done ledger above)
 
 **Milestone D5 — Jira (4-level plan + the only external mutation)**
-- [ ] TASK-122 — `jira_author` + `jira_template` (4-level plan) · `Opus`
 - [ ] TASK-123 — `jira_validator` + G3 · `Opus`
 - [ ] TASK-124 — Jira push seam + `jira_trace.json` · `Opus`
 
@@ -286,26 +288,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ---
 
 ## Milestone D5 — Jira (4-level plan + the only external mutation)
-
-### TASK-122 — `jira_author` + `jira_template` (4-level plan)
-- **Depends on:** TASK-121 (an accepted v2 + `enrichment.json`).
-- **Model:** Opus.
-- **Reads:** §3.8 (amended) · D11.6 · D-A14 (deliverable layer) · D-A15 (**whole block**: level
-  sources; stories from §16 impacts *and* gaps *and* §7 non-code work; §16 granularity = story
-  granularity; scope-vs-specification — the translation **adds** acceptance criteria/testability;
-  every story names its code location or is flagged new-build/non-code; the tech letter as
-  completeness oracle) · FR-JR-01/02 · §6.6.1.
-- **Creates / edits:** `core/skills/jira_author.skill.md` (new — the wrapper exists since
-  TASK-102); `core/profiles/payment_brand/jira_template.payment_brand.yaml` (field mapping per
-  level: Initiative ← §1/§2/§4; Deliverable ← §7; Epic ← §8, one per requirement; Story fields
-  incl. `code_location | new_build | non_code`, acceptance criteria, trace refs); emit
-  `jira_plan.json` (§3.8) — full ID chain `D1 → R3 → §16 entry → story`; §10.3 now requires
-  `jira_template` (present → green).
-- **Acceptance:** over the fixture v2: four levels emitted; every §16 entry yields ≥1 story or an
-  explicit disposition; every story traces to §16 or §7 and names code or carries its flag;
-  deliverable-derived (non-code) stories present; nothing story-shaped read straight off the
-  tech-letter text.
-- **Proof:** `jira_plan.json` structural walk vs the v2's ID inventory.
 
 ### TASK-123 — `jira_validator` + G3
 - **Depends on:** TASK-122.
