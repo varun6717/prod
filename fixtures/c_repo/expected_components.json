@@ -5,11 +5,18 @@
   "generated_at": "2026-08-01T00:00:00Z",
   "coverage": "coarse",
   "language": "c",
+  "languages": [
+    "c"
+  ],
+  "onboarded_languages": [
+    "c"
+  ],
   "built_with_extractor_sha": "ed703ff",
   "profile_sha": "52dd3db",
   "components": [
     {
-      "module": "auth_handler",
+      "module": "c:auth_handler",
+      "language": "c",
       "purpose": "authorization stage handler",
       "members": [
         "src/transaction/auth_handler.c"
@@ -18,8 +25,9 @@
       "purpose_confidence": 1.0
     },
     {
-      "module": "brand_group",
-      "purpose": "brand_group: 2 files covering brand, brands, cache, card",
+      "module": "c:brand_group",
+      "language": "c",
+      "purpose": "c:brand_group: 2 files covering brand, brands, cache, card",
       "members": [
         "src/config/brand_rules.c",
         "src/routing/brand_registry.c"
@@ -28,7 +36,8 @@
       "purpose_confidence": 0.7
     },
     {
-      "module": "capture_handler",
+      "module": "c:capture_handler",
+      "language": "c",
       "purpose": "capture_handler.c \u2014 capture-phase handler. (Tier 1, coverage: deep)",
       "members": [
         "src/transaction/capture_handler.c"
@@ -37,8 +46,9 @@
       "purpose_confidence": 1.0
     },
     {
-      "module": "config",
-      "purpose": "config: 2 files covering stratus, feature, build, declares",
+      "module": "c:config",
+      "language": "c",
+      "purpose": "c:config: 2 files covering stratus, feature, build, declares",
       "members": [
         "src/config/feature_flags.c",
         "vendor/stratus/tpf_compat.h"
@@ -47,7 +57,8 @@
       "purpose_confidence": 0.7
     },
     {
-      "module": "dispatch",
+      "module": "c:dispatch",
+      "language": "c",
       "purpose": "dispatch a routed txn to its handler entry point",
       "members": [
         "src/routing/dispatch.c"
@@ -56,7 +67,8 @@
       "purpose_confidence": 1.0
     },
     {
-      "module": "error_codes",
+      "module": "c:error_codes",
+      "language": "c",
       "purpose": "error code definitions and text",
       "members": [
         "src/errors/error_codes.c"
@@ -65,7 +77,8 @@
       "purpose_confidence": 1.0
     },
     {
-      "module": "fallback",
+      "module": "c:fallback",
+      "language": "c",
       "purpose": "fallback handling when a brand handler is unavailable",
       "members": [
         "src/errors/fallback.c"
@@ -74,7 +87,8 @@
       "purpose_confidence": 1.0
     },
     {
-      "module": "formatter",
+      "module": "c:formatter",
+      "language": "c",
       "purpose": "formatter.c \u2014 settlement + transaction message formatting. (Tier 1, deep)",
       "members": [
         "src/messaging/formatter.c"
@@ -83,7 +97,8 @@
       "purpose_confidence": 1.0
     },
     {
-      "module": "iso8583",
+      "module": "c:iso8583",
+      "language": "c",
       "purpose": "ISO 8583 message parse and build",
       "members": [
         "src/messaging/iso8583.c"
@@ -92,7 +107,8 @@
       "purpose_confidence": 1.0
     },
     {
-      "module": "iso8583_v2",
+      "module": "c:iso8583_v2",
+      "language": "c",
       "purpose": "ISO 8583 message parse and build (2003 revision)",
       "members": [
         "src/messaging/iso8583_v2.c"
@@ -101,8 +117,9 @@
       "purpose_confidence": 1.0
     },
     {
-      "module": "messaging",
-      "purpose": "messaging: 2 files covering codec, declares, decode, encode",
+      "module": "c:messaging",
+      "language": "c",
+      "purpose": "c:messaging: 2 files covering codec, declares, decode, encode",
       "members": [
         "src/messaging/codec.h",
         "src/messaging/field_codec.c"
@@ -111,7 +128,8 @@
       "purpose_confidence": 0.7
     },
     {
-      "module": "retry",
+      "module": "c:retry",
+      "language": "c",
       "purpose": "retry.c \u2014 bounded retry with backoff. (Tier 1, coverage: deep)",
       "members": [
         "src/errors/retry.c"
@@ -120,8 +138,9 @@
       "purpose_confidence": 1.0
     },
     {
-      "module": "routing",
-      "purpose": "routing: 11 files covering route, declares, ledger, reconcile",
+      "module": "c:routing",
+      "language": "c",
+      "purpose": "c:routing: 11 files covering route, declares, ledger, reconcile",
       "members": [
         "src/routing/brand_router.c",
         "src/routing/capture_route.c",
@@ -139,7 +158,8 @@
       "purpose_confidence": 0.62
     },
     {
-      "module": "settle_handler",
+      "module": "c:settle_handler",
+      "language": "c",
       "purpose": "settlement stage handler",
       "members": [
         "src/transaction/settle_handler.c"
@@ -148,8 +168,9 @@
       "purpose_confidence": 1.0
     },
     {
-      "module": "shared_interfaces",
-      "purpose": "shared_interfaces: 6 files covering declares, handle, struct, brand",
+      "module": "c:shared_interfaces",
+      "language": "c",
+      "purpose": "c:shared_interfaces: 6 files covering declares, handle, struct, brand",
       "members": [
         "include/brand.h",
         "include/common.h",
@@ -164,7 +185,8 @@
       "confidence_note": "low coherence \u2014 member purposes are heterogeneous, which is evidence the clustering is wrong, not merely that the text is poor"
     },
     {
-      "module": "txn_state",
+      "module": "c:txn_state",
+      "language": "c",
       "purpose": "txn_state.c \u2014 transaction phase state machine. (Tier 1, coverage: deep)",
       "members": [
         "src/transaction/txn_state.c"
@@ -178,7 +200,6 @@
     "files_extracted": 29,
     "files_fallback": 3,
     "files_unresolved": 3,
-    "coverage": 0.83,
     "unresolved_patterns": [
       "macro-generated functions in config/brand_rules.c (DECLARE_BRAND_HANDLER token-paste)",
       "#ifdef-gated registration + non-standard Stratus include in config/feature_flags.c",
@@ -187,9 +208,7 @@
       "computed function-pointer dispatch in routing/dispatch.c (lookup_handler() then fn(t))",
       "function-pointer table dispatch in routing/route_table.c (entry->handler->route)"
     ],
-    "files_declared_purpose": 21,
-    "declared_purpose_coverage": 0.6,
-    "files_declared_generic": 0,
+    "coverage": 0.83,
     "stage_distribution": {
       "A": 21,
       "--": 1,
@@ -209,7 +228,7 @@
       }
     ],
     "low_confidence_modules": [
-      "shared_interfaces"
+      "c:shared_interfaces"
     ]
   }
 }

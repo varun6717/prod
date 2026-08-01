@@ -5,12 +5,19 @@
   "generated_at": "2026-08-01T00:00:00Z",
   "coverage": "coarse",
   "language": "c",
+  "languages": [
+    "c"
+  ],
+  "onboarded_languages": [
+    "c"
+  ],
   "built_with_extractor_sha": "ed703ff",
   "profile_sha": "52dd3db",
   "files": [
     {
       "path": "include/brand.h",
-      "module": "shared_interfaces",
+      "language": "c",
+      "module": "c:shared_interfaces",
       "purpose": "card brand identifiers and rule struct",
       "purpose_source": "declared",
       "purpose_quality": "specific",
@@ -28,7 +35,8 @@
     },
     {
       "path": "include/common.h",
-      "module": "shared_interfaces",
+      "language": "c",
+      "module": "c:shared_interfaces",
       "purpose": null,
       "purpose_source": null,
       "purpose_quality": null,
@@ -42,7 +50,8 @@
     },
     {
       "path": "include/errors.h",
-      "module": "shared_interfaces",
+      "language": "c",
+      "module": "c:shared_interfaces",
       "purpose": "declares pdlc_strerror, retry_with_backoff, error_fallback, is_retryable",
       "purpose_source": "symbols",
       "purpose_quality": "generic",
@@ -60,7 +69,8 @@
     },
     {
       "path": "include/message.h",
-      "module": "shared_interfaces",
+      "language": "c",
+      "module": "c:shared_interfaces",
       "purpose": "ISO 8583 message struct and field accessors",
       "purpose_source": "declared",
       "purpose_quality": "specific",
@@ -80,7 +90,8 @@
     },
     {
       "path": "include/txn.h",
-      "module": "shared_interfaces",
+      "language": "c",
+      "module": "c:shared_interfaces",
       "purpose": "transaction struct and stage enum",
       "purpose_source": "declared",
       "purpose_quality": "specific",
@@ -100,7 +111,8 @@
     },
     {
       "path": "src/config/brand_rules.c",
-      "module": "brand_group",
+      "language": "c",
+      "module": "c:brand_group",
       "purpose": "brand rule table load and cache",
       "purpose_source": "declared",
       "purpose_quality": "specific",
@@ -119,7 +131,8 @@
     },
     {
       "path": "src/config/brand_rules.h",
-      "module": "shared_interfaces",
+      "language": "c",
+      "module": "c:shared_interfaces",
       "purpose": "declares get_brand_rule",
       "purpose_source": "symbols",
       "purpose_quality": "generic",
@@ -134,7 +147,8 @@
     },
     {
       "path": "src/config/feature_flags.c",
-      "module": "config",
+      "language": "c",
+      "module": "c:config",
       "purpose": "feature_flags.c \u2014 build-time feature toggles + Stratus registration",
       "purpose_source": "header_prose",
       "purpose_quality": "specific",
@@ -149,7 +163,8 @@
     },
     {
       "path": "src/errors/error_codes.c",
-      "module": "error_codes",
+      "language": "c",
+      "module": "c:error_codes",
       "purpose": "error code definitions and text",
       "purpose_source": "declared",
       "purpose_quality": "specific",
@@ -168,7 +183,8 @@
     },
     {
       "path": "src/errors/fallback.c",
-      "module": "fallback",
+      "language": "c",
+      "module": "c:fallback",
       "purpose": "fallback handling when a brand handler is unavailable",
       "purpose_source": "declared",
       "purpose_quality": "specific",
@@ -184,7 +200,8 @@
     },
     {
       "path": "src/errors/retry.c",
-      "module": "retry",
+      "language": "c",
+      "module": "c:retry",
       "purpose": "retry.c \u2014 bounded retry with backoff. (Tier 1, coverage: deep)",
       "purpose_source": "header_prose",
       "purpose_quality": "specific",
@@ -201,7 +218,8 @@
     },
     {
       "path": "src/messaging/codec.h",
-      "module": "messaging",
+      "language": "c",
+      "module": "c:messaging",
       "purpose": "declares codec_register",
       "purpose_source": "symbols",
       "purpose_quality": "generic",
@@ -216,7 +234,8 @@
     },
     {
       "path": "src/messaging/field_codec.c",
-      "module": "messaging",
+      "language": "c",
+      "module": "c:messaging",
       "purpose": "per-field encode/decode codec table",
       "purpose_source": "declared",
       "purpose_quality": "specific",
@@ -234,7 +253,8 @@
     },
     {
       "path": "src/messaging/formatter.c",
-      "module": "formatter",
+      "language": "c",
+      "module": "c:formatter",
       "purpose": "formatter.c \u2014 settlement + transaction message formatting. (Tier 1, deep)",
       "purpose_source": "header_prose",
       "purpose_quality": "specific",
@@ -254,7 +274,8 @@
     },
     {
       "path": "src/messaging/iso8583.c",
-      "module": "iso8583",
+      "language": "c",
+      "module": "c:iso8583",
       "purpose": "ISO 8583 message parse and build",
       "purpose_source": "declared",
       "purpose_quality": "specific",
@@ -273,7 +294,8 @@
     },
     {
       "path": "src/messaging/iso8583_v2.c",
-      "module": "iso8583_v2",
+      "language": "c",
+      "module": "c:iso8583_v2",
       "purpose": "ISO 8583 message parse and build (2003 revision)",
       "purpose_source": "declared",
       "purpose_quality": "specific",
@@ -290,7 +312,8 @@
     },
     {
       "path": "src/routing/brand_registry.c",
-      "module": "brand_group",
+      "language": "c",
+      "module": "c:brand_group",
       "purpose": "registry of known card brands and their handlers",
       "purpose_source": "declared",
       "purpose_quality": "specific",
@@ -312,7 +335,8 @@
     },
     {
       "path": "src/routing/brand_router.c",
-      "module": "routing",
+      "language": "c",
+      "module": "c:routing",
       "purpose": "route an authorization to the brand handler",
       "purpose_source": "declared",
       "purpose_quality": "specific",
@@ -336,7 +360,8 @@
     },
     {
       "path": "src/routing/capture_route.c",
-      "module": "routing",
+      "language": "c",
+      "module": "c:routing",
       "purpose": "route capture-stage traffic to settlement",
       "purpose_source": "declared",
       "purpose_quality": "specific",
@@ -357,7 +382,8 @@
     },
     {
       "path": "src/routing/dispatch.c",
-      "module": "dispatch",
+      "language": "c",
+      "module": "c:dispatch",
       "purpose": "dispatch a routed txn to its handler entry point",
       "purpose_source": "declared",
       "purpose_quality": "specific",
@@ -376,7 +402,8 @@
     },
     {
       "path": "src/routing/route_table.c",
-      "module": "routing",
+      "language": "c",
+      "module": "c:routing",
       "purpose": "reloadable brand routing table lookup",
       "purpose_source": "declared",
       "purpose_quality": "specific",
@@ -396,7 +423,8 @@
     },
     {
       "path": "src/routing/route_table.h",
-      "module": "routing",
+      "language": "c",
+      "module": "c:routing",
       "purpose": "declares route_via_table, route_table_install",
       "purpose_source": "symbols",
       "purpose_quality": "generic",
@@ -412,7 +440,8 @@
     },
     {
       "path": "src/routing/routing.h",
-      "module": "routing",
+      "language": "c",
+      "module": "c:routing",
       "purpose": "routing entry points",
       "purpose_source": "declared",
       "purpose_quality": "specific",
@@ -430,7 +459,8 @@
     },
     {
       "path": "src/settlement/batch.h",
-      "module": "routing",
+      "language": "c",
+      "module": "c:routing",
       "purpose": "declares batch_add, batch_flush, ledger_post",
       "purpose_source": "symbols",
       "purpose_quality": "generic",
@@ -447,7 +477,8 @@
     },
     {
       "path": "src/settlement/ledger_post.c",
-      "module": "routing",
+      "language": "c",
+      "module": "c:routing",
       "purpose": "post reconciled entries to the general ledger",
       "purpose_source": "declared",
       "purpose_quality": "specific",
@@ -465,7 +496,8 @@
     },
     {
       "path": "src/settlement/reconciler.c",
-      "module": "routing",
+      "language": "c",
+      "module": "c:routing",
       "purpose": "reconcile captured transactions against the ledger",
       "purpose_source": "declared",
       "purpose_quality": "specific",
@@ -488,7 +520,8 @@
     },
     {
       "path": "src/settlement/reconciler.h",
-      "module": "routing",
+      "language": "c",
+      "module": "c:routing",
       "purpose": "declares reconcile_txn, reconcile_close_window",
       "purpose_source": "symbols",
       "purpose_quality": "generic",
@@ -504,7 +537,8 @@
     },
     {
       "path": "src/settlement/settlement_batch.c",
-      "module": "routing",
+      "language": "c",
+      "module": "c:routing",
       "purpose": "assemble and close settlement batches",
       "purpose_source": "declared",
       "purpose_quality": "specific",
@@ -525,7 +559,8 @@
     },
     {
       "path": "src/transaction/auth_handler.c",
-      "module": "auth_handler",
+      "language": "c",
+      "module": "c:auth_handler",
       "purpose": "authorization stage handler",
       "purpose_source": "declared",
       "purpose_quality": "specific",
@@ -543,7 +578,8 @@
     },
     {
       "path": "src/transaction/capture_handler.c",
-      "module": "capture_handler",
+      "language": "c",
+      "module": "c:capture_handler",
       "purpose": "capture_handler.c \u2014 capture-phase handler. (Tier 1, coverage: deep)",
       "purpose_source": "header_prose",
       "purpose_quality": "specific",
@@ -560,7 +596,8 @@
     },
     {
       "path": "src/transaction/settle_handler.c",
-      "module": "settle_handler",
+      "language": "c",
+      "module": "c:settle_handler",
       "purpose": "settlement stage handler",
       "purpose_source": "declared",
       "purpose_quality": "specific",
@@ -578,7 +615,8 @@
     },
     {
       "path": "src/transaction/transaction.h",
-      "module": "shared_interfaces",
+      "language": "c",
+      "module": "c:shared_interfaces",
       "purpose": "declares auth_handle, capture_handle, settle_handle",
       "purpose_source": "symbols",
       "purpose_quality": "generic",
@@ -595,7 +633,8 @@
     },
     {
       "path": "src/transaction/txn_lifecycle.c",
-      "module": "routing",
+      "language": "c",
+      "module": "c:routing",
       "purpose": "transaction state machine and stage advance",
       "purpose_source": "declared",
       "purpose_quality": "specific",
@@ -620,7 +659,8 @@
     },
     {
       "path": "src/transaction/txn_state.c",
-      "module": "txn_state",
+      "language": "c",
+      "module": "c:txn_state",
       "purpose": "txn_state.c \u2014 transaction phase state machine. (Tier 1, coverage: deep)",
       "purpose_source": "header_prose",
       "purpose_quality": "specific",
@@ -638,7 +678,8 @@
     },
     {
       "path": "vendor/stratus/tpf_compat.h",
-      "module": "config",
+      "language": "c",
+      "module": "c:config",
       "purpose": "declares stratus_svc_dispatch, stratus_yield",
       "purpose_source": "symbols",
       "purpose_quality": "generic",

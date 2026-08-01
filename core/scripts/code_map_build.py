@@ -60,7 +60,8 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 sys.path.insert(0, str(REPO_ROOT / "core" / "scripts"))
 
-from core.extractors import c_extractor, merge_edges, normalize, partition_by_language  # noqa: E402
+from core.extractors import (c_extractor, detect_language, merge_edges, normalize,
+                             partition_by_language)  # noqa: E402
 from validate_onboarding import (  # noqa: E402  — ONE derivation, shared with the gate
     STAGE_A, STAGE_B, STAGE_C, STAGE_CSTAR, UNANALYZABLE,
     Scan, derive_modules, scan_repo,
@@ -68,6 +69,15 @@ from validate_onboarding import (  # noqa: E402  — ONE derivation, shared with
 
 UNCLUSTERED = "unclustered"
 SHARED_INTERFACES = "shared_interfaces"
+
+# Per-language local-reference patterns. Module derivation needs a dependency graph, and each
+# language spells one differently — but the SHAPE is the same (a local reference resolving to a
+# file in this repo), which is why one derivation serves all of them.
+_LOCAL_REF = {
+    "c":      re.compile(rb'^\s*#\s*include\s+"([^"]+)"', re.M),
+    "python": re.compile(rb'^\s*(?:from|import)\s+([\w.]+)', re.M),
+    "java":   re.compile(rb'^\s*import\s+([\w.]+)\s*;', re.M),
+}
 
 _SYMBOL = re.compile(rb"\b([A-Za-z_]\w{3,})\s*\([^;{]*\)\s*\{")
 _STOPWORDS = frozenset({"the", "a", "an", "and", "or", "of", "for", "to", "in", "on", "its",
@@ -106,6 +116,62 @@ def content_sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()[:12]
 
 
+# Comment openers per language. The C extractor is FROZEN and knows only `/* */` — correctly, it
+# is the C extractor. Rather than re-freeze it to teach it `#`, non-C languages get this generic
+# reader: they have no frozen extractor at all (that is what makes them the fallback path), so
+# there is nothing to keep in sync.
+_COMMENT_PREFIX = {"python": "#", "java": "//"}
+
+
+def leading_comment_block(src: bytes, prefix: str) -> tuple[str, int] | None:
+    """The leading line-comment block of a non-C file, as text + its 1-based start line."""
+    out, start = [], None
+    for n, raw in enumerate(src.decode("utf-8", errors="replace").splitlines(), 1):
+        line = raw.strip()
+        if line.startswith(prefix):
+            start = start or n
+            out.append(raw)
+            continue
+        if not line and not out:
+            continue
+        break
+    return ("\n".join(out), start) if out and start else None
+
+
+def extract_declared_generic(src: bytes, language: str, aliases: Sequence[str]) -> dict:
+    """`c_extractor.extract_declared`, for a language whose comments are line-prefixed.
+
+    Same label alias set, same fuzzy matching, same citable line — only the comment syntax
+    differs. Keeping the *rules* shared is the point: a purpose label is a human convention, not
+    a language feature, and a team that writes `Intention:` in C writes it in Python too.
+    """
+    prefix = _COMMENT_PREFIX.get(language)
+    if prefix is None:
+        return {}
+    block = leading_comment_block(src, prefix)
+    if block is None:
+        return {}
+    text, start = block
+    norm = [c_extractor._norm_label(a) for a in aliases]
+    for offset, raw in enumerate(text.splitlines()):
+        body = raw.strip().lstrip(prefix).strip()
+        m = c_extractor._LABEL_LINE.match(body)
+        if not m:
+            continue
+        label, value = m.group(1).strip(), m.group(2).strip()
+        if label.lower() in c_extractor._NOISE_LABELS or not value:
+            continue
+        nl = c_extractor._norm_label(label)
+        if len(nl) < 4 or not any(c_extractor._edit_distance_le1(nl, a) for a in norm):
+            continue
+        return {"purpose_declared": value, "purpose_declared_line": start + offset,
+                "purpose_quality": ("generic"
+                                    if value.lower().rstrip(".") in c_extractor._GENERIC_PURPOSES
+                                    or len(value.split()) < c_extractor._GENERIC_MIN_WORDS
+                                    else "specific")}
+    return {}
+
+
 def _default_inferrer(rel: str, src: bytes, stage: str) -> str | None:
     """Deterministic stand-in for the model's stage-B/C reading (the fixture proof's seam).
 
@@ -114,11 +180,14 @@ def _default_inferrer(rel: str, src: bytes, stage: str) -> str | None:
     exercised rather than mocked away.
     """
     if stage == STAGE_B:
-        block = c_extractor._leading_comment_block(src)
+        lang = language_of(rel)
+        block = (c_extractor._leading_comment_block(src) if lang == "c"
+                 else (leading_comment_block(src, _COMMENT_PREFIX[lang])
+                       if lang in _COMMENT_PREFIX else None))
         if not block:
             return None
         for line in block[0].splitlines()[1:]:
-            text = line.strip(" */\t")
+            text = line.strip(" */#\t")
             if len(text) > 24 and not text.lower().startswith(("name:", "modification")):
                 return text.rstrip(".")
         return None
@@ -170,7 +239,9 @@ def resolve_purposes(root: Path, files: Sequence[str], profile: dict, *,
             out[rel] = dict(cached)
             continue
 
-        decl = c_extractor.extract_declared(src, label_aliases=aliases)
+        lang = language_of(rel)
+        decl = (c_extractor.extract_declared(src, label_aliases=aliases) if lang == "c"
+                else extract_declared_generic(src, lang, aliases))
         entry: dict
         if decl.get("purpose_declared"):
             entry = {"purpose": decl["purpose_declared"], "purpose_source": "declared",
@@ -258,70 +329,139 @@ def purpose_confidence(members: Sequence[dict], module_purpose: str, profile: di
 # ──────────────────────────────────────────────────────────────────────────────
 # The build
 # ──────────────────────────────────────────────────────────────────────────────
+def language_of(rel: str) -> str:
+    """Map a path to its language. Deterministic, extension-keyed — never content sniffing."""
+    return {".c": "c", ".h": "c", ".py": "python", ".java": "java"}.get(Path(rel).suffix, "other")
+
+
+def scoped(language: str, module: str) -> str:
+    """Module identity is **language-scoped by construction** (`c:routing`, `java:validation`).
+
+    Not cosmetic. Two languages can legitimately have a `routing` module, and merging them would
+    put files with no possible edge between them in one module — then tier 1 would match a C
+    assertion into Java files and closure would try to walk an edge that cannot exist. Scoping the
+    identity makes the language boundary structural rather than something later stages must
+    remember to respect.
+    """
+    return f"{language}:{module}"
+
+
 def build_map(root: Path, profile: dict, *, repo: str, commit_sha: str, seal_id: str = "",
-              cache: PurposeCache | None = None,
+              cache: PurposeCache | None = None, exclude: Sequence[str] = (),
               inferrer=_default_inferrer, verdicter=None, synthesizer=_default_synthesizer,
               generated_at: str = "2026-08-01T00:00:00Z") -> tuple[dict, dict, PurposeCache]:
-    """D-A21 steps 7–15. Returns ``(components, files, cache)`` — the two §3.3 files."""
+    """D-A21 steps 7–15, **per language**. Returns ``(components, files, cache)``.
+
+    Step 7 partitions by language and everything after it runs **inside a partition**. A repo with
+    three languages gets three independent derivations sharing one profile and one gate — one repo,
+    one freeze (D-A22) — with per-language sections under `profile["languages"]`.
+
+    A language with **no profile section is un-onboarded**: there is no frozen rule set for it, so
+    its files take the TASK-010 fallback — extracted structurally by nothing, `coverage: coarse`,
+    and routed to `unclustered`, which always passes tier 1. They are *degraded, never dropped*;
+    silently omitting a language would be the same invisibility failure as a file in no module,
+    one level up.
+    """
+    cache = cache if cache is not None else PurposeCache()
     partitions = partition_by_language(str(root))
-    c_files = partitions.get("c", [])
-    raw = c_extractor.run(c_files, str(root), label_aliases=profile["purpose"]["label_aliases"])
-    entries = merge_edges(normalize(raw["entries"]))
-    by_path = {e["path"]: e for e in entries}
+    if exclude:
+        # A repo under analysis is source, not the harness that tests it. The fixture trees carry
+        # their own `verify_*.py` scripts, and without this those become "Python files in the
+        # repo" — inventing a language partition out of test code and, worse, making a
+        # single-language fixture look polyglot. Caller-supplied on purpose: core has no business
+        # knowing what a fixture's harness is named.
+        from fnmatch import fnmatch
+        partitions = {lang: [f for f in fs
+                             if not any(fnmatch(Path(f).name, pat) for pat in exclude)]
+                      for lang, fs in partitions.items()}
+    lang_cfg = profile.get("languages") or {}
+    onboarded = {lang for lang in partitions if lang in lang_cfg} or {"c"}
 
-    scan = scan_repo(root, c_files, profile)
-    mods = derive_modules(scan, profile)
-    purposes, cache = resolve_purposes(
-        root, c_files, profile, cache=cache,
-        interfaces={p: e.get("interfaces", []) for p, e in by_path.items()},
-        inferrer=inferrer, verdicter=verdicter)
-
-    # module assignment — deterministic, and TOTAL by construction. Every file lands in exactly
-    # one of: a derived module, its own singleton, `unclustered`, or `shared_interfaces`.
-    module_of: dict[str, str] = {}
+    files_out: list[dict] = []
     members: dict[str, list[str]] = defaultdict(list)
-    for key, group in sorted(mods["modules"].items()):
-        name = key.split("override:")[-1] if key.startswith("override:") else \
-            Path(sorted(group)[0]).parent.name or Path(sorted(group)[0]).stem
-        n, i = name, 2
-        while n in members:
-            n, i = f"{name}_{i}", i + 1
-        for f in sorted(group):
-            module_of[f] = n
-            members[n].append(f)
-    for f in mods["singletons"]:
-        n = Path(f).stem
-        module_of[f] = n
-        members[n].append(f)
-    for f in mods["hubs"]:
-        module_of[f] = SHARED_INTERFACES
-        members[SHARED_INTERFACES].append(f)
-    for f in mods["unclustered"]:
-        module_of[f] = UNCLUSTERED
-        members[UNCLUSTERED].append(f)
+    coverage_acc = {"files_seen": 0, "files_extracted": 0, "files_fallback": 0,
+                    "files_unresolved": 0, "unresolved_patterns": []}
+    duplicates: list[tuple[str, str]] = []
+    interfaces_by_path: dict[str, list[str]] = {}
+    base_by_path: dict[str, dict] = {}
 
-    files_out = []
-    for rel in sorted(c_files):
-        base = by_path.get(rel, {})
-        p = purposes[rel]
-        entry = {
-            "path": rel,
-            "module": module_of[rel],
-            "purpose": p["purpose"],
-            "purpose_source": p["purpose_source"],
-            "purpose_quality": p["purpose_quality"],
-            "interfaces": base.get("interfaces", []),
-            "depends_on": base.get("depends_on", []),
-            "used_by": base.get("used_by", []),
-            "coverage": base.get("coverage", "coarse"),
-            "external_calls": [],       # RESERVED (FR-DC-13) — cross-repo, unpopulated in MVP
-            "exposes": [],              # RESERVED (FR-DC-13)
-        }
-        for k in ("purpose_declared_line", "purpose_verdict", "purpose_actual",
-                  "unanalyzable_reason"):
-            if p.get(k) is not None:
-                entry[k] = p[k]
-        files_out.append(entry)
+    for language, lang_files in sorted(partitions.items()):
+        if not lang_files:
+            continue
+        cfg = {**profile, **(lang_cfg.get(language) or {})}
+        coverage_acc["files_seen"] += len(lang_files)
+
+        if language == "c" and language in onboarded:
+            raw = c_extractor.run(lang_files, str(root),
+                                  label_aliases=cfg["purpose"]["label_aliases"])
+            entries = merge_edges(normalize(raw["entries"]))
+            for e in entries:
+                base_by_path[e["path"]] = e
+                interfaces_by_path[e["path"]] = e.get("interfaces", [])
+            cr = raw["coverage_report"]
+            for k in ("files_extracted", "files_fallback", "files_unresolved"):
+                coverage_acc[k] += cr.get(k, 0)
+            coverage_acc["unresolved_patterns"] += cr.get("unresolved_patterns", [])
+        else:
+            # TASK-010 model fallback: no frozen extractor for this language. Structure is not
+            # extracted, so every file is `coarse` and counts as fallback — the coverage number
+            # then honestly reflects the deterministic share (§5.4 / FR-DC-16).
+            for rel in lang_files:
+                base_by_path[rel] = {"path": rel, "interfaces": [], "depends_on": [],
+                                     "used_by": [], "coverage": "coarse"}
+                interfaces_by_path[rel] = []
+            coverage_acc["files_fallback"] += len(lang_files)
+
+        scan = scan_repo_generic(root, lang_files, cfg, language)
+        duplicates += scan.versioned_duplicates
+        purposes, cache = resolve_purposes(root, lang_files, cfg, cache=cache,
+                                           interfaces=interfaces_by_path,
+                                           inferrer=inferrer, verdicter=verdicter)
+
+        if language in onboarded:
+            mods = derive_modules(scan, cfg)
+            for key, group in sorted(mods["modules"].items()):
+                name = key.split("override:")[-1] if key.startswith("override:") else \
+                    Path(sorted(group)[0]).parent.name or Path(sorted(group)[0]).stem
+                n, i = scoped(language, name), 2
+                while n in members:
+                    n, i = scoped(language, f"{name}_{i}"), i + 1
+                members[n] += sorted(group)
+            for f in mods["singletons"]:
+                members[scoped(language, Path(f).stem)].append(f)
+            for f in mods["hubs"]:
+                members[scoped(language, SHARED_INTERFACES)].append(f)
+            for f in mods["unclustered"]:
+                members[scoped(language, UNCLUSTERED)].append(f)
+        else:
+            # Un-onboarded: no derivation rules, so no grouping is defensible. Everything lands
+            # in the language's `unclustered` bucket, which always passes tier 1.
+            members[scoped(language, UNCLUSTERED)] += sorted(lang_files)
+
+        for rel in sorted(lang_files):
+            base = base_by_path.get(rel, {})
+            p = purposes[rel]
+            entry = {
+                "path": rel, "language": language, "module": None,
+                "purpose": p["purpose"], "purpose_source": p["purpose_source"],
+                "purpose_quality": p["purpose_quality"],
+                "interfaces": base.get("interfaces", []),
+                "depends_on": base.get("depends_on", []),
+                "used_by": base.get("used_by", []),
+                "coverage": base.get("coverage", "coarse"),
+                "external_calls": [],   # RESERVED (FR-DC-13) — cross-repo, unpopulated in MVP
+                "exposes": [],          # RESERVED (FR-DC-13)
+            }
+            for k in ("purpose_declared_line", "purpose_verdict", "purpose_actual",
+                      "unanalyzable_reason"):
+                if p.get(k) is not None:
+                    entry[k] = p[k]
+            files_out.append(entry)
+
+    module_of = {m: name for name, mem in members.items() for m in mem}
+    for f in files_out:
+        f["module"] = module_of.get(f["path"])
+    files_out.sort(key=lambda f: f["path"])
 
     files_by_path = {f["path"]: f for f in files_out}
     components = []
@@ -329,19 +469,15 @@ def build_map(root: Path, profile: dict, *, repo: str, commit_sha: str, seal_id:
         mem = sorted(members[name])
         mem_entries = [files_by_path[m] for m in mem]
         mem_purposes = [m["purpose"] for m in mem_entries if m["purpose"]]
-        # A singleton needs no synthesis — its purpose IS the file's (D-A19).
         purpose = mem_purposes[0] if len(mem) == 1 and mem_purposes \
             else synthesizer(name, mem_purposes)
         conf, note = purpose_confidence(mem_entries, purpose, profile)
-        comp = {"module": name, "purpose": purpose, "members": mem,
-                "cohesion": round(len(mem_purposes) / len(mem), 2),
+        comp = {"module": name, "language": name.split(":", 1)[0], "purpose": purpose,
+                "members": mem, "cohesion": round(len(mem_purposes) / len(mem), 2),
                 "purpose_confidence": conf}
         if note:
             comp["confidence_note"] = note
-        if name == UNCLUSTERED:
-            # The doubly-unknown bucket: cannot group AND cannot describe. Always passed to
-            # tier 2, because there is nothing to match on and therefore nothing that could be
-            # safely ruled out.
+        if name.endswith(f":{UNCLUSTERED}"):
             comp["purpose_confidence"] = 0.0
             comp["always_pass_tier1"] = True
         components.append(comp)
@@ -351,10 +487,14 @@ def build_map(root: Path, profile: dict, *, repo: str, commit_sha: str, seal_id:
     stage_counts: dict[str, int] = defaultdict(int)
     for f in files_out:
         stage_counts[stage_of_source(f["purpose_source"])] += 1
+    seen = coverage_acc["files_seen"]
 
     header = {
         "repo": repo, "seal_id": seal_id, "commit_sha": commit_sha,
-        "generated_at": generated_at, "coverage": "coarse", "language": "c",
+        "generated_at": generated_at, "coverage": "coarse",
+        "language": detect_language(str(root)) or "c",
+        "languages": sorted(l for l, fs in partitions.items() if fs),
+        "onboarded_languages": sorted(onboarded),
         "built_with_extractor_sha": _extractor_sha(),
         "profile_sha": profile.get("profile_sha", ""),
     }
@@ -362,17 +502,60 @@ def build_map(root: Path, profile: dict, *, repo: str, commit_sha: str, seal_id:
         **header,
         "components": components,
         "coverage_report": {
-            **{k: v for k, v in raw["coverage_report"].items()},
+            **coverage_acc,
+            "coverage": round(coverage_acc["files_extracted"] / seen, 2) if seen else 0.0,
             "stage_distribution": dict(stage_counts),
             "unanalyzable": unanalyzable,
             "duplicates_requiring_disposition": [
-                {"base": a, "variant": b} for a, b in scan.versioned_duplicates],
+                {"base": a, "variant": b} for a, b in duplicates],
             "low_confidence_modules": [c["module"] for c in components
                                        if c["purpose_confidence"]
                                        < profile["purpose"]["low_confidence_threshold"]],
         },
     }
     return components_doc, {**header, "files": files_out}, cache
+
+
+def scan_repo_generic(root: Path, files: Sequence[str], profile: dict, language: str) -> Scan:
+    """`scan_repo`, but resolving the language's own local-reference form.
+
+    The C scan reads `#include "..."`; Python reads `from x import`/`import x`; Java reads
+    `import a.b.C;`. Same derivation either side of that difference — which is the point: one
+    module-derivation algorithm serves every language, and only the edge *syntax* varies.
+    """
+    s = scan_repo(root, files, profile)
+    if language == "c":
+        return s
+    pattern = _LOCAL_REF.get(language)
+    if pattern is None:
+        s.include_edges = {f: [] for f in files}
+        s.isolated = sorted(files)
+        return s
+    by_module: dict[str, str] = {}
+    for f in files:
+        stem = Path(f).stem
+        by_module[stem] = f
+        by_module[Path(f).with_suffix("").as_posix().replace("/", ".")] = f
+    s.include_edges, s.include_total, s.include_resolved = {}, 0, 0
+    for rel in files:
+        src = (root / rel).read_bytes()
+        targets = []
+        for ref in pattern.findall(src):
+            s.include_total += 1
+            name = ref.decode()
+            hit = next((by_module[k] for k in (name, name.split(".")[-1],
+                                               ".".join(name.split(".")[-2:]))
+                        if k in by_module and by_module[k] != rel), None)
+            if hit:
+                s.include_resolved += 1
+                targets.append(hit)
+        s.include_edges[rel] = targets
+    fan_in: dict[str, int] = defaultdict(int)
+    for f, ts in s.include_edges.items():
+        for t in ts:
+            fan_in[t] += 1
+    s.isolated = sorted(f for f in files if not s.include_edges.get(f) and not fan_in.get(f))
+    return s
 
 
 def _extractor_sha() -> str:

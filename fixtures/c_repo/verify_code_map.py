@@ -46,7 +46,8 @@ def _check(label: str, ok: bool, detail: str = "") -> None:
 
 def main() -> int:
     profile = yaml.safe_load((_REPO_ROOT / "core/code_profiles/c_repo.profile.yaml").read_text())
-    kw = dict(repo="c_repo", commit_sha="9f3c1ab", seal_id="SEAL-12345")
+    kw = dict(repo="c_repo", commit_sha="9f3c1ab", seal_id="SEAL-12345",
+              exclude=("verify_*.py",))   # the fixture's own harness is not repo content
     comps, files, cache = build_map(_HERE, profile, **kw)
     report = comps["coverage_report"]
 

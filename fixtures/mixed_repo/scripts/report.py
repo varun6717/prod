@@ -1,17 +1,9 @@
-"""Residue file (Python) — no frozen extractor, routes to the model fallback (TASK-010).
-
-A small reporting helper that would ship alongside the C service. Its presence makes
-mixed_repo polyglot; the dispatcher should map it via model fallback marked coarse, not drop it.
-"""
-
-
-def summarize_routes(rows):
-    """Return a count of transactions per handler id."""
-    counts = {}
-    for row in rows:
-        counts[row["handler_id"]] = counts.get(row["handler_id"], 0) + 1
-    return counts
+# report.py  v003  240220  mtm
+# PURPOSE: build the daily settlement report from posted ledger entries
+from report.formatter import format_rows
+from report.ledger_read import read_posted
 
 
-if __name__ == "__main__":
-    print(summarize_routes([{"handler_id": 1}, {"handler_id": 1}, {"handler_id": 2}]))
+def build_daily_report(day):
+    rows = read_posted(day)
+    return format_rows(rows)

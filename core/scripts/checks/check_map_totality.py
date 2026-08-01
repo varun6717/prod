@@ -118,7 +118,7 @@ def check_map(components: dict, files: dict, *, low_confidence_threshold: float 
 
     # 5) the unclustered bucket always passes tier 1
     for c in comps:
-        if c["module"] == UNCLUSTERED and not c.get("always_pass_tier1"):
+        if c["module"].split(":")[-1] == UNCLUSTERED and not c.get("always_pass_tier1"):
             res.violations.append(
                 "the `unclustered` bucket must carry always_pass_tier1 — it is the doubly-unknown "
                 "population, so there is nothing it could be safely ruled out on")
@@ -144,7 +144,8 @@ def _demo() -> int:
     profile = yaml.safe_load(
         (REPO_ROOT / "core" / "code_profiles" / "c_repo.profile.yaml").read_text())
     comps, files, _ = build_map(REPO_ROOT / "fixtures" / "c_repo", profile,
-                                repo="c_repo", commit_sha="9f3c1ab", seal_id="SEAL-12345")
+                                repo="c_repo", commit_sha="9f3c1ab", seal_id="SEAL-12345",
+                                exclude=("verify_*.py",))
     res = check_map(comps, files,
                     low_confidence_threshold=profile["purpose"]["low_confidence_threshold"])
     print(f"{res.name} — {res.files} files / {res.modules} modules")

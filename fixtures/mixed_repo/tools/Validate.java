@@ -1,13 +1,18 @@
-// Residue file (Java) — no frozen extractor, routes to the model fallback (TASK-010).
-// A second residue language so mixed_repo exercises more than one un-onboarded language.
+/* Validate.java  v002  230114  jrt  */
+/*
+ Name:        Validate.java
+ PURPOSE:     entry point for acquirer message validation
+*/
 package tools;
 
-public class Validate {
-    public static boolean handlerIdInRange(int handlerId) {
-        return handlerId >= 0 && handlerId < 8;
-    }
+import tools.validation.FieldRules;
+import tools.validation.BrandRules;
 
-    public static void main(String[] args) {
-        System.out.println(handlerIdInRange(3));
+public class Validate {
+    public static boolean validateMessage(String mti, String field48) {
+        if (!FieldRules.checkSubelementLayout(field48)) {
+            return false;
+        }
+        return BrandRules.checkBrandConstraints(mti);
     }
 }

@@ -69,7 +69,9 @@ def main() -> int:
         d0 = gate.select_branch(language="c", extractor_sha=esha, profile_sha=psha,
                                 commit_sha="aaa1111", repo_cache=map_cache.record_for("c_repo", idx))
         _check("no cached map → rebuild_full", d0.branch == gate.REBUILD_FULL, d0.reason)
-        comps1, files1, cache1 = build_map(repo, profile, repo="c_repo", commit_sha="aaa1111")
+        HARNESS = ("verify_*.py",)
+        comps1, files1, cache1 = build_map(repo, profile, repo="c_repo",
+                                           commit_sha="aaa1111", exclude=HARNESS)
         map_cache.update_record("c_repo", commit_sha="aaa1111", profile_sha=psha,
                                 extractor_sha=esha, map_dir=str(tmp / "map"),
                                 last_built="2026-08-01T00:00:00Z", path=idx)
@@ -87,7 +89,7 @@ def main() -> int:
         _check("both shas match → reuse", d2.branch == gate.REUSE, d2.reason)
         _check("reuse does NO work at all", not d2.rebuilds and not d2.repurpose_all)
         warm = PurposeCache(entries=map_cache.load_purpose_cache("c_repo", cache_dir))
-        build_map(repo, profile, repo="c_repo", commit_sha="aaa1111", cache=warm)
+        build_map(repo, profile, repo="c_repo", commit_sha="aaa1111", cache=warm, exclude=HARNESS)
         _check("even if re-run, zero purposes are resolved", warm.misses == 0,
                f"{warm.hits} hits / {warm.misses} misses")
 
@@ -102,7 +104,7 @@ def main() -> int:
                d3.rebuilds and not d3.repurpose_all)
         warm3 = PurposeCache(entries=map_cache.load_purpose_cache("c_repo", cache_dir))
         comps3, files3, warm3 = build_map(repo, profile, repo="c_repo", commit_sha="bbb2222",
-                                          cache=warm3)
+                                          cache=warm3, exclude=HARNESS)
         _check("exactly ONE file's purpose was re-resolved", warm3.misses == 1,
                f"{warm3.misses} miss, {warm3.hits} hits — the content hash of one file moved")
         aff = gate.affected_modules(files1["files"], files3["files"], ["src/errors/retry.c"])
@@ -123,7 +125,7 @@ def main() -> int:
                                 commit_sha="aaa1111", repo_cache=rec)
         _check("profile_sha changed → rebuild_full", d4.branch == gate.REBUILD_FULL, d4.reason)
         _check("full rebuild invalidates WHOLESALE (repurpose_all)", d4.repurpose_all)
-        comps4, _, _ = build_map(repo, tuned, repo="c_repo", commit_sha="aaa1111")
+        comps4, _, _ = build_map(repo, tuned, repo="c_repo", commit_sha="aaa1111", exclude=HARNESS)
         _check("and the map genuinely differs — not merely claimed",
                len(comps4["components"]) != len(comps1["components"]),
                f"{len(comps1['components'])} modules → {len(comps4['components'])}")
