@@ -1,3 +1,10 @@
+/* auth_handler.c  v004  230301  mtm  */
+/*********************************************
+ Name:        auth_handler.c
+ PURPOSE:     authorization stage handler
+ MODIFICATION HISTORY:
+     v004  230301  mtm  maintained
+*/
 /*
  * auth_handler.c — authorization-phase handler. (Tier 1, coverage: deep)
  *

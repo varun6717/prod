@@ -1,3 +1,10 @@
+/* brand_router.c  v003  220118  mtm  */
+/*********************************************
+ Name:        brand_router.c
+ PURPOSE:     route an authorization to the brand handler
+ MODIFICATION HISTORY:
+     v003  220118  mtm  maintained
+*/
 /*
  * brand_router.c — primary transaction router. (Tier 1, coverage: deep)
  *

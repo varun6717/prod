@@ -1,3 +1,10 @@
+/* routing.h  v003  220118  mtm  */
+/*********************************************
+ Name:        routing.h
+ PURPOSE:     routing entry points
+ MODIFICATION HISTORY:
+     v003  220118  mtm  maintained
+*/
 #ifndef PDLC_ROUTING_H
 #define PDLC_ROUTING_H
 

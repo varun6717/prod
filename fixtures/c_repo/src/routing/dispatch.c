@@ -1,3 +1,10 @@
+/* dispatch.c  v001  210714  mtm  */
+/*********************************************
+ Name:        dispatch.c
+ Intention:   dispatch a routed txn to its handler entry point
+ MODIFICATION HISTORY:
+     v001  210714  mtm  maintained
+*/
 /*
  * dispatch.c — computed-target dispatch. (Tier 3, coverage: coarse / unresolved)
  *

@@ -1,3 +1,10 @@
+/* reconciler.c  v005  230614  mtm  */
+/*********************************************
+ Name:        reconciler.c
+ PURPOSE:     reconcile captured transactions against the ledger
+ MODIFICATION HISTORY:
+     v005  230614  mtm  maintained
+*/
 /*
  * reconciler.c — settlement reconciliation. (Tier 1, coverage: deep)
  *

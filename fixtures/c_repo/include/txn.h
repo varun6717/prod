@@ -1,3 +1,10 @@
+/* txn.h  v003  221115  mtm  */
+/*********************************************
+ Name:        txn.h
+ Description: transaction struct and stage enum
+ MODIFICATION HISTORY:
+     v003  221115  mtm  maintained
+*/
 #ifndef PDLC_TXN_H
 #define PDLC_TXN_H
 

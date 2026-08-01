@@ -1,3 +1,10 @@
+/* error_codes.c  v001  210610  mtm  */
+/*********************************************
+ Name:        error_codes.c
+ Descr:       error code definitions and text
+ MODIFICATION HISTORY:
+     v001  210610  mtm  maintained
+*/
 /*
  * error_codes.c — status-code to string mapping. (Tier 1, coverage: deep)
  * A plain switch; fully resolvable.

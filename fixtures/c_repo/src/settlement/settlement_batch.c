@@ -1,3 +1,10 @@
+/* settlement_batch.c  v002  220405  mtm  */
+/*********************************************
+ Name:        settlement_batch.c
+ Intention:   assemble and close settlement batches
+ MODIFICATION HISTORY:
+     v002  220405  mtm  maintained
+*/
 /*
  * settlement_batch.c — settlement batch accumulation. (Tier 1, coverage: deep)
  * Pure, fully-resolvable struct manipulation; no indirection.

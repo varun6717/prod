@@ -1,3 +1,10 @@
+/* route_table.c  v002  210903  mtm  */
+/*********************************************
+ Name:        route_table.c
+ PURPOSE:     reloadable brand routing table lookup
+ MODIFICATION HISTORY:
+     v002  210903  mtm  maintained
+*/
 /*
  * route_table.c — brand dispatch table. (Tier 2, coverage: coarse)
  *

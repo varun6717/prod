@@ -1,3 +1,10 @@
+/* brand.h  v002  220228  mtm  */
+/*********************************************
+ Name:        brand.h
+ PURPOSE:     card brand identifiers and rule struct
+ MODIFICATION HISTORY:
+     v002  220228  mtm  maintained
+*/
 #ifndef PDLC_BRAND_H
 #define PDLC_BRAND_H
 

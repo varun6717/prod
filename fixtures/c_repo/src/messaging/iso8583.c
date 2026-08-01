@@ -1,3 +1,10 @@
+/* iso8583.c  v006  240119  mtm  */
+/*********************************************
+ Name:        iso8583.c
+ PURPOSE:     ISO 8583 message parse and build
+ MODIFICATION HISTORY:
+     v006  240119  mtm  maintained
+*/
 /*
  * iso8583.c — low-level ISO 8583 frame builder. (Tier 1, coverage: deep)
  * Bit/byte manipulation only; fully resolvable.

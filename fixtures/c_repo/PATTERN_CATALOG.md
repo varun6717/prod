@@ -237,3 +237,56 @@ Files with no `used_by` from another module in this fixture: `errors/fallback`,
 
 *Signed off by:* _____________  (TASK-005 author confirms the tier assignments, edge tables, and the
 `coverage_report` summary above before hand-authoring `expected_code_map.json`.)
+
+---
+
+## Additive pass — declared purposes + the versioned duplicate (TASK-112, D-A20)
+
+The V-flag-4 additions. The fixture already exercised the six *parser* blind spots; these
+exercise the two **provenance** phenomena D-A20 measured over 6 165 real Stratus files, which
+the original fixture could not reproduce at all.
+
+### 1 · Declared purposes under varied labels — 21/35 files (60%)
+
+D-A20's decisive numbers: 58.0% of real files declare a purpose, and **96.7% of those are
+specific**. So where a declaration exists it discriminates, and tier 1 is viable as a *hybrid* —
+declared purpose where present, include-graph fallback for the rest. Not "purpose alone".
+
+The label distribution is seeded to match the measured one, because assuming a single keyword
+would have been a **5.7× under-report**: `Intention:` is only 17% of real declarations, so
+counting it alone reports ~10% coverage against a real 58%.
+
+| Label in fixture | Files | Mirrors |
+|---|---|---|
+| `PURPOSE` / `Purpose` | 9 | 2 727 real files — the dominant form |
+| `Intention` | 3 | 623 |
+| `DESCRIPTION` / `Description` | 3 | 363 |
+| `SYNOPSIS` | 1 | 126 |
+| `Descr` / `Desc` | 2 | 23 |
+| **`Putpose`** (typo, `capture_route.c`) | 1 | the real `Putpose` ×4 — **why matching must be fuzzy** |
+
+The typo is the load-bearing one: it is why the extractor matches labels at edit-distance ≤ 1
+rather than by exact set membership. One edit is measured, not chosen — it catches a transposed
+key without starting to match unrelated words.
+
+**14 files are deliberately headerless** (40%), exercising the fallback population: no declared
+purpose, `purpose_source: inferred` downstream, and the include graph carrying tier 1 for them.
+
+Also seeded: the `v001 210714` version/date stamp form, so `declared_version` / `declared_date`
+have something to parse — and so **staleness** is visible. A purpose stamped 2021 on a file
+changed since is high-provenance but possibly out of date, which is what makes the later
+`purpose_verdict` pass necessary rather than decorative.
+
+### 2 · The versioned duplicate — `iso8583.c` + `iso8583_v2.c`
+
+D-A20 finding 3. Both files are wired, both define a build/parse pair, neither is marked dead.
+An assertion about ISO 8583 message construction lands on "message parsing" and must then answer
+a question the code cannot: v1, v2, or both? Getting it wrong means shipping to the dead path.
+
+Real-world bound: **38** suffix files repo-wide (`_v2`, `_v6`, `_test`, `_old`) with no silent
+duplicate stems — so the hazard is real but small and fully enumerable up front.
+
+**Expected extractor behaviour: two ordinary files.** The extractor emits both with their own
+interfaces and no special marking. Surfacing the pair as a finding that requires operator
+disposition is the **map build's** job (D-A16), never a silent pick by the agent — which is
+exactly why the extractor must not try to be clever here.

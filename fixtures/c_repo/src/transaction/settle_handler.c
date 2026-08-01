@@ -1,3 +1,10 @@
+/* settle_handler.c  v002  220719  mtm  */
+/*********************************************
+ Name:        settle_handler.c
+ Purpose:     settlement stage handler
+ MODIFICATION HISTORY:
+     v002  220719  mtm  maintained
+*/
 /*
  * settle_handler.c — settle-phase handler. (Tier 1, coverage: deep)
  */

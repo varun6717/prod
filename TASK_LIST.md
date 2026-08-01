@@ -226,6 +226,9 @@ connector's placeholder per hard rule **S**, done as connectors land on the VDI 
 
 **✅ Milestone D2 complete** — Solution Intent v1 closed: the 18-section profile, the code-blind author, G1 + the v1 freeze, and discovery adequacy proven against a sparse corpus.
 
+**Phase D · Milestone D3 — Code map v2**
+- [x] TASK-112 — Extractor declared-purpose extraction + `c_repo` additive pass: `c_extractor.py` gains deterministic declared-purpose extraction (D-A20) — leading comment block → `purpose_declared` + **`purpose_declared_line`** (the point of `declared` over `inferred`: it is **citable to a line**, human ground truth rather than the model's reading) + `declared_version`/`declared_date` + `purpose_quality`. **Label matching is fuzzy (edit-distance ≤1) against an alias SET passed in as profile data**, because assuming one keyword would have been a **5.7× under-report** on the real corpus (`Intention:` is only 17% of declarations → ~10% reported vs a real 58%), and because `Putpose` ×4 is a real typo. One edit is measured, not chosen. Parser noise (`http` from URLs, licence boilerplate) refused; generic purposes **flagged not dropped** (3.3% of the corpus — tier 1 must down-weight them, not confuse them with absence). `coverage_report` gains the declared-purpose split the D-A21 gate reports on. `extractor_sha` re-frozen `125a6ca → ed703ff` (build-time amendment, never a runtime rewrite). Fixture additive pass: **21/35 files (60%) declared under 6 label forms + the typo**, 14 deliberately headerless (the fallback population), and the versioned-duplicate pair `iso8583.c` + `iso8583_v2.c` — **both wired, neither dead**, which is the hazard: an assertion about message parsing must answer v1/v2/both and the code cannot say. The extractor emits **two ordinary files** with no duplicate marking; surfacing the pair is the map build's job (D-A16), never a silent agent pick. Oracle + `SIGNOFF.md` amended: the new entry was **derived by reading the source and predicted before running the extractor** (which then agreed), so the hand-authored-oracle rule holds; SIGNOFF marked **PENDING RE-SIGN-OFF** since the oracle changed. `PATTERN_CATALOG.md` documents both phenomena. Proof: 🆕 `fixtures/c_repo/verify_declared_purpose.py` — **33 checks**: byte-identical double run, every label form incl. the typo, headerless files declaring nothing, the duplicate pair as two ordinary files, each cited line actually containing its purpose, noise refused, and the narrow-alias run reproducing the 5.7× under-report (3 vs 21). §10 4/4; all 13 verifies green.
+
 ---
 
 ## Disposition of the pre-pivot open tasks (TASK-056, 064–083 — none carries over verbatim)
@@ -256,7 +259,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ## Open index (tick here; then collapse the task into the done ledger above)
 
 **Milestone D3 — Code map v2**
-- [ ] TASK-112 — Extractor declared-purpose extraction + `c_repo` additive pass · `Sonnet`
 - [ ] TASK-113 — Repo profile scan + onboarding gate report (D-A21 phase 1) · `Opus`
 - [ ] TASK-114 — Map build recast (two files, modules, purposes) + context checks · `Opus`
 - [ ] TASK-115 — 4-branch gate + map cache · `Opus`
@@ -282,25 +284,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ---
 
 ## Milestone D3 — Code map v2
-
-### TASK-112 — Extractor declared-purpose extraction + `c_repo` additive pass
-- **Depends on:** TASK-101 (`extractor_manifest`).
-- **Model:** Sonnet — deterministic parsing + fixture authoring; the contract is precise.
-- **Reads:** D-A20 (header form, label variance table, fuzzy matching, parser noise) · D-A19
-  (steps 1–2) · §3.3 (amended) · V-flag 4 resolution (targeted subset) · impact §§4, 7.
-- **Creates / edits:** `core/extractors/c_extractor.py`: extract the leading comment block; parse
-  declared-purpose fields against a **label alias set passed in** (profile data — default set for
-  pre-profile runs), fuzzy enough for the real typos; emit `purpose_declared`,
-  `declared_version`/`declared_date` where parseable; structural fields unchanged; still no tags.
-  Bump `extractor_sha` in `extractor_manifest.yaml` (a build-time re-freeze, never runtime).
-  `fixtures/c_repo`: declared headers on ~60% of files under varied labels (`PURPOSE`,
-  `Intention`, `Description`, `Desc`, one `Putpose` typo), ~40% left headerless (exercises rungs
-  B/C/C\*); one versioned-duplicate pair (e.g. `msg_format.c` + `msg_format_v2.c`, both wired);
-  `PATTERN_CATALOG.md` updated.
-- **Acceptance:** two extraction runs byte-identical; the typo label is caught; headerless files
-  emit no declared purpose; the duplicate pair extracts as two normal files (surfacing is the
-  map/build's job); `extractor_sha` recorded.
-- **Proof:** deterministic double-run diff + a per-file extraction spot-check.
 
 ### TASK-113 — Repo profile scan + onboarding gate report (D-A21 phase 1)
 - **Depends on:** TASK-112.

@@ -1,3 +1,10 @@
+/* ledger_post.c  v001  210822  mtm  */
+/*********************************************
+ Name:        ledger_post.c
+ SYNOPSIS:    post reconciled entries to the general ledger
+ MODIFICATION HISTORY:
+     v001  210822  mtm  maintained
+*/
 /*
  * ledger_post.c — posts a settled transaction to the GL ledger.
  * (Tier 1, coverage: deep)

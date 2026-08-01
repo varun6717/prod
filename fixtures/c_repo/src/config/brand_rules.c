@@ -1,3 +1,10 @@
+/* brand_rules.c  v002  220228  mtm  */
+/*********************************************
+ Name:        brand_rules.c
+ PURPOSE:     brand rule table load and cache
+ MODIFICATION HISTORY:
+     v002  220228  mtm  maintained
+*/
 /*
  * brand_rules.c — brand rule table + macro-generated handlers.
  * (Tier 3, coverage: coarse / unresolved)

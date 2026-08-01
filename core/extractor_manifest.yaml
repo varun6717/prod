@@ -21,8 +21,10 @@ schema_version: 2
 extractors:
   - language: c
     extractor: core/extractors/c_extractor.py
-    extractor_sha: 125a6ca                 # git blob hash of the frozen extractor (TASK-012 freeze;
-                                           #   bumped at TASK-112 when declared-purpose extraction lands)
+    extractor_sha: ed703ff                 # git blob hash of the frozen extractor. Re-frozen at
+                                           #   TASK-112: declared-purpose extraction (D-A20) added.
+                                           #   A re-freeze is a BUILD-TIME amendment — edit + sha
+                                           #   bump + commit — never a runtime rewrite.
     tools_required: [tree-sitter==0.25.2, tree-sitter-c==0.24.2]   # pip deps, imported in-venv (ADR-001)
     file_globs: ["*.c", "*.h"]
     coverage_floor: 0.80                    # below this on a repo build → REONBOARD_FLAG (FR-DC-16, §5.4)

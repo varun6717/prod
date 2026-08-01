@@ -101,3 +101,35 @@ The C extractor toolchain changed from `ctags`/`cscope` to **`tree-sitter` + `tr
 
 > Status: **RE-SIGNED OFF** by operator V, 2026-06-19. Toolchain swap (ADR-001, ctags/cscope → tree-sitter)
 > confirmed value-preserving; `expected_code_map.json` remains the valid grading oracle for TASK-012.
+
+---
+
+## Amendment 2 — TASK-112 additive pass (declared purposes + versioned duplicate)
+
+**What changed in the fixture.** Declared-purpose headers added to 21 of 35 files under six label
+variants plus one `Putpose` typo (D-A20's measured distribution); one new file
+`src/messaging/iso8583_v2.c` seeding the versioned-duplicate hazard (D-A20 finding 3).
+
+**What changed in the oracle.** One new `files[]` entry for `iso8583_v2.c`, and the
+`coverage_report` counts moved 34→35 seen, 28→29 extracted, 0.82→0.83.
+
+**How the new entry was authored — the binding rule still holds.** It was derived by *reading the
+source*, which this task also wrote: `build_iso8583_v2` and `parse_iso8583_v2` are the two
+non-static definitions (so `set_bit_v2` is correctly excluded), and the file makes no cross-file
+call, so `depends_on` is empty. That prediction was made **before** running the extractor and the
+extractor then agreed — the oracle is not extractor output copied back in.
+
+**What did NOT change.** No existing entry's structural fields moved. Declared-purpose headers are
+comments: tree-sitter ignores them for interfaces and edges, which the 0-mismatch structural
+comparison over all 35 files confirms.
+
+**Extractor re-freeze.** `extractor_sha` bumped `125a6ca → ed703ff` in `core/extractor_manifest.yaml`.
+A re-freeze is a build-time amendment — edit, bump, commit — never a runtime rewrite.
+
+- **Re-sign-off by:** _____________  *(operator — required: the oracle changed)*
+- **Date:** _____________
+
+> Status: **PENDING RE-SIGN-OFF.** The oracle gained a file and its coverage counts moved, so the
+> TASK-005 rule applies: a changed oracle needs a human signature before it grades anything. The
+> §3.3 reshape to `components.json` + `files.json` (TASK-114) will void this again and require a
+> further re-freeze — noted so the two are not confused.

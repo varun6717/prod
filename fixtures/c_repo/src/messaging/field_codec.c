@@ -1,3 +1,10 @@
+/* field_codec.c  v003  221207  mtm  */
+/*********************************************
+ Name:        field_codec.c
+ Desc:        per-field encode/decode codec table
+ MODIFICATION HISTORY:
+     v003  221207  mtm  maintained
+*/
 /*
  * field_codec.c — per-field ISO 8583 codec table. (Tier 2, coverage: coarse)
  *

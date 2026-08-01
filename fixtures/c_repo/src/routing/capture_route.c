@@ -1,3 +1,10 @@
+/* capture_route.c  v001  211102  mtm  */
+/*********************************************
+ Name:        capture_route.c
+ Putpose:     route capture-stage traffic to settlement
+ MODIFICATION HISTORY:
+     v001  211102  mtm  maintained
+*/
 /*
  * capture_route.c — capture-phase routing. (Tier 1, coverage: deep)
  * A second clean routing entry point so the routing module has more than one

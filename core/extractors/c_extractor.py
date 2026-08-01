@@ -14,8 +14,26 @@ Division of labor (frozen here in code, never model-rewritten at runtime):
   - ``used_by`` is left empty — the deterministic ``merge_edges`` closure (TASK-011)
     fills it from the collected ``depends_on`` (§5.5; the oracle's populated
     ``used_by`` is the *post-merge* map, not raw extractor output).
-  - ``purpose`` + ``tags`` are the **model's** sole territory (TASK-011); this
-    extractor never sets them.
+  - ``purpose_declared`` (+ ``declared_version`` / ``declared_date`` /
+    ``purpose_quality``) is **deterministically extracted** from the file's leading
+    comment block (D-A20, TASK-112). It is what the developer *said* the file does —
+    human-authored ground truth, citable to a line, and extracted with no model.
+  - the model-written ``purpose`` is still the **model's** territory, and is only
+    needed where no declared purpose exists (or to verdict one that has gone stale).
+    Tags no longer exist at all (ADR-008).
+
+**Why declared purpose is worth deterministic extraction** (D-A20, measured over 6 165
+real Stratus files): 58.0% of files declare a purpose, and **96.7% of those are
+specific** — so where a declaration exists it discriminates, and the terse-purpose
+failure mode is essentially absent. It beats a model-written purpose on three counts:
+it is deterministic, it is human ground truth rather than the model's reading (hence
+**citable to a line**), and it shrinks the model's role, which the binding rules prefer.
+
+The catch is **staleness**: a purpose stamped ``v001 210714`` is 2021, and four years of
+change may have moved the file past its stated intention. So a declared purpose is
+high-provenance but possibly stale, and a model reading is current but inferential —
+which is why the map build later verdicts one against the other (``purpose_verdict``,
+TASK-114). This extractor only *reports* what was declared; it never judges it.
 
 Input contract (ADR-002): ``run(files, repo_root)`` is handed the **C-language
 partition** — the list of repo-relative C file paths the dispatcher routed here —
@@ -36,6 +54,7 @@ silent omission.
 from __future__ import annotations
 
 import os
+import re
 from typing import Optional, Sequence
 
 import tree_sitter_c
@@ -47,6 +66,159 @@ _PARSER = Parser(_C_LANGUAGE)
 
 _C_SOURCE_EXTS = (".c",)
 _C_HEADER_EXTS = (".h",)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Declared purpose — the leading comment block (D-A20, TASK-112).
+#
+# The label alias set is PROFILE DATA, passed in per repo (`code_profiles/<repo>.
+# profile.yaml`, TASK-113). The default below serves pre-profile runs and is the
+# measured Stratus distribution. Assuming ONE label would have been a 5.7×
+# under-report: `Intention:` is only 623 of 3 576 declarations (17%), so counting it
+# alone reports ~10% coverage against a real 58% — and D-A19 would have been
+# rewritten around the include graph on false evidence.
+# ──────────────────────────────────────────────────────────────────────────────
+
+DEFAULT_PURPOSE_LABELS: tuple[str, ...] = (
+    "PURPOSE", "Purpose",          # 2 727 files — the dominant form
+    "Intention",                   #   623
+    "DESCRIPTION", "Description",  #   363
+    "SYNOPSIS",                    #   126
+    "Descr", "Desc",               #    23
+)
+
+# Labels that look like declarations but are not (D-A20 "parser noise to ignore"):
+# `http` comes from URLs in comments (8 files), the licence-boilerplate phrase from
+# the standard permission notice (6). Matching them would inject junk purposes.
+_NOISE_LABELS: frozenset[str] = frozenset({"http", "https", "conditions are met"})
+
+# A purpose this short or this stock is real but uninformative — 3.3% of the corpus.
+# It is FLAGGED, never dropped: tier 1 must be able to down-weight it rather than
+# treat a missing purpose and a useless one as the same thing.
+_GENERIC_PURPOSES: frozenset[str] = frozenset({
+    "utility functions", "utilities", "helper functions", "helpers", "misc",
+    "miscellaneous", "common routines", "common functions", "header file",
+    "definitions", "various", "support routines", "internal use",
+})
+_GENERIC_MIN_WORDS = 3
+
+_LABEL_LINE = re.compile(r"^[\s*/]*([A-Za-z][A-Za-z ]{2,20}?)\s*:\s*(.*)$")
+_VERSION = re.compile(r"\bv(\d{2,4})\b")
+_YYMMDD = re.compile(r"\b(\d{2})(\d{2})(\d{2})\b")
+
+
+def _norm_label(label: str) -> str:
+    return re.sub(r"[^a-z]", "", label.lower())
+
+
+def _edit_distance_le1(a: str, b: str) -> bool:
+    """True iff ``a`` and ``b`` differ by at most one substitution/insertion/deletion.
+
+    One edit is the right tolerance, measured rather than chosen: the real corpus
+    contains ``Putpose`` (×4) — a single transposed key. Widening further would start
+    matching unrelated words, and the whole point of an alias SET is that we no longer
+    need to guess at variants.
+    """
+    if a == b:
+        return True
+    la, lb = len(a), len(b)
+    if abs(la - lb) > 1:
+        return False
+    if la == lb:
+        return sum(x != y for x, y in zip(a, b)) == 1
+    short, long = (a, b) if la < lb else (b, a)
+    for i in range(len(long)):
+        if long[:i] + long[i + 1:] == short:
+            return True
+    return False
+
+
+def _leading_comment_block(src: bytes) -> tuple[str, int] | None:
+    """The file's leading comment block as text + its 1-based start line.
+
+    "Leading" means before any code: blank lines and further comment blocks are
+    accumulated, and the first non-comment token ends the search. Returns ``None`` when
+    the file opens with code — which is a legitimate answer, not a failure.
+    """
+    lines = src.decode("utf-8", errors="replace").splitlines()
+    out: list[str] = []
+    start: int | None = None
+    in_block = False
+    for n, raw in enumerate(lines, 1):
+        line = raw.strip()
+        if in_block:
+            out.append(raw)
+            if "*/" in line:
+                in_block = False
+            continue
+        if not line:
+            if out:
+                break            # blank line after a block ends the leading region
+            continue
+        if line.startswith("/*"):
+            in_block = "*/" not in line
+            start = start or n
+            out.append(raw)
+            continue
+        if line.startswith("//"):
+            start = start or n
+            out.append(raw)
+            continue
+        break                    # first code token
+    if not out or start is None:
+        return None
+    return "\n".join(out), start
+
+
+def extract_declared(src: bytes, *, label_aliases: Sequence[str] | None = None) -> dict:
+    """Parse the declared-purpose fields from a file's leading comment block.
+
+    Deterministic and model-free. Returns ``{}`` when the file declares nothing — the
+    ~42% of files with no purpose field are a normal population, not an error, and they
+    fall through to the model-inferred purpose with ``purpose_source`` recording which.
+
+    Keys when present: ``purpose_declared``, ``purpose_declared_line`` (so the purpose is
+    **citable**, which is half of why declared beats inferred), ``purpose_quality``
+    (``specific`` | ``generic``), ``declared_version``, ``declared_date``.
+    """
+    block = _leading_comment_block(src)
+    if block is None:
+        return {}
+    text, start_line = block
+    aliases = [_norm_label(a) for a in (label_aliases or DEFAULT_PURPOSE_LABELS)]
+
+    out: dict = {}
+    for offset, raw in enumerate(text.splitlines()):
+        m = _LABEL_LINE.match(raw)
+        if not m:
+            continue
+        label, value = m.group(1).strip(), m.group(2).strip()
+        if label.lower() in _NOISE_LABELS or not value:
+            continue
+        norm = _norm_label(label)
+        if len(norm) < 4:
+            continue
+        if not any(_edit_distance_le1(norm, a) for a in aliases):
+            continue
+        value = value.rstrip("*/ ").strip()
+        if not value:
+            continue
+        out["purpose_declared"] = value
+        out["purpose_declared_line"] = start_line + offset
+        low = value.lower().rstrip(".")
+        out["purpose_quality"] = (
+            "generic" if low in _GENERIC_PURPOSES or len(value.split()) < _GENERIC_MIN_WORDS
+            else "specific")
+        break                    # first declaration wins; later labels are history, not purpose
+
+    head = text.splitlines()[0] if text.splitlines() else ""
+    if (mv := _VERSION.search(head)):
+        out["declared_version"] = f"v{mv.group(1)}"
+    if (md := _YYMMDD.search(head)):
+        yy, mm, dd = md.groups()
+        if 1 <= int(mm) <= 12 and 1 <= int(dd) <= 31:
+            out["declared_date"] = f"20{yy}-{mm}-{dd}"
+    return out
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -449,15 +621,19 @@ def _parse(abs_path: str) -> tuple[Node, bytes]:
     return _PARSER.parse(src).root_node, src
 
 
-def run(files: Sequence[str], repo_root: str) -> dict:
-    """Extract structural fields from the C partition (ADR-002 file list).
+def run(files: Sequence[str], repo_root: str, *,
+        label_aliases: Sequence[str] | None = None) -> dict:
+    """Extract structural fields + declared purpose from the C partition (ADR-002 file list).
 
     ``files`` are repo-relative C paths the dispatcher routed here; ``repo_root``
-    locates them on disk. Returns ``{"entries": [...], "coverage_report": {...}}``:
-    each entry carries only the extractor-owned structural fields (``used_by`` is
-    left empty for ``merge_edges``; ``purpose``/``tags`` for the model). The
-    aggregate ``coverage_report`` records the extracted/fallback/unresolved split
-    and the ``unresolved_patterns`` lines (§3.3 / §5.4).
+    locates them on disk. ``label_aliases`` is the repo's purpose-label set — **profile
+    data passed in** (`code_profiles/<repo>.profile.yaml`), defaulting to the measured
+    Stratus set for pre-profile runs. Returns ``{"entries": [...], "coverage_report":
+    {...}}``: each entry carries the extractor-owned structural fields (``used_by`` is
+    left empty for ``merge_edges``) plus any declared-purpose fields. The aggregate
+    ``coverage_report`` records the extracted/fallback/unresolved split, the
+    ``unresolved_patterns`` lines (§3.3 / §5.4), and the **declared-purpose coverage**
+    the onboarding gate reports on (D-A21).
     """
     parsed: dict[str, tuple[Node, bytes]] = {}
     for rel in files:
@@ -513,17 +689,20 @@ def run(files: Sequence[str], repo_root: str) -> dict:
         if pattern is not None:
             unresolved_patterns.append(pattern)
 
-        entries.append({
+        entry = {
             "path": rel,
             "module": _module_of(rel),
             "interfaces": interfaces,
             "depends_on": depends_on,
             "used_by": [],            # closed by merge_edges (TASK-011)
             "coverage": "coarse",     # §5.5 / SIGNOFF #1 — only the deep pass promotes
-        })
+        }
+        entry.update(extract_declared(src, label_aliases=label_aliases))
+        entries.append(entry)
 
     files_seen = len(files)
     coverage = round(files_extracted / files_seen, 2) if files_seen else 0.0
+    declared = [e for e in entries if e.get("purpose_declared")]
     coverage_report = {
         "files_seen": files_seen,
         "files_extracted": files_extracted,
@@ -531,5 +710,11 @@ def run(files: Sequence[str], repo_root: str) -> dict:
         "files_unresolved": files_unresolved,
         "coverage": coverage,
         "unresolved_patterns": unresolved_patterns,
+        # D-A20/D-A21: the gate reports on this split, and tier 1's quality depends on it —
+        # a repo where declarations are CLUSTERED rather than spread leaves whole modules
+        # with weak purposes while the aggregate still looks healthy.
+        "files_declared_purpose": len(declared),
+        "declared_purpose_coverage": round(len(declared) / files_seen, 2) if files_seen else 0.0,
+        "files_declared_generic": sum(1 for e in declared if e.get("purpose_quality") == "generic"),
     }
     return {"entries": entries, "coverage_report": coverage_report}

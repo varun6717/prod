@@ -1,3 +1,10 @@
+/* brand_registry.c  v004  230210  mtm  */
+/*********************************************
+ Name:        brand_registry.c
+ Description: registry of known card brands and their handlers
+ MODIFICATION HISTORY:
+     v004  230210  mtm  maintained
+*/
 /*
  * brand_registry.c — brand handler registry. (Tier 2, coverage: coarse)
  *

@@ -1,3 +1,10 @@
+/* txn_lifecycle.c  v003  221115  mtm  */
+/*********************************************
+ Name:        txn_lifecycle.c
+ DESCRIPTION: transaction state machine and stage advance
+ MODIFICATION HISTORY:
+     v003  221115  mtm  maintained
+*/
 /*
  * txn_lifecycle.c — end-to-end transaction lifecycle. (Tier 1, coverage: deep)
  *

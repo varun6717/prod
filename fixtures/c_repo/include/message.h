@@ -1,3 +1,10 @@
+/* message.h  v005  231104  mtm  */
+/*********************************************
+ Name:        message.h
+ PURPOSE:     ISO 8583 message struct and field accessors
+ MODIFICATION HISTORY:
+     v005  231104  mtm  maintained
+*/
 #ifndef PDLC_MESSAGE_H
 #define PDLC_MESSAGE_H
 
