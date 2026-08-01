@@ -76,8 +76,14 @@ fixture and its verify script already exist and are green offline.
     "make the network call" change
 
 - [ ] **Jira — push** *(the only external mutation of a run; gated by G3)*
-  - Fill `core/adapters/jpmc_adapters/jira.py`
-  - Operator-confirmed at G3 before any write occurs
+  - Fill `core/adapters/jpmc_adapters/jira.py :: _create_issue` **and** `:: _update_issue`
+  - Mock it replaces: the local stub target injected via `set_target()`
+  - Verify: `fixtures/jira_push/verify_jira_push.py`
+  - **Everything around the two calls is real and proven offline**: push order (parent before
+    child), parent linking, idempotency by `local_id`, the G3 authorization gate, the trace, and
+    the secret-leak scan. The VDI edit is two REST calls and nothing else
+  - Both must **raise on non-2xx**. A silent failure leaves the trace claiming an issue exists
+    that does not — and the next re-push would "update" a key that was never created
 
 ## Auth — bind to the real secret store
 

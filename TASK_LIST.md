@@ -245,6 +245,7 @@ connector's placeholder per hard rule **S**, done as connectors land on the VDI 
 - [x] *(housekeeping, post-TASK-123)* — three flagged residues closed: **`vocab_gap_flag` removed** from `decisions.py` + its schema + the `telemetry` re-export + the `ledger` demo (its producer died with the vocabulary at TASK-100 and §5.4.1 is retired, so the writer had no caller and the schema branch guarded a record nothing could emit — a record kind that cannot be produced is not backward compatibility, it is a sentence in a contract that reads as if something still works); the retired kind is now **actively rejected** rather than merely absent. **`check_discovery_adequacy` gained a routine caller** in `verify_si_profile.py` — the SI profile is the artifact it checks, and a check with no caller stops being true the first time someone edits what it guards. **`verify_code_map.py` now says loudly that the oracle is UNSIGNED** while `SIGNOFF.md` carries a pending re-sign-off: the run proves the build *matches* the oracle, not that the oracle is *correct*, and an all-green sweep otherwise overstates what has been established. ⚠️ **Still needs an operator signature** — that one cannot be closed from here.
 
 **✅ Milestone D4 complete** — enrichment closed: the record + router, both arms, the walkthrough, the apply pass, and G2 validated against a real run.
+- [x] TASK-124 — Jira push seam + `jira_trace.json`: 🆕 `core/adapters/jpmc_adapters/jira.py` — **the run's only external mutation**, so the discipline is heavier than anywhere else. **An un-gated push is impossible by construction, not by convention**: `push_plan` requires a `G3Authorization` that only `authorize()` can mint, and `authorize()` refuses an ineligible result — so a caller who forgot to check *still cannot push*. **`dry_run=True` is the default**: forgetting the argument previews rather than writes. Push order is parent-before-child (an issue cannot link to a parent that does not exist yet); **idempotent by `local_id`** using the SI's own ids — which is why `jira_author` was forbidden from inventing new ones; **each result is recorded as it returns**, so a mid-batch failure leaves prior successes in the trace and a retry resumes rather than re-creating. **The adapter returns data and never writes `jira_trace.json`** — keeping file-as-state means a crash between "wrote to Jira" and "wrote the trace" stays *detectable*. `_create_issue`/`_update_issue` are the two `[TBD — VDI]` placeholders; everything around them is real and proven offline. `§7.1`'s pinned `push_epics` signature kept as a delegating surface (the name predates the 4-level plan; the spec pins it, so it stays rather than being silently renamed). Proof: 🆕 `fixtures/jira_push/verify_jira_push.py` — **24 checks** incl. an ineligible G3 refusing to authorise (**the blocked plan scored 91 — the score alone would have let it through**), a simulated mid-batch 500 with 7 successes preserved and 0 re-created on retry, a canary secret reaching neither the returned structures nor disk, and the G3 acceptance preceding the push in the ledger stream. `VDI_WIRING.md` updated with the two placeholders. §10 4/4; all 25 verifies green.
 
 **Phase D · Milestone D5 — Jira**
 - [x] TASK-122 — `jira_author` + `jira_template` (4-level plan): 🆕 `core/templates/payment_brand/jira_template.payment_brand.yaml` (the second half of the domain seam) + 🆕 `core/skills/jira_author.skill.md` + 🆕 `core/scripts/jira_plan.py`. Each level has **one** source (D-A15): Initiative ← the document · Deliverable ← §7 · Epic ← §8 **one per requirement** · Story ← §16 impacts *and* gaps *and* §7 non-code work, **v2 only** — which is why G3 follows G2 *for a reason* rather than by convention. **A requirement is epic-sized, not story-sized**; **§16's granularity IS story granularity** and is not re-litigated here. The **§8→§7 trace physically builds the parent chain**, so an orphan requirement yields an epic with no parent — which is what made it a G1 hard precondition. Exactly one of `code_location | flag`: a dispositioned gap becomes `new_build` with **no invented path**, and `non_code` carries certification/filing work that would otherwise appear in no plan at all. **The translation ADDS acceptance criteria** — they exist nowhere upstream, which is what makes story authoring a translation rather than a copy; and a **Technical Specification is never read off into stories** (it specifies the *external contract* and is code-blind about our system by construction — the network has never seen our codebase). **A latent bug the plan walk exposed:** the TASK-121 spine fixture generated finding ids like `F-3R11`, which violate the schema's `F-nnn` pattern — and only 2 of 6 §16 entries parsed, so the story-coverage check would have passed on a subset. Root cause: **`verify_spine` never validated its own record**; it does now, plus an explicit id-contract check. Proof: 🆕 `fixtures/jira_plan/verify_jira_plan.py` — **26 checks**: four levels from their declared sources, no orphan at any level, **all 6 §16 entries covered** both directions, gaps as `new_build`, non-code stories present, acceptance criteria absent from v2 (authored, not copied), SI ids carried verbatim as push idempotency anchors. §10.3 green with `jira_template` in scope; all 23 verifies green.
@@ -280,7 +281,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ## Open index (tick here; then collapse the task into the done ledger above)
 
 **Milestone D5 — Jira (4-level plan + the only external mutation)**
-- [ ] TASK-124 — Jira push seam + `jira_trace.json` · `Opus`
 
 **Milestone D6 — Metrics, docs, acceptance**
 - [ ] TASK-125 — `metrics_scan` re-cut (amended FR-MX-02) · `Sonnet`
@@ -290,22 +290,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ---
 
 ## Milestone D5 — Jira (4-level plan + the only external mutation)
-
-### TASK-124 — Jira push seam + `jira_trace.json`
-- **Depends on:** TASK-123, TASK-052 (auth seam).
-- **Model:** Opus — the **only** external mutation; highest care.
-- **Reads:** §7.1 (interface signature) · §7.2 (push flow) · §3.8 (`jira_trace.json`) · D-A24 ·
-  impact §12.
-- **Creates / edits:** `core/adapters/jpmc_adapters/jira.py` — generic push connector; the real
-  JPMC Jira REST call isolated in its own `[TBD — VDI]` placeholder function + a **local stub
-  target** so the flow proves offline; push order Initiative → Deliverable → Epic → Story with
-  parent links; G3-gated + operator-confirmed before any write; emit `jira_trace.json` (issue
-  keys per plan node); telemetry.
-- **Acceptance:** stub push records a complete trace; an un-gated or unconfirmed push is
-  impossible by construction; no secret on disk; the push is the run's sole external mutation.
-- **Proof:** stub-target run → `jira_trace.json` + the gate/confirm records in the ledger.
-
----
 
 ## Milestone D6 — Metrics, docs, acceptance
 
