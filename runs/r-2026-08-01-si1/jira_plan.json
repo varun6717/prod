@@ -1,0 +1,559 @@
+{
+  "run_id": "r-2026-08-01-si1",
+  "project_key": "PBIROUTE",
+  "initiative": {
+    "local_id": "INIT",
+    "issue_type": "Initiative",
+    "summary": "1. Executive summary",
+    "description": "## 1. Executive summary\n\n*(Regenerated at enrichment: 27 findings applied to the body below.)*\n\nMastercard brand implementation mandate **MCS-2026-R3** is binding on JPMC Merchant Services with full compliance required by **2026-09-30**. Enrichment has since checked v1's current-state claims against the Merchant Routing Service code and recorded the derived system impacts in §16.\n\nTwo findings reshape the plan. The routing KB's account of brand identification does not match the code — there is no PAN/BIN-range lookup in this repo — so §2 is corrected with code provenance. And the ISO 8583 impl",
+    "controls": {
+      "seal_id": "SEAL-12345",
+      "control_owner": "vmunjal",
+      "risk_classification": "medium"
+    }
+  },
+  "deliverables": [
+    {
+      "local_id": "D1",
+      "issue_type": "Deliverable",
+      "summary": "**Message format layer: ISO 8583 DE 48 subelements.** Build and parse DE 48.66, 48.77, 48.78 and 48.79 to the stated types, lengths and presence rules [src: context_set/sharepoint/mastercard_mandate_part2_2026.md L19–37] [src: context_set/sharepoint/mastercard_mandate_part2_2026.md L38–48].",
+      "description": "**Message format layer: ISO 8583 DE 48 subelements.** Build and parse DE 48.66, 48.77, 48.78 and 48.79 to the stated types, lengths and presence rules [src: context_set/sharepoint/mastercard_mandate_part2_2026.md L19–37] [src: context_set/sharepoint/mastercard_mandate_part2_2026.md L38–48].",
+      "kind": "code",
+      "parent": "INIT"
+    },
+    {
+      "local_id": "D2",
+      "issue_type": "Deliverable",
+      "summary": "**Routing layer: Banknet endpoint selection, Regulation II debit routing, MDES token routing** [src: context_set/sharepoint/mastercard_mandate_part2_2026.md L132–141] [src: context_set/sharepoint/mastercard_mandate_part2_2026.md L142–151] [src: context_set/sharepoint/mastercard_mandate_part2_2026.md L152–160].",
+      "description": "**Routing layer: Banknet endpoint selection, Regulation II debit routing, MDES token routing** [src: context_set/sharepoint/mastercard_mandate_part2_2026.md L132–141] [src: context_set/sharepoint/mastercard_mandate_part2_2026.md L142–151] [src: context_set/sharepoint/mastercard_mandate_part2_2026.md L152–160].",
+      "kind": "code",
+      "parent": "INIT"
+    },
+    {
+      "local_id": "D3",
+      "issue_type": "Deliverable",
+      "summary": "**Interchange qualification and decline messaging.** Token-assurance-driven rate qualification, plus the RC 55 re-mapping in host and merchant-facing decline engines [src: context_set/sharepoint/mastercard_mandate_part2_2026.md L115–129] [src: context_set/sharepoint/mastercard_mandate_part1_2026.md L72–80].",
+      "description": "**Interchange qualification and decline messaging.** Token-assurance-driven rate qualification, plus the RC 55 re-mapping in host and merchant-facing decline engines [src: context_set/sharepoint/mastercard_mandate_part2_2026.md L115–129] [src: context_set/sharepoint/mastercard_mandate_part1_2026.md L72–80].",
+      "kind": "code",
+      "parent": "INIT"
+    },
+    {
+      "local_id": "D4",
+      "issue_type": "Deliverable",
+      "summary": "**Reporting and downstream data obligations.** DSR format changes, the Regulation II quarterly compliance report, and MDES token coverage reporting [src: context_set/sharepoint/mastercard_mandate_part2_2026.md L163–171] [src: context_set/sharepoint/mastercard_mandate_part2_2026.md L172–180] [src: context_set/sharepoint/mastercard_mandate_part2_2026.md L181–189].",
+      "description": "**Reporting and downstream data obligations.** DSR format changes, the Regulation II quarterly compliance report, and MDES token coverage reporting [src: context_set/sharepoint/mastercard_mandate_part2_2026.md L163–171] [src: context_set/sharepoint/mastercard_mandate_part2_2026.md L172–180] [src: context_set/sharepoint/mastercard_mandate_part2_2026.md L181–189].",
+      "kind": "code",
+      "parent": "INIT"
+    },
+    {
+      "local_id": "D5",
+      "issue_type": "Deliverable",
+      "summary": "**MAC Level 2 certification package.** Gates C1 functional, C2 interoperability, C3 production validation [src: context_set/sharepoint/mastercard_mandate_part1_2026.md L81–104].",
+      "description": "**MAC Level 2 certification package.** Gates C1 functional, C2 interoperability, C3 production validation [src: context_set/sharepoint/mastercard_mandate_part1_2026.md L81–104].",
+      "kind": "code",
+      "parent": "INIT"
+    }
+  ],
+  "epics": [
+    {
+      "local_id": "R1",
+      "issue_type": "Epic",
+      "parent": "D1",
+      "summary": "R1",
+      "assertion_refs": [
+        "R1.1",
+        "R1.2",
+        "R1.3"
+      ],
+      "controls": {
+        "seal_id": "SEAL-12345",
+        "control_owner": "vmunjal",
+        "risk_classification": "medium"
+      }
+    },
+    {
+      "local_id": "R2",
+      "issue_type": "Epic",
+      "parent": "D1",
+      "summary": "R2",
+      "assertion_refs": [
+        "R2.1",
+        "R2.2",
+        "R2.3",
+        "R2.4"
+      ],
+      "controls": {
+        "seal_id": "SEAL-12345",
+        "control_owner": "vmunjal",
+        "risk_classification": "medium"
+      }
+    },
+    {
+      "local_id": "R3",
+      "issue_type": "Epic",
+      "parent": "D2",
+      "summary": "R3",
+      "assertion_refs": [
+        "R3.1",
+        "R3.2",
+        "R3.3",
+        "R3.4"
+      ],
+      "controls": {
+        "seal_id": "SEAL-12345",
+        "control_owner": "vmunjal",
+        "risk_classification": "medium"
+      }
+    },
+    {
+      "local_id": "R4",
+      "issue_type": "Epic",
+      "parent": "D2",
+      "summary": "R4",
+      "assertion_refs": [
+        "R4.1",
+        "R4.2",
+        "R4.3"
+      ],
+      "controls": {
+        "seal_id": "SEAL-12345",
+        "control_owner": "vmunjal",
+        "risk_classification": "medium"
+      }
+    },
+    {
+      "local_id": "R5",
+      "issue_type": "Epic",
+      "parent": "D3",
+      "summary": "R5",
+      "assertion_refs": [
+        "R5.1",
+        "R5.2",
+        "R5.3"
+      ],
+      "controls": {
+        "seal_id": "SEAL-12345",
+        "control_owner": "vmunjal",
+        "risk_classification": "medium"
+      }
+    },
+    {
+      "local_id": "R6",
+      "issue_type": "Epic",
+      "parent": "D3",
+      "summary": "R6",
+      "assertion_refs": [
+        "R6.1",
+        "R6.2",
+        "R6.3"
+      ],
+      "controls": {
+        "seal_id": "SEAL-12345",
+        "control_owner": "vmunjal",
+        "risk_classification": "medium"
+      }
+    },
+    {
+      "local_id": "R7",
+      "issue_type": "Epic",
+      "parent": "D2",
+      "summary": "R7",
+      "assertion_refs": [
+        "R7.1",
+        "R7.2",
+        "R7.3"
+      ],
+      "controls": {
+        "seal_id": "SEAL-12345",
+        "control_owner": "vmunjal",
+        "risk_classification": "medium"
+      }
+    },
+    {
+      "local_id": "R8",
+      "issue_type": "Epic",
+      "parent": "D4",
+      "summary": "R8",
+      "assertion_refs": [
+        "R8.1",
+        "R8.2",
+        "R8.3"
+      ],
+      "controls": {
+        "seal_id": "SEAL-12345",
+        "control_owner": "vmunjal",
+        "risk_classification": "medium"
+      }
+    },
+    {
+      "local_id": "R9",
+      "issue_type": "Epic",
+      "parent": "D5",
+      "summary": "R9",
+      "assertion_refs": [
+        "R9.1",
+        "R9.2",
+        "R9.3"
+      ],
+      "controls": {
+        "seal_id": "SEAL-12345",
+        "control_owner": "vmunjal",
+        "risk_classification": "medium"
+      }
+    }
+  ],
+  "stories": [
+    {
+      "local_id": "S1",
+      "issue_type": "Story",
+      "parent": "R1",
+      "evidence": "F-310",
+      "summary": "Preserve DE 48.66 Token Requestor ID through encode/decode",
+      "acceptance_criteria": [
+        "R1.2 holds against the changed code.",
+        "The change is confined to src/messaging/field_codec.c and its callers.",
+        "Existing Mastercard, Visa and Discover dispatch is unaffected."
+      ],
+      "description": "DE 48.66 TRID must survive encode/decode; the per-field codec enforces preservation",
+      "code_location": "src/messaging/field_codec.c"
+    },
+    {
+      "local_id": "S2",
+      "issue_type": "Story",
+      "parent": "R1",
+      "evidence": "F-340",
+      "summary": "Populate DE 48.77 for wallet-originated transactions",
+      "acceptance_criteria": [
+        "R1.3 holds against the changed code.",
+        "The change is confined to src/messaging/field_codec.c and its callers.",
+        "Existing Mastercard, Visa and Discover dispatch is unaffected."
+      ],
+      "description": "DE 48.77 must be populated for wallet-originated transactions — a second encode obligation on the same codec, distinct from R2.2's format definition",
+      "code_location": "src/messaging/field_codec.c"
+    },
+    {
+      "local_id": "S3",
+      "issue_type": "Story",
+      "parent": "R2",
+      "evidence": "F-311",
+      "summary": "Encode DE 48.77 digital wallet indicator",
+      "acceptance_criteria": [
+        "R2.2 holds against the changed code.",
+        "The change is confined to src/messaging/field_codec.c and its callers.",
+        "Existing Mastercard, Visa and Discover dispatch is unaffected."
+      ],
+      "description": "DE 48.77 wallet indicator needs an encode path in the per-field codec",
+      "code_location": "src/messaging/field_codec.c"
+    },
+    {
+      "local_id": "S4",
+      "issue_type": "Story",
+      "parent": "R2",
+      "evidence": "F-312",
+      "summary": "Encode DE 48.78 token assurance level and trigger RC 55 below 10",
+      "acceptance_criteria": [
+        "R2.3 holds against the changed code.",
+        "The change is confined to src/messaging/field_codec.c and its callers.",
+        "Existing Mastercard, Visa and Discover dispatch is unaffected."
+      ],
+      "description": "DE 48.78 token assurance needs encode/decode plus the <10 RC 55 trigger",
+      "code_location": "src/messaging/field_codec.c"
+    },
+    {
+      "local_id": "S5",
+      "issue_type": "Story",
+      "parent": "R2",
+      "evidence": "F-341",
+      "summary": "Provide a DE 48.79 device type encode path (not enabled this release)",
+      "acceptance_criteria": [
+        "R2.4 holds against the changed code.",
+        "The change is confined to src/messaging/field_codec.c and its callers.",
+        "Existing Mastercard, Visa and Discover dispatch is unaffected."
+      ],
+      "description": "DE 48.79 device type is optional and the operator ruled it out of this release (§10), but the codec is where it would land if reinstated",
+      "code_location": "src/messaging/field_codec.c"
+    },
+    {
+      "local_id": "S6",
+      "issue_type": "Story",
+      "parent": "R4",
+      "evidence": "F-315",
+      "summary": "Bound Banknet authorization at 4000ms with secondary-endpoint attempt",
+      "acceptance_criteria": [
+        "R4.1 holds against the changed code.",
+        "The change is confined to src/routing/retry.c and its callers.",
+        "Existing Mastercard, Visa and Discover dispatch is unaffected."
+      ],
+      "description": "the 4000ms bound and secondary-endpoint attempt land on bounded retry",
+      "code_location": "src/routing/retry.c"
+    },
+    {
+      "local_id": "S7",
+      "issue_type": "Story",
+      "parent": "R4",
+      "evidence": "F-316",
+      "summary": "Forward to STIP on secondary endpoint timeout",
+      "acceptance_criteria": [
+        "R4.3 holds against the changed code.",
+        "The change is confined to src/routing/dispatch.c and its callers.",
+        "Existing Mastercard, Visa and Discover dispatch is unaffected."
+      ],
+      "description": "STIP forwarding on secondary timeout is a dispatch decision",
+      "code_location": "src/routing/dispatch.c"
+    },
+    {
+      "local_id": "S8",
+      "issue_type": "Story",
+      "parent": "R4",
+      "evidence": "F-342",
+      "summary": "Write reason code T to the audit record on every fallback attempt",
+      "acceptance_criteria": [
+        "R4.2 holds against the changed code.",
+        "The change is confined to src/routing/retry.c and its callers.",
+        "Existing Mastercard, Visa and Discover dispatch is unaffected."
+      ],
+      "description": "reason code T must be written to the transaction audit record on every fallback attempt",
+      "code_location": "src/routing/retry.c"
+    },
+    {
+      "local_id": "S9",
+      "issue_type": "Story",
+      "parent": "R5",
+      "evidence": "F-313",
+      "summary": "Re-map Response Code 55 in the error code table",
+      "acceptance_criteria": [
+        "R5.1 holds against the changed code.",
+        "The change is confined to src/routing/error_codes.c and its callers.",
+        "Existing Mastercard, Visa and Discover dispatch is unaffected."
+      ],
+      "description": "RC 55 re-mapping lands on the error code table and its text",
+      "code_location": "src/routing/error_codes.c"
+    },
+    {
+      "local_id": "S10",
+      "issue_type": "Story",
+      "parent": "R5",
+      "evidence": "F-314",
+      "summary": "Update merchant-facing decline text for RC 55 on token transactions",
+      "acceptance_criteria": [
+        "R5.2 holds against the changed code.",
+        "The change is confined to src/routing/fallback.c and its callers.",
+        "Existing Mastercard, Visa and Discover dispatch is unaffected."
+      ],
+      "description": "merchant-facing decline text on the fallback path",
+      "code_location": "src/routing/fallback.c"
+    },
+    {
+      "local_id": "S11",
+      "issue_type": "Story",
+      "parent": "R5",
+      "evidence": "F-343",
+      "summary": "Recognise token BIN range 520000-529999 at decline time",
+      "acceptance_criteria": [
+        "R5.3 holds against the changed code.",
+        "The change is confined to src/routing/brand_registry.c and its callers.",
+        "Existing Mastercard, Visa and Discover dispatch is unaffected."
+      ],
+      "description": "token BIN range 520000-529999 must be recognisable at decline time to distinguish RC 55 semantics",
+      "code_location": "src/routing/brand_registry.c"
+    },
+    {
+      "local_id": "S12",
+      "issue_type": "Story",
+      "parent": "R6",
+      "evidence": "F-344",
+      "summary": "Populate DE 48.78 before interchange rate assessment",
+      "acceptance_criteria": [
+        "R6.1 holds against the changed code.",
+        "The change is confined to src/routing/route_table.c and its callers.",
+        "Existing Mastercard, Visa and Discover dispatch is unaffected."
+      ],
+      "description": "interchange qualification reads the routed transaction; DE 48.78 population must happen before rate assessment",
+      "code_location": "src/routing/route_table.c"
+    },
+    {
+      "local_id": "S13",
+      "issue_type": "Story",
+      "parent": "R6",
+      "evidence": "F-345",
+      "summary": "Load revised interchange tier rates into the brand rule table",
+      "acceptance_criteria": [
+        "R6.3 holds against the changed code.",
+        "The change is confined to src/config/brand_rules.c and its callers.",
+        "Existing Mastercard, Visa and Discover dispatch is unaffected."
+      ],
+      "description": "revised tier rates are brand-rule table data, loaded and cached here",
+      "code_location": "src/config/brand_rules.c"
+    },
+    {
+      "local_id": "S14",
+      "issue_type": "Story",
+      "parent": "R7",
+      "evidence": "F-317",
+      "summary": "Apply revised Banknet endpoint selection rules",
+      "acceptance_criteria": [
+        "R7.1 holds against the changed code.",
+        "The change is confined to src/routing/route_table.c and its callers.",
+        "Existing Mastercard, Visa and Discover dispatch is unaffected."
+      ],
+      "description": "Banknet endpoint selection is table-driven here",
+      "code_location": "src/routing/route_table.c"
+    },
+    {
+      "local_id": "S15",
+      "issue_type": "Story",
+      "parent": "R7",
+      "evidence": "F-318",
+      "summary": "Route MDES token BINs through the handler registry",
+      "acceptance_criteria": [
+        "R7.3 holds against the changed code.",
+        "The change is confined to src/routing/brand_registry.c and its callers.",
+        "Existing Mastercard, Visa and Discover dispatch is unaffected."
+      ],
+      "description": "token BIN routing binds through the handler registry",
+      "code_location": "src/routing/brand_registry.c"
+    },
+    {
+      "local_id": "S16",
+      "issue_type": "Story",
+      "parent": "R7",
+      "evidence": "F-346",
+      "summary": "Implement Regulation II unaffiliated-network selection",
+      "acceptance_criteria": [
+        "R7.2 holds against the changed code.",
+        "The change is confined to src/routing/route_table.c and its callers.",
+        "Existing Mastercard, Visa and Discover dispatch is unaffected."
+      ],
+      "description": "Regulation II unaffiliated-network selection is a routing-table decision",
+      "code_location": "src/routing/route_table.c"
+    },
+    {
+      "local_id": "S17",
+      "issue_type": "Story",
+      "parent": "R8",
+      "evidence": "F-319",
+      "summary": "Adopt the revised Daily Settlement Report format",
+      "acceptance_criteria": [
+        "R8.1 holds against the changed code.",
+        "The change is confined to src/messaging/formatter.c and its callers.",
+        "Existing Mastercard, Visa and Discover dispatch is unaffected."
+      ],
+      "description": "DSR format changes land on settlement message formatting",
+      "code_location": "src/messaging/formatter.c"
+    },
+    {
+      "local_id": "S18",
+      "issue_type": "Story",
+      "parent": "R8",
+      "evidence": "F-330",
+      "summary": "Build the MDES token coverage metrics emitter",
+      "acceptance_criteria": [
+        "A new component exists that satisfies R8 R8.3.",
+        "Its output is verifiable end to end in UAT before Gate C2 submission.",
+        "No existing behaviour regresses."
+      ],
+      "description": "R8.3 requires MDES token coverage reporting (TRID population, DE 48.77 coverage). No reporting or metrics emitter exists anywhere in the map — genuinely new build.",
+      "flag": "new_build"
+    },
+    {
+      "local_id": "S19",
+      "issue_type": "Story",
+      "parent": "R8",
+      "evidence": "F-360",
+      "summary": "Build the Regulation II quarterly compliance report",
+      "acceptance_criteria": [
+        "A new component exists that satisfies R8 R8.2.",
+        "Its output is verifiable end to end in UAT before Gate C2 submission.",
+        "No existing behaviour regresses."
+      ],
+      "description": "R8.2 requires a Regulation II quarterly compliance report. No reporting path exists anywhere in the map — same gap class as F-330.",
+      "flag": "new_build"
+    },
+    {
+      "local_id": "S20",
+      "issue_type": "Story",
+      "parent": "R9",
+      "evidence": "F-331",
+      "summary": "Deliver F-331",
+      "acceptance_criteria": [
+        "A new component exists that satisfies R9 R9.2.",
+        "Its output is verifiable end to end in UAT before Gate C2 submission.",
+        "No existing behaviour regresses."
+      ],
+      "description": "R9.2 requires 1,000 traces submitted in JSONL to the Mastercard Testing API. No trace-capture or submission path exists in the repo.",
+      "flag": "new_build"
+    },
+    {
+      "local_id": "S21",
+      "issue_type": "Story",
+      "parent": "R9",
+      "evidence": "F-361",
+      "summary": "Deliver F-361",
+      "acceptance_criteria": [
+        "A new component exists that satisfies R9 R9.1.",
+        "Its output is verifiable end to end in UAT before Gate C2 submission.",
+        "No existing behaviour regresses."
+      ],
+      "description": "R9.1 requires running the MTS v8.4 suite against a UAT environment. Test-harness work; nothing in this repo participates.",
+      "flag": "new_build"
+    },
+    {
+      "local_id": "S22",
+      "issue_type": "Story",
+      "parent": "R9",
+      "evidence": "F-362",
+      "summary": "Sustain C3 production monitoring thresholds",
+      "acceptance_criteria": [
+        "A new component exists that satisfies R9 R9.3.",
+        "Its output is verifiable end to end in UAT before Gate C2 submission.",
+        "No existing behaviour regresses."
+      ],
+      "description": "R9.3 requires sustaining C3 production monitoring thresholds. Depends on the metrics emitter F-330 identified as absent.",
+      "flag": "new_build"
+    }
+  ],
+  "trace": {
+    "section16_entries": [
+      "F-310",
+      "F-340",
+      "F-311",
+      "F-312",
+      "F-341",
+      "F-315",
+      "F-316",
+      "F-342",
+      "F-313",
+      "F-314",
+      "F-343",
+      "F-344",
+      "F-345",
+      "F-317",
+      "F-318",
+      "F-346",
+      "F-319",
+      "F-330",
+      "F-360",
+      "F-331",
+      "F-361",
+      "F-362"
+    ],
+    "requirements": [
+      "R1",
+      "R2",
+      "R3",
+      "R4",
+      "R5",
+      "R6",
+      "R7",
+      "R8",
+      "R9"
+    ],
+    "deliverables": [
+      "D1",
+      "D2",
+      "D3",
+      "D4",
+      "D5"
+    ]
+  }
+}

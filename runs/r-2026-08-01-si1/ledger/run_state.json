@@ -1,6 +1,6 @@
 {
   "run_id": "r-2026-08-01-si1",
-  "current_stage": "si_v1",
+  "current_stage": "si_v2",
   "stages": {
     "ingest": {
       "status": "pending"
@@ -12,10 +12,15 @@
       "version": 1
     },
     "enrichment": {
-      "status": "pending"
+      "status": "done",
+      "started": "2026-08-01T19:00:00Z",
+      "completed": "2026-08-01T19:20:00Z"
     },
     "si_v2": {
-      "status": "pending"
+      "status": "done",
+      "started": "2026-08-01T19:40:00Z",
+      "completed": "2026-08-01T19:45:00Z",
+      "version": 2
     },
     "jira": {
       "status": "pending"

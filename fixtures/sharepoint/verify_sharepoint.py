@@ -33,7 +33,8 @@ import ingest_sharepoint  # noqa: E402
 from jpmc_adapters import auth as _auth  # noqa: E402
 from build_checks import branches_on_domain, check_connector_coverage  # noqa: E402
 
-_PDF = _REPO_ROOT / "fixtures" / "pdf" / "mastercard_mandate_part1_2026.pdf"
+_PDF_A = _REPO_ROOT / "fixtures" / "pdf" / "mastercard_mandate_part1_2026.pdf"
+_PDF_B = _REPO_ROOT / "fixtures" / "pdf" / "mastercard_mandate_part2_2026.pdf"
 _CANARY = "sp-canary-token-DEADBEEF-LEAKCANARY"
 _DESCRIPTOR_KEYS = {"type", "source", "url", "staged_path", "auth_ref", "ingest_ts"}
 
@@ -58,12 +59,12 @@ def main() -> int:
         root = Path(td)
 
         # 1) Local-path convenience → descriptor shape identical to ingest_file's.
-        d_sp = ingest_sharepoint.pull_document(str(_PDF), root / "s1", source="sharepoint", auth_ref=None)
-        d_file = ingest_file.stage_document(str(_PDF), root / "s_file", source="sharepoint")
+        d_sp = ingest_sharepoint.pull_document(str(_PDF_A), root / "s1", source="sharepoint", auth_ref=None)
+        d_file = ingest_file.stage_document(str(_PDF_A), root / "s_file", source="sharepoint")
         _check("staged the PDF on disk", Path(d_sp["staged_path"]).is_file())
         _check("descriptor keys == ingest_file's contract", set(d_sp) == _DESCRIPTOR_KEYS == set(d_file))
         _check("descriptor type is 'sharepoint'", d_sp["type"] == "sharepoint")
-        _check("provenance url recorded", d_sp["url"] == str(_PDF))
+        _check("provenance url recorded", d_sp["url"] == str(_PDF_A))
 
         # 2) Injected downloader (VDI stand-in) over an https URL, through the auth seam.
         saved = _auth.get_backend()
@@ -72,7 +73,7 @@ def main() -> int:
 
         def fake_download(url, handle, target):
             seen["handle_secret"] = handle.reveal() if handle else None
-            shutil.copy2(_PDF, target)                       # stand in for the real Graph fetch
+            shutil.copy2(_PDF_A, target)                       # stand in for the real Graph fetch
 
         ingest_sharepoint.set_downloader(fake_download)
         try:
@@ -105,6 +106,28 @@ def main() -> int:
         _check("§10.4 maps type:sharepoint → ingest_sharepoint.py (green)", cov.ok)
         _check("ingest_sharepoint.py does not branch on `domain`",
                not branches_on_domain(_REPO_ROOT / "core" / "scripts" / "ingest_sharepoint.py"))
+
+    # ── MULTIPLE SharePoint documents (TASK-127 regression) ────────────────────────────
+    # This refused anything but a single entry ("slice-1 expects one sharepoint source") while
+    # ingest_confluence and ingest_jira had both been generalised. VDI_WIRING states PDFs ALWAYS
+    # arrive via SharePoint, so multi-document is the production norm, not an edge case — and the
+    # fixture corpus is itself one mandate split across two PDFs with different dispositions.
+    print("\nmultiple SharePoint sources in one UI_INPUT:")
+    with tempfile.TemporaryDirectory(prefix="verify-sp-multi-") as td:
+        root = Path(td)
+        ui = root / "UI_INPUT.yaml"
+        ui.write_text(
+            "sources:\n"
+            f"  - {{type: sharepoint, url: '{_PDF_A}', source: sharepoint, "
+            "auth_ref: 'jpmc_adapters:sharepoint', disposition: [business_requirement]}\n"
+            f"  - {{type: sharepoint, url: '{_PDF_B}', source: sharepoint, "
+            "auth_ref: 'jpmc_adapters:sharepoint', disposition: [technical_specification]}\n",
+            encoding="utf-8")
+        entries = ingest_sharepoint._sources_from_ui_input(ui)
+        _check("both type:sharepoint entries are returned, not refused", len(entries) == 2)
+        _check("each keeps its own operator-declared disposition",
+               [e["disposition"] for e in entries]
+               == [["business_requirement"], ["technical_specification"]])
 
     print("verify_sharepoint: ALL CHECKS PASSED")
     return 0

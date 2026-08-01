@@ -176,6 +176,28 @@ def main() -> int:
            plan["initiative"]["controls"]["seal_id"] == "SEAL-12345"
            and all(e["controls"]["control_owner"] for e in plan["epics"]))
 
+    # ── §7 in the BULLET form (TASK-127 regression) ────────────────────────────────────
+    # _DELIV_ROW accepted only a markdown table, but nothing tells the author to write one: not
+    # the SI profile's §7 must_capture, not solution_intent_author.skill.md, not
+    # jira_author.skill.md. An SI authored exactly to spec yielded ZERO deliverables — which
+    # orphans every epic and collapses the four-level plan — and v1 is FROZEN by the time the
+    # plan is built, so the document cannot be fixed in response.
+    print("\n§7 parses in both shapes the author legitimately produces:")
+    table = ("## 7. Deliverables\n\n"
+             "| ID | Name | Delivered when |\n|---|---|---|\n"
+             "| **D1** | Message format layer | DE 48 subelements build and parse |\n"
+             "| **D2** | Certification package (**non-code**) | MAC Level 2 achieved |\n")
+    bullets = ("## 7. Deliverables\n\n"
+               "- **D1** — **Message format layer.** DE 48 subelements build and parse.\n"
+               "- **D2** — **Certification package (non-code).** MAC Level 2 achieved.\n")
+    rt, rb = J._deliverable_rows(table), J._deliverable_rows(bullets)
+    _check("the table form still parses", [r[0] for r in rt] == ["D1", "D2"], str(rt))
+    _check("the BULLET form parses too", [r[0] for r in rb] == ["D1", "D2"], str(rb))
+    _check("a bullet §7 yields deliverables rather than an empty list", len(rb) == 2)
+    _check("non-code classification survives the bullet form",
+           "non-code" in rb[1][2].lower(),
+           "kind is derived from the delivered text, so the whole bullet is passed through")
+
     print()
     if _FAILURES:
         print(f"FAILED — {len(_FAILURES)} check(s): {_FAILURES}", file=sys.stderr)

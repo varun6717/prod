@@ -25,7 +25,40 @@ from typing import Callable, Sequence
 _S16_ENTRY = re.compile(r"^- \*\*(F-\d+)\*\* \((impact|GAP[^)]*)\)\s*·\s*([^→]+)→\s*`([^`]*)`",
                         re.M)
 _S16_REQ = re.compile(r"^### (R\d+)\s*$", re.M)
+# §7 deliverables, in EITHER shape the author legitimately produces.
+#
+# The table form was the only one accepted until TASK-127, when the first real end-to-end run
+# authored §7 as a bullet list — which is what the contract actually asks for. Neither the SI
+# profile's §7 `must_capture` ("each distinct thing being delivered, with a stable ID … one line
+# on what 'delivered' means"), nor `solution_intent_author.skill.md`, nor `jira_author.skill.md`
+# mentions a table anywhere. So the parser was imposing an undocumented format on a document that
+# is FROZEN by the time it gets here, and an SI authored exactly to spec yielded **zero**
+# deliverables — which then orphans every epic and collapses the four-level plan.
+#
+# Both are accepted rather than the table alone, and the reason is asymmetry of failure: a
+# tolerant parser that reads both costs nothing, while a strict one silently produces an empty
+# plan from a valid document. `_deliverable_rows` normalises them to (id, name, delivered).
 _DELIV_ROW = re.compile(r"^\| \*\*(D\d+)\*\* \| ([^|]+) \| ([^|]+) \|", re.M)
+_DELIV_BULLET = re.compile(
+    r"^- \*\*(D\d+)\*\*\s*[—-]\s*(.+?)(?=\n- \*\*D\d+\*\*|\n##|\Z)", re.M | re.S)
+
+
+def _deliverable_rows(s7: str) -> list[tuple[str, str, str]]:
+    """§7 → ``[(id, name, delivered_text)]``, from the table form or the bullet form.
+
+    For a bullet, `name` is its first sentence/line and `delivered` is the whole bullet — the
+    non-code keyword scan below reads `delivered`, so passing the full text keeps the bullet form
+    exactly as classifiable as the table form.
+    """
+    rows = _DELIV_ROW.findall(s7)
+    if rows:
+        return [(d, n, v) for d, n, v in rows]
+    out = []
+    for did, body in _DELIV_BULLET.findall(s7):
+        text = " ".join(body.split())
+        name = re.split(r"(?<=[.!?])\s|\s{2,}", text)[0]
+        out.append((did, name, text))
+    return out
 
 
 def parse_v2_section16(s16: str) -> list[dict]:
@@ -53,7 +86,7 @@ def build_plan(v2_sections: dict, signals, record: dict, *, run_id: str, project
         by_req.setdefault(e["requirement"] or "unassigned", []).append(e)
 
     deliverables = []
-    for did, name, delivered in _DELIV_ROW.findall(v2_sections.get(7, "")):
+    for did, name, delivered in _deliverable_rows(v2_sections.get(7, "")):
         kind = deliverable_kind(did) if deliverable_kind else (
             "non_code" if "non-code" in name.lower() or "**non-code**" in delivered.lower()
             else "code")

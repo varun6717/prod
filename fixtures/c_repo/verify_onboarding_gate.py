@@ -217,6 +217,45 @@ def main() -> int:
     _check("the frozen profile is written to core/code_profiles/",
            out.exists(), str(out.relative_to(_REPO_ROOT)))
 
+    # ── the gate must be OPERABLE, not just correct (TASK-127 regressions) ─────────────
+    # main() took argv and never parsed it, and was hardcoded to the fixture tree with literal
+    # "fixtures/c_repo"/"9f3c1ab" strings in the report. An operator had no way to point the gate
+    # at their own repo — the one thing an onboarding gate is for. And run from anywhere but the
+    # repo root, the hardcoded relative path resolved to nothing, 0 files were scanned, and that
+    # rendered as "0.0% human-authored, below the warn threshold": a plausible report about map
+    # QUALITY when the real fault was a path that does not exist.
+    import subprocess, tempfile as _tf
+    SCRIPT = _REPO_ROOT / "core" / "scripts" / "validate_onboarding.py"
+
+    print("\nthe gate is operable:")
+    r = subprocess.run([sys.executable, str(SCRIPT), "--help"], capture_output=True, text=True)
+    _check("--help prints usage instead of running the gate",
+           "usage:" in r.stdout and "PURPOSE RESOLUTION" not in r.stdout)
+    _check("--repo is an argument", "--repo" in r.stdout)
+    _check("--profile is an argument", "--profile" in r.stdout)
+
+    with _tf.TemporaryDirectory(prefix="onboard-empty-") as td:
+        r = subprocess.run([sys.executable, str(SCRIPT), "--repo", td],
+                           capture_output=True, text=True)
+        _check("a scan that finds no source files EXITS NONZERO", r.returncode != 0,
+               f"rc={r.returncode}")
+        _check("and names the path rather than reporting 0% coverage",
+               td in r.stderr and "0.0%" not in r.stdout)
+
+    r = subprocess.run([sys.executable, str(SCRIPT), "--repo", str(_REPO_ROOT / "fixtures" / "c_repo")],
+                       capture_output=True, text=True)
+    _check("PROPOSE mode is announced when no frozen profile is given",
+           "mode: PROPOSE" in r.stdout, r.stdout[:80])
+    prof_path = _REPO_ROOT / "core" / "code_profiles" / "c_repo.profile.yaml"
+    r2 = subprocess.run([sys.executable, str(SCRIPT), "--repo", str(_REPO_ROOT / "fixtures" / "c_repo"),
+                         "--profile", str(prof_path)], capture_output=True, text=True)
+    _check("VALIDATE mode is announced when one is", "mode: VALIDATE" in r2.stdout)
+    _check("the two modes DERIVE DIFFERENTLY — the frozen profile is actually used",
+           r.stdout != r2.stdout,
+           "c_repo.profile.yaml pins hub_threshold_fan_in=3 against the default 8; ignoring it "
+           "re-asked a question the operator had already frozen, and would have keyed the map "
+           "cache against a profile governing nothing")
+
     print()
     if _FAILURES:
         print(f"FAILED — {len(_FAILURES)} check(s): {_FAILURES}", file=sys.stderr)

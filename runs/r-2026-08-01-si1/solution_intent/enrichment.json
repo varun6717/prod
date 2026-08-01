@@ -1,0 +1,641 @@
+{
+  "run_id": "r-2026-08-01-si1",
+  "v1_sha256": "ee44802815a7",
+  "generated_at": "2026-08-01T00:00:00Z",
+  "findings": [
+    {
+      "id": "F-201",
+      "arm": "claim",
+      "kind": "contradiction",
+      "action": "auto_applied",
+      "status": "applied",
+      "route": "auto_correct",
+      "section_ref": "\u00a72",
+      "claim_provenance": "source",
+      "verdict": "contradicted",
+      "evidence": [
+        {
+          "path": "src/routing/brand_router.c",
+          "symbol": "route_transaction",
+          "lines": [
+            24,
+            47
+          ]
+        },
+        {
+          "path": "include/txn.h",
+          "lines": [
+            37,
+            37
+          ]
+        }
+      ],
+      "reasoning": "v1 \u00a72 states brand identification is a PAN BIN-range lookup at authorization, sourced from the routing KB. The code has no PAN or BIN-range lookup anywhere: txn_t carries pan_token[24] ('tokenized PAN, never the real number') and route_transaction() receives t->brand ALREADY RESOLVED, calling get_brand_rule(t->brand). The KB describes a mechanism this repo does not implement.",
+      "section_target": "\u00a72"
+    },
+    {
+      "id": "F-202",
+      "arm": "claim",
+      "kind": "confirmation",
+      "action": "none",
+      "status": "applied",
+      "route": "none",
+      "section_ref": "\u00a72",
+      "verdict": "confirmed",
+      "evidence": [
+        {
+          "path": "src/routing/route_table.c"
+        },
+        {
+          "path": "src/routing/brand_registry.c"
+        }
+      ],
+      "reasoning": "Routing is table-driven and dispatches to per-brand handlers via register_brand_routes()/lookup_handler() \u2014 confirmed."
+    },
+    {
+      "id": "F-203",
+      "arm": "claim",
+      "kind": "unverifiable",
+      "action": "auto_applied",
+      "status": "applied",
+      "route": "auto_write",
+      "section_ref": "\u00a710",
+      "verdict": "unverifiable",
+      "reasoning": "\u00a710 states field-level mappings are registry-held. field_codec.c exists but the 'format registry' the KB names is not identifiable in this repo \u2014 likely external.",
+      "section_target": "\u00a714"
+    },
+    {
+      "id": "F-204",
+      "arm": "claim",
+      "kind": "unverifiable",
+      "action": "auto_applied",
+      "status": "applied",
+      "route": "auto_write",
+      "section_ref": "\u00a72",
+      "claim_provenance": "operator",
+      "verdict": "unverifiable",
+      "reasoning": "\u00a72's volumes, wallet share and interchange-leakage figures are operator-supplied. No codebase can confirm a business volume; Arm 2 stops rather than guessing.",
+      "section_target": "\u00a714"
+    },
+    {
+      "id": "F-301",
+      "arm": "impact",
+      "kind": "gap_fill",
+      "action": "auto_applied",
+      "status": "applied",
+      "route": "auto_fill",
+      "requirement_ref": "R2",
+      "assertion_ref": "R2.1",
+      "section_ref": "\u00a713",
+      "verdict": "answered",
+      "evidence": [
+        {
+          "path": "include/message.h",
+          "symbol": "iso_msg_t",
+          "lines": [
+            22,
+            26
+          ]
+        },
+        {
+          "path": "src/messaging/iso8583.c",
+          "symbol": "build_iso8583",
+          "lines": [
+            28,
+            48
+          ]
+        }
+      ],
+      "reasoning": "\u00a713 A4 asked which DE 48 subelements the parser builds today. Answer: NONE, and it has no concept of them. iso_msg_t models the message as a flat char *fields[128] indexed by field number, so DE 48 is one opaque string with no subelement structure. All four mandated subelements require a sub-TLV layer that does not exist.",
+      "section_target": "\u00a713"
+    },
+    {
+      "id": "F-310",
+      "arm": "impact",
+      "kind": "derived_impact",
+      "action": "auto_applied",
+      "status": "applied",
+      "route": "auto_write",
+      "requirement_ref": "R1",
+      "assertion_ref": "R1.2",
+      "verdict": "impacted",
+      "evidence": [
+        {
+          "path": "src/messaging/field_codec.c"
+        }
+      ],
+      "reasoning": "DE 48.66 TRID must survive encode/decode; the per-field codec enforces preservation",
+      "business_visible": false,
+      "section_target": "\u00a716"
+    },
+    {
+      "id": "F-311",
+      "arm": "impact",
+      "kind": "derived_impact",
+      "action": "auto_applied",
+      "status": "applied",
+      "route": "auto_write",
+      "requirement_ref": "R2",
+      "assertion_ref": "R2.2",
+      "verdict": "impacted",
+      "evidence": [
+        {
+          "path": "src/messaging/field_codec.c"
+        }
+      ],
+      "reasoning": "DE 48.77 wallet indicator needs an encode path in the per-field codec",
+      "business_visible": false,
+      "section_target": "\u00a716"
+    },
+    {
+      "id": "F-312",
+      "arm": "impact",
+      "kind": "derived_impact",
+      "action": "auto_applied",
+      "status": "applied",
+      "route": "auto_write",
+      "requirement_ref": "R2",
+      "assertion_ref": "R2.3",
+      "verdict": "impacted",
+      "evidence": [
+        {
+          "path": "src/messaging/field_codec.c"
+        }
+      ],
+      "reasoning": "DE 48.78 token assurance needs encode/decode plus the <10 RC 55 trigger",
+      "business_visible": false,
+      "section_target": "\u00a716"
+    },
+    {
+      "id": "F-313",
+      "arm": "impact",
+      "kind": "derived_impact",
+      "action": "auto_applied",
+      "status": "applied",
+      "route": "auto_write",
+      "requirement_ref": "R5",
+      "assertion_ref": "R5.1",
+      "verdict": "impacted",
+      "evidence": [
+        {
+          "path": "src/routing/error_codes.c"
+        }
+      ],
+      "reasoning": "RC 55 re-mapping lands on the error code table and its text",
+      "business_visible": false,
+      "section_target": "\u00a716"
+    },
+    {
+      "id": "F-314",
+      "arm": "impact",
+      "kind": "derived_impact",
+      "action": "auto_applied",
+      "status": "applied",
+      "route": "auto_write",
+      "requirement_ref": "R5",
+      "assertion_ref": "R5.2",
+      "verdict": "impacted",
+      "evidence": [
+        {
+          "path": "src/routing/fallback.c"
+        }
+      ],
+      "reasoning": "merchant-facing decline text on the fallback path",
+      "business_visible": false,
+      "section_target": "\u00a716"
+    },
+    {
+      "id": "F-315",
+      "arm": "impact",
+      "kind": "derived_impact",
+      "action": "auto_applied",
+      "status": "applied",
+      "route": "auto_write",
+      "requirement_ref": "R4",
+      "assertion_ref": "R4.1",
+      "verdict": "impacted",
+      "evidence": [
+        {
+          "path": "src/routing/retry.c"
+        }
+      ],
+      "reasoning": "the 4000ms bound and secondary-endpoint attempt land on bounded retry",
+      "business_visible": false,
+      "section_target": "\u00a716"
+    },
+    {
+      "id": "F-316",
+      "arm": "impact",
+      "kind": "derived_impact",
+      "action": "auto_applied",
+      "status": "applied",
+      "route": "auto_write",
+      "requirement_ref": "R4",
+      "assertion_ref": "R4.3",
+      "verdict": "impacted",
+      "evidence": [
+        {
+          "path": "src/routing/dispatch.c"
+        }
+      ],
+      "reasoning": "STIP forwarding on secondary timeout is a dispatch decision",
+      "business_visible": false,
+      "section_target": "\u00a716"
+    },
+    {
+      "id": "F-317",
+      "arm": "impact",
+      "kind": "derived_impact",
+      "action": "auto_applied",
+      "status": "applied",
+      "route": "auto_write",
+      "requirement_ref": "R7",
+      "assertion_ref": "R7.1",
+      "verdict": "impacted",
+      "evidence": [
+        {
+          "path": "src/routing/route_table.c"
+        }
+      ],
+      "reasoning": "Banknet endpoint selection is table-driven here",
+      "business_visible": false,
+      "section_target": "\u00a716"
+    },
+    {
+      "id": "F-318",
+      "arm": "impact",
+      "kind": "derived_impact",
+      "action": "auto_applied",
+      "status": "applied",
+      "route": "auto_write",
+      "requirement_ref": "R7",
+      "assertion_ref": "R7.3",
+      "verdict": "impacted",
+      "evidence": [
+        {
+          "path": "src/routing/brand_registry.c"
+        }
+      ],
+      "reasoning": "token BIN routing binds through the handler registry",
+      "business_visible": false,
+      "section_target": "\u00a716"
+    },
+    {
+      "id": "F-319",
+      "arm": "impact",
+      "kind": "derived_impact",
+      "action": "auto_applied",
+      "status": "applied",
+      "route": "auto_write",
+      "requirement_ref": "R8",
+      "assertion_ref": "R8.1",
+      "verdict": "impacted",
+      "evidence": [
+        {
+          "path": "src/messaging/formatter.c"
+        }
+      ],
+      "reasoning": "DSR format changes land on settlement message formatting",
+      "business_visible": false,
+      "section_target": "\u00a716"
+    },
+    {
+      "id": "F-320",
+      "arm": "impact",
+      "kind": "contradiction",
+      "action": "escalated",
+      "status": "dispositioned",
+      "route": "escalate",
+      "requirement_ref": "R2",
+      "assertion_ref": "R2.1",
+      "section_ref": "\u00a713",
+      "claim_provenance": "operator",
+      "verdict": "contradicted",
+      "evidence": [
+        {
+          "path": "src/messaging/iso8583.c",
+          "symbol": "build_iso8583",
+          "lines": [
+            28,
+            48
+          ]
+        },
+        {
+          "path": "src/messaging/iso8583_v2.c",
+          "symbol": "build_iso8583_v2",
+          "lines": [
+            38,
+            60
+          ]
+        }
+      ],
+      "reasoning": "The operator dispositioned iso8583.c as the live path at the onboarding gate. But build_iso8583() NEVER CALLS set_bit() \u2014 set_bit is defined and unused, so v1 emits no bitmap and merely concatenates field strings. build_iso8583_v2() DOES call set_bit_v2(). The mandate's DE 48 subelements require working bitmap support, which only v2 has. The tension recorded at the gate is now confirmed against the code: the live path and the mandate's target are not the same file.",
+      "escalation_reason": "operator_contradiction",
+      "severity": "material",
+      "section_target": "\u00a713",
+      "disposition": "accept",
+      "rationale": "Confirmed against the code, so the earlier gate disposition is corrected rather than defended: build_iso8583() defines set_bit() and never calls it, so the live path emits no bitmap; build_iso8583_v2() does. DE 48 subelements need bitmap support, so the mandate's target is iso8583_v2.c while iso8583.c remains the live production path. BOTH are true and the gap between them is the finding \u2014 \u00a713 records the split rather than silently re-pointing the disposition.",
+      "actor": "vmunjal"
+    },
+    {
+      "id": "F-330",
+      "arm": "impact",
+      "kind": "no_code_found",
+      "action": "escalated",
+      "status": "dispositioned",
+      "route": "escalate",
+      "requirement_ref": "R8",
+      "assertion_ref": "R8.3",
+      "verdict": "no_code_found",
+      "reasoning": "R8.3 requires MDES token coverage reporting (TRID population, DE 48.77 coverage). No reporting or metrics emitter exists anywhere in the map \u2014 genuinely new build.",
+      "business_visible": true,
+      "escalation_reason": "no_code_found",
+      "severity": "material",
+      "section_target": "\u00a716",
+      "disposition": "accept",
+      "rationale": "Genuinely new capability, not a search miss. The mandate's C3 gate monitors TRID population and DE 48.77 coverage, so an emitter must exist for JPMC to pass certification; nothing in the map produces metrics today. Becomes a build story.",
+      "actor": "vmunjal"
+    },
+    {
+      "id": "F-331",
+      "arm": "impact",
+      "kind": "no_code_found",
+      "action": "escalated",
+      "status": "dispositioned",
+      "route": "escalate",
+      "requirement_ref": "R9",
+      "assertion_ref": "R9.2",
+      "verdict": "no_code_found",
+      "reasoning": "R9.2 requires 1,000 traces submitted in JSONL to the Mastercard Testing API. No trace-capture or submission path exists in the repo.",
+      "business_visible": true,
+      "escalation_reason": "no_code_found",
+      "severity": "material",
+      "section_target": "\u00a714",
+      "disposition": "reroute",
+      "rationale": "Certification tooling, not routing-service functionality. Trace capture and JSONL submission depend on the external Mastercard Testing API and a test harness that is not this repo's concern. Recording it as a \u00a716 build story would put certification infrastructure into the routing service's Jira plan; it belongs in Dependencies.",
+      "actor": "vmunjal"
+    },
+    {
+      "id": "F-340",
+      "arm": "impact",
+      "kind": "derived_impact",
+      "action": "auto_applied",
+      "status": "applied",
+      "route": "auto_write",
+      "requirement_ref": "R1",
+      "assertion_ref": "R1.3",
+      "verdict": "impacted",
+      "evidence": [
+        {
+          "path": "src/messaging/field_codec.c"
+        }
+      ],
+      "reasoning": "DE 48.77 must be populated for wallet-originated transactions \u2014 a second encode obligation on the same codec, distinct from R2.2's format definition",
+      "business_visible": false,
+      "section_target": "\u00a716"
+    },
+    {
+      "id": "F-341",
+      "arm": "impact",
+      "kind": "derived_impact",
+      "action": "auto_applied",
+      "status": "applied",
+      "route": "auto_write",
+      "requirement_ref": "R2",
+      "assertion_ref": "R2.4",
+      "verdict": "impacted",
+      "evidence": [
+        {
+          "path": "src/messaging/field_codec.c"
+        }
+      ],
+      "reasoning": "DE 48.79 device type is optional and the operator ruled it out of this release (\u00a710), but the codec is where it would land if reinstated",
+      "business_visible": false,
+      "section_target": "\u00a716"
+    },
+    {
+      "id": "F-342",
+      "arm": "impact",
+      "kind": "derived_impact",
+      "action": "auto_applied",
+      "status": "applied",
+      "route": "auto_write",
+      "requirement_ref": "R4",
+      "assertion_ref": "R4.2",
+      "verdict": "impacted",
+      "evidence": [
+        {
+          "path": "src/routing/retry.c"
+        }
+      ],
+      "reasoning": "reason code T must be written to the transaction audit record on every fallback attempt",
+      "business_visible": false,
+      "section_target": "\u00a716"
+    },
+    {
+      "id": "F-343",
+      "arm": "impact",
+      "kind": "derived_impact",
+      "action": "auto_applied",
+      "status": "applied",
+      "route": "auto_write",
+      "requirement_ref": "R5",
+      "assertion_ref": "R5.3",
+      "verdict": "impacted",
+      "evidence": [
+        {
+          "path": "src/routing/brand_registry.c"
+        }
+      ],
+      "reasoning": "token BIN range 520000-529999 must be recognisable at decline time to distinguish RC 55 semantics",
+      "business_visible": false,
+      "section_target": "\u00a716"
+    },
+    {
+      "id": "F-344",
+      "arm": "impact",
+      "kind": "derived_impact",
+      "action": "auto_applied",
+      "status": "applied",
+      "route": "auto_write",
+      "requirement_ref": "R6",
+      "assertion_ref": "R6.1",
+      "verdict": "impacted",
+      "evidence": [
+        {
+          "path": "src/routing/route_table.c"
+        }
+      ],
+      "reasoning": "interchange qualification reads the routed transaction; DE 48.78 population must happen before rate assessment",
+      "business_visible": false,
+      "section_target": "\u00a716"
+    },
+    {
+      "id": "F-345",
+      "arm": "impact",
+      "kind": "derived_impact",
+      "action": "auto_applied",
+      "status": "applied",
+      "route": "auto_write",
+      "requirement_ref": "R6",
+      "assertion_ref": "R6.3",
+      "verdict": "impacted",
+      "evidence": [
+        {
+          "path": "src/config/brand_rules.c"
+        }
+      ],
+      "reasoning": "revised tier rates are brand-rule table data, loaded and cached here",
+      "business_visible": false,
+      "section_target": "\u00a716"
+    },
+    {
+      "id": "F-346",
+      "arm": "impact",
+      "kind": "derived_impact",
+      "action": "auto_applied",
+      "status": "applied",
+      "route": "auto_write",
+      "requirement_ref": "R7",
+      "assertion_ref": "R7.2",
+      "verdict": "impacted",
+      "evidence": [
+        {
+          "path": "src/routing/route_table.c"
+        }
+      ],
+      "reasoning": "Regulation II unaffiliated-network selection is a routing-table decision",
+      "business_visible": false,
+      "section_target": "\u00a716"
+    },
+    {
+      "id": "F-350",
+      "arm": "impact",
+      "kind": "confirmation",
+      "action": "none",
+      "status": "applied",
+      "route": "none",
+      "requirement_ref": "R1",
+      "assertion_ref": "R1.1",
+      "verdict": "confirmed",
+      "reasoning": "no de-tokenization exists to remove: txn_t carries pan_token[24] only and no code path reconstructs a PAN, so the MUST-NOT is already satisfied"
+    },
+    {
+      "id": "F-351",
+      "arm": "impact",
+      "kind": "confirmation",
+      "action": "none",
+      "status": "applied",
+      "route": "none",
+      "requirement_ref": "R3",
+      "assertion_ref": "R3.1",
+      "verdict": "confirmed",
+      "reasoning": "terminal-side CVM request per EMV Kernel C-3 \u2014 terminal firmware, not the acquiring host; no code in this repo participates"
+    },
+    {
+      "id": "F-352",
+      "arm": "impact",
+      "kind": "confirmation",
+      "action": "none",
+      "status": "applied",
+      "route": "none",
+      "requirement_ref": "R3",
+      "assertion_ref": "R3.2",
+      "verdict": "confirmed",
+      "reasoning": "CVM priority order is enforced at the terminal, not in the routing service"
+    },
+    {
+      "id": "F-353",
+      "arm": "impact",
+      "kind": "confirmation",
+      "action": "none",
+      "status": "applied",
+      "route": "none",
+      "requirement_ref": "R3",
+      "assertion_ref": "R3.3",
+      "verdict": "confirmed",
+      "reasoning": "no-CVM MCC allow-list is terminal/issuer configuration; not represented in this repo"
+    },
+    {
+      "id": "F-354",
+      "arm": "impact",
+      "kind": "confirmation",
+      "action": "none",
+      "status": "applied",
+      "route": "none",
+      "requirement_ref": "R3",
+      "assertion_ref": "R3.4",
+      "verdict": "confirmed",
+      "reasoning": "DE 55 Tag 9F34 is carried opaquely by the flat fields[] array; no per-tag handling exists or is required here"
+    },
+    {
+      "id": "F-355",
+      "arm": "impact",
+      "kind": "confirmation",
+      "action": "none",
+      "status": "applied",
+      "route": "none",
+      "requirement_ref": "R6",
+      "assertion_ref": "R6.2",
+      "verdict": "confirmed",
+      "reasoning": "the DE 48.78 >= 50 threshold is a rule value, not a code branch; it lands in brand-rule table data covered by F-345"
+    },
+    {
+      "id": "F-360",
+      "arm": "impact",
+      "kind": "no_code_found",
+      "action": "escalated",
+      "status": "dispositioned",
+      "route": "escalate",
+      "requirement_ref": "R8",
+      "assertion_ref": "R8.2",
+      "verdict": "no_code_found",
+      "reasoning": "R8.2 requires a Regulation II quarterly compliance report. No reporting path exists anywhere in the map \u2014 same gap class as F-330.",
+      "business_visible": true,
+      "escalation_reason": "no_code_found",
+      "severity": "material",
+      "section_target": "\u00a716",
+      "disposition": "accept",
+      "rationale": "Same gap class as F-330 and dispositioned the same way: genuinely new capability. The Regulation II quarterly compliance report has no producing path in the map, and the mandate makes it an ongoing obligation. Becomes a build story.",
+      "actor": "vmunjal"
+    },
+    {
+      "id": "F-361",
+      "arm": "impact",
+      "kind": "no_code_found",
+      "action": "escalated",
+      "status": "dispositioned",
+      "route": "escalate",
+      "requirement_ref": "R9",
+      "assertion_ref": "R9.1",
+      "verdict": "no_code_found",
+      "reasoning": "R9.1 requires running the MTS v8.4 suite against a UAT environment. Test-harness work; nothing in this repo participates.",
+      "business_visible": true,
+      "escalation_reason": "no_code_found",
+      "severity": "material",
+      "section_target": "\u00a714",
+      "disposition": "reroute",
+      "rationale": "Certification tooling, dispositioned as F-331 was. Running the MTS v8.4 suite against a UAT environment connected to the Mastercard Simulator is test-harness work outside the routing service; it belongs in Dependencies, not the build plan.",
+      "actor": "vmunjal"
+    },
+    {
+      "id": "F-362",
+      "arm": "impact",
+      "kind": "no_code_found",
+      "action": "escalated",
+      "status": "dispositioned",
+      "route": "escalate",
+      "requirement_ref": "R9",
+      "assertion_ref": "R9.3",
+      "verdict": "no_code_found",
+      "reasoning": "R9.3 requires sustaining C3 production monitoring thresholds. Depends on the metrics emitter F-330 identified as absent.",
+      "business_visible": true,
+      "escalation_reason": "no_code_found",
+      "severity": "material",
+      "section_target": "\u00a716",
+      "disposition": "accept",
+      "rationale": "Accepted as build rather than rerouted, because sustaining C3's thresholds is not external tooling \u2014 it is the direct consequence of the metrics emitter F-330 identified as absent. Without that emitter there is nothing to monitor, so the two are one piece of work and belong in the same place.",
+      "actor": "vmunjal"
+    }
+  ]
+}

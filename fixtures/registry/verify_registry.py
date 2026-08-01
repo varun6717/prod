@@ -119,6 +119,25 @@ def main() -> int:
         _check("red seam raised PublishBlocked", blocked)
         _check("blocked publish pushed NOTHING (remote still empty)", _remote_is_empty(remote2))
 
+    # ── a bad registry_sha must name ITSELF (TASK-127 regression) ──────────────────────
+    # hydrate retried `git fetch --unshallow` unconditionally when the pinned SHA was not found.
+    # Git IGNORES --depth for local clones ("--depth is ignored in local clones; use file://"),
+    # so against any local registry the clone is complete and that retry always failed with
+    # "--unshallow on a complete repository does not make sense" — an error about shallowness
+    # that says nothing about the real fault, which is a bad registry_sha. The message pointed
+    # the operator at the wrong thing entirely.
+    print("\na bad registry_sha reports the SHA, not shallowness:")
+    with tempfile.TemporaryDirectory(prefix="verify-registry-badsha-") as td:
+        dest = Path(td) / "scaffold"
+        raised = ""
+        try:
+            hydrate.hydrate(str(_REPO_ROOT), "deadbeefdeadbeef", _DOMAIN, _TOOL, dest)
+        except Exception as exc:                       # noqa: BLE001 — the message IS the test
+            raised = str(exc)
+        _check("hydrating at a nonexistent SHA fails", bool(raised))
+        _check("the error names the offending registry_sha", "deadbeef" in raised)
+        _check("and does NOT blame shallowness", "unshallow" not in raised.lower())
+
     print("verify_registry: ALL CHECKS PASSED")
     return 0
 

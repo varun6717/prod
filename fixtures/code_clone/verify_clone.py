@@ -146,6 +146,24 @@ def main() -> int:
         _check("clone.py does not branch on `domain` (§10.4)",
                not branches_on_domain(_REPO_ROOT / "core" / "scripts" / "clone.py"))
 
+    # ── the EMPTY-dest case (TASK-127 regression) ──────────────────────────────────────
+    # generate.py lays repo/ as one of the §2.2 empty run dirs, so this is the state every
+    # freshly generated scaffold is in. clone.py guarded for populated and for missing but not
+    # for existing-and-empty, and fell through to a clone that cannot write to a directory that
+    # already exists — a 100% failure rate on the code lane's first step. This fixture never saw
+    # it because it clones into a temp path that does not exist yet, which is the one arrangement
+    # a real run never has.
+    print("\nempty destination (the shape a generated scaffold hands us):")
+    with tempfile.TemporaryDirectory(prefix="verify-clone-empty-") as td:
+        _bare_for_empty_test, _ = _make_bare_remote(Path(td))
+        dest = Path(td) / "repo"
+        dest.mkdir()                                   # exactly what generate.py leaves behind
+        _check("dest exists and is empty before cloning",
+               dest.is_dir() and not any(dest.iterdir()))
+        d = clone.clone_repo(str(_bare_for_empty_test), dest)
+        _check("clone into an existing EMPTY dir succeeds", any(dest.iterdir()))
+        _check("and returns a descriptor", isinstance(d, dict) and d.get("dest"))
+
     print("verify_clone: ALL CHECKS PASSED")
     return 0
 
