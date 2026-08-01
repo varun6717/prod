@@ -235,6 +235,9 @@ connector's placeholder per hard rule **S**, done as connectors land on the VDI 
 
 **✅ Milestone D3 complete** — code map v2 closed: declared-purpose extraction, the onboarding gate, the two-file map with totality checks, the 4-branch cache, and polyglot behaviour proven.
 
+**Phase D · Milestone D4 — Enrichment (v1 → v2)**
+- [x] TASK-117 — `enrichment.json` contract + finding routes: 🆕 `schemas/enrichment.schema.json` (per finding: id/arm/kind/refs/evidence/reasoning/verdict/action/route/disposition/rationale/**status**) + 🆕 `core/scripts/enrichment.py` — the record **and** the D-A16 router in one place on purpose, since both arms *and* the walkthrough consume it and a table implemented three times drifts twice. **Provenance decides authority, not the finding's content** (D-A6): the same contradiction auto-corrects (source-derived), escalates (operator/frame — never overrule a human silently), or auto-fills (unsourced `[TBD]`). **Scope-moving is tested first**, before grounding, because a perfectly evidenced source contradiction that moves a boundary is *still* an operator decision. `status` is per finding so the walkthrough is **resumable** (fifty findings will not be dispositioned in one sitting), undispositioned findings live **here and not in the document** (or v2 would ship with "TBD, awaiting operator" scattered through it), and no route can remove anything — a contradicted claim is *rewritten*, because at G2 an operator can see a changed sentence but cannot see a missing one. `v1_sha256` pins the frozen v1 the record was computed against, or "v1 + enrichment.json reconstruct v2" stops being true. **A defect the proof caught:** the schema's conditional requirements (`escalated ⇒ reason + severity`) used `if/then`, which `ledger.py`'s minimal validator **does not support** — so those constraints sat in the file *looking* enforced while validating nothing, which is worse than being absent; `if/then/else` added. Proof: 🆕 `fixtures/enrichment/verify_enrichment_router.py` — **38 checks**: every row of D-A16's table, one contradiction under four provenances yielding three routes, the no-code four-way with its **required defer path**, an auto-applied finding **refusing** to be dispositioned, and both ledgers stamped with the **rationale in `decisions.jsonl` and not telemetry** (telemetry counts; decisions explains). §10 4/4; all 18 verifies green.
+
 ---
 
 ## Disposition of the pre-pivot open tasks (TASK-056, 064–083 — none carries over verbatim)
@@ -265,7 +268,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ## Open index (tick here; then collapse the task into the done ledger above)
 
 **Milestone D4 — Enrichment (v1 → v2)**
-- [ ] TASK-117 — `enrichment.json` contract + finding routes · `Opus`
 - [ ] TASK-118 — Arm 1: per-assertion impact (`code_impact` recast) · `Opus`
 - [ ] TASK-119 — Arm 2: `claim_verifier` · `Opus`
 - [ ] TASK-120 — Disposition walkthrough · `Opus`
@@ -284,23 +286,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ---
 
 ## Milestone D4 — Enrichment (v1 → v2)
-
-### TASK-117 — `enrichment.json` contract + finding routes
-- **Depends on:** TASK-110 (an accepted v1 exists), TASK-104 (events).
-- **Model:** Opus — the permanent record every enrichment stage reads/writes.
-- **Reads:** §3.7 (replaced — `enrichment.json`) · D-A6 (authority) · D-A7 (never delete) · D-A9
-  (escalated impacts) · D-A16 (**the routing tables**: auto-apply vs escalate; the no-code-gap
-  four-way; undispositioned findings live outside the document; permanent record) · FR-EN-\*.
-- **Creates / edits:** the `enrichment.json` schema + JSON-schema validator (per finding: `id`,
-  `arm`, `kind`, requirement/assertion refs, code evidence + reasoning, `verdict?`, `action:
-  auto_applied | escalated`, `disposition?`, `rationale?`, `section_target`, status — including
-  undispositioned, for resumability); the routing implementation as a shared helper the arms +
-  walkthrough consume (provenance → authority per D-A6; the escalate set per D-A16; each
-  escalated type's destination table); ledger events wired (`verdict`/`escalation`/`disposition`).
-- **Acceptance:** validator accepts/rejects fixture findings correctly; the D-A16 "what reaches
-  the operator" table is reproduced by the router on a fixture finding set (grounded+unambiguous
-  → auto; ambiguous/scope-moving/human-overruling → escalate).
-- **Proof:** router unit-proof over a crafted finding set covering every table row.
 
 ### TASK-118 — Arm 1: per-assertion impact (`code_impact` recast)
 - **Depends on:** TASK-117, TASK-114 (map).

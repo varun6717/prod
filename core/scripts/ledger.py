@@ -131,6 +131,15 @@ def _validate(value: Any, schema: dict, root: dict, where: str) -> list[str]:
         for i, sub in enumerate(schema.get(combiner, [])):
             errs += _validate(value, sub, root, where)
 
+    # if / then / else. Added at TASK-117, because the enrichment schema needs conditional
+    # requirements ("escalated ⇒ must carry a reason and a severity") — and an UNSUPPORTED
+    # keyword is worse than an absent one: the constraint sits in the file looking enforced
+    # while validating nothing. The proof caught exactly that.
+    if "if" in schema:
+        branch = "then" if not _validate(value, schema["if"], root, where) else "else"
+        if branch in schema:
+            errs += _validate(value, schema[branch], root, where)
+
     if "oneOf" in schema:
         matches = sum(1 for sub in schema["oneOf"] if not _validate(value, sub, root, where))
         if matches != 1:
