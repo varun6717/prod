@@ -1,0 +1,70 @@
+run_id: r-2026-08-02-rehydrate
+schema_version: 1
+working_path: /Users/varunmunjal/IdeaProjects/PDLC/runs/r-2026-08-02-rehydrate
+domain: payment_brand
+runtime_tool: claude
+registry_sha: 0db09dd9d7c4d85d9039a0ec4f9c1610c8b781e1
+project_metadata:
+  project_name: Discover Brand Routing
+  application_name: MerchantRoutingSvc
+  line_of_business: Merchant Services
+  requestor: Varun Munjal
+  requestor_sid: vmunjal
+frame:
+  title: Discover Brand Routing
+  intent: Implement Discover as a routable card brand end-to-end
+  overview: Merchant Services must accept Discover as a first-class routable brand
+    across authorization, routing and settlement reconciliation. Today brand identification
+    relies on PAN-range lookup, which cannot distinguish co-badged products; the mandate
+    introduces an explicit brand indicator carried on the authorization message. Delivery
+    spans the authorization parser, the routing tables, settlement reconciliation,
+    and a certification package for the network.
+  scope_hints:
+  - routing
+  - settlement reconciliation touchpoints
+  stakeholders:
+  - Payments Eng
+  - Brand Compliance
+  key_dates:
+    compliance_deadline: '2026-09-30'
+sources:
+- type: sharepoint
+  url: file:///Users/varunmunjal/IdeaProjects/PDLC/fixtures/pdf/mastercard_mandate_part1_2026.pdf
+  source: sharepoint
+  auth_ref: jpmc_adapters:sharepoint
+  disposition:
+  - business_requirement
+- type: sharepoint
+  url: file:///Users/varunmunjal/IdeaProjects/PDLC/fixtures/pdf/mastercard_mandate_part2_2026.pdf
+  source: sharepoint
+  auth_ref: jpmc_adapters:sharepoint
+  disposition:
+  - technical_specification
+- type: confluence
+  url: file:///Users/varunmunjal/IdeaProjects/PDLC/fixtures/confluence/discover_routing_kb.html
+  source: confluence
+  auth_ref: jpmc_adapters:confluence
+  disposition:
+  - product_domain_knowledge
+- type: confluence
+  url: file:///Users/varunmunjal/IdeaProjects/PDLC/fixtures/confluence/message_format_kb.html
+  source: confluence
+  auth_ref: jpmc_adapters:confluence
+  disposition:
+  - technical_specification
+- type: jira
+  url: file:///Users/varunmunjal/IdeaProjects/PDLC/fixtures/jira/PBI-4471.json
+  source: jira
+  auth_ref: jpmc_adapters:jira
+  disposition:
+  - prior_artifact
+- type: bitbucket
+  seal_id: SEAL-12345
+  repo_url: /Users/varunmunjal/IdeaProjects/PDLC/fixtures/c_repo
+  auth_ref: jpmc_adapters:bitbucket
+  disposition:
+  - codebase
+gates:
+  score_threshold: 85
+registry_url: git@bitbucket.org:vm1999/registry.git
+registry_ref: feature/pdlc_app

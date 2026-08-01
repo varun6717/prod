@@ -215,9 +215,18 @@ def main() -> int:
     claude = (_REPO_ROOT / "CLAUDE.md").read_text(encoding="utf-8")
     _check("CLAUDE.md points at TASK_LIST.md as the single task list",
            "`TASK_LIST.md` is the single task list" in claude)
-    _check("CLAUDE.md states the publish suspension it would otherwise send you into",
-           "SUSPENDED" in claude and "TASK-127" in claude,
-           "protocol step 5 suspends publish; CLAUDE.md used to say 're-publish the registry'")
+    # CLAUDE.md and TASK_LIST.md must AGREE about publish state — that is the durable
+    # proposition, not the state itself. Originally this asserted the cutover suspension
+    # existed; TASK-127 lifted it, so the check was asserting a fact that had stopped being
+    # true. The failure mode it guards against is unchanged in either direction: a fresh
+    # session reading CLAUDE.md and doing the opposite of what the protocol says.
+    tasks = (_REPO_ROOT / "TASK_LIST.md").read_text(encoding="utf-8")
+    suspended = "⏸ SUSPENDED" in tasks
+    _check("CLAUDE.md agrees with protocol step 5 on whether publish is suspended",
+           suspended == ("SUSPENDED" in claude),
+           f"TASK_LIST says {'suspended' if suspended else 'live'}, CLAUDE.md says "
+           f"{'suspended' if 'SUSPENDED' in claude else 'live'}")
+    _check("and points at the task that set the current state", "TASK-127" in claude)
     _check("CLAUDE.md says disk is ground truth", "ground truth" in claude.lower())
 
     print()

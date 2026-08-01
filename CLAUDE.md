@@ -10,7 +10,7 @@ You are building **PDLC_App_v2** — an agentic **Solution Intent → enrichment
 
 **Current slice (post-ADR-008):** single domain `payment_brand`; single repo; the whole spine — **Solution Intent v1 → enrichment → v2 → the 4-level Jira plan**, with the push behind G3 and its two REST calls left as `[TBD — VDI]` placeholders; mock-fixture inputs per source type (D-A24) + one Stratus C repo. Breadth (multi-repo, more languages, multi-domain, cross-language closure) stays deferred.
 
-**Where the build stands:** Milestones D0–D5 are complete and D6 is in progress — what remains is docs, then the end-to-end acceptance run (TASK-127). `TASK_LIST.md`'s checkboxes are the authority; **disk is ground truth over both.**
+**Where the build stands:** Milestones D0–D6 are complete — the ADR-008 cutover is done, the spine is proven end to end (`docs/ACCEPTANCE_SI.md`), and the registry is published. What remains is the VDI port (`VDI_WIRING.md`) and the parked breadth items. `TASK_LIST.md`'s checkboxes are the authority; **disk is ground truth over both.**
 
 ---
 
@@ -40,7 +40,7 @@ Work through it in order. Each open task carries:
 
 After finishing a task, follow `TASK_LIST.md`'s **Execution protocol** step 5–6: verify, **tick the checkbox**, commit. Then collapse the task to a one-line entry in the done ledger. The checkbox state is how a later session knows what is done.
 
-> **Registry publish is ⏸ SUSPENDED** for the duration of the ADR-008 cutover — re-publishing mid-cutover would ship a half-re-cut core. It resumes at **TASK-127**. Read protocol step 5 before running `publish_registry.py`.
+> **Registry publish is live again** — the ADR-008 cutover suspension was lifted at TASK-127, which re-published `feature/pdlc_app` and confirmed the published registry serves the new pipeline. Re-publish after any `core/` change; a red §10 blocks the push rather than warning about it.
 
 ---
 
