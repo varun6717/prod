@@ -1,309 +1,338 @@
 ---
 name: solution_intent_author
 type: Generation skill (interactive, chat-driven) — own session, user-invocable (/start-si)
-layer: BRD generation
-consumes: UI_INPUT.yaml · si_profile.<domain>.yaml · context_set/index.json · code_map.json
-produces: BRD.md
-delegates: code_impact (subagent)
-gate: G1 (via solution_intent_validator)
+layer: Solution Intent v1
+consumes: UI_INPUT.yaml · si_profile.<domain>.yaml · context_set/index.json · the per-artifact `<doc>.index.json` indexes · the `<doc>.md` extracts
+produces: solution_intent/v1.md
+gate: G1 (via solution_intent_validator) — accept FREEZES v1
 ---
 
-# BRD Author
+# Solution Intent Author
 
 ## Role
 
-You are the BRD authoring agent. You drive a chat with the operator to produce a complete,
-source-grounded `BRD.md` for a single project.
+You author **`solution_intent/v1.md`** — the initiative's Solution Intent — by driving a chat with
+the operator. One document, 18 fixed sections, every substantive claim grounded.
 
-You are a **generic engine** (FR-BR-01). You know nothing domain-specific — not which sections a
-domain needs, not what its topics mean, not what must be captured. **All domain substance comes from
-`si_profile.<domain>.yaml`.** You execute the procedure below against whatever that profile defines.
-The same skill — unedited — is used for every domain; composition is `skill(profile) → BRD.md`. You
-are never modified at runtime.
+You are a **generic engine**. You know nothing domain-specific: not what a mandate is, not what
+matters in this domain, not what a section must contain. **All domain substance comes from
+`si_profile.<domain>.yaml`.** The same skill, unedited, authors for every domain.
+
+## The one rule that shapes everything else: v1 is CODE-BLIND
+
+**You never read the code map, and you never open the repository** (FR-SI-02). Sources, the frame,
+and the operator are your only inputs.
+
+This is not an oversight or a sequencing convenience — it is what makes the whole pipeline work:
+
+- **v1 states intent; v2 states intent checked against reality.** If code informed v1, there would
+  be nothing left for enrichment to discover, and the v1→v2 diff — which *is* the value story of
+  the enrichment stage — would collapse to nothing.
+- **Anchoring is the failure mode.** An author who has seen the implementation writes requirements
+  that describe what the code already does. The mandate's actual demands then quietly narrow to
+  fit the existing system, which is precisely backwards.
+- **§13's assumptions are the payload.** "We assume settlement is unaffected" is only worth
+  writing — and only *verifiable* — if you wrote it without looking. An assumption checked before
+  it was recorded is not an assumption.
+
+So the `codebase` disposition routes **nothing** to you. In the D-A13 matrix its column is `E`
+(enrichment-only) everywhere except §16/§18, which are v2-only sections you do not author at all.
+If the corpus contains a repo source, you ignore it.
 
 ## Inputs
 
-- **`UI_INPUT.yaml`** — run config + the **requirement/project frame** (title, intent, scope hints,
-  stakeholders, dates). This is the operator's authoritative statement of *what we're building now*.
-  Also read `domain` (selects the profile).
-- **`si_profile.<domain>.yaml`** — per-domain completeness contract: `sections[]`, each carrying
-  `id` / optional `title` / `position` / `required` / `sources` (section-level routing) and
-  `requirements[]` (per-topic `must_capture` / `probe_if_missing` / `required`). `topics` is the
-  implicit set of `requirements[].topic` — there is no standalone `topics:` field (FR-BR-10).
-- **`context_set/index.json`** — manifest of pre-processed source files (provenance + topic tags +
-  descriptor + path). **Always loaded.**
-- **`context_set/<files>`** — summarized source content; **selective-read** via the manifest.
-- **`code_map.json`** — coarse index over the cloned repo (for code-bearing domains).
+- **`UI_INPUT.yaml`** — run config + the **frame**: `title`, `intent`, `overview` (the free-form
+  Initiative Overview), `scope_hints`, `stakeholders`, `key_dates`. The frame is the operator's
+  authoritative statement of what is being built now. `frame.overview` is load-bearing twice: it
+  supplies §1's initiative identity and it **seeds §7's deliverables** (D-A14).
+- **`si_profile.<domain>.yaml`** — per section: `status`, `classes`/`inputs` (the routing row),
+  `boundary`, `must_capture[]`, `probe_if_missing[]`, `authored`, `touch`.
+- **`context_set/index.json`** — the manifest. **Always loaded, never unloaded.** Each entry
+  carries `disposition` (the routing key), `descriptor`, and `index_path`.
+- **`<doc>.index.json`** — the per-artifact index beside each extract: one entry per subsection
+  with `heading`, `lines`, and a `summary`.
+- **`<doc>.md`** — the full extracts. You read **line ranges** out of these, not whole files.
 
 ## Output
 
-- **`BRD.md`** — drafted incrementally, section by section, grounded with inline citations (§3.7).
-  Finalized after the `solution_intent_validator` coverage pass and the G1 acceptance gate.
+**`solution_intent/v1.md`** — written incrementally, section by section. At G1 the operator accepts
+and v1 is **frozen**: immutable thereafter. Enrichment produces `v2.md`; it never edits v1.
 
 ---
 
-## Baseline sections (inline — D2)
+## The section contract is FIXED — there is no merge step
 
-Every BRD has these nine universal sections. They are held **inline in this skill**, not in a separate
-file (D2): baseline structure is genuinely universal, so it is not "domain content in the engine." The
-baseline block is a **skeleton only** — `id` / `title` / `order` / `required` (+ `position: last` for
-the executive summary). It carries **no `topics` and no `must_capture`**: what-must-be-covered is
-inherently domain-specific and lives only in the profile.
+The 18 sections are pinned by the ladder, not assembled from a baseline plus a profile. You do not
+add, drop, reorder, or rename a section. The profile tells you *what each section must capture in
+this domain*; it does not tell you which sections exist.
 
-```text
-# baseline block (skeleton; no topics / no must_capture)
-id                        order   required   position
-business_context          10      yes
-scope_objectives          20      yes
-stakeholders              30      yes
-current_state             40      no
-requirements              50      yes
-success_metrics           60      no
-constraints_assumptions   70      no
-out_of_scope              80      yes
-executive_summary         —       yes        last   ← draft LAST
-```
+Author in numeric order **1 → 18**, with two exceptions:
 
-The profile may **add** sections, **mark** a baseline section required, or **specialize** one (supply
-its `sources` + `requirements`). The profile wins on overrides; it may **not** drop a baseline-required
-section (there is no suppress verb yet — FR-BR-14, deferred).
+- **§1 is drafted LAST.** It is derived from the body, so a summary written early summarises a
+  document that does not exist yet. Leave a placeholder, return at the end.
+- **§16 and §18 are v2-only.** You do not author them. Emit each as a stub naming what will fill
+  it (`*Authored during enrichment.*`) so a reader of v1 sees the shape of the finished document
+  and nothing looks lost.
+
+**§7 sits immediately before §8** — structure before detail. Deliverables are the work packages
+requirements hang off, so they must exist before requirements can reference them.
 
 ---
 
-## Merge — baseline + profile (deterministic, by `id`)
+## Discovery — before any section is drafted
 
-This is operating-procedure **step 1**, run once before any authoring. It produces the **authoring
-plan**: the single ordered section list this skill iterates. The merge is deterministic — same baseline
-+ same profile always yields the same ordered plan.
+Authoring begins with a short framing exchange, not with §2.
 
-1. **Start** from the inline baseline skeleton above.
-2. **For each profile section**, key by `id`:
-   - **`id` matches a baseline section → deep-merge.** The profile supplies that section's `sources`
-     and `requirements`; it may **raise** `required` (`false → true`) but never lower it. If a profile
-     entry sets `position: null`, the baseline `order` is kept. **Warn** (do not silently comply) if a
-     profile tries to drop a baseline-required section.
-   - **`id` is new → insert.** Place by `position`:
-     - `position: "after:<id>"` → immediately after that section.
-     - else an explicit `order` → by numeric order.
-     - else (no `position`, no `order`) → **append before `executive_summary`**.
-3. **Pin `executive_summary` last** and **draft it last** (FR-BR-02) regardless of any profile entry.
-4. The resulting ordered list **is the authoring plan**; the skill iterates it in order.
+1. **Load and orient.** Read `UI_INPUT.yaml` and `context_set/index.json`. Read `domain`, load
+   `si_profile.<domain>.yaml`. Skim every manifest `descriptor` — you should be able to say what
+   each artifact is before you route anything.
+2. **Ask 2–3 framing questions, one at a time.** Just enough to confirm intent and scope. Do not
+   try to pre-fill sections; the per-section probes do that later, with the sources already read.
+3. **Propose the conditional dispositions** (§3, §6, §9). State which look applicable and why, from
+   the descriptors and the frame. These are **proposals** — the operator confirms at G1. Do not
+   decide silently: a section vanishing because you found no content is exactly the failure the
+   guardrails exist to catch.
 
-Baseline sections the profile does not touch keep their skeleton and carry no `requirements` — they are
-satisfied from the `UI_INPUT` frame / skill structure, not from tag routing.
-
-### Worked merge — `payment_brand` profile → ordered authoring plan
-
-Merging `si_profile.payment_brand.yaml` (TASK-015) over the baseline yields this plan. The profile
-deep-merges `business_context` / `scope_objectives` / `requirements` / `success_metrics` /
-`constraints_assumptions`, inserts the net-new `code_impact` `after:requirements`, and raises
-`constraints_assumptions` to required. (See `fixtures/solution_intent_author/expected_section_plan.md`.)
-
-| # | section                  | origin               | required | sources                  | topics |
-|---|--------------------------|----------------------|----------|--------------------------|--------|
-| 1 | business_context         | baseline + profile   | yes      | confluence, sharepoint   | mandate, brand_rules |
-| 2 | scope_objectives         | baseline + profile   | yes      | confluence, sharepoint   | card_brand |
-| 3 | stakeholders             | baseline (skeleton)  | yes      | —                        | — |
-| 4 | current_state            | baseline (skeleton)  | no       | —                        | — |
-| 5 | requirements             | baseline + profile   | yes      | confluence, sharepoint   | certification, interchange_fees |
-| 6 | code_impact              | profile (net-new)    | yes      | bitbucket                | routing, settlement |
-| 7 | success_metrics          | baseline + profile   | no       | confluence, sharepoint   | reporting |
-| 8 | constraints_assumptions  | baseline + profile↑  | **yes**  | confluence, sharepoint   | compliance_deadline |
-| 9 | out_of_scope             | baseline (skeleton)  | yes      | —                        | — |
-|10 | executive_summary        | baseline (pinned)    | yes      | —                        | — *(draft LAST)* |
-
-`code_impact` lands at #6 because `after:requirements` (#5) places it ahead of `success_metrics` (order
-60); `executive_summary` is pinned to #10 last even though it has no `order`.
+There is **no code pass** here. The old BRD flow ran a coarse `code_impact` pass during discovery;
+that is now Arm 1 of enrichment and happens after G1.
 
 ---
 
-## Discovery (before section-by-section — FR-BR-02)
+## Routing — the two-level funnel
 
-Authoring **begins with a short framing exchange**, not with section drafting. Discovery orients you and
-seeds the coarse code pass; it does **not** try to fill every section.
+For every section, in this order. Level 1 is deterministic; level 2 is your judgment.
 
-1. **Load the frame.** Read `UI_INPUT.yaml` (intent, scope hints, stakeholders, dates) and the manifest
-   `context_set/index.json`. Read `domain` and load `si_profile.<domain>.yaml`. The manifest stays
-   loaded for the whole session — you always see the full index of what exists.
-2. **Confirm intent — 2–3 clarifying questions.** Ask the operator a **short framing exchange** (2–3
-   questions) to confirm the requirement intent and scope. Just enough to orient and to seed the coarse
-   code pass — not to interrogate or pre-fill sections. One question at a time.
-3. **Coarse code pass (code-bearing domains).** Delegate the **coarse** `code_impact` pass — requirement
-   × `code_map.json`, **map-only, no source files** — to get high-level affected-area context. This
-   informs the early sections and sharpens your framing questions. It returns candidate areas, not yet
-   Flags.
-4. **Then, and only then,** proceed to the merged authoring plan and run the per-section loop in order.
+### Level 1 — which artifacts (deterministic, D-A13)
 
-Discovery completes before section authoring begins; the executive summary is still drafted last.
+```
+routed = [ e for e in index.json.files if e.disposition ∩ section.classes ≠ ∅ ]
+```
+
+`section.classes` is the profile's routing row. Marks carry meaning:
+
+- **P (primary)** — the section is authored mainly from these. Always read.
+- **S (supporting)** — consulted for detail and corroboration, not the backbone.
+- **E (enrichment)** — **ignore at v1.** These arrive in v2.
+
+`section.inputs` names the two non-document sources: **`frame`** (the frame text, global) and
+**`discovery`** (operator answers). A section marked `discovery: P` — §9, §12, §13 — has *no
+document* that can answer it. Its quality rests entirely on the questions you ask, so probe those
+sections properly rather than writing thin prose from an adjacent source.
+
+An entry whose `disposition` is `other` routes nowhere and is **never a citation**. An entry
+dispositioned `prior_artifact` is **reference-only**: it establishes what was previously decided,
+and must never be the sole citation for a *new* requirement.
+
+A source recorded `status: "failed"` in `sources_status` is a **known gap** — its `must_capture`
+items fall through to probing. Never silently ignored.
+
+### Level 2 — which passages (judgment, D-A18)
+
+```
+budget = retrieval_config.whole_read_threshold_lines
+if total_lines(routed) <= budget:      read the extracts WHOLE     ← preferred; loses nothing
+else:                                  consult indexes, largest members first
+```
+
+**The check is over the routed SET, not per file.** Five 10-page documents are each under budget
+and collectively fifty pages. When the set is over budget, demote its **largest** members to
+index-guided reading first — that buys the most budget per document demoted.
+
+Index-guided reading, when needed:
+
+1. Read the index — headings + summaries, 15–30 entries.
+2. **Match the section's `must_capture` against those summaries semantically.** `must_capture` IS
+   the query; there is no keyword list and no separate mapping to maintain.
+3. Pull those entries' **line ranges** from the `.md` extract. The summary is what you read to
+   *choose*; the extract is what you read to *write from*. Never write from a summary.
+4. **Still short? Widen** — more entries, or the whole document if it is small.
+
+If several groups of passages are needed, process them **sequentially, carrying the draft
+forward** — group 2 sees what group 1 produced. A section is a synthesis; disjoint passes produce
+a fragmented one. (Arm 1's per-epic iteration is the opposite — independent, to avoid anchoring.
+Do not import that rule here.) **Every selected group is processed; no early exit** — coverage
+becomes unverifiable the moment you stop early.
 
 ---
 
-## Operating procedure (per section)
+## Per-section loop
 
-> The per-section authoring loop (selective-read routing by §3.2, `must_capture` drafting, gap probing,
-> the `<!-- coverage: {...} -->` footer) is detailed in **§ "Per-section authoring loop"** and the
-> grounding / revisit rules in **§ "Grounding & citation"** / **§ "Revisiting & shared memory"** below.
-> The invariants: discovery (above) **precedes** authoring, the merged plan is iterated **in order**,
-> and the executive summary is **drafted last**.
+For each section 2 → 18 (then §1):
 
-After discovery, iterate the merged authoring plan in order. For each section: read its profile entry,
-select context via the manifest, draft against each `must_capture`, probe unsatisfied requirements one
-topic at a time, and mark coverage. Write incrementally to `BRD.md`. Draft the executive summary last,
-then hand off to `solution_intent_validator` (G1).
+**a. Read the profile entry** — `status`, `classes`/`inputs`, `boundary`, `must_capture[]`,
+`probe_if_missing[]`.
 
-## Per-section authoring loop
+**b. Route** — level 1, then level 2 (above).
 
-Iterate the merged authoring plan **in order**. Run this loop for each section; read all domain content
-from the profile each time — never hardcode it. The executive summary is the last iteration.
+**c. Draft against each `must_capture`,** grounded in strict priority order:
 
-### a. Read the profile entry
+1. **Source passages** — highest authority.
+2. **The frame** — anchors intent; never a substitute for a source fact.
+3. **Operator answers** — from probes.
 
-Read the section's `sources`, its `requirements[]`, and per requirement the `topic`, `must_capture`,
-`probe_if_missing`, and `required`. A baseline-skeleton section with no profile `requirements` (e.g.
-`stakeholders`, `out_of_scope`) is drafted from the `UI_INPUT` frame and skill structure — no routing.
+**d. Honour the section's `boundary`** where it has one (§4, §9, §15). These three all answer some
+form of "why, and what does good look like", and blur badly without discipline: **§4 is intent —
+no dates, no metrics**; **§9 must reference something external to the project**; **§15 must be
+measurable and every criterion must trace to a §4 objective**. A fact that could satisfy two of
+them satisfies neither cleanly — put it where its boundary says it goes.
 
-### b. Select context — selective routing (§3.2)
+**e. Probe what is missing** — ask the section's `probe_if_missing`, **one at a time**, folding
+each answer in before the next. Do not probe what the sources already answered. Do not interrogate:
+a section whose `must_capture` is satisfied raises no probe.
 
-Query the manifest (`index.json`, always in view) and load **only** the entries where:
-
-```
-file.source ∈ section.sources   AND   file.topics ∩ section.topics ≠ ∅
-```
-
-`section.topics` is the implicit set of this section's `requirements[].topic`. Load those files' bodies;
-draft from them. **Expand on demand:** if a loaded file or a `must_capture` points at a cross-reference
-the manifest surfaces but the routing rule didn't pull, load that file too.
-
-This is **always selective (FR-BR-04, NFR-05)** — the manifest is always loaded, section-routed files
-load by default, more are pulled only on demand. There is **no load-all path and no size threshold**;
-the loop holds at any corpus size because only the section's routed slice is ever resident. A `source`
-in `section.sources` recorded `status:"failed"` in `sources_status` is treated as a known gap (its
-`must_capture` items fall through to probing), never silently ignored.
-
-For the `code_impact` section (`source=bitbucket`), context is the `code_map.json` + the `code_impact`
-subagent's return, not document bodies — see § "Code-impact section".
-
-### c. Draft against `must_capture` — information hierarchy (FR-BR-03)
-
-For each requirement, satisfy its `must_capture` by drawing on, **in strict priority order**:
-
-1. **Source documents** — the selectively-read `context_set/` files (highest authority).
-2. **The `UI_INPUT` frame** — the operator's authoritative statement of intent/scope, used to anchor —
-   not to fabricate requirements.
-3. **Chat gap-fill** — only for `must_capture` items neither source nor frame satisfies (step d).
-
-Draft each claim grounded at the highest available tier. (Inline citation form and the cite-or-flag
-rule for ungrounded items are in § "Grounding & citation".)
-
-### d. Probe gaps — one topic at a time
-
-Where neither the loaded sources nor the `UI_INPUT` frame satisfies a `must_capture`, ask the operator
-that requirement's `probe_if_missing`. Probes are **gap-fills tied to unsatisfied requirements — not one
-question per file, and not one per section by default**. Ask **one topic at a time**; fold each answer
-in before moving on. Don't interrogate: a section whose `must_capture` items are already satisfied by
-source/frame raises no probe. Required-topic gaps must be probed (or marked open); optional-topic gaps
-may be left thin.
-
-### e. Mark coverage — per-section footer (§3.7)
-
-After drafting, emit a machine-readable coverage footer the `solution_intent_validator` reads — one entry per topic,
-valued by how its `must_capture` was satisfied (`source` / `frame` / `operator`, or `open` if still
-unsatisfied):
+**f. Emit the coverage footer** — one entry per `must_capture` index, valued by how it was
+satisfied:
 
 ```
-<!-- coverage: {mandate: source, brand_rules: operator, routing: source} -->
+<!-- coverage: {1: source, 2: source, 3: frame, 4: operator, 5: open} -->
 ```
 
-Then **write the section incrementally** to `BRD.md` (one `##` per section, in merged `order`). The
-accumulating draft keeps earlier sections in view for the rest of the loop.
+`open` means unsatisfied — and every `open` item must also appear in §17 as a real open question.
 
-### Loop exit
+**g. Write the section** to `v1.md` before moving on. The accumulating draft is your working
+memory and the resume point.
 
-When every section has been drafted (executive summary last) and each required section's `must_capture`
-items are satisfied or explicitly `open`/`[TBD]`, hand off to `solution_intent_validator` (G1).
+### Section statuses — dispositioned, never absent (D-A10)
 
-## Grounding & citation — cite-or-flag (FR-BR-06)
+Three legitimate end states, all **visible in the document**. An omitted section and a forgotten
+section look identical, so nothing is ever simply left out:
 
-Every **substantive claim** in `BRD.md` is grounded and **cited inline**, matching the tier it came
-from in the step-(c) information hierarchy:
+| Status | When the content is there | When it is not |
+|---|---|---|
+| `required` | the content | **"None identified"** — a positive assertion |
+| `required_may_be_empty` | the content | **"None identified"** |
+| `conditional` | the content | **"Not applicable — &lt;reason&gt;"** |
 
-- **`[src: <provenance>]`** — grounded in a `context_set/` file. Use the manifest provenance/path, e.g.
-  `[src: sharepoint/mastercard_mandate_part1_2026.md]`. This is the highest authority; prefer it.
-- **`[frame]`** — grounded in the `UI_INPUT` requirement frame (intent / scope / stakeholders / dates).
-- **`[operator]`** — grounded in an explicit operator answer to a probe.
-
-These citation tiers are the same three values a topic takes in the section coverage footer
-(`source` / `frame` / `operator`), so the footer and the inline citations agree.
-
-**Cite-or-flag is absolute.** If a `must_capture` (or any substantive claim) cannot be grounded in a
-source, the frame, or an operator answer, mark it **`[TBD — unsourced]`** and set the topic's coverage
-to `open`. **Never invent** a value to fill a gap — surfacing the gap is the correct, required outcome;
-a fabricated citation or a plausible-but-ungrounded fact is a defect. Non-substantive connective prose
-(structure, transitions) needs no citation; any business fact, number, name, date, rule, or scope
-statement does.
-
-## Revisiting & shared memory (FR-BR-05)
-
-Sections are **not independent**, and answers are **never re-asked**.
-
-- **Revisiting.** If a later section surfaces a change to an earlier one (e.g. a requirement narrows
-  scope, a probe answer contradicts an earlier draft), **loop back and revise** the earlier section —
-  update its prose, citations, and coverage footer. The accumulating `BRD.md` is the working draft, not
-  an append-only log; later insight may rewrite earlier sections.
-- **Shared memory — never re-ask.** Anything already answered (by the operator, or established from a
-  source/frame) is carried forward by the live session + the incrementally-written `BRD.md`; do not ask
-  it again. Before probing a gap (loop step d), check whether the draft or an earlier answer already
-  supplies it. Re-asking an answered question is a defect.
-- **Mid-stage reset.** If the session is reset mid-authoring, **persist gathered facts to the `BRD.md`
-  draft first** so a re-entered session reloads `UI_INPUT` + manifest + the existing `BRD.md` and
-  continues from there (the resume contract, §3.5 / authoring row of §16) without re-interrogating the
-  operator.
-
-## Code-impact section (delegates to `code_impact`)
-
-When you reach the `code_impact` section (profile section routed to `source=bitbucket`), delegate to the
-`code_impact` subagent (deep mode), passing the requirement + the candidate areas from the discovery
-coarse pass. It returns an impact summary **and** a required Flags list. Draft the section
-**business-framed** (impacted systems / scale / risk — no file/function detail; that is carried to the
-FRD), then run the human-mediated flag loop below.
-
-### Human-mediated flag loop (GF — FR-BR-08, FR-BR-13, D6c)
-
-You **never auto-apply a scope change.** For each significant returned flag, run the sub-gate **GF**,
-one flag at a time:
-
-1. **Surface.** Present the flag to the operator: `finding`, `implication`, the `options`, and your
-   `recommended_option` — **recommend, do not decide**. One flag at a time; don't batch.
-2. **Wait.** Block on the operator's chosen option. Nothing changes until they answer.
-3. **Classify material vs advisory (D6c).** `code_impact` *proposes* `severity`; the **operator's
-   decision confirms it**. The resolution is **material** iff the chosen option does **any** of:
-   - changes the impacted **code surface** (adds/removes a module/component from the in-scope set), or
-   - changes a requirement's **`must_capture`** the deep pass relied on, or
-   - moves a **Scope / Out-of-scope boundary**.
-   Otherwise it is **advisory**. (A flag `code_impact` proposed `advisory` becomes `material` if the
-   operator's option crosses one of those three lines — and vice-versa.)
-4. **Apply.** Update the affected BRD sections — including **earlier** ones (scope, requirements, the
-   code-impact section) per the revisit rule — and record the decision + rationale (step 6). Never
-   invent the consequence; apply exactly what the operator chose.
-5. **Conditional re-run (FR-BR-13).** **Material →** re-run `code_impact` **scoped to the changed
-   surface only** (the added/removed modules — not the whole map; consistent with deep mode reading only
-   the flagged slice), then fold the new flags back into this loop. **Advisory →** no re-run; the record
-   + section updates are enough.
-6. **Record (both ledgers).** Write a `flag` record to `decisions.jsonl` and emit the `flag_decision`
-   telemetry event:
-   - `decisions.flag(ledger, flag_type=…, area=…, option=<operator choice>, severity=<material|advisory>,
-     rationale=<operator rationale>, actor=…)`
-   - `telemetry.flag_decision(flag_type=…, option=…, severity=…)`
-
-After all flags are dispositioned, the code-impact section reflects the agreed scope. The **G1 acceptance
-gate is the backstop** for any flag missed here.
+A conditional section's N/A **must carry a reason**, and that disposition is *proposed by you,
+confirmed by the operator at G1*.
 
 ---
+
+## §7 Deliverables and §8 Requirements — the load-bearing pair
+
+These two carry the trace chain that becomes the Jira hierarchy, so their shape is contractual.
+
+**§7 — Deliverables.** Units of work product that get **delivered**. Seeded from
+`frame.overview`, refined from the sources, gaps filled by discovery. Each carries a stable ID
+`D1`, `D2`, … Include **non-code deliverables** explicitly — certification packages, filings,
+runbooks, reporting changes. They are where "not code at all" findings land in v2.
+
+**§8 — Requirements.** Statements of what must be **true** (satisfied/verified), not work
+(delivered). Each requirement is:
+
+```markdown
+#### R3 — Token Requestor ID preserved end-to-end
+**Deliverable:** D1
+**Description:** …one or two sentences of intent…
+
+**Assertions:**
+- R3.1 — DE 48.66 carries the Token Requestor ID assigned by MDES. [src: …]
+- R3.2 — The value is preserved unmodified through the full authorization chain. [src: …]
+- R3.3 — Wallet-originated transactions additionally populate DE 48.77. [src: …]
+```
+
+- **Stable IDs** `R1`, `R2`, … and `R<n>.<m>` per assertion. They are referenced downstream
+  (`D → R → §16 entry → story → Jira key`) and must not be renumbered later.
+- **`Deliverable:` is mandatory.** §8→§7 is load-bearing — it builds the Jira hierarchy. A
+  requirement with no deliverable is unbuildable; a deliverable with no requirement is
+  unjustified. Both are checked at G1.
+- **Assertions are the checkable units.** Split until each states **one** thing that could be
+  independently true or false against a system. This is not formatting: Arm 1 matches
+  **per assertion** against code, and §16's granularity — which is story granularity — is
+  decided *here*, by how finely you split. "The parser is affected" is ambiguously one story or
+  five; three assertions produce three unambiguous entries.
+- **Carry normative detail verbatim.** Field numbers, subelement numbers, lengths, permitted
+  values, response codes, thresholds. An assertion that says "the message must carry the new
+  field" is unmatched able; one that says "DE 48.66, N-11, conditional on token BIN" is.
+
+---
+
+## Section-specific rules that are binding (D-A4)
+
+- **§8 is extend-only under enrichment** — which constrains *you*, not v2: write requirements as
+  intent, sourced from the mandate, never as a description of a system. Code will later reveal a
+  requirement is incomplete or unachievable; it must never be able to rewrite one.
+- **§13 must be authored in CHECKABLE form.** This is v2's needs constraining v1's contract. "We
+  assume settlement is unaffected" verdicts cleanly against a code map; "we assume the
+  architecture is suitable" is worth nothing to enrichment. Name the component, system, or
+  behaviour being assumed about. The highest-value assumptions are the ones about what this change
+  does **not** touch.
+- **§5's personas are types, not job titles** — defined by goal and context. Record system actors
+  (the counterparty systems behind each interface) separately from human personas: only the former
+  can be verdicted later. Include the persona→use-case matrix against §6.
+- **§12 is a two-way door.** Record not just what is excluded but *why*, because v2 may push
+  something into scope (code shows it is structurally unavoidable) or out of it.
+- **§17 is yours, not enrichment's.** Every `[TBD — unsourced]` you leave, every deliberately
+  deferred decision, every question raised and unanswered goes here **in v1**. v1 ships with its
+  own uncertainty visible; enrichment adds to the list rather than introducing it.
+- **§1 regenerates, it does not revise.** Draft it last, from the finished body plus
+  `frame.overview` for identity.
+
+---
+
+## Grounding — cite-or-flag with provenance
+
+Every substantive claim is cited inline. The tier tells enrichment **who may correct it later**,
+so it is not decoration:
+
+| Citation | Means | Enrichment authority (D-A6) |
+|---|---|---|
+| `[src: <path> L<start>–<end>]` | a source passage | code contradicting it **auto-corrects** |
+| `[frame]` | the `UI_INPUT` frame | contradiction **escalates** — never overrule a human silently |
+| `[operator]` | an operator answer | contradiction **escalates** |
+| `[TBD — unsourced]` | grounded in nothing | code answering it **auto-fills** |
+
+Cite source passages with the **line range you actually read**, so a reader — and the validator —
+can go straight to it.
+
+**Cite-or-flag is absolute.** Anything you cannot ground in a source, the frame, or an operator
+answer is marked `[TBD — unsourced]`, its coverage entry is `open`, and it is listed in §17.
+**Never invent.** A fabricated citation or a plausible-but-ungrounded fact is a defect; surfacing
+the gap is the correct outcome. Connective prose needs no citation; any fact, number, name, date,
+rule, or scope statement does.
+
+Two provenance classes constrain citation directly: **`prior_artifact` is reference-only** — it
+can establish what was previously decided, never justify a new requirement on its own (a copied
+requirement looks properly cited, which is what makes this hazardous). **`other` is never a
+citation at all.**
+
+## Revisiting and shared memory
+
+- **Revisit freely.** A later section may change an earlier one — update its prose, citations and
+  coverage footer. The draft is a working document, not an append-only log.
+- **Never re-ask.** Anything already answered is carried by the session and the draft. Check
+  before probing. Re-asking is a defect.
+- **Resume.** If the session resets, the draft on disk plus `UI_INPUT` plus the manifest are enough
+  to continue. Persist before you pause.
+
+## The flag loop (GF) — surface, wait, apply
+
+You **never change scope autonomously**. When authoring surfaces a scope question — a boundary that
+cannot be settled from the sources, an exclusion the operator must own, a requirement that implies
+work nobody has scoped — run the sub-gate, **one flag at a time**:
+
+1. **Surface** — the finding, its implication, the options, and your recommendation.
+   **Recommend, do not decide.** Never batch.
+2. **Wait** — nothing changes until the operator answers.
+3. **Classify** — `material` if the chosen option moves a scope boundary, changes a requirement, or
+   changes the deliverable set; otherwise `advisory` (D6c).
+4. **Apply** exactly what was chosen, including to earlier sections.
+5. **Record both ledgers** — `decisions.flag(...)` and `telemetry.flag_decision(...)`.
+
+Unresolved flags block G1.
+
+## Handoff
+
+When all 18 sections are drafted-or-dispositioned, §1 is written last, and every `must_capture` is
+satisfied or explicitly `open` and listed in §17 — hand off to `solution_intent_validator` for
+scoring and **G1**. On acceptance v1 is frozen.
 
 ## Boundaries — what this skill does NOT do
 
-- Does not define domain sections / topics / requirements — the profile does.
-- Does not fetch source files by reasoning — it reads the manifest and loads by tag.
-- Does not perform the code impact itself — it delegates to `code_impact`.
-- Does not validate / score (that is `solution_intent_validator`), and does not write to Jira.
-- Does not change scope autonomously — scope changes are operator decisions.
+- **Does not read code.** Not the map, not the repo, not at all (FR-SI-02).
+- Does not author §16 or §18 — those are enrichment's output.
+- Does not decide which sections exist — the contract is fixed at 18.
+- Does not decide a conditional section's applicability alone — proposes; the operator confirms at G1.
+- Does not score or gate — that is `solution_intent_validator`.
+- Does not edit v1 after G1 — v1 is frozen; enrichment writes `v2.md`.
+- Does not change scope autonomously, and does not write to Jira.

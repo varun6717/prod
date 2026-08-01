@@ -220,6 +220,7 @@ connector's placeholder per hard rule **S**, done as connectors land on the VDI 
 
 **Phase D · Milestone D2 — Solution Intent v1**
 - [x] TASK-108 — `si_profile` (18 sections) + §10.5′ disposition-class totality: 🆕 `core/profiles/payment_brand/si_profile.payment_brand.yaml` — all 18 sections, each carrying `authored` (D-A3) · `touch` + `touch_note` (D-A3/D-A4) · `status` + `conditional_reason` (D-A10) · `classes`/`inputs` (the D-A13 row) · `boundary` (§4/§9/§15, D-A11) · `must_capture[]` · `probe_if_missing[]`. **`classes` and `inputs` are separate keys on purpose:** D-A13 draws one table but its columns are two kinds of thing — `classes` keys are D-A12 dispositions matched against a manifest entry's `disposition` (a routing key), while `frame`/`discovery` are the operator as an input source and never appear on an entry. Splitting them means the §10.5′ class check needs no list of keys to ignore. `brd_profile.payment_brand.yaml` **deleted**; its pointers renamed `brd_profile → si_profile` across both skills, the validator, 4 overlay wrappers and 2 prompt files (pointer rename only — the substantive recasts stay TASK-109/110). 🆕 `core/scripts/checks/check_disposition_totality.py` (§10.5′) — checks **both directions** (section-side alone passes a taxonomy with a dead class; class-side alone passes a profile with a starved section), plus fixed-18 membership, conditional marking, and cell/key well-formedness; registered in `build_checks.py` → **4/4**. §10.3 re-cut: `brd_profile` → `si_profile` **and** the folded-in **pack-pointer assertions** — every `docs_pipeline`/`code_pipeline` skill resolves to a file in the pack *or* shared `core/skills/`, and a mapping-form `docs_pipeline` carries its `default` lane (063B). 🆕 `fixtures/si_profile/verify_si_profile.py` — the **cell-identity oracle** acceptance #1 needed and nothing else covered: D-A13, D-A3 and D-A10 re-typed independently from the ADR and compared cell by cell (§10.5′ proves *totality*, which would happily pass a complete-but-wrong matrix). `dispositions.py` gains `NEVER_ROUTED = {other}` + `NON_DISPOSITION_INPUTS` — **`other` routes nowhere by design** (D-A12: "the empty column IS the definition"), and declaring it as data rather than special-casing it inside the checker matters because that checker's whole job is catching orphan classes; a buried exception would be indistinguishable from the bug it hunts. Proof: `build_checks --demo` 4/4 clean + **5 injected defects each turning the NAMED check red** (incl. the dangling `article_summarize` pointer — the exact TASK-100→105 state that stayed green); `check_disposition_totality --demo` 8 negatives; `verify_si_profile.py` **144/144 cells**; all **11** verifies green.
+- [x] TASK-109 — `solution_intent_author` recast: full rewrite of `core/skills/solution_intent_author.skill.md` (the TASK-102 rename had held the old BRD content). **The headline change is that v1 is CODE-BLIND** (FR-SI-02) — the old skill delegated a coarse `code_impact` pass during discovery; that delegation is **deleted**, and the skill now says why: if code informed v1 there would be nothing for enrichment to discover (the v1→v2 diff *is* the stage's value story), the author would anchor requirements to what the code already does, and §13's assumptions — the payload Arm 2 verdicts — are only worth writing if written unseen. `codebase` is `E` in every D-A13 row, so a repo source routes nothing. Also recast: the baseline+profile **merge machinery is gone** (the 18 sections are fixed, not assembled); the two-level funnel replaces topic routing (level 1 deterministic by disposition, level 2 index-guided by `must_capture` over the routed **SET**); sequential groups carrying the draft forward (explicitly contrasted with Arm 1's independent iteration, which would fragment a section); §7-before-§8 with `D<n>`/`R<n>`/`R<n>.<m>` stable IDs and mandatory `Deliverable:`; assertions split until each is independently checkable (**§16 granularity IS story granularity — decided here**); conditional dispositions proposed-not-decided; provenance-tiered citations that determine *who may correct the claim later* (D-A6); §13 authored in checkable form; §17 v1-authored; §1 last. Both wrappers refreshed (code-blind, no delegation, produces `v1.md`, G1 freezes). 🆕 `fixtures/si_author/` — `UI_INPUT.yaml` (MCS-2026-R3 initiative over the 4 doc artifacts + the repo, dispositioned per D-A12) · **`v1.md` — a real authored v1**: 18 sections, 5 deliverables, 12 requirements, **44 assertions**, **118 resolving citations**, 2 conditionals N/A-with-reason + 1 filled, 4 `[TBD — unsourced]` closing into 5 §17 questions · `verify_si_author.py` (**48 checks** across 10 groups). The verifier **assembles the corpus at verify time from `fixtures/doc_index/` and fans it in with the real `merge_manifest.py`**, so the manifest citations are checked against is pipeline-produced and the extracts cannot drift from the doc-index oracles. Proof: every `[src: … L<a>–<b>]` resolves to a manifest entry *and* a line range that exists in that extract; §7↔§8 and §15↔§4 traces intact both directions; code-blindness asserted against a corpus that really does contain a `codebase` source; §10 4/4; all **12** verifies green.
 
 ---
 
@@ -251,7 +252,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ## Open index (tick here; then collapse the task into the done ledger above)
 
 **Milestone D2 — Solution Intent v1**
-- [ ] TASK-109 — `solution_intent_author` recast · `Opus`
 - [ ] TASK-110 — `solution_intent_validator` + G1 + v1 freeze · `Opus`
 - [ ] TASK-111 — Discovery-question adequacy (promoted by D-A13) · `Opus`
 
@@ -282,29 +282,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ---
 
 ## Milestone D2 — Solution Intent v1
-
-### TASK-109 — `solution_intent_author` recast
-- **Depends on:** TASK-106 (index), TASK-108 (profile).
-- **Model:** Opus — the central authoring artifact.
-- **Reads:** §3.7 (replaced — on-disk contract) · D-A2 (v1 frozen; placement rule) · D-A3/4
-  (sections + binding rules) · D-A8 (the §8 schema: title/description/**assertions**,
-  agent-extracted) · D-A10 (dispositions proposed, operator-confirmed at G1) · D-A11 (boundaries)
-  · D-A13 (funnel level 1) · D-A14 (initiative level; §7 before §8; stable IDs `D1…`/`R1…` +
-  `deliverable:` refs) · D-A18 (funnel level 2: index selection by `must_capture`; whole-read over
-  the set; sequential groups carrying the draft; termination) · FR-SI-01…07.
-- **Creates / edits:** `core/skills/solution_intent_author.skill.md` full recast (the TASK-102
-  rename holds the old BRD content until now): discovery framing carried (FR-BR-02/03/05
-  semantics — up-front questions, per-section probes, never re-ask); the two-level funnel;
-  section loop over the 18-section contract with coverage footers; assertions extracted per
-  requirement; conditional sections dispositioned with reasons; §17 accrues `[TBD]` gaps; §1
-  authored last; cite-or-flag with provenance classes (`Prior Artifact` reference-only, `Other`
-  never sole citation); the flag loop carried (surface→wait→apply, material vs advisory). Wrapper
-  contents ×2 tools refreshed to describe the SI role.
-- **Acceptance:** in-session authoring over the mock corpus (2 PDFs + 2 Confluence pages +
-  `c_repo`, dispositioned per D-A12) produces a v1 with: all 18 sections present-or-dispositioned;
-  every §8 requirement carrying `deliverable:` + enumerated assertions; stable IDs; per-section
-  coverage footers; every citation resolving to an index entry/line range or flagged.
-- **Proof:** the authored fixture v1 + its citation spot-check.
 
 ### TASK-110 — `solution_intent_validator` + G1 + v1 freeze
 - **Depends on:** TASK-109, TASK-104.

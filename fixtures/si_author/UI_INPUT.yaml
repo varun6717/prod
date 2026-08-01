@@ -1,0 +1,69 @@
+# UI_INPUT.yaml — the run config behind the TASK-109 authoring fixture.
+#
+# The corpus is the four mock doc artifacts (fixtures/doc_index/) plus the Stratus C repo. The
+# initiative is the Mastercard MCS-2026-R3 mandate landing in the Merchant Routing Service: the
+# two mandate parts are the ask and its normative detail, the two KB pages are current-state
+# product knowledge, and the repo is present but routes NOWHERE at v1 — `codebase` is marked E
+# (enrichment-only) in every D-A13 row, because v1 is authored code-blind (FR-SI-02).
+#
+# The dispositions are the D-A12 split that motivated the taxonomy: the same corpus, different
+# destinations. Part 1 is the obligation (→ §2/§4/§8/§15); Part 2 is the normative detail
+# (→ §8/§10) and is what Arm 1 will later match against code.
+
+run_id: r-2026-08-01-si1
+schema_version: 1
+working_path: /work/pbi/SEAL-12345-mcs2026r3
+domain: payment_brand
+runtime_tool: claude
+registry_sha: 7d2e9a1
+
+project_metadata:
+  project_name:     "Mastercard MCS-2026-R3 Brand Mandate"
+  application_name: "MerchantRoutingSvc"
+  line_of_business: "Merchant Services"
+  requestor:        "Varun Munjal"
+  requestor_sid:    "vmunjal"
+
+frame:
+  title: "Mastercard MCS-2026-R3 Brand Mandate"
+  intent: "Implement the Mastercard MCS-2026-R3 mandate across authorization, routing, interchange qualification and reporting"
+  overview: >
+    Mastercard has issued brand mandate MCS-2026-R3, binding on all licensed acquirers including
+    JPMC Merchant Services, with a compliance deadline of 2026-09-30. It requires the Merchant
+    Routing Service to carry MDES token data end-to-end on the authorization message, to route
+    token traffic exclusively through the Banknet MDES gateway, to populate the new token
+    assurance element so eligible transactions qualify for the reduced interchange tier, and to
+    extend three downstream reports. Acquirers must additionally obtain Mastercard Acquirer
+    Certification Level 2 before the deadline or have all Mastercard and Maestro traffic
+    downgraded to the Standard non-qualified tier. Delivery spans the authorization message
+    layer, the routing tables and endpoint selection, interchange qualification, settlement and
+    compliance reporting, and a certification package.
+  scope_hints: ["authorization message format", "Banknet routing", "interchange qualification", "MDES tokens"]
+  stakeholders: ["Payments Eng", "Brand Compliance", "Merchant Tech", "Settlement Ops"]
+  key_dates: { compliance_deadline: 2026-09-30, network_effective_date: 2026-07-01 }
+
+sources:
+  - type: sharepoint
+    url: "https://sharepoint.jpmc.net/sites/PBI/Specs/mastercard_mandate_part1_2026.pdf"
+    disposition: [business_requirement]      # the ask: obligation, scope, deadline
+    auth_ref: jpmc_adapters:sharepoint
+  - type: sharepoint
+    url: "https://sharepoint.jpmc.net/sites/PBI/Specs/mastercard_mandate_part2_2026.pdf"
+    disposition: [technical_specification]   # normative detail; Arm 1's primary code-match input
+    auth_ref: jpmc_adapters:sharepoint
+  - type: confluence
+    url: "https://confluence.jpmc.net/display/PBI/Card+Brand+Routing"
+    disposition: [product_domain_knowledge]  # how the service works today
+    auth_ref: jpmc_adapters:confluence
+  - type: confluence
+    url: "https://confluence.jpmc.net/display/PBI/Brand+Message+Formats"
+    disposition: [product_domain_knowledge]
+    auth_ref: jpmc_adapters:confluence
+  - type: bitbucket
+    seal_id: SEAL-12345
+    repo_url: "https://bitbucket.jpmc.net/scm/pbi/merchant-routing-svc.git"
+    disposition: [codebase]                  # auto-set; routes E only — invisible to v1
+    auth_ref: jpmc_adapters:bitbucket
+
+gates:
+  score_threshold: 85
