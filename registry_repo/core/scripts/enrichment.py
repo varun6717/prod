@@ -266,6 +266,17 @@ def disposition(record: dict, finding_id: str, *, call: str, rationale: str,
     if f["action"] != "escalated":
         raise ValueError(f"{finding_id} did not escalate — there is nothing for an operator to "
                          f"disposition (it was {f['action']})")
+    if call not in ("accept", "reject", "reroute", "defer"):
+        raise ValueError(f"unknown walkthrough call {call!r} for {finding_id}")
+    # `reject` DROPS the finding; it does not place it. A target passed alongside was previously
+    # discarded in silence here, while `decisions.disposition` — the audit twin — raises on the
+    # same input. Two writers disagreeing about the same operator act is bad enough; the one that
+    # stays quiet is the record the APPLY PASS reads, so a caller could believe it had placed a
+    # finding that was actually dropped. Found by the refusal-path fixture (TASK-127 follow-up).
+    if call == "reject" and target:
+        raise ValueError(
+            f"{finding_id}: `reject` drops the finding, so it cannot carry a target "
+            f"({target!r}) — use `reroute` to place it somewhere else")
     f["disposition"] = call
     f["rationale"] = rationale
     f["actor"] = actor

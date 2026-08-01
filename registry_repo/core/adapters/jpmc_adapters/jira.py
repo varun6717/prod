@@ -169,11 +169,22 @@ def push_plan(plan: dict, trace: dict, *, project_key: str, dry_run: bool = True
             out.setdefault(local_id, {"key": f"{project_key}-DRY-{local_id}", "url": "",
                                       "action": "planned", "pushed_ts": ts})
             continue
-        if existing:
-            res = _TARGET["update"](existing["key"], issue, handle=handle)
-        else:
-            res = _TARGET["create"](issue, project_key=project_key,
-                                    parent_key=parent_key, handle=handle)
+        try:
+            if existing:
+                res = _TARGET["update"](existing["key"], issue, handle=handle)
+            else:
+                res = _TARGET["create"](issue, project_key=project_key,
+                                        parent_key=parent_key, handle=handle)
+        except Exception as exc:
+            # Attach what DID succeed to the exception before it propagates. Without this the
+            # partial trace dies with the stack frame, and every caller has to track successes
+            # independently to resume — which makes "a mid-batch failure leaves prior successes
+            # in the trace" true of this function's local variable and of nothing the caller can
+            # reach. Additive: the exception type and message are unchanged, so existing handlers
+            # are unaffected; a caller that wants to resume reads `exc.partial_trace`.
+            exc.partial_trace = out           # type: ignore[attr-defined]
+            exc.pushed_before_failure = local_id   # type: ignore[attr-defined]
+            raise
         # Recorded AS IT RETURNS — a mid-batch failure leaves prior successes in the trace and a
         # retry resumes the remainder rather than re-creating them.
         out[local_id] = {"key": res["key"], "url": res.get("url", ""),
