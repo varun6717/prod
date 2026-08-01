@@ -560,10 +560,50 @@ def run_gate(root: Path = FIXTURE, profile: dict | None = None) -> tuple[Scan, d
     return scan, project_distribution(scan, prof), derive_modules(scan, prof)
 
 
+def _commit_of(root: Path) -> str:
+    """The repo's HEAD, or a marker when it is not a git checkout (external-build tree copy)."""
+    import subprocess
+    r = subprocess.run(["git", "-C", str(root), "rev-parse", "--short", "HEAD"],
+                       capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 and r.stdout.strip() else "not-a-git-checkout"
+
+
 def main(argv: Sequence[str] | None = None) -> int:
+    """Run the D-A21 onboarding gate against a repo.
+
+    Until TASK-127 this took ``argv`` and **never parsed it** — no argparse — and was hardcoded
+    to the fixture tree with literal "fixtures/c_repo" / "9f3c1ab" strings in the report. It was
+    a proof harness wearing a CLI's clothes: an operator had no way to point the gate at their
+    own repo, which is the one thing an onboarding gate is for. Found on the first real run,
+    where `--help` printed a gate report for a directory that was not there.
+    """
+    import argparse
+
+    ap = argparse.ArgumentParser(
+        description="D-A21 code-map onboarding gate: scan a repo, project purpose coverage, "
+                    "derive modules, and report what a human must decide before freezing.")
+    ap.add_argument("--repo", default=str(FIXTURE),
+                    help="repo to onboard (default: the c_repo fixture)")
+    ap.add_argument("--commit", help="commit sha for the report header (default: the repo's HEAD)")
+    args = ap.parse_args(argv)
+
+    root = Path(args.repo)
+    if not root.is_dir():
+        ap.error(f"--repo is not a directory: {root}")
+
+    # A scan that found nothing is an ERROR, not 0% coverage. Rendering it as a distribution
+    # produces a plausible report — "0.0% human-authored, below the warn threshold" — that
+    # points at map QUALITY when the real fault is that the gate was aimed at the wrong path.
+    # Same failure shape as hydrate's `--unshallow`: a true statement about the wrong thing.
+    files = c_files(root)
+    if not files:
+        print(f"validate_onboarding.py: no .c/.h files under {root} — nothing to onboard. "
+              f"Check the --repo path.", file=sys.stderr)
+        return 2
+
     profile = json.loads(json.dumps(DEFAULT_PROFILE))
-    scan, dist, mods = run_gate(FIXTURE, profile)
-    print(render_gate_report("fixtures/c_repo", "9f3c1ab", scan, profile, dist, mods))
+    scan, dist, mods = run_gate(root, profile)
+    print(render_gate_report(str(root), args.commit or _commit_of(root), scan, profile, dist, mods))
     ok, detail = check_freeze_integrity()
     print(f"\nfreeze integrity: {'OK' if ok else 'DRIFT'} — {detail}")
     return 0 if ok else 1
