@@ -338,9 +338,18 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
   `core/scripts/checks/check_disposition_totality.py` (§10.5′: every section has ≥1 routed input
   class; every operator-selectable class in the UI taxonomy appears in ≥1 section row) — register
   in `build_checks.py` (now 4 checks); §10.3 swaps `brd_profile` → `si_profile`.
+  **Also (added at TASK-105 — the §10.5 residue §10.3 was supposed to absorb but never did):**
+  §10.3 gains the adapter-pack pointer assertions — every `docs_pipeline` / `code_pipeline`
+  skill name resolves to a file (pack skill under `profiles/<d>/adapter/` **or** shared
+  `core/skills/`), and a mapping-form `docs_pipeline` carries its required `default` lane
+  (063B). Without it a pack can point at a deleted skill with §10 fully green — which is
+  exactly the state `adapter.yaml` was in between TASK-100 and TASK-105 (`article_summarize`,
+  `confluence_tag` both named, both deleted).
 - **Acceptance:** profile matrix is cell-identical to D-A13; §10.5′ green against the UI's
-  taxonomy list; §10.3 green; `build_checks.py` reports 4/4.
-- **Proof:** `build_checks.py` 4/4 green; a deliberate matrix-cell deletion turns §10.5′ red.
+  taxonomy list; §10.3 green **including the pack-pointer assertions**; `build_checks.py`
+  reports 4/4.
+- **Proof:** `build_checks.py` 4/4 green; a deliberate matrix-cell deletion turns §10.5′ red;
+  a `docs_pipeline` entry renamed to a non-existent skill turns §10.3 red.
 
 ### TASK-109 — `solution_intent_author` recast
 - **Depends on:** TASK-106 (index), TASK-108 (profile).
