@@ -228,6 +228,7 @@ connector's placeholder per hard rule **S**, done as connectors land on the VDI 
 
 **Phase D · Milestone D3 — Code map v2**
 - [x] TASK-112 — Extractor declared-purpose extraction + `c_repo` additive pass: `c_extractor.py` gains deterministic declared-purpose extraction (D-A20) — leading comment block → `purpose_declared` + **`purpose_declared_line`** (the point of `declared` over `inferred`: it is **citable to a line**, human ground truth rather than the model's reading) + `declared_version`/`declared_date` + `purpose_quality`. **Label matching is fuzzy (edit-distance ≤1) against an alias SET passed in as profile data**, because assuming one keyword would have been a **5.7× under-report** on the real corpus (`Intention:` is only 17% of declarations → ~10% reported vs a real 58%), and because `Putpose` ×4 is a real typo. One edit is measured, not chosen. Parser noise (`http` from URLs, licence boilerplate) refused; generic purposes **flagged not dropped** (3.3% of the corpus — tier 1 must down-weight them, not confuse them with absence). `coverage_report` gains the declared-purpose split the D-A21 gate reports on. `extractor_sha` re-frozen `125a6ca → ed703ff` (build-time amendment, never a runtime rewrite). Fixture additive pass: **21/35 files (60%) declared under 6 label forms + the typo**, 14 deliberately headerless (the fallback population), and the versioned-duplicate pair `iso8583.c` + `iso8583_v2.c` — **both wired, neither dead**, which is the hazard: an assertion about message parsing must answer v1/v2/both and the code cannot say. The extractor emits **two ordinary files** with no duplicate marking; surfacing the pair is the map build's job (D-A16), never a silent agent pick. Oracle + `SIGNOFF.md` amended: the new entry was **derived by reading the source and predicted before running the extractor** (which then agreed), so the hand-authored-oracle rule holds; SIGNOFF marked **PENDING RE-SIGN-OFF** since the oracle changed. `PATTERN_CATALOG.md` documents both phenomena. Proof: 🆕 `fixtures/c_repo/verify_declared_purpose.py` — **33 checks**: byte-identical double run, every label form incl. the typo, headerless files declaring nothing, the duplicate pair as two ordinary files, each cited line actually containing its purpose, noise refused, and the narrow-alias run reproducing the 5.7× under-report (3 vs 21). §10 4/4; all 13 verifies green.
+- [x] TASK-113 — Repo profile scan + onboarding gate report (D-A21 phase 1): `validate_onboarding.py` recast from oracle-grader to **the gate** — profile scan (label variants + coverage · include density/resolution · prefix tokens · `.h` placement · versioned duplicates · **degree-zero-both-directions** isolation · symbol presence) → deterministic stage-B sample → projected stage distribution + stage-C cost → the **D-A21 report** → the three actions → freeze. The report is built around the *three things a plain approval cannot do*: the **human-authored vs model-inferred split** (the quality ceiling — 85% declared is a fundamentally better substrate than 60% inferred, and invisible without the split), **tier-1 entries against target** (the economy problem while it is still cheap), and the **uncovered set named** rather than implied away. 🆕 `core/code_profiles/` — the per-repo signal-profile contract + README (why it is a *separate* seam from the per-language extractor freeze: two C repos need different *reading rules*, which is per-repo not per-language) + the frozen `c_repo.profile.yaml`. All three actions implemented and proven to **compose**: `adjust profile` (recompute is deterministic graph arithmetic, so iteration is cheap; an unknown parameter **raises** rather than silently doing nothing), `skip stage C` (**deferral not exclusion** — files fall through to C*/unanalyzable, total conserved, reduction visible in the report, reversible via the per-file-hash purpose cache), `group singletons` (model **proposes**, human approves **per group**, approved groups freeze as membership **data**). Freeze emits `profile_sha` keyed on **semantic content only** — it moves on a rule change (what makes **gate branch 4** possible) and **not** on a re-signature (else every cached map would invalidate when someone re-signs). **Two defects the rendered report exposed in my own scan:** a `.c`/`.h` pair sharing a stem was being reported as a versioned duplicate (burying the one real hazard in noise — now keyed on `(base, extension)` *and* requiring a genuine `_v2`/`_old` variant), and a **28-file single cluster scored as ✓** because a low tier-1 count looks good — it is actually the *worse* failure, since tier 1 then filters nothing; both size bounds and the collapse case are now flagged. Proof: 🆕 `fixtures/c_repo/verify_onboarding_gate.py` — **35 checks** across the report, the scan, each action, composition, the freeze, and post-freeze determinism. §10 4/4; all 14 verifies green.
 
 ---
 
@@ -259,7 +260,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ## Open index (tick here; then collapse the task into the done ledger above)
 
 **Milestone D3 — Code map v2**
-- [ ] TASK-113 — Repo profile scan + onboarding gate report (D-A21 phase 1) · `Opus`
 - [ ] TASK-114 — Map build recast (two files, modules, purposes) + context checks · `Opus`
 - [ ] TASK-115 — 4-branch gate + map cache · `Opus`
 - [ ] TASK-116 — Multi-language validation fixture (required, D-A19) · `Opus`
@@ -284,27 +284,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ---
 
 ## Milestone D3 — Code map v2
-
-### TASK-113 — Repo profile scan + onboarding gate report (D-A21 phase 1)
-- **Depends on:** TASK-112.
-- **Model:** Opus — the gate is the only human checkpoint on map quality.
-- **Reads:** D-A21 (**whole block**: report layout, the three things plain approval cannot do,
-  the three gate actions, process steps 1–6) · D-A20 (signal priority: include graph primary) ·
-  D-A22 (profile file contract) · §5.2/§5.3 · impact §12.
-- **Creates / edits:** `code_profiles/<repo>.profile.yaml` contract (label aliases, derivation
-  priority, hub threshold, cluster size policy, confidence thresholds, frozen semantic overrides,
-  `warn_if_human_authored_below`, gate record) + the first instance for `fixtures/c_repo`;
-  `core/scripts/validate_onboarding.py` recast to drive D-A21 phase 1: automated **profile scan**
-  (label variants + coverage · include density/resolution · prefix-token quality · `.h` placement
-  · versioned duplicates · degree-zero-both-directions isolation · symbol presence), stage-B
-  sample, projected stage distribution + stage-C cost, the **gate report** (D-A21 layout), and
-  the three actions — `adjust profile` (edit → deterministic recompute → re-review), `skip
-  stage C` (files fall to C\*, reversible), `group singletons` (model **proposes**, human reviews
-  as a diff, approved groups freeze as overrides). Freeze → `profile_sha`.
-- **Acceptance:** the report over `c_repo` shows the seeded ~60/40 split, the duplicate pair, and
-  tier-1 entry count; every gate action works and composes; freeze emits `profile_sha`; nothing
-  model-driven survives past the freeze except as frozen data.
-- **Proof:** the rendered gate report + a freeze → `code_profiles/c_repo.profile.yaml` with sha.
 
 ### TASK-114 — Map build recast (two files, modules, purposes) + context checks
 - **Depends on:** TASK-113.
