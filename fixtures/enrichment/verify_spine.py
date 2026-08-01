@@ -230,6 +230,33 @@ def main() -> int:
     _check("an unverdicted assertion blocks G2",
            any("no verdict" in b for b in g2d.blockers), g2d.blockers[0][:64] if g2d.blockers else "")
 
+    # ── the score must DISCRIMINATE, not merely read 100 on a run built to pass.
+    #    D-A23 asks the formula to be validated before freezing, and "passes the one run we
+    #    constructed to pass" is not that. The question that matters: can the score fall below
+    #    threshold on a run where all three hard preconditions still HOLD? If not, the score is
+    #    indistinguishable from no score at all, and §9.3's 0.5/0.5 split earns nothing.
+    print("\n7b) the score discriminates on an axis the preconditions do NOT cover:")
+    thin = json.loads(json.dumps(rec))
+    # Arm 2 files claims it never resolves — a real failure mode (clustering broke, budget ran
+    # out). `every_assertion_verdicted` cannot catch it: these are §-claims, not §8 assertions.
+    for i in range(1, 26):
+        thin["findings"].append({"id": f"F-8{i:03d}", "arm": "claim", "kind": "contradiction",
+                                 "claim_provenance": "source", "section_ref": "§10",
+                                 "action": "auto_applied", "status": "applied",
+                                 "route": "auto_correct", "section_target": "§10",
+                                 "evidence": [{"path": "src/messaging/iso8583.c"}]})
+    g2thin = V.evaluate_g2(thin, signals)
+    print(f"     verdict_completeness={g2thin.verdict_completeness:.3f}  "
+          f"impact_coverage={g2thin.impact_coverage:.3f}  score={g2thin.score}")
+    _check("all three hard preconditions still HOLD on this run", g2thin.hard_ok,
+           str(g2thin.blockers[:1]))
+    _check("but the SCORE falls below threshold", not g2thin.score_pass,
+           f"{g2thin.score} < {g2thin.threshold}")
+    _check("so the run is ineligible on the score alone", not g2thin.eligible,
+           "Arm 2 claim completeness is covered by no precondition — the score is doing real work")
+    _check("and the drop comes from verdict_completeness, not impact_coverage",
+           g2thin.verdict_completeness < 1.0 and g2thin.impact_coverage == 1.0)
+
     print("\n8) the G2 ledger record:")
     with tempfile.TemporaryDirectory(prefix="spine-") as td:
         led = ledger.init_ledger(Path(td) / "ledger", run_id="r-2026-08-01-si1")

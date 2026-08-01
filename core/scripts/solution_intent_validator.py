@@ -394,6 +394,13 @@ def evaluate_g2(record: dict, signals: V1Signals, *,
     §16 entries for requirements that need none, which is precisely the fabrication the whole
     grounding discipline exists to prevent. The amended reading measures what the metric was
     always for: whether Arm 1 reached every requirement.
+
+    **The score also discriminates, which had to be shown separately.** A formula that only ever
+    reads 100 is indistinguishable from no formula, so the second half of validation is whether
+    it can fall below threshold on a run where all three hard preconditions still *hold*. It can:
+    25 Arm-2 claims filed without verdicts drives `verdict_completeness` to 0.662 and the score
+    to 83, with every precondition green. Arm 2's claim completeness is covered by no
+    precondition, so the soft score is doing real work rather than restating them.
     """
     fs = record["findings"]
     verdicted = {f.get("assertion_ref") or f.get("section_ref") or f["id"]
