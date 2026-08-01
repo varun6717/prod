@@ -277,6 +277,86 @@ def disposition(record: dict, finding_id: str, *, call: str, rationale: str,
     return record
 
 
+# ── walkthrough support (D-A17's four constraints, in code) ───────────────────
+def walkthrough_order(record: dict) -> list[dict]:
+    """Escalated findings in **dependency order** — upstream before downstream (D-A17).
+
+    Not a flat queue, and the reason is concrete: confirming a finding was a *search miss*
+    invalidates every finding derived from that gap. Presenting a downstream finding first would
+    ask the operator to judge something whose premise is still undecided.
+
+    Deterministic: a stable topological order, ties broken by id, so an interrupted walkthrough
+    resumes to the same sequence rather than a reshuffled one.
+    """
+    escalated = {f["id"]: f for f in record["findings"] if f["action"] == "escalated"}
+    ordered, placed = [], set()
+
+    def visit(fid: str, guard: frozenset = frozenset()) -> None:
+        if fid in placed or fid in guard or fid not in escalated:
+            return
+        for dep in sorted(escalated[fid].get("depends_on_finding") or []):
+            visit(dep, guard | {fid})
+        if fid not in placed:
+            placed.add(fid)
+            ordered.append(escalated[fid])
+
+    for fid in sorted(escalated):
+        visit(fid)
+    return ordered
+
+
+def triage(record: dict) -> dict:
+    """Split the queue into individually-presented and batchable findings (D-A17 constraint 2).
+
+    A one-at-a-time march through 200 findings is unusable and **flattens importance** — a
+    scope-moving discovery and a routine field-width consequence arrive looking identical.
+    `material` gets individual attention; `advisory` batches by escalation reason. Batching is a
+    presentation choice only: any batch can be opened and taken member by member.
+    """
+    queue = [f for f in walkthrough_order(record) if f["status"] == "undispositioned"]
+    individual = [f for f in queue if f.get("severity") == "material"]
+    batches: dict[str, list[dict]] = {}
+    for f in queue:
+        if f.get("severity") != "material":
+            batches.setdefault(f.get("escalation_reason") or "other", []).append(f)
+    return {"individual": individual, "batches": batches,
+            "total": len(queue), "batched": sum(len(v) for v in batches.values())}
+
+
+def supersede_dependents(record: dict, finding_id: str) -> list[str]:
+    """Mark findings that rested on a withdrawn premise as ``superseded`` (D-A17 constraint 3).
+
+    Called when an upstream call invalidates downstream findings — the canonical case being a
+    ``reject`` on a no-code gap ("Arm 1 missed it"), which makes anything derived from that gap
+    rest on a premise that is now false.
+
+    They are **superseded, never deleted**: the finding stays in the record with its history, so
+    the trail still shows what was believed and why it stopped being believed. Returns the ids
+    that were superseded, so the walkthrough can re-present them rather than silently dropping
+    them.
+    """
+    touched, frontier = [], [finding_id]
+    while frontier:
+        cur = frontier.pop()
+        for f in record["findings"]:
+            if cur in (f.get("depends_on_finding") or []) and f["status"] != "superseded":
+                f["status"] = "superseded"
+                f["superseded_by"] = cur
+                touched.append(f["id"])
+                frontier.append(f["id"])
+    return touched
+
+
+def resume_point(record: dict) -> dict:
+    """What an interrupted walkthrough re-enters to (D-A17 constraint 4)."""
+    order = walkthrough_order(record)
+    done = [f for f in order if f["status"] in ("dispositioned", "superseded")]
+    todo = [f for f in order if f["status"] == "undispositioned"]
+    return {"decided": len(done), "remaining": len(todo),
+            "next": todo[0]["id"] if todo else None,
+            "decided_ids": [f["id"] for f in done]}
+
+
 def pending(record: dict) -> list[dict]:
     """Findings still awaiting a human — what the walkthrough resumes to (D-A17)."""
     return [f for f in record["findings"] if f["status"] == "undispositioned"]

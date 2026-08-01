@@ -101,7 +101,11 @@
           "description": "Per-finding so the walkthrough is RESUMABLE — the operator can stop and resume without losing position (D-A17).",
           "enum": ["undispositioned", "dispositioned", "applied", "superseded"]
         },
-        "applied_at": { "type": "string" }
+        "applied_at": { "type": "string" },
+        "superseded_by": {
+          "description": "The upstream finding whose reversal withdrew this one's premise. Superseded findings are KEPT — the trail must still show what was believed and why it stopped being believed (D-A17).",
+          "type": "string"
+        }
       },
       "allOf": [
         { "if": { "properties": { "action": { "const": "escalated" } }, "required": ["action"] },
