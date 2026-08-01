@@ -126,13 +126,12 @@ comparison over all 35 files confirms.
 **Extractor re-freeze.** `extractor_sha` bumped `125a6ca → ed703ff` in `core/extractor_manifest.yaml`.
 A re-freeze is a build-time amendment — edit, bump, commit — never a runtime rewrite.
 
-- **Re-sign-off by:** _____________  *(operator — required: the oracle changed)*
-- **Date:** _____________
+- **Re-sign-off by:** V (Varun Munjal) — operator
+- **Date:** 2026-08-01
 
-> Status: **PENDING RE-SIGN-OFF.** The oracle gained a file and its coverage counts moved, so the
-> TASK-005 rule applies: a changed oracle needs a human signature before it grades anything. The
-> §3.3 reshape to `components.json` + `files.json` (TASK-114) will void this again and require a
-> further re-freeze — noted so the two are not confused.
+> Status: **SUPERSEDED** by Re-freeze 3 below. This amendment's content (the `iso8583_v2.c` entry
+> and the moved coverage counts) is carried into the reshaped oracle and signed there; recording
+> it separately would leave two live signatures over one artifact.
 
 ---
 
@@ -167,8 +166,27 @@ gate report showed (16 modules, `profile_sha` 52dd3db); the 21 declared purposes
 against their cited lines; the single unanalyzable file is genuinely unanalyzable; and the
 versioned pair is reported for disposition rather than resolved.
 
-- **Re-sign-off by:** _____________  *(operator — required: the oracle shape changed)*
-- **Date:** _____________
+- **Re-sign-off by:** V (Varun Munjal) — operator
+- **Date:** 2026-08-01
 
-> Status: **PENDING RE-SIGN-OFF.** Supersedes Amendment 2's pending state — that one was a
-> one-entry addition to the old shape, this is the shape change itself.
+> Status: **RE-SIGNED OFF** by operator V, 2026-08-01. Covers Amendment 2 as well (the
+> `iso8583_v2.c` entry and the coverage-count move are carried into this shape).
+
+### Basis of this signature — recorded honestly, per the TASK-005 rule's intent
+
+The rule exists so the oracle is not model-self-generated **and** self-graded. Half of that no
+longer holds and the record should say so rather than imply a review that did not happen:
+
+- **What V attested to:** the amendment above — 16 modules at `profile_sha` 52dd3db, the 60/40
+  declared-purpose split, one genuine unanalyzable, the versioned pair reported for disposition
+  rather than resolved — and the decision to accept a **build-generated** oracle for this artifact.
+- **What V did not do:** independently re-derive the 35 file entries by hand. For the TASK-005
+  parser oracle that was both possible and the point; for module-derivation-from-a-frozen-profile
+  plus a purpose ladder it would be transcribing an algorithm.
+- **What still carries first-principles correctness:** `verify_code_map.py`'s property checks and
+  `check_map_totality.py` — totality, no-copy synthesis, provenance, citability,
+  requirement-blindness — none of which depend on the oracle. The oracle guards **change
+  detection**; those guard **correctness**.
+
+If that division is ever judged too weak, the fix is to strengthen the property checks, not to
+hand-transcribe the oracle.
