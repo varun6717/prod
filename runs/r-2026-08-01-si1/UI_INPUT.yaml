@@ -3,7 +3,7 @@ schema_version: 1
 working_path: /Users/varunmunjal/IdeaProjects/PDLC/runs/r-2026-08-01-si1
 domain: payment_brand
 runtime_tool: claude
-registry_sha: bd0dcb7fea8d9a113fbc2cbcb5b6fe30b97450cc
+registry_sha: 1b2c218a1bd2caa1857e53cfd271483974e2bfee
 project_metadata:
   project_name: Discover Brand Routing
   application_name: MerchantRoutingSvc

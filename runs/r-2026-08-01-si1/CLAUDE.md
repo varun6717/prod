@@ -15,7 +15,7 @@ human gates, and surface (never self-issue) the stage-transition gesture between
 |-------|-------|
 | domain | `payment_brand` (UI label "PBI") |
 | run_id | `r-2026-08-01-si1` |
-| registry_sha | `bd0dcb7fea8d9a113fbc2cbcb5b6fe30b97450cc` |
+| registry_sha | `1b2c218a1bd2caa1857e53cfd271483974e2bfee` |
 
 This run is pinned to `registry_sha` — read only what already exists at that SHA. `UI_INPUT.yaml`
 is immutable post-Generate; any re-configuration is a new `run_id`, not an edit here.

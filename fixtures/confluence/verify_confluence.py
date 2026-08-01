@@ -117,7 +117,44 @@ def main() -> int:
         _check("ingest_confluence.py does not branch on `domain`",
                not branches_on_domain(_REPO_ROOT / "core" / "scripts" / "ingest_confluence.py"))
 
-    print("verify_confluence: ALL CHECKS PASSED")
+    # ── the LANE, not just the connector (TASK-127) ───────────────────────────────────────
+    # Staging a page is only half the contract. Until TASK-127 the connector was green while
+    # the pipeline had nowhere to send its output: §6.6.3's amended per-type lanes named
+    # `confluence_extract`, nothing had built it, and a Confluence page stopped dead as raw
+    # `.html` because `doc_index` requires a `.md` extract. A connector check alone could
+    # never see that — it ends at `staged_path`.
+    print("\nthe confluence LANE resolves end to end:")
+    import yaml
+
+    adapter = yaml.safe_load(
+        (_REPO_ROOT / "core/profiles/payment_brand/adapter/adapter.yaml").read_text())
+    lanes = adapter["docs_pipeline"]
+    _check("docs_pipeline is the per-type mapping form (§6.6.3)", isinstance(lanes, dict))
+    _check("a `confluence` lane exists", "confluence" in lanes)
+    _check("a `default` lane still exists (the required fallback)", "default" in lanes)
+
+    lane = [s["skill"] for s in lanes.get("confluence", [])]
+    _check("the confluence lane is <extract> → doc_index", lane == ["confluence_extract", "doc_index"])
+    _check("its extract step ends the lane in `.md`, which is what doc_index consumes",
+           lane and lane[0].endswith("_extract"))
+
+    skill = _REPO_ROOT / "core/skills/confluence_extract.skill.md"
+    _check("confluence_extract lives in core/skills (referenced, not packed per domain)",
+           skill.is_file())
+    _check("it is NOT duplicated into the domain pack",
+           not (_REPO_ROOT / "core/profiles/payment_brand/adapter/confluence_extract.skill.md").exists())
+    _check("confluence_extract does not branch on `domain` (D7)",
+           "payment_brand" not in skill.read_text(encoding="utf-8").split("*(Design call")[0])
+
+    # Every doc lane must end in doc_index — that is the D-A18 invariant the mapping form
+    # makes easy to violate by adding a lane and forgetting the index step.
+    tail_ok = {k: [s["skill"] for s in v][-1] == "doc_index" for k, v in lanes.items()}
+    if not all(tail_ok.values()):
+        print(f"    lanes missing the index step: "
+              f"{sorted(k for k, v in tail_ok.items() if not v)}")
+    _check("EVERY doc lane ends in doc_index (D-A18)", all(tail_ok.values()))
+
+    print("\nverify_confluence: ALL CHECKS PASSED")
     return 0
 
 

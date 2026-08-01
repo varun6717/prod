@@ -1,0 +1,18 @@
+<!-- Offline Confluence-stand-in page (TASK-063 proof fixture). A second, distinct KB page so the
+     proof can show two links staging to two independent manifest entries (tagged separately). -->
+<html>
+<head><title>Brand Message Formats — Merchant Routing Service (KB)</title></head>
+<body>
+<h1>Brand Message Formats — Reference</h1>
+<p>This knowledge-base page documents the wire/message formats the Merchant Routing Service uses
+per card brand. Reference material; not a change request.</p>
+
+<h2>Message format</h2>
+<p>Mastercard uses ISO 8583 (1987) with brand-specific field 48 usage; Discover uses its own
+field layout. Field-level mappings are maintained in the format registry.</p>
+
+<h2>Brand rules</h2>
+<p>Each brand imposes operational rules on the message contract — mandatory fields, allowed
+values, and certification constraints — that the format layer enforces before dispatch.</p>
+</body>
+</html>

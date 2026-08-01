@@ -23,22 +23,42 @@
 
 domain: payment_brand                # PBI — Payment Brand
 
-docs_pipeline:                       # ORDERED; runs per non-code (document) source.
-                                     # Bare-list form == the `default` lane. The per-type
-                                     # MAPPING form (one key per source `type` + a required
-                                     # `default`, TASK-063B) still stands in §6.6.3 and
-                                     # `source_processor` still selects on it — this pack
-                                     # simply has one lane now that the tag lanes are gone.
-                                     # When the pack gains `confluence_extract` /
-                                     # `jira_extract` (§6.6.3) they become type keys here.
-  - { skill: pdf_extract }           # structural extraction → the .md extract + the manifest
-                                     # entry stub. Pack skill: PDF handling is where a domain's
-                                     # document formats show up, so it is placed here.
-  - { skill: doc_index }             # per-artifact index beside the extract (D-A18) → sets the
+docs_pipeline:                       # ORDERED per lane; routed by source `type`, NEVER by domain
+                                     # (D7). Mapping form (TASK-063B, §6.6.3): one key per source
+                                     # `type` + a required `default` fallback.
+                                     #
+                                     # ── Every lane is <extract> → doc_index ────────────────────
+                                     # The extract step differs because the *format* differs; the
+                                     # index step never does, because an index describes a
+                                     # document and not a domain (D-A18 rule 4). That is the whole
+                                     # shape of this file.
+                                     #
+                                     # The `confluence` lane was added at TASK-127: §6.6.3's
+                                     # ADR-008 amendment named `confluence_extract` as a per-type
+                                     # lane, but nothing had built it, so a Confluence page staged
+                                     # as raw `.html` and stopped there — `doc_index` requires a
+                                     # `.md` extract. The first real end-to-end run is what found
+                                     # it.
+  default:                           # PDFs (type: sharepoint / file)
+    - { skill: pdf_extract }         # structural extraction → the .md extract + the manifest
+                                     # entry stub. PACK skill: PDF layout conventions are where a
+                                     # domain's document formats actually show up.
+    - { skill: doc_index }           # per-artifact index beside the extract (D-A18) → sets the
                                      # entry's `index_path`. SHARED core skill, referenced not
-                                     # copied — an index describes a document, never a domain
-                                     # (D-A18 rule 4), so it is `core/skills/`, exactly like
-                                     # `code_map_build` on the other arm.
+                                     # copied, exactly like `code_map_build` on the other arm.
+  confluence:                        # type: confluence — HTML pages, not PDFs
+    - { skill: confluence_extract }  # CORE skill, not packed: Confluence HTML is machine-generated
+                                     # by one product against one DOM and is identical across
+                                     # domains, so packing it would make every new domain
+                                     # duplicate the same extractor for nothing.
+    - { skill: doc_index }
+  jira:                              # type: jira — the connector already renders the issue payload
+                                     # to `.md` (TASK-107), deterministically and proven offline,
+                                     # so this lane needs no extract step. `jira_extract` is named
+                                     # in §6.6.3 but would be an empty pass-through here; if the
+                                     # rendering ever grows judgment, it becomes a skill and slots
+                                     # in ahead of the index.
+    - { skill: doc_index }
 
 code_pipeline:                       # code sources route to the SHARED core skill (D7); it is
                                      # referenced, not copied into the pack — code processing

@@ -1,0 +1,29 @@
+<!-- Offline Confluence-stand-in page (TASK-063 proof fixture). A product KB page, NOT a mandate.
+     Reference / steady-state content — used to exercise the connector offline and to inform the
+     TASK-063B confluence_tag tag set. -->
+<html>
+<head><title>Card Brand Routing — Merchant Routing Service (KB)</title></head>
+<body>
+<h1>Card Brand Routing — How It Works</h1>
+<p>This knowledge-base page describes how the Merchant Routing Service routes authorization
+traffic to the correct card brand handler. It is reference material for engineers; it does not
+describe a change or a mandate.</p>
+
+<h2>Supported card brands</h2>
+<p>The service routes transactions for Mastercard, Visa, and Discover. The <em>card brand</em> is
+resolved from the PAN bin range during authorization.</p>
+
+<h2>Routing</h2>
+<p>Once the brand is resolved, the router dispatches the message to the brand-specific handler
+(<code>mc_handler</code>, <code>visa_handler</code>, <code>discover_handler</code>). Routing is
+table-driven and reloadable without a deploy.</p>
+
+<h2>Transaction flow</h2>
+<p>Authorization → brand resolution → handler dispatch → response normalization → ledger write.
+Each step emits a span for tracing.</p>
+
+<h2>Error handling</h2>
+<p>If a brand handler is unavailable, the router applies the configured fallback and records an
+<code>EBRAND_UNAVAILABLE</code> error code; retries are bounded.</p>
+</body>
+</html>
