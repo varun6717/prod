@@ -1,12 +1,15 @@
 {
   "run_id": "r-2026-08-01-si1",
-  "current_stage": "ingest",
+  "current_stage": "si_v1",
   "stages": {
     "ingest": {
       "status": "pending"
     },
     "si_v1": {
-      "status": "pending"
+      "status": "done",
+      "started": "2026-08-01T18:10:00Z",
+      "completed": "2026-08-01T18:55:00Z",
+      "version": 1
     },
     "enrichment": {
       "status": "pending"
