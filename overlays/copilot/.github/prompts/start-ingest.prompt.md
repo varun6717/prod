@@ -12,8 +12,8 @@ become an authoring agent. Execute **Run order step 1** exactly as defined there
 2. **Fan out one `source_processor` subagent per `UI_INPUT.sources[]` entry, in parallel** (via
    the `source_processor.agent.md` wrapper). Each runs its source-type connector then the domain
    adapter, writing that source's `context_set/<source>/` slice + manifest entries. For the
-   **code** source, `source_processor` hands off to a `code_map_build` subagent (`code_map.json`,
-   cached by `commit_sha`).
+   **code** source, `source_processor` hands off to a `code_map_build` subagent (`code_map/{components,files}.json`,
+   cached through the 4-branch gate on `(commit_sha, profile_sha)`).
 3. After the fan-out completes, run `core/scripts/merge_manifest.py` to deterministically fan in
    `context_set/index.json`.
 
@@ -22,6 +22,6 @@ do **not** start an authoring chat. Emit telemetry per invocation (D8). Ingestio
 on domain** — the connectors are source-type-keyed; the domain adapter is the only domain-aware
 step, and it is selected by `UI_INPUT.domain`, not branched in code.
 
-When Layer 1 is complete — `context_set/index.json` and `code_map.json` written — **surface** the
+When Layer 1 is complete — `context_set/index.json` and `code_map/{components,files}.json` written — **surface** the
 next-stage transition; do **not** perform it (FR-XS-11): tell the operator to press **`Ctrl+N`**
 for a fresh agent, then run the `start-si` prompt file. Never self-issue the transition.

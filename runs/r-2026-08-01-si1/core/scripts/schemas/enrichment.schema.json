@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "enrichment.schema.json",
+  "title": "solution_intent/enrichment.json — the permanent enrichment record (§3.7, D-A16)",
+  "description": "NOT a scratch file. It survives past disposition as the audit trail: every finding, its evidence, whether it auto-applied or escalated, the operator's call and their rationale. That is what lets someone at G2 ask 'why does §13 say this now?' and get an answer — and **v1 + this file together reconstruct exactly how v2 came to be**. Undispositioned findings live HERE and nowhere else (D-A16): the Solution Intent contains only resolved content, or v2 would ship with 'TBD, awaiting operator' scattered through it. Status is per finding so the walkthrough is resumable — fifty findings will not be dispositioned in one sitting.",
+  "type": "object",
+  "required": ["run_id", "v1_sha256", "findings"],
+  "additionalProperties": false,
+  "properties": {
+    "run_id": { "type": "string" },
+    "v1_sha256": {
+      "description": "The frozen v1 this enrichment was computed against. Enrichment reads a FROZEN document; if it could drift, 'v1 + enrichment.json reconstruct v2' would stop being true.",
+      "type": "string"
+    },
+    "generated_at": { "type": "string" },
+    "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+    "counts": {
+      "description": "§18's payload — counts only, never a ledger. The claim-by-claim record is this file.",
+      "type": "object"
+    }
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "required": ["id", "arm", "kind", "action", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^F-[0-9]{3,}$" },
+        "arm": {
+          "description": "impact = Arm 1 (requirement → code, 'what did we miss?'); claim = Arm 2 (claim → code, 'what did we get wrong?'). D-A8.",
+          "enum": ["impact", "claim"]
+        },
+        "kind": {
+          "description": "The finding type, which together with claim PROVENANCE decides authority (D-A6/D-A16).",
+          "enum": ["contradiction", "gap_fill", "derived_impact", "no_code_found",
+                   "unverifiable", "confirmation", "scope_move", "versioned_duplicate"]
+        },
+        "requirement_ref": { "type": "string" },
+        "assertion_ref": { "type": "string" },
+        "section_ref": { "type": "string" },
+        "claim_provenance": {
+          "description": "Where the v1 claim came from. THIS is what decides who may correct it: source-derived → auto-correct; operator/frame → escalate (never overrule a human silently); unsourced → auto-fill (D-A6).",
+          "enum": ["source", "frame", "operator", "unsourced"]
+        },
+        "verdict": {
+          "enum": ["confirmed", "contradicted", "answered", "impacted", "no_code_found", "unverifiable"]
+        },
+        "evidence": {
+          "description": "The code that grounds the finding. Referenced by path/symbol — never inlined (map don't copy). Required for an auto-applied contradiction, gap-fill or derived impact: an unreviewable auto-correction is exactly what the provenance rule exists to prevent. NOT required for `unverifiable`, where the ABSENCE of a match is the finding — demanding evidence there would make an honest 'no code anywhere addresses this' unrepresentable.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path"],
+            "additionalProperties": false,
+            "properties": {
+              "path": { "type": "string" },
+              "symbol": { "type": "string" },
+              "lines": { "type": "array", "items": { "type": "integer" } },
+              "module": { "type": "string" }
+            }
+          }
+        },
+        "reasoning": {
+          "description": "Why the code means what the finding says. A semantic match carries its reasoning — this is what makes a wrong match REVIEWABLE rather than silently wrong (D-A19).",
+          "type": "string"
+        },
+        "business_visible": {
+          "description": "Derived impacts only: is this a technical consequence we document, or a change someone has to decide about? The escalate/auto-write discriminator (D-A9).",
+          "type": "boolean"
+        },
+        "scope_moving": { "type": "boolean" },
+        "action": {
+          "description": "auto_applied = grounded and unambiguous, applied without a human. escalated = ambiguous, scope-moving, or would overrule a human — reaches the walkthrough. `none` = nothing to do (a confirmation).",
+          "enum": ["auto_applied", "escalated", "none"]
+        },
+        "route": {
+          "enum": ["auto_correct", "auto_fill", "auto_write", "escalate", "none"]
+        },
+        "escalation_reason": {
+          "enum": ["operator_contradiction", "business_visible", "no_code_found", "scope_moving"]
+        },
+        "severity": {
+          "description": "material findings get individual attention at the walkthrough; advisory ones batch (D-A17 'triage, do not enumerate').",
+          "enum": ["material", "advisory"]
+        },
+        "section_target": {
+          "description": "Where the resolved finding lands. `dropped` is legitimate and means the finding was WRONG (an Arm 1 search miss) — recorded in decisions.jsonl rather than vanishing.",
+          "type": "string"
+        },
+        "disposition": {
+          "enum": ["accept", "reject", "reroute", "defer"]
+        },
+        "rationale": { "type": "string" },
+        "actor": { "type": "string" },
+        "depends_on_finding": {
+          "description": "Dispositions have ORDERING dependencies (D-A17): confirming a finding was a search miss invalidates findings derived from that gap. The walkthrough is not a flat queue.",
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "status": {
+          "description": "Per-finding so the walkthrough is RESUMABLE — the operator can stop and resume without losing position (D-A17).",
+          "enum": ["undispositioned", "dispositioned", "applied", "superseded"]
+        },
+        "applied_at": { "type": "string" },
+        "superseded_by": {
+          "description": "The upstream finding whose reversal withdrew this one's premise. Superseded findings are KEPT — the trail must still show what was believed and why it stopped being believed (D-A17).",
+          "type": "string"
+        }
+      },
+      "allOf": [
+        { "if": { "properties": { "action": { "const": "escalated" } }, "required": ["action"] },
+          "then": { "required": ["escalation_reason", "severity"] } },
+        { "if": { "properties": { "status": { "const": "dispositioned" } }, "required": ["status"] },
+          "then": { "required": ["disposition", "rationale", "actor"] } },
+        { "if": { "properties": { "action": { "const": "auto_applied" },
+                                  "kind": { "enum": ["contradiction", "gap_fill", "derived_impact"] } },
+                  "required": ["action", "kind"] },
+          "then": { "required": ["evidence", "section_target"] } }
+      ]
+    }
+  }
+}

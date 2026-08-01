@@ -60,8 +60,25 @@ _RETIRED = ["brd", "frd", "brd_profile", "frd_profile", "brd_author", "frd_autho
             "vocab_sha", "vocab_gap_flag", "vocab_gap_assess", "vocabulary.payment_brand",
             "code_map.json", "brd_frd_overview.html", "onboarding_manifest.yaml",
             "start-brd", "start-frd", "TASK_VDI.md", "TASK_VDI_BOOTSTRAPS.md"]
-_RETIRED_SCOPE = ["CLAUDE.md", "docs/BUILD_OVERVIEW.md", "docs/SKILLS_INDEX.md",
-                  "docs/design/README.md"]
+def _recut_scope() -> list[str]:
+    """The files the ADR-008 cutover re-cut — every one must read as the current pipeline.
+
+    **The overlays and skills are in scope, and that is the point.** TASK-126 originally swept
+    `docs/` + `CLAUDE.md` only, and TASK-127's first real Generate found both overlays still
+    telling the operator to author a BRD against `code_map.json`: 16 files whose *bodies* were
+    never re-cut, only their filenames and identifiers. §10.2 parity did not catch it because
+    parity asks whether a file **exists** per role, never whether its contents describe the
+    pipeline that exists. This sweep is the check that closes that gap — the operator-facing
+    surface is exactly where a stale instruction does the most damage.
+    """
+    scope = ["CLAUDE.md", "docs/BUILD_OVERVIEW.md", "docs/SKILLS_INDEX.md",
+             "docs/design/README.md"]
+    for pat in ("overlays/**/*.md", "core/skills/*.skill.md", "core/**/adapter/*.skill.md"):
+        scope += sorted(str(p.relative_to(_REPO_ROOT)) for p in _REPO_ROOT.glob(pat))
+    return scope
+
+
+_RETIRED_SCOPE = _recut_scope()
 # A line carrying one of these is *about* the retirement — naming the dead thing there is correct.
 _RETIREMENT_MARKER = re.compile(
     r"retire|superse|deleted|no longer|died|dead|removed|⛔|🗄️|historical|do not (build|recreate)"

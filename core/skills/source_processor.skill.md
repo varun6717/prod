@@ -101,9 +101,9 @@ process_source(src, adapter):                 # src = one UI_INPUT.sources[] ent
 
     # ── 2. ROUTE by source CLASS, drive the pipeline adapter.yaml declares ──
     if is_code_source(src):                              # code → code_pipeline → SHARED core skill (D7)
-      hand repo/ to code_map_build (core/skills/code_map_build.skill.md)   # builds code_map.json, cached by commit_sha
+      hand repo/ to code_map_build (core/skills/code_map_build.skill.md)   # builds code_map/{components,files}.json
       files = []                                         # the code arm builds NO doc manifest entries
-      note  = "code_map.json built"
+      note  = "code map built"
     else:                                                # doc → docs_pipeline, ROUTED by src.type (063B)
       pipeline = select_docs_pipeline(adapter.docs_pipeline, src.type)   # variant by TYPE, else `default`
       entries = []
@@ -190,7 +190,7 @@ with this shape — `merge_manifest.py` already consumes it; do **not** invent a
   "status":  "ok" | "failed",                // required
   "domain":  "payment_brand",                // optional — carried up to index.json top level
   "files":   [ /* §3.2 manifest entries */ ],// may be [] or PARTIAL on failure (D8c keeps partials)
-  "note":    "code_map.json built",          // optional — e.g. the code arm builds no doc entries
+  "note":    "code map built",          // optional — e.g. the code arm builds no doc entries
   "reason":  "clone failed: auth"            // required IFF status == "failed" (the recorded gap, D8c)
 }
 ```
@@ -199,7 +199,7 @@ with this shape — `merge_manifest.py` already consumes it; do **not** invent a
   `path, source, url, ingest_ts, adapter, disposition, descriptor, index_path`. `note` usually absent.
   `disposition` is the source's, copied; `index_path` points at the sidecar index `doc_index` wrote
   for that artifact (D-A18) — populated for every doc entry, since indexes are built always.
-- **Code arm** — typically `files: []` plus `note: "code_map.json built"` (the code map is its own
+- **Code arm** — typically `files: []` plus `note: "code map built"` (the code map is its own
   artifact, keyed by `commit_sha`; it is **not** a doc manifest entry).
 - **Failed source** — still writes a slice: `status: "failed"` + a `reason`, with `files` holding any
   partial entries built before the gap. Never absent, never silently dropped (FR-DC-05 / D8c).
@@ -225,7 +225,7 @@ context_set/
     mandate_2024.index.json            #   ← doc_index per-subsection index (D-A18); entry.index_path
     _slice.json                        #   ← {source, status:"ok", files:[<manifest entries>], domain}
   stratus_repo/                        # one code source
-    _slice.json                        #   ← {source, status:"ok", files:[], note:"code_map.json built"}
+    _slice.json                        #   ← {source, status:"ok", files:[], note:"code map built"}
   index.json                           # ← NOT yours: merge_manifest.py fans the slices in afterward (§3.2)
 repo/                                  # ← the code source cloned here by clone.py, then code_map_build ran
 ```

@@ -12,7 +12,7 @@ gesture — it does **not** auto-start the session.
 **Start gesture** (also surfaced by the generated `copilot-instructions.md` tail, FR-XS-22): open
 Copilot agent mode at the working path and run the `start-ingest` prompt file — the Layer-1
 kickoff that fires the data-&-context fan-out (`source_processor` ×N → `merge_manifest.py`). It
-keeps the orchestrator role and closes by surfacing `start-si` for the BRD stage.
+keeps the orchestrator role and closes by surfacing `start-si` for the Solution Intent stage.
 
 **Stage advance** (operator-performed, FR-XS-11): press **`Ctrl+N`** for a fresh agent, then run
 the next prompt file — `start-enrich`, then `start-jira`. The agent **surfaces** these as the closing
