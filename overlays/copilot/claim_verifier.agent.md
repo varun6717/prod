@@ -12,8 +12,8 @@ logic is not here** — it lives in the one shared skill. Parity twin of the Cla
 `.claude/agents/claim_verifier.md` wrapper: same shared skill, native frontmatter + location.
 
 **Load and execute `core/skills/claim_verifier.skill.md`** against this run's inputs
-(`solution_intent/v1.md` · `context_set/index.json` + the per-artifact indexes ·
-`context_set/code_map/`). Follow that skill verbatim — do not restate, summarize, or fork its
+(the accepted+frozen `solution_intent/v1.md` · `context_set/code_map/`
+· `repo/`). **No doc indexes — Arm 2 verdicts CLAIMS against CODE, not against sources.**. Follow that skill verbatim — do not restate, summarize, or fork its
 procedure here.
 
 - **Executor:** an **analytical Copilot agent** (`user_invocable: false`) — dispatched during

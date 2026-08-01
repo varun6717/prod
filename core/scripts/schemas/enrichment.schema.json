@@ -46,7 +46,7 @@
           "enum": ["confirmed", "contradicted", "answered", "impacted", "no_code_found", "unverifiable"]
         },
         "evidence": {
-          "description": "The code that grounds the finding. Referenced by path/symbol — never inlined (map don't copy).",
+          "description": "The code that grounds the finding. Referenced by path/symbol — never inlined (map don't copy). Required for an auto-applied contradiction, gap-fill or derived impact: an unreviewable auto-correction is exactly what the provenance rule exists to prevent. NOT required for `unverifiable`, where the ABSENCE of a match is the finding — demanding evidence there would make an honest 'no code anywhere addresses this' unrepresentable.",
           "type": "array",
           "items": {
             "type": "object",
@@ -108,7 +108,9 @@
           "then": { "required": ["escalation_reason", "severity"] } },
         { "if": { "properties": { "status": { "const": "dispositioned" } }, "required": ["status"] },
           "then": { "required": ["disposition", "rationale", "actor"] } },
-        { "if": { "properties": { "action": { "const": "auto_applied" } }, "required": ["action"] },
+        { "if": { "properties": { "action": { "const": "auto_applied" },
+                                  "kind": { "enum": ["contradiction", "gap_fill", "derived_impact"] } },
+                  "required": ["action", "kind"] },
           "then": { "required": ["evidence", "section_target"] } }
       ]
     }

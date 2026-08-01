@@ -163,6 +163,44 @@ def route_finding(*, arm: str, kind: str, claim_provenance: str | None = None,
     raise ValueError(f"unroutable finding kind {kind!r}")
 
 
+# ── Arm 2's population rules (D-A5 / D-A4), enforced rather than trusted ──────
+SORT_CLAIM, SORT_JUDGMENT, SORT_FUTURE, SORT_RUNTIME = (
+    "factual_current_state", "business_judgment", "future_state", "runtime_shaped")
+
+# Sorts that produce NO finding at all. Skipping is not the same as verdicting `unverifiable`:
+# the marker implies we looked and failed, and for these we cannot look at all. If every business
+# sentence acquired one, the marker would stop meaning anything (D-A5).
+SKIPPED_SORTS = frozenset({SORT_JUDGMENT, SORT_FUTURE, SORT_RUNTIME})
+
+# Sections whose claims Arm 2 may verdict (D-A5). §8 is absent DELIBERATELY.
+VERDICT_ELIGIBLE_SECTIONS = ("§2", "§5", "§6", "§10", "§13", "§14")
+
+
+def stage_claim(fid: str, *, sort: str, section_ref: str, **kw) -> Finding | None:
+    """Stage one Arm-2 claim. Returns ``None`` when the claim is out of population.
+
+    Two rules are enforced here rather than left to the skill's discipline, because both failures
+    would be invisible in the output:
+
+    - **A skipped sort produces no finding.** Not an `unverifiable` one — none. Marking a latency
+      NFR "unverified against code" claims we looked; the instrument cannot look at all.
+    - **§8 is never corrected** (D-A4, binding). Code cannot contradict an intent; it can only
+      show a requirement is incomplete (escalate) or unachievable (a risk, §13). Letting
+      enrichment rewrite a requirement from code inverts the ladder and lets the existing
+      implementation dictate business intent — the worst failure available here.
+    """
+    if sort in SKIPPED_SORTS:
+        return None
+    if sort != SORT_CLAIM:
+        raise ValueError(f"unknown claim sort {sort!r}")
+    if section_ref and section_ref.startswith("§8") and kw.get("kind") == "contradiction":
+        raise ValueError(
+            "§8 requirements are EXTEND-ONLY — code cannot contradict an intent (D-A4). Verdict "
+            "the implicit current-state assumption inside the assertion instead, and route an "
+            "incompleteness to escalation.")
+    return make_finding(fid, section_ref=section_ref, **kw)
+
+
 # ── the record ────────────────────────────────────────────────────────────────
 @dataclass
 class Finding:
