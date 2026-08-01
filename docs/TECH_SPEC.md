@@ -859,11 +859,16 @@ Envelope on every event: `ts, run_id, domain, tool, event`. Payloads:
 
 ### 8.2 Metric derivations (FR-MX-02, amended)
 
-Every metric is computed **per run, then averaged across runs** — never pooled. Pooling lets one
-long run stand in for the fleet, and M09 in particular is a per-run score. A metric with no events
-yields **no value**, never `0`: a run that never pushed has no push-success *rate*, and reporting 0%
-would be a claim rather than a measurement. The exception is M12, where a run that enriched and
-yielded nothing genuinely yielded 0 — that is a finding about the run.
+Anything that is **a property of a run** — cost, score, cycle time, first-pass, yield,
+coverage-at-push — is computed per run and **then averaged**, never pooled: pooling lets one long
+run stand in for the fleet, and M09 in particular is a per-run score. **M07 and M10 are pooled, and
+deliberately so** — a p95 of per-run p95s is not a p95, and stories/epic is a ratio of two totals,
+so averaging per-run ratios would weight a 1-epic run equally with a 12-epic one. Those two measure
+the fleet; the rest measure the run.
+
+A metric with no events yields **no value**, never `0`: a run that never pushed has no push-success
+*rate*, and reporting 0% would be a claim rather than a measurement. The exception is M12, where a
+run that enriched and yielded nothing genuinely yielded 0 — that is a finding about the run.
 
 | Metric | Derivation (scan of `telemetry.jsonl`) |
 |--------|----------------------------------------|

@@ -32,9 +32,13 @@ A metric with no events yields ``None``, never 0. A run that never reached G3 ha
 The one place 0 IS meaningful is M12: a run that produced verdicts and enriched nothing yielded
 zero, and that is a finding about the run, not a missing measurement.
 
-Everything is computed **per run and then averaged**, never pooled across runs. Pooling would let
-one long run dominate a fleet metric — and M09 in particular is a per-run score, so a global "last
-jira validation" would report one run's number as if it were everyone's.
+Anything that is **a property of a run** is computed per run and then averaged — cost, score,
+cycle time, first-pass, yield, coverage-at-push. Pooling those would let one long run dominate the
+fleet, and a global "last jira validation" would report one run's number as if it were everyone's.
+
+**M07 and M10 are pooled, and deliberately so.** A p95 of per-run p95s is not a p95, and
+stories/epic is a ratio of two totals — averaging per-run ratios would weight a 1-epic run equally
+with a 12-epic one. They measure the fleet, not the run; the rest measure the run.
 """
 from __future__ import annotations
 
