@@ -1,178 +1,250 @@
 # Skills Index — PDLC_App_v2
 
-**Project:** PDLC_App_v2
-**Owner:** V (Varun Munjal), JPMC Merchant Services AI Automation Team
-**Source of truth:** `BUILD_OVERVIEW.md` + `brd_frd_overview.html` (the 5-layer wireframe) + `REQUIREMENTS.md`
-**Supersedes:** the v1 platform catalog (`PDLC_Platform_Design_Spec_v1.md`, `pdlc_platform_app.html`, and the prior 8-layer L0–L8 index). Those are **v1 artifacts — not authoritative for v2.**
+**Project:** PDLC_App_v2 · **Owner:** V (Varun Munjal), JPMC Merchant Services AI Automation Team
+**Authoritative source:** `REQUIREMENTS.md` (WHAT/WHY, D1–D11) → `TECH_SPEC.md` (HOW, the pinned
+contracts) → `design/ADR-008-solution-intent-pivot.md` (normative for the pivot subsystems).
+**This file is a catalog, not a contract.** Where it disagrees with a `.skill.md` frontmatter or a
+`TECH_SPEC.md` section, **they win** — and that disagreement is a bug in this file.
+
+**Supersedes:** the BRD/FRD-era catalog (ADR-008, accepted 2026-07-31) and, before it, the v1
+8-layer L0–L8 index. Neither is authoritative; `brd_author`, `brd_validator`, `frd_author`,
+`frd_validator` and the tag vocabulary no longer exist in any form.
 
 ---
 
 ## How to read this index
 
-This catalog lists every skill in the **5-layer agentic pipeline**: Data & context → BRD → FRD → Jira epics → Metrics. The individual skill files (`<skill>.skill.md`, in `core/`) are the instruction modules.
+Every skill in the pipeline: **Data & context → Solution Intent v1 → enrichment (v2) → Jira →
+Metrics.** Each entry names its **contract pointer** — the `.skill.md` that *is* the instruction
+module, plus the spec section and any deterministic script that enforces it.
 
-**Execution model.** A skill is loaded and executed **in-session by the selected agent (Claude Code or Copilot)** reading its `.skill.md` file against runtime input — **no direct Claude API call (MVP)** (FR-XS-04). Skills are generic engines; per-domain substance comes from a profile/template (`brd_profile.<domain>.yaml`, etc.). Python is *called by* agents for deterministic plumbing only; it never drives the session.
+**Execution model.** A skill is loaded and executed **in-session by the selected agent** (Claude
+Code or Copilot) reading its `.skill.md` against runtime input — **no direct Claude API call**
+(FR-XS-04). Skills are generic engines; per-domain substance comes from the domain seam. Python is
+*called by* agents for deterministic plumbing and scoring; it never drives the session.
 
-### Skill types (v2)
+### Skill types
 
-- **Authoring (user-invocable)** — an interactive agent that drives a chat with the operator to produce an artifact (BRD, FRD). Its own session/window; the human talks to it directly.
-- **Worker (subagent)** — an autonomous, non-interactive subagent invoked by an authoring skill or coordinator (fan-out processing, code mapping, impact assessment). Internal context window; not a chat surface.
-- **Validator (subagent)** — checks an artifact for coverage/traceability and returns a score + gap list that feeds a human gate.
-- **Adapter** — connector logic at a seam: generic ingestion connectors (per source-type) and the `jpmc_adapters` push/auth seam. The **domain pre-processing adapter** is the swappable domain seam.
-- **Plumbing (Python)** — deterministic, non-model steps (clone, ingest, hydrate, `merge_manifest`). Listed for completeness; not generation skills.
-- **Runtime utility** — environment/bootstrap helpers applied locally (e.g. `max-autonomy`).
+| Type | Meaning |
+|---|---|
+| **Generation (interactive)** | drives a chat with the operator to produce an artifact; its own session, user-invocable |
+| **Assessment (subagent)** | autonomous, non-interactive; files findings, decides nothing |
+| **Validator (subagent)** | scores an artifact + evaluates hard preconditions; feeds a human gate, never advances it |
+| **Worker (subagent)** | deterministic-adjacent fan-out work (per-source processing, code mapping, indexing) |
+| **Interactive (operator turn)** | the walkthrough — proposes, never decides |
+| **Adapter** | connector logic at a seam: per-source-type ingestion, and the `jpmc_adapters` push/auth seam |
+| **Plumbing (Python)** | deterministic, model-free steps. Listed for completeness; not generation skills |
+| **Runtime utility** | environment/bootstrap helpers applied locally (`max-autonomy`) |
 
 ### Cross-cutting patterns every skill respects
 
-- **Two seams only.** Variation is confined to the **domain seam** (adapter / profiles / template / tag vocabulary) and the **runtime-tool seam** (instruction file / wrappers / prompt files). (FR-XS-01)
-- **In-session execution, no API.** All generation runs in the Claude Code / Copilot session. (FR-XS-04)
-- **Always-selective read.** The manifest (`index.json`) is always loaded; agents pull only section-relevant files. No RAG/vector store. (FR-DC-06)
-- **Cite-or-flag.** Every substantive claim is grounded to a source / the `UI_INPUT` frame / an operator answer, or marked `[TBD — unsourced]`. Never fabricated. (FR-BR-06)
-- **Human-mediated flag loop.** `code_impact` surfaces scope flags; the operator decides; the agent never auto-applies scope changes. (FR-BR-08)
-- **BRD-as-spine.** When `BRD.md` is accepted (BRD vN), FRD and Jira lock to that version; re-opening BRD → vN+1. (FR-XS-14)
-- **Human gates G0–G3.** Scaffold checkpoint, BRD acceptance, FRD acceptance, single Jira push gate. (D4)
-- **Telemetry → JSONL → metrics.** Every invocation emits events to `telemetry.jsonl`; Layer 5 is computed by scanning them. (D8)
+- **Two seams only (FR-XS-01).** The **domain seam** (`si_profile.<domain>.yaml` + `jira_template.<domain>.yaml` + the adapter pack) and the **runtime-tool seam** (instruction file / wrappers / prompt files / launch). Non-domain variation points: the per-language **extractor** (onboarding gate) and the per-repo **signal profile** (D11.4 gate). Nothing else varies.
+- **In-session execution, no API** (FR-XS-04).
+- **Always-selective read** (FR-DC-06). `context_set/index.json` is always loaded; agents pull only what a section needs — now through the **per-artifact `<doc>.index.json`** (D-A18), which is passage-level retrieval without a vector store.
+- **Cite-or-flag.** Every substantive claim is grounded to a source / the `UI_INPUT` frame / an operator answer, or marked `[TBD — unsourced]`. Never fabricated.
+- **Ingestion never branches on domain.** Routing is by the operator's **declared disposition** (D-A12), not by content the pipeline inferred.
+- **The structural extractor is deterministic and frozen** — never model-rewritten at runtime. The map-build gate is **model-free**. The model owns only `purpose` *text*.
+- **v1-as-spine.** G1 acceptance **freezes** `v1.md`; enrichment never edits it. `v1 + enrichment.json` reconstruct `v2` deterministically (D-A16) — which is what makes every touch traceable.
+- **Human gates G0–G3**, each = a **soft score (informs)** + **hard preconditions (absolute)**. A validator never auto-advances (FR-XS-13).
+- **Telemetry → JSONL → metrics.** Every stage emits to `telemetry.jsonl`; Layer 5 is computed by scanning it. No metric is hand-entered (FR-MX-01).
 
-### File naming
+### The eight overlay roles (D-A23)
 
-Individual skill files follow `<skill_name>.skill.md` in `core/`, with thin per-tool wrappers in each overlay (`.claude/agents/` for Claude Code, `*.agent.md` for Copilot) pointing at the shared skill.
+These — and only these — get a per-tool wrapper in both overlays. `overlay_manifest.yaml` is the
+contract; `check_overlay_parity.py` enforces it (§10.2).
+
+| Role | Skill file | User-invocable |
+|---|---|---|
+| `source_processor` | `core/skills/source_processor.skill.md` | no |
+| `solution_intent_author` | `core/skills/solution_intent_author.skill.md` | **yes** |
+| `solution_intent_validator` | `core/skills/solution_intent_validator.skill.md` | no |
+| `code_impact` | `core/skills/code_impact_assess.skill.md` | no |
+| `claim_verifier` | `core/skills/claim_verifier.skill.md` | no |
+| `disposition_walkthrough` | `core/skills/disposition_walkthrough.skill.md` | **yes** |
+| `jira_author` | `core/skills/jira_author.skill.md` | no |
+| `jira_validator` | `core/skills/jira_validator.skill.md` | no |
+
+Prompt files: `start-ingest`, `start-si`, `start-enrich`, `start-jira`.
+
+**Not roles, deliberately.** `code_map_build`, `doc_index` and `pdf_extract` are real skills with
+real contracts, but they are invoked *inside* `source_processor`'s two lanes — they are not operator
+surfaces, so giving them wrappers would put eleven agents in front of an operator who needs eight.
 
 ---
 
 # Layer 1 — Data & context
 
-**Configure → ingest → pre-process (domain adapter) → serve.** Processing fans out per source into `context_set/` + `index.json`. (BUILD_OVERVIEW §6)
-
-### Ingestion connectors (generic, per source-type)
-
-- **Type:** Adapter
-- **Consumes:** source URL/path + auth (from `UI_INPUT.yaml` + `jpmc_adapters`)
-- **Produces:** raw fetched content per source (for code: `git clone` the repo by SEAL ID into `repo/`)
-- **Rules:** Domain-agnostic, **keyed by source-type** (Confluence / SharePoint / Bitbucket), reused across every domain; a new source type is a new generic connector, never a domain fork. (FR-DC-02, FR-DC-11)
-
-### Domain pre-processing adapter (the domain seam)
-
-- **Type:** Adapter (swappable per domain)
-- **Consumes:** raw source content
-- **Produces:** provenance-tagged `context_set/` slices + manifest entries (docs → extract / summarize / classify-assess; code → hands to `code_map_build`)
-- **Rules:** This is the per-domain seam. Tags drawn **only** from the domain's canonical vocabulary; every required profile topic has a producing adapter. (FR-DC-03, FR-DC-08/09)
+**Configure → ingest → pre-process → index → serve.** `source_processor` fans out one instance per
+source; `merge_manifest.py` fans in deterministically to `context_set/index.json`.
 
 ### source_processor
 
-- **Type:** Worker (subagent, fan-out)
-- **Consumes:** one source (one instance per source, run in parallel)
-- **Produces:** that source's `context_set/` slice + its manifest entries
-- **Rules:** One reusable definition instantiated per source; split at the source boundary, never per file; failure-isolated (one source failing doesn't fail the batch). (FR-DC-05)
+- **Type:** Worker (subagent, fan-out — one instance per source, in parallel)
+- **Consumes:** ONE source (a single `UI_INPUT.sources[]` entry) + the domain `adapter.yaml` (run order / routing only)
+- **Produces:** that source's `context_set/<source>/` slice (`_slice.json`) + its manifest entries; code → `repo/` clone handed to `code_map_build`
+- **Rules:** Split at the **source boundary**, never per file; failure-isolated (one source failing does not fail the batch); routes on the operator's declared disposition, never on inferred content (FR-DC-05, D-A12)
+- **Contract:** `core/skills/source_processor.skill.md` · §6.6
+
+### pdf_extract  *(domain pack — the domain seam)*
+
+- **Type:** Pre-processing skill (`docs_pipeline` step 1)
+- **Consumes:** a raw document (PDF) staged by the ingest connector
+- **Produces:** `context_set/<source>/<doc>.md` — structural text extraction — plus a manifest-entry stub
+- **Rules:** Structure only, no interpretation. It lives in the domain pack because *document formats* are a domain's problem; the indexing that follows is not
+- **Contract:** `core/profiles/payment_brand/adapter/pdf_extract.skill.md` · §6.6.2/§6.6.3
+
+### doc_index  *(shared core — the doc arm's twin of `code_map_build`)*
+
+- **Type:** Pre-processing skill (`docs_pipeline` step 2)
+- **Consumes:** one `<doc>.md` structural extract
+- **Produces:** `<doc>.index.json` beside it — one entry per semantic subsection (heading, line range, summary)
+- **Rules:** **Guardrail 7** — `lines_total == lines_indexed`, exactly-once coverage. Every line of the document is in exactly one entry, so "the index missed it" cannot be true (D-A18)
+- **Contract:** `core/skills/doc_index.skill.md` · §3.2 · enforced by `core/scripts/checks/check_index_completeness.py`
 
 ### code_map_build
 
-- **Type:** Worker (subagent)
-- **Consumes:** the cloned repo
-- **Produces:** coarse `code_map.json` (`commit_sha`-keyed, cached; rebuilt only on SHA change)
-- **Rules:** Map, don't copy (reference by path, never inline code); capture both dependency directions; per-file honest `coverage`; tags from the domain vocabulary. (FR-DC-10)
+- **Type:** Worker (subagent) — invoked by `source_processor`'s code lane
+- **Consumes:** the cloned repo · `code_profiles/<repo>.profile.yaml` (frozen at the onboarding gate) · the frozen per-language extractor
+- **Produces:** `context_set/code_map/{components.json, files.json}`
+- **Rules:** **Map, don't copy** (reference by path, never inline code); both dependency directions; module membership + edges are **deterministic** per the frozen signal profile; the model owns `purpose` **text** only. Cached through the **4-branch gate** keyed on `(commit_sha, profile_sha)` — a profile change invalidates wholesale, a commit change selectively
+- **Contract:** `core/skills/code_map_build.skill.md` · §3.3, §5 · `core/scripts/{code_map_build,gate,map_cache}.py` · checked by `check_map_totality.py`
 
-### merge_manifest
+### Plumbing (Python — not generation skills)
 
-- **Type:** Plumbing (Python — not a generation skill)
-- **Consumes:** per-source manifest entries from the fan-out
-- **Produces:** `context_set/index.json` (deterministic fan-in)
-
----
-
-# Layer 2 — BRD generation
-
-Chat-driven authoring + validation → `BRD.md` (gated at G1). (BUILD_OVERVIEW §7–§8, §10)
-
-### brd_author
-
-- **Type:** Authoring (user-invocable, interactive)
-- **Consumes:** `UI_INPUT.yaml` · `brd_profile.<domain>.yaml` · `context_set/index.json` · `code_map.json`
-- **Produces:** `BRD.md` · **Delegates:** `code_impact`
-- **Rules:** Generic engine (no domain content); short framing discovery then section-by-section; always-selective read; cite-or-flag; human-mediated flag loop at the code-impact section; executive summary drafted last; shared memory (never re-ask). (FR-BR-01…09)
-
-### code_impact (code_impact_assess)
-
-- **Type:** Worker (subagent)
-- **Consumes:** `code_map.json` + the requirement/section context (reads actual code only for the flagged slice — deep mode)
-- **Produces:** business-framed impact assessment + a **required Flags output** (scope_ripple / complexity / constraint / infeasible, each with severity)
-- **Rules:** Emits the Flags section on **every** run (even "no flags"); recommends, never decides; never auto-applies scope changes. (FR-BR-07/08, FR-BR-12/13)
-
-### brd_validator
-
-- **Type:** Validator (subagent)
-- **Consumes:** `BRD.md` + profile + source artifacts + the code surface
-- **Produces:** completion score + section-level gap suggestions for in-chat fill-in
-- **Rules:** Feeds the **G1 BRD acceptance gate**; soft-gate (informs, never auto-advances). (FR-BR-09, D4)
+| Piece | Does |
+|---|---|
+| `ingest_sharepoint.py` · `ingest_confluence.py` · `ingest_jira.py` · `ingest_file.py` · `clone.py` | per-source-type connectors. Each isolates its real API call in one `[TBD — VDI]` function (hard rule S); a new source type is a new generic connector, **never** a domain fork |
+| `merge_manifest.py` | deterministic fan-in → `context_set/index.json`. Rejects unroutable entries and retired fields |
+| `validate_onboarding.py` | the **D-A21 onboarding gate**: scan → report → three operator actions → freeze `extractor_sha` + `profile_sha` |
+| `extractors/c_extractor.py` | the frozen tree-sitter-C structural extractor (ADR-001) |
+| `hydrate.py` · `generate.py` · `publish_registry.py` | scaffold a run workspace from the published registry |
 
 ---
 
-# Layer 3 — FRD generation
+# Layer 2 — Solution Intent v1
 
-Functional translation + validation → `FRD.md` (gated at G2). (BUILD_OVERVIEW §2, §10)
+Chat-driven authoring + validation → `solution_intent/v1.md`, **18 sections**, gated at G1.
+Acceptance **freezes** v1 — everything downstream is a delta against a fixed document.
 
-### frd_author
+### solution_intent_author
 
-- **Type:** Authoring (user-invocable, interactive)
-- **Consumes:** **accepted `BRD.md` (primary)** · `frd_profile.<domain>.yaml` · `context_set/`
-- **Produces:** `FRD.md`
-- **Rules:** Same engine pattern as BRD; decomposes into actor flows / system behaviors / data contracts / error states / NFRs; carries the **detailed technical code impact** forward (BRD stays business-framed); every FRD topic `traces_to` a BRD anchor; inquiry mode + modify-via-chat with diff preview. (FR-FR-01…04)
+- **Type:** Generation (interactive, chat-driven; own session, user-invocable via `start-si`)
+- **Consumes:** `UI_INPUT.yaml` · `si_profile.<domain>.yaml` · `context_set/index.json` · the per-artifact `<doc>.index.json` indexes · the `<doc>.md` extracts
+- **Produces:** `solution_intent/v1.md`
+- **Rules:** **Code-blind by design.** v1 states intent from sources, the frame and the operator — it never reads the repo, because a v1 that already knew the code would leave enrichment nothing to *find*, and no way to tell a source's claim from a tool's inference. Generic engine (no domain content); always-selective read; cite-or-flag; §1 drafted last
+- **Contract:** `core/skills/solution_intent_author.skill.md` · §3.7 · `core/profiles/payment_brand/si_profile.payment_brand.yaml`
 
-### frd_validator
+### solution_intent_validator
 
-- **Type:** Validator (subagent)
-- **Consumes:** `FRD.md` + `BRD.md`
-- **Produces:** completion score + BRD→FRD traceability + testability/acceptance-criteria coverage
-- **Rules:** Feeds the **G2 FRD acceptance gate**. (FR-FR-05, D4)
+- **Type:** Validator (subagent) — and, at G2, the enrichment scorer
+- **Consumes:** `v1.md` · `si_profile.<domain>.yaml` · `context_set/index.json` + the extracts · `decisions.jsonl`
+- **Produces:** a G1 report (score + breakdown + hard-precondition verdicts + gap list) + the G1 ledger records; at G2, the same for `enrichment.json`
+- **Rules:** Soft-gate — **informs, never auto-advances**. Acceptance freezes v1 and stamps the freeze digest. Scoring is deterministic and model-free
+- **Contract:** `core/skills/solution_intent_validator.skill.md` · §9.2/§9.3 · `core/scripts/solution_intent_validator.py`
 
 ---
 
-# Layer 4 — Jira epic creation
+# Layer 3 — Enrichment (v1 → v2)
 
-Decompose the accepted FRD into epics, validate traceability, single human gate, push via the adapter seam. **Epic-only for MVP** (stories later). (BUILD_OVERVIEW §9)
+Two arms run against the frozen v1, then **one** operator turn, then a deterministic apply pass.
+Findings accumulate in `enrichment.json`; **provenance decides authority** (D-A16): a source-derived
+error auto-corrects, an operator/frame claim **escalates**, an unsourced `[TBD]` auto-fills.
+
+### code_impact — Arm 1 (requirement → code)
+
+- **Type:** Assessment (subagent, fan-out — one instance per requirement)
+- **Consumes:** frozen `v1.md` · `code_map/{components,files}.json` · `repo/`
+- **Produces:** §16 derived-system-impact entries + gaps, as findings in `enrichment.json`
+- **Rules:** Per-assertion impact plus **dependency closure** (both directions, to a fixed point); recommends, never decides; never auto-applies a scope change
+- **Contract:** `core/skills/code_impact_assess.skill.md` · §3.7 · `core/scripts/tier_walk.py`
+
+### claim_verifier — Arm 2 (claim → code)
+
+- **Type:** Assessment (subagent)
+- **Consumes:** frozen `v1.md` · `code_map/{components,files}.json` · `repo/`
+- **Produces:** verdicts + staged corrections, as findings in `enrichment.json`
+- **Rules:** Point lookup then **stop** — Arm 2 answers "is this claim true of the code?", it does not go exploring. Runs after Arm 1, which has already pulled the slices its claims usually need. An honest `unverifiable` is a valid verdict
+- **Contract:** `core/skills/claim_verifier.skill.md` · §3.7
+
+### disposition_walkthrough — the one operator turn
+
+- **Type:** Interactive (user-invocable)
+- **Consumes:** escalated findings in `enrichment.json` · `code_map/` · `repo/` (for interrogation)
+- **Produces:** a disposition + **rationale** per escalated finding, in `enrichment.json` + `decisions.jsonl`
+- **Rules:** **Propose, never decide.** Triage, don't enumerate; respect ordering dependencies (a finding that supersedes others is called first); **resumable** across sessions. `decisions.jsonl` is the only place the operator's rationale is written (D-A17)
+- **Contract:** `core/skills/disposition_walkthrough.skill.md` · §3.7 · `core/scripts/enrichment.py`
+
+### The apply pass (plumbing)
+
+- **Type:** Plumbing (Python, deterministic)
+- **Consumes:** frozen `v1.md` + `enrichment.json` → **Produces:** `solution_intent/v2.md`
+- **Rules:** Corrections revise **in place with provenance**; discoveries append; **nothing is deleted**. §16 is organised by requirement, §17 extended never replaced, **§1 regenerated last** from the corrected body. Rejected and superseded findings do not reach v2 but stay in the record
+- **Contract:** `core/scripts/apply_enrichment.py` · gated at **G2**
+
+---
+
+# Layer 4 — Jira
+
+Decompose accepted `v2.md` into the **4-level JPMC hierarchy** (Initiative → Deliverable → Epic →
+Story), validate the trace, then one gate and the run's **only external mutation**.
 
 ### jira_author
 
-- **Type:** Authoring (subagent or user-invocable)
-- **Consumes:** `jira_template.<domain>.yaml` · **accepted `FRD.md` (primary)** · `BRD.md` (business context)
-- **Produces:** `jira_plan.json` (**no write to Jira**)
-- **Rules:** Cluster the FRD into epics by functional area; map to template fields incl. JPMC controls; link each epic to its source FRD requirements. (FR-JR-01…03)
+- **Type:** Generation (subagent)
+- **Consumes:** accepted `solution_intent/v2.md` · `enrichment.json` · `jira_template.<domain>.yaml` · `UI_INPUT.jira`
+- **Produces:** `jira_plan.json` — **drafted only; no write to Jira**
+- **Rules:** The parent chain is built from the SI's **own ids** — the author never invents one, which is what makes the push idempotent. Assembly is deterministic; the **judgment** is a story's summary and its acceptance criteria
+- **Contract:** `core/skills/jira_author.skill.md` · §3.8 · `core/scripts/jira_plan.py`
 
 ### jira_validator
 
-- **Type:** Validator (subagent)
-- **Consumes:** `jira_plan.json` + `FRD.md`
-- **Produces:** bidirectional traceability + required/controls field completeness + coverage score
-- **Rules:** Feeds the **single G3 push gate** (validation review + push authorization combined). (FR-JR-04/05, D4)
+- **Type:** Validator (subagent) — surfaces G3
+- **Consumes:** `jira_plan.json` · `v2.md` (§16, §7) · `enrichment.json`
+- **Produces:** a G3 report (score + hard checks + violations) + the G3 ledger records
+- **Rules:** The **operator** accepts; acceptance authorises the push. Deterministic, model-free
+- **Contract:** `core/skills/jira_validator.skill.md` · §9.4 · `core/scripts/jira_validator.py`
 
-### jpmc_adapters
+### jpmc_adapters — the push/auth seam
 
-- **Type:** Adapter (push/auth seam)
-- **Consumes:** approved `jira_plan.json`
-- **Produces:** pushed epics + `jira_trace.json` (epic keys)
-- **Rules:** The **only external mutation**; idempotent re-push (updates by key, never duplicates); all auth isolated here. (FR-JR-06, NFR-04/09)
+- **Type:** Adapter
+- **Consumes:** an authorised `jira_plan.json` → **Produces:** created/updated issues + `jira_trace.json`
+- **Rules:** The **only external mutation of a run**, so an un-gated push is impossible *by construction*: `push_plan` requires a `G3Authorization` that only `authorize()` can mint, and `authorize()` refuses an ineligible result. `dry_run=True` is the default. Parent before child; **idempotent by `local_id`**; each result recorded as it returns, so a mid-batch failure resumes rather than re-creates. The adapter returns data and **never writes the trace** — which keeps a crash between "wrote to Jira" and "wrote the trace" detectable. All auth isolated here; `auth_ref` is a pointer resolved at call time, never a secret on disk
+- **VDI:** `_create_issue` / `_update_issue` are the two `[TBD — VDI]` placeholders — everything around them is real and proven offline (`VDI_WIRING.md`)
+- **Contract:** `core/adapters/jpmc_adapters/{jira,auth}.py` · §7.1
 
 ---
 
 # Layer 5 — Metrics
 
 - **Type:** Derived (no skill)
-- **Consumes:** `telemetry.jsonl` events (schema in REQUIREMENTS D8a-1)
-- **Produces:** the MVP metric set ($/BRD, $/FRD, completion score, first-pass acceptance, docs/month, BRD→FRD cycle time, latency p95, FRD→epic coverage, epics/FRD, push success)
-- **Rules:** Auto-computed by scanning telemetry; **no metric is hand-entered**. (FR-MX-01, D8)
+- **Consumes:** `telemetry.jsonl` → **Produces:** M01–M07, M09–M12 (§8.2)
+- **Rules:** Auto-computed by scanning telemetry; **no metric is hand-entered**. Run-properties are computed per run then averaged; M07 and M10 measure the fleet. A metric with no events yields **no value, never 0**. **M12 enrichment yield** — corrections + derived impacts + auto-fills — is the v1→v2 delta, and the reason `verdict.route` is on the event
+- **Contract:** `core/scripts/metrics_scan.py` · §8.1/§8.2 · FR-MX-01/02
 
 ---
 
-# Runtime / Bootstrap
-
-Cross-cutting environment setup for the runtime-tool seam — applied locally, not artifact generation.
+# Runtime / bootstrap
 
 ### max-autonomy
 
 - **Type:** Runtime utility (user-invocable; a contract the agent applies locally — not a generation skill)
-- **Consumes:** operator's chosen mode (`maximum` / `balanced` / `safe default` / `add <command>`) + VS Code **USER** `settings.json`
+- **Consumes:** the operator's chosen mode (`maximum` / `balanced` / `safe default` / `add <command>`) + the VS Code **USER** `settings.json`
 - **Produces:** updated user `settings.json` (Copilot terminal auto-approval) + one backup
-- **Rules:** User scope only; three presets are an exact contract; treat as JSONC + back up + validate after write + refuse a broken file; `maximum` must surface the risk statement; production allow-list is provisioned centrally (FR-XS-26).
+- **Rules:** User scope only; the three presets are an exact contract; treat as JSONC, back up, validate after write, refuse a broken file; `maximum` must surface the risk statement (FR-XS-26)
+- **Contract:** `docs/max-autonomy.skill.md`
 
 ---
 
-*End of Skills Index. Source: `pdlc_handoff.zip` (`BUILD_OVERVIEW.md`, `brd_frd_overview.html`) + `REQUIREMENTS.md`. v1 (`PDLC_Platform_Design_Spec_v1.md`) is superseded.*
+# Build checks that keep this catalog true
+
+| Check | Asserts |
+|---|---|
+| §10.2 overlay parity | every role + prompt in `overlay_manifest.yaml` is present in **both** overlays |
+| §10.3 domain artifacts | the domain pack is complete for the declared domain |
+| §10.4 connector coverage | every source type in `UI_INPUT` has a connector |
+| §10.5′ disposition-class totality | every disposition routes somewhere, and `other` never routes |
+
+Run: `python3 core/scripts/build_checks.py`. Per-skill behaviour is proven by the fixture verify
+scripts under `fixtures/`; `fixtures/docs/verify_docs.py` proves this file's references resolve.
+
+*End of Skills Index.*

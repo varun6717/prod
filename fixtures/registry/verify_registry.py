@@ -30,6 +30,7 @@ sys.path.insert(0, str(_REPO_ROOT / "core" / "scripts"))
 
 import hydrate  # noqa: E402
 import publish_registry  # noqa: E402
+import publish_registry  # noqa: E402
 from publish_registry import PublishBlocked  # noqa: E402
 
 _DOMAIN = "payment_brand"
@@ -137,6 +138,36 @@ def main() -> int:
         _check("hydrating at a nonexistent SHA fails", bool(raised))
         _check("the error names the offending registry_sha", "deadbeef" in raised)
         _check("and does NOT blame shallowness", "unshallow" not in raised.lower())
+
+    # ── the TRACKED snapshot must not drift from core/ (TASK-127 defect 1) ─────────────
+    # `registry_repo/` is committed so the push-ready registry can travel to the VDI. Being a
+    # tracked COPY of core/ + overlays/ + docs/, it drifts the moment anyone edits the original
+    # and forgets to re-stage — and it did: after the ADR-008 cutover it still held
+    # `brd_author.skill.md` and `brd_validator.skill.md`, retired skills, while lacking
+    # `confluence_extract`. A tracked duplicate of the dead pipeline, in the very artifact meant
+    # to carry to the VDI. Nothing checked it, so nothing said so.
+    #
+    # This check makes the duplicate honest: re-stage after any core/ change, exactly as protocol
+    # step 5 already requires you to re-publish.
+    print("\nthe tracked registry snapshot matches core/:")
+    snapshot = _REPO_ROOT / "registry_repo"
+    _check("registry_repo/ exists", snapshot.is_dir())
+    manifest = publish_registry._load_yaml(publish_registry._DEFAULT_MANIFEST)
+    expected = {rel for _, rel in publish_registry.collect_subset(manifest, _REPO_ROOT)}
+    actual = {str(f.relative_to(snapshot)) for f in snapshot.rglob("*")
+              if f.is_file() and "__pycache__" not in f.parts}
+    _check(f"the snapshot holds exactly the {len(expected)} published files",
+           actual == expected)
+    if actual != expected:
+        print(f"    missing from snapshot: {sorted(expected - actual)[:6]}")
+        print(f"    stale in snapshot:     {sorted(actual - expected)[:6]}")
+        print("    fix: python3 core/scripts/publish_registry.py --stage registry_repo --force")
+    drifted = [rel for rel in sorted(expected & actual)
+               if (snapshot / rel).read_bytes() != (_REPO_ROOT / rel).read_bytes()]
+    _check("and every one is byte-identical to its source", not drifted)
+    if drifted:
+        print(f"    drifted: {drifted[:6]}")
+        print("    fix: python3 core/scripts/publish_registry.py --stage registry_repo --force")
 
     print("verify_registry: ALL CHECKS PASSED")
     return 0

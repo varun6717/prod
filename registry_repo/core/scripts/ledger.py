@@ -9,12 +9,13 @@ enforce — none of them admits a free-form content blob.
 
 Three files (TECH_SPEC §2.2), each with a schema in ``schemas/``:
 
-  - ``telemetry.jsonl``  — append-only event stream (§3.4 envelope / §8.1 payloads);
-                           metrics_scan.py derives every metric from these rows.
+  - ``telemetry.jsonl``  — append-only event stream (§3.4 envelope / §8.1 payloads +
+                           the ADR-008 enrichment events); metrics_scan.py derives every
+                           metric from these rows.
   - ``run_state.json``   — replaceable current state (§3.5); ``status ∈ {pending,
                            running, done, failed}``; drives §9 resume.
-  - ``decisions.jsonl``  — append-only gate + flag audit (§3.6); shapes match the
-                           writers in ``decisions.py``.
+  - ``decisions.jsonl``  — append-only gate + flag + walkthrough audit (§3.6); shapes
+                           match the writers in ``decisions.py``.
 
 ``init_ledger`` stamps a fresh, schema-valid ledger. It is what ``runs/_template/``
 ships and what a real run's creation copies/regenerates from (the template is the
@@ -33,10 +34,10 @@ from typing import Any
 
 SCHEMA_DIR = Path(__file__).resolve().parent / "schemas"
 
-# The stages this BRD→FRD slice executes, in order (TECH_SPEC §3.5 example). The schema
-# admits the full §8.1 stage vocabulary (incl. the deferred jira stages) so it ports
-# unchanged; the template instance lists only the slice's stages, all `pending`.
-SLICE_STAGES = ("ingest", "code_map", "brd_authoring", "frd_authoring")
+# The stages this slice executes, in order (TECH_SPEC §3.5, ADR-008 vocabulary). Post-pivot
+# the pipeline and the stage vocabulary are the same five names, so the template seeds all of
+# them `pending` — there is no longer a deferred tail the schema admits but the template omits.
+SLICE_STAGES = ("ingest", "si_v1", "enrichment", "si_v2", "jira")
 
 # run_id placeholder in the template's run_state.json — a real run overwrites it.
 TEMPLATE_RUN_ID = "__template__"
@@ -130,6 +131,15 @@ def _validate(value: Any, schema: dict, root: dict, where: str) -> list[str]:
         for i, sub in enumerate(schema.get(combiner, [])):
             errs += _validate(value, sub, root, where)
 
+    # if / then / else. Added at TASK-117, because the enrichment schema needs conditional
+    # requirements ("escalated ⇒ must carry a reason and a severity") — and an UNSUPPORTED
+    # keyword is worse than an absent one: the constraint sits in the file looking enforced
+    # while validating nothing. The proof caught exactly that.
+    if "if" in schema:
+        branch = "then" if not _validate(value, schema["if"], root, where) else "else"
+        if branch in schema:
+            errs += _validate(value, schema[branch], root, where)
+
     if "oneOf" in schema:
         matches = sum(1 for sub in schema["oneOf"] if not _validate(value, sub, root, where))
         if matches != 1:
@@ -213,7 +223,10 @@ def init_ledger(ledger_dir: str | Path, run_id: str = TEMPLATE_RUN_ID) -> Path:
 #   1. the shipped runs/_template ledger validates against all three schemas;
 #   2. each schema REJECTS a deliberately-malformed record (the constraints bite) —
 #      run_state's status enum (the named acceptance), telemetry's event payload,
-#      decisions' kind/shape — and a content-blob field is refused (FR-XS-05).
+#      decisions' kind/shape, the RETIRED BRD/FRD-era stage names (TASK-104) — and a
+#      content-blob field is refused (FR-XS-05);
+#   3. the writer shapes that must pass do pass, including the three ADR-008 enrichment
+#      events and the walkthrough disposition record.
 # ──────────────────────────────────────────────────────────────────────────────
 def _demo() -> None:
     repo_root = Path(__file__).resolve().parents[2]
@@ -241,6 +254,15 @@ def _demo() -> None:
          rs_schema,
          {"run_id": "r1", "current_stage": "ingest",
           "stages": {"deploy": {"status": "pending"}}}),
+        # ADR-008: the retired BRD/FRD-era stage names must be REJECTED, both ledgers.
+        ("run_state retired stage name",
+         rs_schema,
+         {"run_id": "r1", "current_stage": "brd_authoring",
+          "stages": {"brd_authoring": {"status": "running"}}}),
+        ("telemetry retired stage name",
+         tel_schema,
+         {"ts": "2026-06-22T00:00:00Z", "run_id": "r1", "domain": "payment_brand",
+          "tool": "claude", "event": "stage_started", "stage": "frd_authoring"}),
         # FR-XS-05: no artifact CONTENT in the ledger — a stray content blob is refused.
         ("run_state with content blob",
          rs_schema,
@@ -256,12 +278,24 @@ def _demo() -> None:
          tel_schema,
          {"ts": "2026-06-22T00:00:00Z", "run_id": "r1", "domain": "payment_brand",
           "tool": "claude", "event": "teleport"}),
-        # decisions: vocab_gap_flag carrying BOTH shapes (must be exactly one).
-        ("decisions vocab_gap both shapes",
+        # decisions: a retired record kind must be REFUSED, not quietly accepted — the
+        # vocabulary-adequacy hand-raise died with the vocabulary (TASK-123 follow-up).
+        ("decisions retired vocab_gap_flag kind",
          dec_schema,
          {"ts": "2026-06-22T00:00:00Z", "kind": "vocab_gap_flag", "arm": "code",
-          "concept": "tokenization", "evidence": ["a.c"],
-          "untagged_ratio": 0.3, "threshold": 0.2, "decision": "pending", "actor": "v"}),
+          "concept": "tokenization", "evidence": ["a.c"], "decision": "pending", "actor": "v"}),
+        # decisions: a walkthrough disposition with no rationale — the record's whole point
+        # is *why* the operator decided (D-A17); without it G2 cannot answer "why this now?".
+        ("decisions disposition no rationale",
+         dec_schema,
+         {"ts": "2026-06-22T00:00:00Z", "kind": "disposition", "finding_id": "F-014",
+          "call": "reroute", "target": "§14", "actor": "vmunjal"}),
+        # telemetry: an enrichment event missing its route (verdict must say where it went).
+        ("telemetry verdict missing route",
+         tel_schema,
+         {"ts": "2026-06-22T00:00:00Z", "run_id": "r1", "domain": "payment_brand",
+          "tool": "claude", "event": "verdict", "finding_id": "F-002", "arm": "claim",
+          "verdict": "contradicted"}),
     ]
     for label, schema, bad in cases:
         errs = validate_record(bad, schema)
@@ -280,9 +314,20 @@ def _demo() -> None:
         (dec_schema, {"ts": "2026-06-22T00:00:00Z", "kind": "reonboard_flag", "language": "c",
                       "coverage": 0.71, "floor": 0.80, "unresolved_patterns": ["macro"],
                       "decision": "re-onboard", "actor": "vmunjal"}),
-        (dec_schema, {"ts": "2026-06-22T00:00:00Z", "kind": "vocab_gap_flag", "arm": "code",
-                      "concept": "tokenization", "evidence": ["payment/tokenize.c"],
-                      "decision": "amend-vocab", "actor": "vmunjal"}),
+        # The ADR-008 enrichment shapes — one telemetry event per new kind + its audit twin.
+        (tel_schema, {"ts": "2026-06-22T00:00:00Z", "run_id": "r1", "domain": "payment_brand",
+                      "tool": "claude", "event": "verdict", "finding_id": "F-002",
+                      "arm": "claim", "verdict": "contradicted", "route": "auto_correct"}),
+        (tel_schema, {"ts": "2026-06-22T00:00:00Z", "run_id": "r1", "domain": "payment_brand",
+                      "tool": "claude", "event": "escalation", "finding_id": "F-014",
+                      "reason": "no_code_found", "severity": "material"}),
+        (tel_schema, {"ts": "2026-06-22T00:00:00Z", "run_id": "r1", "domain": "payment_brand",
+                      "tool": "claude", "event": "disposition", "finding_id": "F-014",
+                      "call": "reroute", "target": "§14", "actor": "vmunjal"}),
+        (dec_schema, {"ts": "2026-06-22T00:00:00Z", "kind": "disposition",
+                      "finding_id": "F-014", "call": "reroute", "target": "§14",
+                      "rationale": "Settlement recon lives in another repo — §14 dependency.",
+                      "actor": "vmunjal"}),
     ]
     print("\npositive cases (real writer shapes; each must validate):")
     for schema, good in good_records:

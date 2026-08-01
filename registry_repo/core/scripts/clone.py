@@ -206,6 +206,19 @@ def clone_repo(
 
     dest.parent.mkdir(parents=True, exist_ok=True)
 
+    # An EMPTY dest is "absent", not "already cloned". `generate.py` lays `repo/` as one of the
+    # §2.2 empty run dirs, so this is the state every freshly generated scaffold is in — and the
+    # idempotency guard above deliberately ignores it (`any(dest.iterdir())` is False). Without
+    # this, both paths below fail on a directory that already exists: `git clone` refuses a
+    # non-empty target and `copytree` refuses an existing one. Clearing it here keeps the
+    # decision in one place rather than duplicating it into each branch.
+    #
+    # Found at TASK-127 on the first real run: `clone.py` into a fresh scaffold failed 100% of
+    # the time. The clone fixture never saw it because it clones into a temp path that does not
+    # exist yet — the one arrangement a real run never has.
+    if dest.exists() and not any(dest.iterdir()):
+        dest.rmdir()
+
     src = Path(repo_url)
     is_local_nongit = (
         src.exists() and src.is_dir() and not (src / ".git").exists() and not _is_bare_repo(src)

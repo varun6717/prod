@@ -11,10 +11,10 @@ the exact start gesture — it does **not** auto-start the session.
 **Start gesture** (also surfaced by the generated `CLAUDE.md` tail, FR-XS-22): open a Claude Code
 terminal session at the working path and invoke `/start-ingest` — the Layer-1 kickoff that fires
 the data-&-context fan-out (`source_processor` ×N → `merge_manifest.py`). It keeps the orchestrator
-role and closes by surfacing `/start-brd` for the BRD stage.
+role and closes by surfacing `/start-si` for the Solution Intent stage.
 
 **Stage advance** (operator-performed, FR-XS-11): `/clear` or a new session, then the next prompt
-file — `/start-frd`, then `/start-jira`. The agent **surfaces** these as the closing line of a
+file — `/start-enrich`, then `/start-jira`. The agent **surfaces** these as the closing line of a
 stage; it never self-issues them.
 
 **Environment contract** (NFR-04; §6 model routing): the launch step sets the model-routing
@@ -23,4 +23,4 @@ models run via JPMC Bedrock. These are env vars set **at launch**, not a functio
 skills stay model-neutral.
 
 **Prompt files shipped** (`overlays/claude/prompts/`): `start-ingest` (Layer-1 kickoff),
-`start-brd`, `start-frd`, `start-jira`.
+`start-si`, `start-enrich`, `start-jira`.

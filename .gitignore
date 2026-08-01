@@ -35,3 +35,20 @@ cred.env
 # Mutable build state (D-A22) — everything under cache/ except its README
 cache/*
 !cache/README.md
+
+# ── run workspaces (TASK-127) ──────────────────────────────────────────────────────────
+# A run workspace is mostly a COPY: core/, the overlay wrappers and prompts are the
+# registry hydrated into it, and repo/ is a clone. Tracking those duplicated 137 files
+# that already exist elsewhere in this repo — and a duplicate is a drift vector, which is
+# exactly how registry_repo/ ended up holding retired skills.
+#
+# What IS tracked is the evidence a run cannot regenerate: the ledger, the SI artifacts and
+# their freeze record, the plan and its trace, the manifest, the per-artifact indexes and
+# the code map. That is what `docs/ACCEPTANCE_SI.md` points at.
+runs/*/core/
+runs/*/.claude/
+runs/*/prompts/
+runs/*/repo/
+runs/*/CLAUDE.md
+runs/*/context_set/**/*.pdf
+runs/*/context_set/**/*.html

@@ -1,25 +1,33 @@
 #!/usr/bin/env python3
-"""`decisions.jsonl` writers — the gate + flag audit ledger (§3.6, NFR-03).
+"""`decisions.jsonl` writers — the gate + flag + walkthrough audit ledger (§3.6, NFR-03).
 
-Append-only, one JSON object per line. Four record `kind`s, all here so §3.6 lives
+Append-only, one JSON object per line. Five record `kind`s, all here so §3.6 lives
 in one place (the unified ledger-writing surface re-exports them via ``telemetry.py``):
 
   - ``gate`` — a human acceptance gate decision (G1/G2/G3): who/when/outcome/version.
     The audit twin of the ``gate_decision`` telemetry event (which feeds M04); the
     rationale-bearing record of the decision (NFR-03).
-  - ``flag`` — an operator disposition of a BRD-authoring flag (scope ripple, etc.):
+  - ``flag`` — an operator disposition of an SI-authoring flag (scope ripple, etc.):
     who/when/option/severity/**rationale** (D6c material-vs-advisory). Twin of the
     ``flag_decision`` telemetry event.
+  - ``disposition`` — the operator's call on an **escalated enrichment finding** at the
+    disposition walkthrough (D-A16/D-A17). Twin of the ``disposition`` telemetry event,
+    and the only place the **rationale** is written: `enrichment.json` records what each
+    finding was, this records *why the human decided what they decided*. Together with the
+    frozen `v1.md` they are what makes v2 reconstructable and auditable at G2.
   - ``reonboard_flag`` — the *extractor* coverage floor was tripped (§5.4, FR-DC-16):
     "a structural idiom the frozen tool can't parse — re-bless it?"
-  - ``vocab_gap_flag`` — the *vocabulary* adequacy detector raised its hand
-    (§5.4.1, ADR-003 / FR-DC-21): "a concept the frozen dictionary can't tag."
 
-``reonboard_flag`` / ``vocab_gap_flag`` are the same shape of event: a **frozen artifact
-noticing it has been outgrown and asking a human**. Neither writer mutates the artifact —
-it records a hand-raise for a human to dispose of (`decision` defaults to ``"pending"``
-until a human picks ``amend-vocab`` / ``accept-as-is`` / ``re-onboard``). The run is NOT
-blocked by either (advisory runtime flags; §10 containment stays the hard gate).
+``reonboard_flag`` is a **frozen artifact noticing it has been outgrown and asking a
+human**. The writer never mutates the artifact — it records a hand-raise for a human to
+dispose of (`decision` defaults to ``"pending"`` until a human picks ``re-onboard`` or
+``accept-as-is``). The run is NOT blocked by it (an advisory runtime flag).
+
+*(``vocab_gap_flag`` — the vocabulary-adequacy hand-raise — was removed at TASK-123's
+follow-up. Its producer died with the vocabulary in the ADR-008 sweep and §5.4.1 is
+retired, so the writer had no caller and the schema branch guarded a record nothing could
+emit. A record kind that cannot be produced is not backward compatibility, it is a
+sentence in a contract that reads as if something still works.)*
 
 Records are appended to a run's ``ledger/decisions.jsonl`` (created with the run
 workspace in TASK-022). The writers take an explicit ``ledger_path`` so they are
@@ -34,6 +42,16 @@ from pathlib import Path
 from typing import Sequence
 
 DEFAULT_ACTOR = "vmunjal"
+
+# The operator's four possible calls at the disposition walkthrough (D-A16/D-A17). Kept in
+# lock-step with telemetry.schema.json's `call` enum. `defer` is not optional politeness —
+# an operator who genuinely cannot answer "have we ever done this?" must be able to say so,
+# or the walkthrough manufactures false certainty exactly where the design demands honesty.
+WALKTHROUGH_CALLS: tuple[str, ...] = ("accept", "reject", "reroute", "defer")
+
+# Calls that place the finding in an SI section (so `target` is required). `reject` is the
+# odd one out: the finding was wrong (an Arm 1 search miss) and is dropped, not placed.
+_PLACING_CALLS = frozenset({"accept", "reroute", "defer"})
 
 
 def _now_iso() -> str:
@@ -113,6 +131,51 @@ def flag(
     return append_decision(ledger_path, record)
 
 
+def disposition(
+    ledger_path: str | Path,
+    *,
+    finding_id: str,
+    call: str,
+    rationale: str,
+    target: str | None = None,
+    actor: str = DEFAULT_ACTOR,
+    ts: str | None = None,
+) -> dict:
+    """Write a ``disposition`` record (§3.6 / D-A16 / D-A17) — the walkthrough's audit line.
+
+    One record per **escalated** enrichment finding the operator dispositions. Most findings
+    never get one: grounded, unambiguous findings auto-apply and are recorded as ``verdict``
+    telemetry only. This kind exists for the ones needing judgment — ambiguous, scope-moving,
+    or would overrule a human.
+
+    ``finding_id`` points into ``enrichment.json`` (the ledger never inlines the finding —
+    FR-XS-05). ``call`` is one of ``WALKTHROUGH_CALLS``; ``target`` is the SI section it
+    landed in (``"§16"``, ``"§14"``, ``"§7"``, ``"§8"``, ``"§12"``, ``"§17"``) and is required
+    for every call except ``reject``, which drops the finding rather than placing it.
+
+    ``rationale`` is mandatory and is the whole point of the record: this is the *only* file
+    in the run that says **why**. The telemetry twin (``disposition`` event) carries the same
+    decision without the prose, so metrics can count dispositions without reading rationales.
+    """
+    if call not in WALKTHROUGH_CALLS:
+        raise ValueError(f"disposition call must be one of {WALKTHROUGH_CALLS} (D-A16); got {call!r}")
+    if call in _PLACING_CALLS and not target:
+        raise ValueError(f"disposition call {call!r} places the finding — `target` (the SI section) is required")
+    if call == "reject" and target:
+        raise ValueError("disposition call 'reject' drops the finding — it has no `target` section")
+    record: dict = {
+        "ts": ts or _now_iso(),
+        "kind": "disposition",
+        "finding_id": finding_id,
+        "call": call,
+    }
+    if target:
+        record["target"] = target
+    record["rationale"] = rationale
+    record["actor"] = actor
+    return append_decision(ledger_path, record)
+
+
 def reonboard_flag(
     ledger_path: str | Path,
     *,
@@ -141,45 +204,4 @@ def reonboard_flag(
         "decision": decision,
         "actor": actor,
     }
-    return append_decision(ledger_path, record)
-
-
-def vocab_gap_flag(
-    ledger_path: str | Path,
-    *,
-    arm: str,
-    concept: str | None = None,
-    evidence: Sequence[str] | None = None,
-    untagged_ratio: float | None = None,
-    threshold: float | None = None,
-    decision: str = "pending",
-    actor: str = DEFAULT_ACTOR,
-    ts: str | None = None,
-) -> dict:
-    """Write a ``vocab_gap_flag`` record (§3.6 / §5.4.1, ADR-003). Two shapes, one kind.
-
-    - **Primary** (concept): pass ``concept`` + ``evidence`` — a recurring concept the
-      vocabulary lacks, caught from the model's ``uncovered_concepts`` (so it covers a
-      *partially*-tagged file too, not just a fully-untagged one).
-    - **Floor** (ratio): pass ``untagged_ratio`` + ``threshold`` — the deterministic,
-      model-free safety net crossed ``adequacy_threshold``.
-
-    Exactly one shape per call. The vocabulary is NEVER auto-grown — this is a
-    hand-raise, the dictionary's twin of ``reonboard_flag``.
-    """
-    if (concept is None) == (untagged_ratio is None):
-        raise ValueError("vocab_gap_flag: pass exactly one of (concept+evidence) | (untagged_ratio+threshold)")
-    record: dict = {
-        "ts": ts or _now_iso(),
-        "kind": "vocab_gap_flag",
-        "arm": arm,
-    }
-    if concept is not None:
-        record["concept"] = concept
-        record["evidence"] = list(evidence or [])
-    else:
-        record["untagged_ratio"] = untagged_ratio
-        record["threshold"] = threshold
-    record["decision"] = decision
-    record["actor"] = actor
     return append_decision(ledger_path, record)

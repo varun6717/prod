@@ -5,8 +5,9 @@ Generic and **source-type-keyed** (D7 / FR-DC-11): the connector for ``type: sha
 document sources — a SharePoint URL to a raw document (a PDF). It pulls the document through
 the auth seam, **stages** it into the run's source area, and emits the **same** source
 descriptor shape as ``ingest_file.py`` so the downstream pipeline
-(``pdf_extract → article_summarize → change_type_assess``) is unchanged (FR-XS-01). It
-assigns **no meaning** — staging only; tagging is the adapter pack's job downstream.
+(the ``docs_pipeline`` extract lane) is unchanged (FR-XS-01). It
+assigns **no meaning** — staging only; extraction is the adapter pack's job downstream, and
+what the artifact is *for* is the operator's declared ``disposition`` (D-A12), never inferred here.
 
 Contract (§6.6.2) — identical descriptor shape to ``ingest_file.py``:
   consumes : a ``UI_INPUT.sources[]`` entry of ``type: sharepoint`` (``url``, ``source``,
@@ -175,17 +176,26 @@ def pull_document(
     }
 
 
-def _source_from_ui_input(ui_input_path: str | Path) -> dict:
-    """Load the single ``type: sharepoint`` source entry from a ``UI_INPUT.yaml`` (§3.1)."""
+def _sources_from_ui_input(ui_input_path: str | Path) -> list[dict]:
+    """Load every ``type: sharepoint`` source entry from a ``UI_INPUT.yaml`` (§3.1).
+
+    **Multiple SharePoint documents are the normal case, not an edge case.** A mandate arrives
+    as several PDFs (the fixture corpus is one mandate in two parts), and per `VDI_WIRING.md`
+    "PDFs always arrive via SharePoint" — so this is *the* production document lane.
+
+    Until TASK-127 this refused anything but a single entry ("slice-1 expects one sharepoint
+    source"), while `ingest_confluence` and `ingest_jira` had both been generalised to stage
+    every matching entry. The restriction was simply never lifted here, and the first real
+    multi-source run through the UI is what surfaced it. Each entry stages independently, so
+    one bad document cannot take the batch down with it (FR-DC-05).
+    """
     import yaml  # local import: only the UI-INPUT path needs YAML
 
     cfg = yaml.safe_load(Path(ui_input_path).read_text(encoding="utf-8"))
     matches = [s for s in (cfg.get("sources") or []) if s.get("type") == SOURCE_TYPE]
     if not matches:
         raise ValueError(f"no source of type {SOURCE_TYPE!r} in {ui_input_path}")
-    if len(matches) > 1:
-        raise ValueError(f"slice-1 expects one {SOURCE_TYPE} source; found {len(matches)} in {ui_input_path}")
-    return matches[0]
+    return matches
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -197,25 +207,30 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--auth-ref", help="auth seam pointer (default: jpmc_adapters:sharepoint or UI_INPUT value)")
     args = ap.parse_args(argv)
 
-    url, source, auth_ref = args.url, args.source, args.auth_ref
-    if args.ui_input:
-        entry = _source_from_ui_input(args.ui_input)
-        url = url or entry.get("url")
-        source = source or entry.get("source")
-        auth_ref = auth_ref or entry.get("auth_ref")
-    if not url:
-        ap.error("need --url or --ui-input with a type:sharepoint source")
-
     try:
-        descriptor = pull_document(
-            url, args.dest, source=source or SOURCE_TYPE,
-            auth_ref=auth_ref or _DEFAULT_AUTH_REF,
-        )
+        if args.url:
+            entries = [{"url": args.url, "source": args.source, "auth_ref": args.auth_ref}]
+        elif args.ui_input:
+            entries = _sources_from_ui_input(args.ui_input)
+        else:
+            ap.error("need --url or --ui-input with a type:sharepoint source")
+
+        descriptors = [
+            pull_document(
+                e.get("url"), args.dest,
+                source=(args.source or e.get("source") or SOURCE_TYPE),
+                auth_ref=(args.auth_ref or e.get("auth_ref") or _DEFAULT_AUTH_REF),
+            )
+            for e in entries
+        ]
     except (FileNotFoundError, ValueError, RuntimeError, NotImplementedError, _auth.AuthResolutionError) as exc:
         print(f"ingest_sharepoint.py: {exc}", file=sys.stderr)
         return 1
 
-    print(json.dumps(descriptor, ensure_ascii=False, indent=2))
+    # One descriptor stays an object; many become a list — the same shape `ingest_confluence`
+    # emits, so a caller parsing either connector's output does not branch on source type.
+    out = descriptors[0] if len(descriptors) == 1 else descriptors
+    print(json.dumps(out, ensure_ascii=False, indent=2))
     return 0
 
 

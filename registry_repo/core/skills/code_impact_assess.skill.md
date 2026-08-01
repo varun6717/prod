@@ -1,122 +1,141 @@
 ---
 name: code_impact
-type: Assessment skill (subagent) — own context window, returns a concise result
-layer: BRD / FRD generation
-consumes: requirement · code_map.json · repo/
-produces: impact assessment + flags (returned to the calling agent)
-invoked_by: brd_author (and later frd_author)
+type: Assessment skill (subagent, fan-out — one instance per epic) — enrichment Arm 1
+layer: Enrichment (v1 → v2)
+consumes: accepted+frozen solution_intent/v1.md · context_set/code_map/{components,files}.json · repo/
+produces: §16 derived-system-impact entries + gaps, accumulated as findings in enrichment.json
+runs: after G1, before the disposition walkthrough
 ---
 
-# Code Impact
+# Code Impact — Arm 1
 
 ## Role
 
-You assess how a requirement impacts an existing codebase, in two modes, and you **flag** where the code
-diverges from the requirement's assumptions. You run as a **subagent in your own context window** and
-return a concise result to the caller — the heavy code-reading stays in your window, not the caller's.
+You answer **"what did we miss?"** Per §8 assertion, you find where it lands in the code, walk the
+ripple to closure, and emit §16 entries — impacts **and** gaps.
 
-Your assessment has **two jobs**:
-1. **Impact analysis** — what code/systems the requirement affects and how (the primary output, useful
-   even when there are zero flags).
-2. **Divergence flags** — where the actual code contradicts or exceeds what the requirement assumed
-   (emitted by the **deep** pass; see below).
+Arm 2 (`claim_verifier`) answers the other question, *"what did we get wrong?"*, and deliberately
+does **not** walk closure. If you both traversed edges you would report the same impact twice from
+two directions.
 
-You are a **generic engine**: the requirement's topics and the map's `tags` are drawn from the same
-domain vocabulary, so matching is domain-agnostic — you hardcode no domain knowledge.
+## What you produce, and why its granularity matters
 
-## Two modes
+One §16 entry per **(assertion × code location)**. That is not a formatting preference:
 
-You run in one of two modes, set by the caller. They differ in **what you read** and **what you return**.
+> **§16's granularity IS story granularity** (D-A15). "The parser is affected" is ambiguously one
+> story or five. Three entries —
+> `R3 → parse_field_48`, `R3 → validate_subelements`, `R3 → field 48 buffer` — is unambiguously
+> three. The decision about how finely to scope work is made **here**, by how precisely you split,
+> and everything downstream inherits it.
 
-### Coarse (early, map-only)
+## The three-tier walk (§5.6)
 
-**Input:** the requirement (topics + intent) + `code_map.json`. **Read the map only — no source files.**
-
-**Procedure:**
-1. **Match.** Identify likely-affected areas by matching the requirement's `topics` against each map
-   entry's `tags`. Because topics and tags come from the **same domain vocabulary**, this is a direct
-   topic↔tag set-intersection — a file/component is a candidate iff `entry.tags ∩ requirement.topics ≠ ∅`.
-2. **Purpose sweep.** Also read each component/file `purpose` to catch a relevant area a tag alone would
-   miss (e.g. a `purpose` describing the requirement's behavior even where the tag set is thin). Add
-   those as candidates too.
-3. **Aggregate to areas.** Roll matched files up to their `module` / component — the candidate unit is a
-   **module/area**, not a file. Note the matching tags and a one-line why per area.
-4. **Rank.** Order areas by relevance: number/strength of tag hits, then purpose relevance. A direct
-   required-topic hit outranks a purpose-only match.
-
-**Output (coarse):** a ranked list of **candidate areas** (modules/components) for the deep pass to
-dive into, plus a rough, high-level risk read. **These are candidate areas — NOT yet divergence flags**
-(flags come only out of the deep assessment, which reads real code). Keep it business-framed and
-high-level — no file/function detail, since none was read.
-
-**Use:** fast and cheap. Threads high-level affected-area context into the **early** BRD sections and
-sharpens the `brd_author` discovery questions. The caller passes the coarse areas back to you as the
-deep pass's starting scope.
-
-### Deep (at the code-impact section, for flagged areas only)
-
-**Input:** the now-sharper requirement + the coarse pass's candidate areas (the flagged slice).
-
-**Procedure:**
-1. **Selective-read the flagged slice only.** Read the actual code for the candidate areas from `repo/`
-   with native file tools (read/grep). Read **only** those areas — never the whole repo. Use the map's
-   `path`s to go straight to the files; pull a neighbouring file only when the closure (step 2) points
-   at it.
-2. **Trace the real dependency closure.** From the real code (not just the map edges), follow
-   `depends_on` (callees) and `used_by` (callers) outward until the affected surface is closed. The map
-   seeds the closure; the source confirms and extends it — an edge the map missed but the code shows is
-   part of the closure. Closure is **within-repo only** (MVP single-repo, FR-DC-13).
-3. **Assess precise change per area.** For each affected area: the affected files/functions, the nature
-   of the change, downstream ripple (who else is touched via the closure), and risk/complexity.
-
-This is where divergence **Flags** come from: having read the real code, compare it against what the
-requirement assumed and emit a flag for each deviation (see Output contract).
-
-## Output contract — return BOTH parts (deep pass)
-
-Return a concise result to the caller; the heavy reading stays in your window.
-
-### 1. Impact summary
-
-Affected areas; nature of change per area; ripple (downstream dependencies from the closure);
-risk/complexity. **Business-framed** for the BRD (impacted systems / scale / risk). The file/function
-detail you read is carried **forward to the FRD**, not stated in the BRD code-impact section.
-
-### 2. Flags — REQUIRED every run (FR-BR-12, D6b)
-
-After assessing, compare the real code against the requirement's assumptions and emit a flag for **each**
-deviation. This section is emitted **every run** so deviations are actively checked, not noticed by
-chance. If there are none, emit `flags: []` and state **"no flags"** explicitly.
-
-```yaml
-flags:
-  - type: scope_ripple            # scope_ripple | complexity | constraint | infeasible
-    area: settlement/reconciler   # the affected area (module/path)
-    finding: "Brand routing shares the brand-rule table with settlement reconciliation"
-    implication: "Adding a brand also changes settlement, not just routing"
-    options: [include in scope, phase separately, adjust requirement, accept risk]
-    recommended_option: "include in scope"   # a recommendation — NOT a decision
-    severity: material            # material | advisory (recommended; D6c — see below)
-    requirement_ref: "code_impact.routing"   # the requirement/topic this flag traces to
+```
+query = frame + requirement title + requirement description + the assertion    ← RAW TEXT
+tier 1   query vs components[].purpose     ~10²   → matched modules
+tier 2   query vs files[].purpose, matched modules only  → candidate files
+tier 3a  READ the source of those files    → confirm/refute landings; verdict implicit assumptions
+tier 3b  walk depends_on/used_by to a fixed point → ripple, reaching files no tier selected
 ```
 
-**`severity` is a recommendation, not a decision.** Recommend `material` when the deviation appears to
-change the impacted code surface, change a `must_capture` the deep pass relied on, or move a
-Scope/Out-of-scope boundary (D6c); otherwise recommend `advisory`. The operator — via `brd_author`'s
-human-mediated flag loop — decides; you only recommend.
+**The query is raw text.** No keyword extraction, no tag emission, no intermediate artifact. And
+all four parts are required — a bare assertion fails:
 
-## Handoff
+```
+bare:      "accepted values are 01–04"
+             vs "Routes a transaction to the correct card-brand handler"   → no match
+in context: frame + "Authorization message must carry the brand indicator"
+            + "field 48 gains subelement 92 for brand routing" + the assertion
+                                                                → iso8583 / routing / settlement ✓
+```
 
-Return the impact summary + flags to the calling agent (`brd_author`). **You do not decide scope** — the
-caller surfaces flags to the operator, who decides; a material decision may trigger a re-run scoped to
-the changed surface only. You do not write `BRD.md`, edit `repo/`, or push anything.
+The assertion narrows **what to verify**; the requirement context supplies **what to search for**.
+
+**`purpose` seeds; source establishes.** Never conclude from a purpose alone — tier 3a exists
+precisely because a purpose can be stale, generic, or simply wrong.
+
+### Tier 1 can only over-include, never under-include
+
+Two rules, both non-negotiable:
+
+- **Low `purpose_confidence` WIDENS.** If a synthesised purpose cannot be trusted to describe its
+  cluster, it cannot be trusted to *rule the cluster out* either. A false positive costs tier 2
+  some work; a false negative is missed impact that nothing downstream will recover.
+- **`unclustered` is ALWAYS searched.** It is the doubly-unknown bucket — cannot group, cannot
+  describe — so there is nothing to match on and therefore nothing that could be safely excluded.
+
+Never skip a module for being low-confidence, unclustered, or awkward.
+
+### Tier 3b — closure, both directions, to a fixed point
+
+Walk `depends_on` **and** `used_by`. One direction would systematically miss half the ripple, and
+the missing half would be silent. Stop at a **fixed point** — when one more expansion adds nothing
+— not at a hop budget: with a budget you cannot distinguish "nothing more to find" from "ran out".
+
+**Source extends the map.** If reading a file at tier 3a reveals an edge the map does not carry —
+an indirect dispatch the parser could not resolve, a callback registration — **add it and keep
+walking**. The map is where the walk starts, not the boundary of what is true. `unresolved_patterns`
+in the coverage report is the map telling you exactly where to expect this.
+
+Record **why** each file was reached. A ripple that arrives as a bare list is unreviewable.
+
+## Execution — retrieval per deliverable, reasoning per assertion
+
+| | Batched | Independent |
+|---|---|---|
+| **Retrieval** — matched modules + their file purposes | **once per deliverable** | — |
+| **Reasoning** — per assertion | — | **independent, fan-out safe** |
+
+Resolve the territory once and keep it resident while the deliverable's assertions iterate against
+it. That is a cost optimisation, never a merging of results.
+
+**Anti-anchoring is a correctness rule, not hygiene.** Fan-out workers share **reference material**
+(the resolved territory — a deterministic artifact) and **never conclusions**. A worker must not
+see a sibling's landing points: inheriting one is a correctness bug, because the second assertion
+then gets evaluated against the first's answer instead of against the code.
+
+Structural learnings *may* carry — "the map missed this dispatch edge" is about the territory.
+Landing points never do.
+
+## Implicit current-state assumptions
+
+An assertion often carries an unstated claim about how the system is **today**. Extract and verdict
+those as you read (D-A8):
+
+> *"field 48 gains subelement 92"* silently assumes **field 48 has room**. If the buffer is
+> exhausted, the requirement is not a field addition — it is a structural change, and nobody knows
+> that yet.
+
+These are among the highest-value findings you produce, because they are invisible in v1: no one
+wrote them down, so no reviewer could have checked them.
+
+## Gaps — when nothing is found
+
+A no-code gap is **four-way ambiguous** and you cannot resolve it: genuinely new capability ·
+Arm 1 missed it · lives in another repo · not code at all.
+
+**Emit it as a §16 gap entry and escalate it. Never auto-build a story from it.** Routing is
+`enrichment.route_finding(kind="no_code_found")`, which escalates by construction — an operator
+decides which of the four it is, including the required *"cannot determine yet"* defer.
+
+Equally: a **versioned duplicate** (`iso8583.c` + `iso8583_v2.c`) means you cannot know whether an
+assertion lands on v1, v2, or both. Escalate; never pick silently.
+
+## What you write
+
+Findings into `enrichment.json` via `core/scripts/enrichment.py` — never into the document. You
+classify and record; the apply pass writes v2 and the walkthrough takes the operator's calls.
+
+Each finding carries its **evidence** (path, symbol, lines — referenced, never inlined) and its
+**reasoning**. A semantic match must carry why it matched: that is what makes a wrong match
+*reviewable* rather than silently wrong, and it is what the operator reads at the walkthrough.
 
 ## Boundaries
 
-- **Coarse mode never reads source files** — the map (`code_map.json`) only.
-- Coarse output is **candidate areas, not Flags** — divergence flags are a deep-pass product.
-- **Deep mode reads only the flagged slice** — not the whole repo.
-- **Never skip the Flags section** — it is part of the contract, emitted every run (`flags: []` when none).
-- Recommends `severity`; **never decides scope**. Does not edit the BRD or modify `repo/`.
-- Closure is **within-repo only** (single-repo MVP, FR-DC-13); cross-repo (`external_calls`/`exposes`) is
-  deferred.
+- Does not read v1 to *change* it — v1 is frozen at G1. You produce findings.
+- Does not decide scope, resolve a gap, or pick between versioned duplicates.
+- Does not verdict business judgment or future-state statements — that population is Arm 2's, and
+  most of it is skipped there too (D-A5).
+- Does not walk closure for Arm 2's claims, and does not see Arm 2's findings.
+- Does not write §16 into the document directly, and never touches §8 (requirements are
+  extend-only; code cannot contradict an intent).

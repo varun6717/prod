@@ -203,7 +203,23 @@ def hydrate(
             try:
                 _git(["checkout", registry_sha], cwd=checkout)
             except RuntimeError:
-                # pinned SHA not in the shallow fetch — deepen, then retry (robustness)
+                # The pinned SHA is not in what we fetched. If the clone is shallow, deepening
+                # can still find it — retry. If it is NOT shallow we already have every commit,
+                # so the SHA simply is not in this registry and deepening is meaningless.
+                #
+                # That distinction matters because **git ignores `--depth` for local clones**
+                # ("--depth is ignored in local clones; use file:// instead"). Retrying blindly
+                # therefore failed against every local registry with "--unshallow on a complete
+                # repository does not make sense" — an error about shallowness that says nothing
+                # about the actual fault, which is a bad `registry_sha`. Found at TASK-127, on the
+                # first real Generate through the UI.
+                shallow = _git(["rev-parse", "--is-shallow-repository"], cwd=checkout) == "true"
+                if not shallow:
+                    raise RuntimeError(
+                        f"registry_sha {registry_sha!r} is not a commit in registry {clone_src} "
+                        f"(the checkout is complete, so deepening cannot help). Pin a SHA that "
+                        f"exists on ref {ref or 'the default branch'}."
+                    ) from None
                 _git(["fetch", "--unshallow"], cwd=checkout)
                 _git(["checkout", registry_sha], cwd=checkout)
             verified_sha = _git(["rev-parse", "HEAD"], cwd=checkout)

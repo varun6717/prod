@@ -1,38 +1,16 @@
 # registry_manifest.yaml — the publishable registry subset (repo #1; §2.1, §6.6.1, FR-XS-10)
 #
-# Declares EXACTLY the PDLC folders/files that constitute the SHA-pinned **registry** pushed
-# to Bitbucket as repo #1 and hydrated into a run scaffold (Appendix B). `publish_registry.py`
-# stages this subset, gates it on `build_checks.py` (§10) as a HARD pre-push gate, and pushes;
-# `hydrate.py` then pulls `core/` + `overlays/<tool>/` from the published tree at `registry_sha`.
-#
-# What this is NOT: the external-build *control* docs (CLAUDE.md, TASK_LIST.md), this build's
-# run logs (docs/ACCEPTANCE*.md, docs/ENV_PRECHECK.md), working notes (docs/design/),
-# fixtures/, runs/, and .git/ are never published — they are build-time scaffolding, not the
-# registry the VDI hydrates.
-schema_version: 1
+# Shrunk to whole trees per ADR-008 D-A22: the previous hand-listed docs enumeration was a
+# maintenance trap (add an ADR, forget the manifest, it silently never ships). Everything
+# under the three trees publishes; `exclude` strips non-determinism. Control docs at the
+# repo root (CLAUDE.md, TASK_LIST.md, VDI_WIRING.md), fixtures/, runs/, app/, notes/ and
+# cache/ are outside the trees and never publish. `publish_registry.py` stages this subset,
+# gates on `build_checks.py`, and pushes; `hydrate.py` pulls from the published tree at a
+# pinned `registry_sha`.
+schema_version: 2
 
 include:
-  # Whole directory subtrees, copied recursively (the `exclude` globs below still apply).
-  trees:
-    - core/        # skills, scripts, extractors, adapters, profiles[domain], templates[domain],
-                   #   instruction_file.template.md, overlay_manifest.yaml, onboarding_manifest.yaml,
-                   #   and this registry_manifest.yaml — the DOMAIN seam + generic engine
-    - overlays/    # both runtime-tool overlays (claude, copilot) — the RUNTIME-TOOL seam (D9)
-
-  # Curated docs subset — the authoritative + supporting design shipped with the registry so
-  # the generated instruction file's citations (e.g. "docs/TECH_SPEC.md §5.3") resolve on the
-  # VDI, and the registry is a self-describing, auditable artifact.
-  docs:
-    - docs/REQUIREMENTS.md          # authoritative WHAT/WHY (D1–D10, FR/NFR)
-    - docs/TECH_SPEC.md             # authoritative HOW (schemas, seams, gates)
-    - docs/SKILLS_INDEX.md          # skill catalogue
-    - docs/BUILD_OVERVIEW.md        # build orientation
-    - docs/COPILOT_VDI_VALIDATION.md
-    - docs/brd_frd_overview.html
-    - docs/brd_author.skill.md      # seed skills cited by the pack/profiles
-    - docs/code_impact_assess.skill.md
-    - docs/code_map_build.skill.md
-    - docs/max-autonomy.skill.md
+  trees: [core/, overlays/, docs/]
 
 # Never published, even when nested under an included tree — non-determinism, caches, VCS.
 exclude:

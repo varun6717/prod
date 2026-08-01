@@ -249,19 +249,19 @@ def _demo() -> None:
         # (1) delete a Copilot wrapper
         (variant / "copilot" / "code_impact.agent.md").unlink()
         # (2) point a Claude wrapper at a divergent skill
-        diverged = variant / "claude" / ".claude" / "agents" / "frd_author.md"
+        diverged = variant / "claude" / ".claude" / "agents" / "jira_author.md"
         diverged.write_text(diverged.read_text().replace(
-            "core/skills/frd_author.skill.md", "core/skills/WRONG.skill.md"))
+            "core/skills/jira_author.skill.md", "core/skills/WRONG.skill.md"))
 
         bad = check_parity(overlays_root=variant)
-        print("\nCRAFTED (deleted copilot code_impact wrapper + diverged claude frd_author skill):")
+        print("\nCRAFTED (deleted copilot code_impact wrapper + diverged claude jira_author skill):")
         for v in bad.violations:
             print(f"  VIOLATION {v}")
         assert any(v.kind == "missing_wrapper" and v.overlay == "copilot"
                    and v.target == "code_impact" for v in bad.violations), \
             "the deleted copilot wrapper must be flagged, naming the role + overlay"
         assert any(v.kind == "skill_divergence" and v.overlay == "claude"
-                   and v.target == "frd_author" for v in bad.violations), \
+                   and v.target == "jira_author" for v in bad.violations), \
             "the divergent-skill wrapper must be flagged"
     print("\nPASS — real overlays at parity; deleted + divergent wrappers flagged with role + overlay.")
 
