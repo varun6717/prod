@@ -1,0 +1,229 @@
+{
+  "repo": "mixed_repo",
+  "seal_id": "",
+  "commit_sha": "mix0001",
+  "generated_at": "2026-08-01T00:00:00Z",
+  "coverage": "coarse",
+  "language": "c",
+  "languages": [
+    "c",
+    "java",
+    "python"
+  ],
+  "onboarded_languages": [
+    "c",
+    "python"
+  ],
+  "built_with_extractor_sha": "ed703ff",
+  "profile_sha": "c0f534f",
+  "files": [
+    {
+      "path": "scripts/report.py",
+      "language": "python",
+      "module": "python:scripts",
+      "purpose": "build the daily settlement report from posted ledger entries",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 2
+    },
+    {
+      "path": "scripts/report/__init__.py",
+      "language": "python",
+      "module": "python:unclustered",
+      "purpose": "settlement reporting package",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 2
+    },
+    {
+      "path": "scripts/report/formatter.py",
+      "language": "python",
+      "module": "python:scripts",
+      "purpose": "render settlement rows into the DSR fixed-width format",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 2
+    },
+    {
+      "path": "scripts/report/ledger_read.py",
+      "language": "python",
+      "module": "python:scripts",
+      "purpose": "read posted ledger entries for a settlement day",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 2
+    },
+    {
+      "path": "src/config/config.c",
+      "language": "c",
+      "module": "c:config",
+      "purpose": "implements get_brand_rule, set_brand_enabled",
+      "purpose_source": "inferred",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "get_brand_rule(t)",
+        "set_brand_enabled(brand, enabled)"
+      ],
+      "depends_on": [],
+      "used_by": [
+        "routing/router"
+      ],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": []
+    },
+    {
+      "path": "src/config/config.h",
+      "language": "c",
+      "module": "c:config",
+      "purpose": "declares get_brand_rule, set_brand_enabled",
+      "purpose_source": "symbols",
+      "purpose_quality": "generic",
+      "interfaces": [
+        "get_brand_rule(t)",
+        "set_brand_enabled(brand, enabled)"
+      ],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": []
+    },
+    {
+      "path": "src/routing/router.c",
+      "language": "c",
+      "module": "c:config",
+      "purpose": "implements route_transaction, register_brand",
+      "purpose_source": "inferred",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "route_transaction(t)",
+        "register_brand(brand)"
+      ],
+      "depends_on": [
+        "config/config"
+      ],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": []
+    },
+    {
+      "path": "src/routing/router.h",
+      "language": "c",
+      "module": "c:shared_interfaces",
+      "purpose": "declares route_transaction, register_brand",
+      "purpose_source": "symbols",
+      "purpose_quality": "generic",
+      "interfaces": [
+        "route_transaction(t)",
+        "register_brand(brand)"
+      ],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": []
+    },
+    {
+      "path": "src/settlement/post.c",
+      "language": "c",
+      "module": "c:settlement",
+      "purpose": "post routed transactions to the settlement ledger",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "post_settlement(txn_id, amount)"
+      ],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "src/settlement/post.h",
+      "language": "c",
+      "module": "c:settlement",
+      "purpose": "settlement posting entry points",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "post_settlement(txn_id, amount)"
+      ],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "tools/Validate.java",
+      "language": "java",
+      "module": "java:unclustered",
+      "purpose": "implements validateMessage, checkSubelementLayout",
+      "purpose_source": "inferred",
+      "purpose_quality": "specific",
+      "interfaces": [],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": []
+    },
+    {
+      "path": "tools/validation/BrandRules.java",
+      "language": "java",
+      "module": "java:unclustered",
+      "purpose": "implements checkBrandConstraints",
+      "purpose_source": "inferred",
+      "purpose_quality": "specific",
+      "interfaces": [],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": []
+    },
+    {
+      "path": "tools/validation/FieldRules.java",
+      "language": "java",
+      "module": "java:unclustered",
+      "purpose": "implements checkSubelementLayout",
+      "purpose_source": "inferred",
+      "purpose_quality": "specific",
+      "interfaces": [],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": []
+    }
+  ]
+}

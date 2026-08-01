@@ -237,6 +237,7 @@ connector's placeholder per hard rule **S**, done as connectors land on the VDI 
 
 **Phase D · Milestone D4 — Enrichment (v1 → v2)**
 - [x] TASK-117 — `enrichment.json` contract + finding routes: 🆕 `schemas/enrichment.schema.json` (per finding: id/arm/kind/refs/evidence/reasoning/verdict/action/route/disposition/rationale/**status**) + 🆕 `core/scripts/enrichment.py` — the record **and** the D-A16 router in one place on purpose, since both arms *and* the walkthrough consume it and a table implemented three times drifts twice. **Provenance decides authority, not the finding's content** (D-A6): the same contradiction auto-corrects (source-derived), escalates (operator/frame — never overrule a human silently), or auto-fills (unsourced `[TBD]`). **Scope-moving is tested first**, before grounding, because a perfectly evidenced source contradiction that moves a boundary is *still* an operator decision. `status` is per finding so the walkthrough is **resumable** (fifty findings will not be dispositioned in one sitting), undispositioned findings live **here and not in the document** (or v2 would ship with "TBD, awaiting operator" scattered through it), and no route can remove anything — a contradicted claim is *rewritten*, because at G2 an operator can see a changed sentence but cannot see a missing one. `v1_sha256` pins the frozen v1 the record was computed against, or "v1 + enrichment.json reconstruct v2" stops being true. **A defect the proof caught:** the schema's conditional requirements (`escalated ⇒ reason + severity`) used `if/then`, which `ledger.py`'s minimal validator **does not support** — so those constraints sat in the file *looking* enforced while validating nothing, which is worse than being absent; `if/then/else` added. Proof: 🆕 `fixtures/enrichment/verify_enrichment_router.py` — **38 checks**: every row of D-A16's table, one contradiction under four provenances yielding three routes, the no-code four-way with its **required defer path**, an auto-applied finding **refusing** to be dispositioned, and both ledgers stamped with the **rationale in `decisions.jsonl` and not telemetry** (telemetry counts; decisions explains). §10 4/4; all 18 verifies green.
+- [x] TASK-118 — Arm 1: per-assertion impact (`code_impact` recast): skill fully recast around the three-tier walk — query is **raw text** (frame + title + description + assertion; a bare assertion demonstrably matches nothing), **`purpose` seeds and source establishes**, retrieval batched **per deliverable** while reasoning stays **per-assertion and independent** (anti-anchoring is a *correctness* rule: an inherited landing point means the second assertion is evaluated against the first's answer instead of against the code). 🆕 `core/scripts/tier_walk.py` — the deterministic core: `tier1` (low confidence **widens**, `unclustered` **always** searched — so tier 1 can only ever over-include, the correct failure direction), `tier2` (matched modules only), and `closure` (**both directions, to a fixed point**, with a `via` trail so the ripple is reviewable). Fixed point rather than a hop budget, because with a budget you cannot distinguish "nothing more to find" from "ran out". §16 granularity **is** story granularity, decided here. 🆕 `fixtures/code_impact/` tier-walk oracles (salvaging TASK-080's closure semantics). **A determinism hazard the oracle exposed:** `.c` and `.h` share an edge identity, and the resolver was last-wins — so which file an edge reached depended on enumeration order, and the ripple could differ between runs *while looking perfectly stable*; an identity now resolves to **every** file carrying it (one compilation unit). **Two weak checks I had written and replaced:** the "one-directional walk loses reach" control originally stripped `used_by` from the entries, which proves nothing since `merge_edges` derives it from other files' `depends_on` — a genuinely **directed** walk now shows 12 vs 19 files, 7 lost; and the `unclustered`-always-searched check was vacuous on `c_repo` (which places every file), so it moved to `mixed_repo`, whose un-onboarded Java partition genuinely has one. Proof: 🆕 `verify_tier_walk.py` — **28 checks**: multi-hop closure to its oracle fixed point, reverse-only files reached, a single-hop control that does not leak, a **source-recovered edge reaching 2 files the map cannot** (19 → 21), no-code gaps and versioned duplicates escalating rather than auto-building, and an implicit current-state assumption ("field 48 has room") surfacing with evidence. §10 4/4; all 19 verifies green.
 
 ---
 
@@ -268,7 +269,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ## Open index (tick here; then collapse the task into the done ledger above)
 
 **Milestone D4 — Enrichment (v1 → v2)**
-- [ ] TASK-118 — Arm 1: per-assertion impact (`code_impact` recast) · `Opus`
 - [ ] TASK-119 — Arm 2: `claim_verifier` · `Opus`
 - [ ] TASK-120 — Disposition walkthrough · `Opus`
 - [ ] TASK-121 — Apply pass + G2 + enrichment spine exercise · `Opus`
@@ -286,31 +286,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ---
 
 ## Milestone D4 — Enrichment (v1 → v2)
-
-### TASK-118 — Arm 1: per-assertion impact (`code_impact` recast)
-- **Depends on:** TASK-117, TASK-114 (map).
-- **Model:** Opus.
-- **Reads:** §5.6 (the three-tier walk) · D-A19 (tiers; query = frame + title + description +
-  assertion; low confidence **widens**; territory amortisation) · D-A8 (retrieval per deliverable
-  / reasoning per epic; independent fan-out, anti-anchoring; **implicit current-state
-  assumptions**) · D-A15/16 (§16 granularity = (assertion × location) incl. **gaps**; no-code gap
-  escalates, never auto-builds) · D-A9 · old TASK-080 spec (git `0d7d8aa` — its fixed-point /
-  both-directions / source-extends checks fold into Acceptance here).
-- **Creates / edits:** `core/skills/code_impact_assess.skill.md` full recast: resolve the code
-  **territory once per deliverable** (tier 1 vs module purposes; matched modules + their file
-  purposes stay resident); fan out **per epic, independently** (structural learnings may carry;
-  landing points never inherited); per assertion — tier 2 (file purposes within matched modules),
-  tier 3a (read source; confirm/refute; extract + verdict implicit current-state assumptions),
-  tier 3b (closure over `depends_on`/`used_by` **both directions to a fixed point**, extending
-  from source where the map missed an edge); emit §16 entries per (assertion × location) — impacts
-  **and** gaps; no-code findings route to escalation via TASK-117. New tier-walk oracles
-  `fixtures/code_impact/` (salvaging the old closure content from git history).
-- **Acceptance:** over the fixture v1 + `c_repo` map: a multi-hop closure reaches its oracle
-  fixed point (both directions; a deliberately map-omitted edge recovered from source; a
-  single-hop control does not over-report); an implicit-assumption finding surfaces (the "field
-  48 has room" class); a no-code assertion escalates rather than emitting a build story;
-  `unclustered` and low-confidence modules are searched, never skipped.
-- **Proof:** tier-walk oracle diff + the escalation record in `enrichment.json`.
 
 ### TASK-119 — Arm 2: `claim_verifier`
 - **Depends on:** TASK-117.

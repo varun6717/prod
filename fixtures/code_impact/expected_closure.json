@@ -1,0 +1,107 @@
+{
+  "_comment": "Tier-walk oracles (TASK-118). Hand-derived from fixtures/c_repo/expected_files.json by reading the edge table, NOT by running the walker \u2014 the closure fixed point is exactly the property the walker could get wrong, so the oracle has to be independent of it. Salvages the closure semantics of the retired TASK-080 spec: fixed point, both directions, source-extends, and a single-hop control that must NOT over-report.",
+  "multi_hop": {
+    "why": "The scope_ripple chain. brand_router calls reconcile_txn (settlement), so a routing assertion ripples into settlement and on into messaging \u2014 the 'adding a brand also changes settlement' relationship. Reaching the fixed point requires FOUR hops and both edge directions.",
+    "seeds": [
+      "src/routing/brand_router.c"
+    ],
+    "expected_reached": [
+      "src/config/brand_rules.c",
+      "src/config/brand_rules.h",
+      "src/messaging/formatter.c",
+      "src/messaging/iso8583.c",
+      "src/routing/brand_registry.c",
+      "src/routing/brand_router.c",
+      "src/routing/capture_route.c",
+      "src/routing/dispatch.c",
+      "src/routing/route_table.c",
+      "src/routing/route_table.h",
+      "src/settlement/ledger_post.c",
+      "src/settlement/reconciler.c",
+      "src/settlement/reconciler.h",
+      "src/settlement/settlement_batch.c",
+      "src/transaction/auth_handler.c",
+      "src/transaction/capture_handler.c",
+      "src/transaction/settle_handler.c",
+      "src/transaction/txn_lifecycle.c",
+      "src/transaction/txn_state.c"
+    ],
+    "reached_only_by_reverse_edge": [
+      "src/transaction/txn_lifecycle.c",
+      "src/routing/capture_route.c",
+      "src/routing/dispatch.c"
+    ],
+    "note_reverse": "txn_lifecycle appears ONLY in brand_router's used_by. A depends_on-only walk would miss it and everything beyond it \u2014 silently.",
+    "_header_note": "The .h members appear because an edge identity like `config/brand_rules` names BOTH brand_rules.c and brand_rules.h \u2014 one compilation unit. Resolving an identity to a single file would be order-dependent, so the walk resolves to all of them. The oracle was corrected to follow that rule after the walker surfaced the ambiguity; the fixed-point and both-directions properties below are unchanged by it."
+  },
+  "single_hop_control": {
+    "why": "The over-reporting control. retry.c depends on error_codes.c and nothing else touches either. A correct walk reaches exactly two files; a walk that leaked into the global graph would return the whole repo and look thorough.",
+    "seeds": [
+      "src/errors/retry.c"
+    ],
+    "expected_reached": [
+      "src/errors/error_codes.c",
+      "src/errors/retry.c"
+    ],
+    "expected_hops": 1
+  },
+  "source_extends_map": {
+    "why": "The map-omitted edge, and the reason it matters. dispatch.c resolves its handler through an opaque vtable and, on a failed lookup, enters the bounded-retry path \u2014 an indirect call the parser cannot resolve, so it lands in unresolved_patterns rather than as an edge. The `errors` component is DISCONNECTED in the map, so a dispatch assertion's ripple stops dead at its boundary. Tier 3a reads the source, finds the edge, and feeds it to tier 3b \u2014 which is the difference between reaching the retry path and never knowing it was affected.",
+    "seeds": [
+      "src/routing/dispatch.c"
+    ],
+    "expected_reached_map_only": [
+      "src/config/brand_rules.c",
+      "src/config/brand_rules.h",
+      "src/messaging/formatter.c",
+      "src/messaging/iso8583.c",
+      "src/routing/brand_registry.c",
+      "src/routing/brand_router.c",
+      "src/routing/capture_route.c",
+      "src/routing/dispatch.c",
+      "src/routing/route_table.c",
+      "src/routing/route_table.h",
+      "src/settlement/ledger_post.c",
+      "src/settlement/reconciler.c",
+      "src/settlement/reconciler.h",
+      "src/settlement/settlement_batch.c",
+      "src/transaction/auth_handler.c",
+      "src/transaction/capture_handler.c",
+      "src/transaction/settle_handler.c",
+      "src/transaction/txn_lifecycle.c",
+      "src/transaction/txn_state.c"
+    ],
+    "recovered_edge": {
+      "from": "src/routing/dispatch.c",
+      "to": "src/errors/retry.c",
+      "evidence": "dispatch.c's failed-lookup path enters bounded retry through the vtable; the parser records this in unresolved_patterns rather than as a depends_on edge"
+    },
+    "expected_reached_with_recovered_edge": [
+      "src/config/brand_rules.c",
+      "src/config/brand_rules.h",
+      "src/errors/error_codes.c",
+      "src/errors/retry.c",
+      "src/messaging/formatter.c",
+      "src/messaging/iso8583.c",
+      "src/routing/brand_registry.c",
+      "src/routing/brand_router.c",
+      "src/routing/capture_route.c",
+      "src/routing/dispatch.c",
+      "src/routing/route_table.c",
+      "src/routing/route_table.h",
+      "src/settlement/ledger_post.c",
+      "src/settlement/reconciler.c",
+      "src/settlement/reconciler.h",
+      "src/settlement/settlement_batch.c",
+      "src/transaction/auth_handler.c",
+      "src/transaction/capture_handler.c",
+      "src/transaction/settle_handler.c",
+      "src/transaction/txn_lifecycle.c",
+      "src/transaction/txn_state.c"
+    ],
+    "only_reachable_via_recovered_edge": [
+      "src/errors/error_codes.c",
+      "src/errors/retry.c"
+    ]
+  }
+}

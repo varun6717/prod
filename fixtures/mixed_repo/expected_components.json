@@ -1,0 +1,111 @@
+{
+  "repo": "mixed_repo",
+  "seal_id": "",
+  "commit_sha": "mix0001",
+  "generated_at": "2026-08-01T00:00:00Z",
+  "coverage": "coarse",
+  "language": "c",
+  "languages": [
+    "c",
+    "java",
+    "python"
+  ],
+  "onboarded_languages": [
+    "c",
+    "python"
+  ],
+  "built_with_extractor_sha": "ed703ff",
+  "profile_sha": "c0f534f",
+  "components": [
+    {
+      "module": "c:config",
+      "language": "c",
+      "purpose": "c:config: 3 files covering brand, enabled, get, implements",
+      "members": [
+        "src/config/config.c",
+        "src/config/config.h",
+        "src/routing/router.c"
+      ],
+      "cohesion": 1.0,
+      "purpose_confidence": 0.75
+    },
+    {
+      "module": "c:settlement",
+      "language": "c",
+      "purpose": "c:settlement: 2 files covering settlement, entry, ledger, points",
+      "members": [
+        "src/settlement/post.c",
+        "src/settlement/post.h"
+      ],
+      "cohesion": 1.0,
+      "purpose_confidence": 0.85
+    },
+    {
+      "module": "c:shared_interfaces",
+      "language": "c",
+      "purpose": "declares route_transaction, register_brand",
+      "members": [
+        "src/routing/router.h"
+      ],
+      "cohesion": 1.0,
+      "purpose_confidence": 0.7
+    },
+    {
+      "module": "java:unclustered",
+      "language": "java",
+      "purpose": "java:unclustered: 3 files covering implements, checksubelementlayout, checkbrandconstraints, validatemessage",
+      "members": [
+        "tools/Validate.java",
+        "tools/validation/BrandRules.java",
+        "tools/validation/FieldRules.java"
+      ],
+      "cohesion": 1.0,
+      "purpose_confidence": 0.0,
+      "always_pass_tier1": true
+    },
+    {
+      "module": "python:scripts",
+      "language": "python",
+      "purpose": "python:scripts: 3 files covering settlement, entries, ledger, posted",
+      "members": [
+        "scripts/report.py",
+        "scripts/report/formatter.py",
+        "scripts/report/ledger_read.py"
+      ],
+      "cohesion": 1.0,
+      "purpose_confidence": 0.85
+    },
+    {
+      "module": "python:unclustered",
+      "language": "python",
+      "purpose": "settlement reporting package",
+      "members": [
+        "scripts/report/__init__.py"
+      ],
+      "cohesion": 1.0,
+      "purpose_confidence": 0.0,
+      "always_pass_tier1": true
+    }
+  ],
+  "coverage_report": {
+    "files_seen": 13,
+    "files_extracted": 5,
+    "files_fallback": 7,
+    "files_unresolved": 1,
+    "unresolved_patterns": [
+      "non-standard vendor include in routing/router.c"
+    ],
+    "coverage": 0.38,
+    "stage_distribution": {
+      "A": 6,
+      "C": 5,
+      "C*": 2
+    },
+    "unanalyzable": [],
+    "duplicates_requiring_disposition": [],
+    "low_confidence_modules": [
+      "java:unclustered",
+      "python:unclustered"
+    ]
+  }
+}
