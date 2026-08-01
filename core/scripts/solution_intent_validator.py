@@ -341,6 +341,127 @@ def evaluate(signals: V1Signals, profile: dict, *,
                     preconditions=pre, gaps=tuple(gaps))
 
 
+# ── G2 — the enrichment gate (§9.3, FR-EN-07). PROVISIONAL formula, see below. ────
+@dataclass(frozen=True)
+class G2Result:
+    verdict_completeness: float
+    impact_coverage: float
+    score: int
+    threshold: int
+    score_pass: bool
+    preconditions: tuple = ()
+
+    @property
+    def hard_ok(self) -> bool:
+        return all(p.ok for p in self.preconditions)
+
+    @property
+    def eligible(self) -> bool:
+        return self.score_pass and self.hard_ok
+
+    @property
+    def blockers(self) -> tuple:
+        return tuple(v for p in self.preconditions if not p.ok for v in p.violations)
+
+
+def evaluate_g2(record: dict, signals: V1Signals, *,
+                threshold: int = THRESHOLD_DEFAULT) -> G2Result:
+    """Score enrichment and decide G2 eligibility (§9.3).
+
+        verdict_completeness = assertions and claims verdicted / total in the verdict population
+        impact_coverage      = requirements with §16 entries or dispositioned / total requirements
+        g2_score = round(100 * (0.5 * verdict_completeness + 0.5 * impact_coverage))
+
+    **The population is the denominator, and D-A5 defines it narrowly**: factual current-state
+    claims only. Runtime-shaped claims are *skipped*, not counted as unverdicted — including them
+    would make a correct run look incomplete forever, and would push a verifier toward marking
+    things it cannot actually check.
+
+    §9.3 marked this formula **provisional** — "validate against the first real run before
+    freezing" (D-A23). **TASK-121 ran that evaluation and it failed**, so `impact_coverage` is
+    amended (§9.3 + FR-EN-07 amended in-task; port note added):
+
+        was:  requirements with §16 entries **or dispositioned** / total requirements
+        now:  requirements **Arm 1 reached** (produced ≥1 finding for) / total requirements
+
+    On the spine run, 12 requirements had every assertion verdicted and every escalation
+    dispositioned — a complete, correct run — and the literal formula scored **0.417**, giving
+    G2 **71** against a threshold of 85. The cause: seven requirements were fully analysed and
+    found to need **no change**, so they had neither a §16 entry nor a disposition.
+
+    That is not a coverage gap; it is the desirable outcome. Worse, the formula created a
+    perverse incentive — the cheapest way to raise the score would have been to *manufacture*
+    §16 entries for requirements that need none, which is precisely the fabrication the whole
+    grounding discipline exists to prevent. The amended reading measures what the metric was
+    always for: whether Arm 1 reached every requirement.
+    """
+    fs = record["findings"]
+    verdicted = {f.get("assertion_ref") or f.get("section_ref") or f["id"]
+                 for f in fs if f.get("verdict")}
+    population = len(verdicted) + sum(1 for f in fs if f.get("verdict") is None
+                                      and f["action"] != "none" and f["status"] != "superseded"
+                                      and f["kind"] not in ("scope_move",))
+    vc = (len(verdicted) / population) if population else 1.0
+
+    # impact_coverage — AMENDED at TASK-121 against the first real run (see the module note).
+    # A requirement Arm 1 fully analysed and found needs NO change has no §16 entry and no
+    # disposition, yet it is completely covered. The literal §9.3 reading scored it as a gap,
+    # which penalises a correct run and rewards manufacturing impacts. What the metric is
+    # actually for is "did Arm 1 REACH every requirement?", so that is what it measures.
+    reqs = set(signals.requirements)
+    covered = {f.get("requirement_ref") for f in fs
+               if f.get("requirement_ref") and f["status"] != "superseded"}
+    ic = (len(reqs & covered) / len(reqs)) if reqs else 1.0
+    score = round(100 * (0.5 * vc + 0.5 * ic))
+
+    v: list[str] = []
+    for f in fs:
+        if f["action"] == "escalated" and f["status"] == "undispositioned":
+            v.append(f"{f['id']} escalated but never dispositioned — the operator turn is "
+                     f"incomplete, and v2 would ship with an unresolved finding invisible to it")
+    p1 = Precondition("every_escalation_dispositioned", not v, tuple(v))
+
+    v = [f"{f['id']} is an auto-applied correction with no code provenance — a silent rewrite "
+         f"of an accepted document is exactly what the citation rule closes"
+         for f in fs if f.get("route") in ("auto_correct", "auto_fill")
+         and f["action"] == "auto_applied" and not f.get("evidence")]
+    p2 = Precondition("corrections_carry_provenance", not v, tuple(v))
+
+    unverdicted = [a for r in signals.requirements
+                   for a in _assertion_ids(signals, r)
+                   if a not in verdicted]
+    p3 = Precondition("every_assertion_verdicted", not unverdicted,
+                      tuple(f"{a} has no verdict — Arm 1 must reach every assertion, or §16 "
+                            f"coverage is unknowable rather than merely incomplete"
+                            for a in unverdicted[:5]))
+
+    return G2Result(vc, ic, score, threshold, score >= threshold, (p1, p2, p3))
+
+
+def _assertion_ids(signals: V1Signals, req: str) -> list[str]:
+    n = signals.req_assertions.get(req, 0)
+    return [f"{req}.{i}" for i in range(1, n + 1)]
+
+
+def record_g2(ledger_dir, *, result: G2Result, outcome: str, version: int,
+              actor: str = "vmunjal", ts: str | None = None):
+    """Wire the validator into G2. Same soft-gate discipline as G1: accept is the operator's, and
+    is refused when the hard preconditions do not hold."""
+    if outcome not in _VALID_OUTCOMES:
+        raise ValueError(f"outcome must be one of {_VALID_OUTCOMES}; got {outcome!r}")
+    if outcome == "accept" and not result.eligible:
+        raise ValueError(f"G2 accept refused: {list(result.blockers)}")
+    import telemetry
+    locked = lock_version(version, outcome)
+    em = telemetry.Emitter(ledger_dir, run_id=_run_id(ledger_dir), domain="payment_brand",
+                           tool=_runtime_tool(ledger_dir))
+    em.validation(artifact="enrichment", score=float(result.score), ts=ts)
+    em.gate_decision(gate="G2", outcome=outcome, actor=actor, version=locked, ts=ts)
+    telemetry.gate(Path(ledger_dir) / "decisions.jsonl", gate="G2", outcome=outcome,
+                   version=locked, actor=actor, ts=ts)
+    return locked
+
+
 # ── G1 wiring + the freeze ────────────────────────────────────────────────────
 def lock_version(version: int, outcome: str) -> int:
     """FR-XS-14: accept → v``version`` (locked as-is); reopen → v``version+1``."""

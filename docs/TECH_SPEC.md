@@ -892,9 +892,26 @@ conditional section dispositioned (FR-SI-06) **AND** (hard) §15→§4 + §8→�
 ```
 verdict_completeness = assertions_and_claims_verdicted / total_in_verdict_population
                        # population per D-A5 (factual current-state only; runtime-shaped skipped)
-impact_coverage      = requirements_with_section16_entries_or_dispositioned / total_requirements
+impact_coverage      = requirements_ARM_1_REACHED / total_requirements     # ← AMENDED, TASK-121
 g2_score = round(100 * (0.5 * verdict_completeness + 0.5 * impact_coverage))
 ```
+
+> 🔧 **Amendment (TASK-121, 2026-08-01) — the provisional formula was validated and failed.**
+> D-A23 marked this formula provisional pending "validation against the first real run". That run
+> happened at TASK-121 and the original `impact_coverage` —
+> ~~`requirements_with_section16_entries_or_dispositioned / total_requirements`~~ — scored a
+> **complete, correct** run at **0.417**, giving G2 **71** against a threshold of 85.
+>
+> **Cause:** 7 of 12 requirements were fully analysed by Arm 1 and found to need **no change**, so
+> they carried neither a §16 entry nor a disposition. That is the *desirable* outcome, not a
+> coverage gap — and the formula made the cheapest route to a passing score the **manufacture of
+> §16 entries for requirements that need none**, which is exactly the fabrication the grounding
+> discipline exists to prevent.
+>
+> **Resolution:** `impact_coverage` measures what it was always for — whether Arm 1 **reached**
+> every requirement (produced ≥1 finding of any kind for it). Verdict completeness already
+> measures per-assertion thoroughness; this measures per-requirement reach, so the two halves stay
+> independent. **Port note:** carry this into the JPMC-side §9.3 + FR-EN-07 at port time.
 **G2 passes iff:** `g2_score ≥ threshold` **AND** (hard) every escalated finding dispositioned via the
 walkthrough **AND** (hard) every in-place correction carries `[code:]` provenance **AND** (hard) §1
 regenerated after all corrections. Accept → `v2.md` accepted; Jira authoring may begin. *(Provisional
