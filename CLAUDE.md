@@ -8,7 +8,9 @@
 
 You are building **PDLC_App_v2** — an agentic **Solution Intent → enrichment → Jira** generation pipeline for JPMC Merchant Services (per **ADR-008**, accepted 2026-07-31; BRD/FRD are retired). Five layers: **Data & context → Solution Intent v1 → enrichment (v2) → Jira (4-level plan) → Metrics**. This repo is the **external Claude Code build**; it is validated here, then ported to the JPMC VDI later (see `VDI_WIRING.md`).
 
-**Current slice (post-ADR-008):** single domain `payment_brand`; single repo; **Solution Intent v1 → enrichment → v2** (Jira 4-level plan follows; push behind G3); mock-fixture inputs per source type (D-A24) + one Stratus C repo. Breadth (multi-repo, more languages, multi-domain, cross-language closure) stays deferred.
+**Current slice (post-ADR-008):** single domain `payment_brand`; single repo; the whole spine — **Solution Intent v1 → enrichment → v2 → the 4-level Jira plan**, with the push behind G3 and its two REST calls left as `[TBD — VDI]` placeholders; mock-fixture inputs per source type (D-A24) + one Stratus C repo. Breadth (multi-repo, more languages, multi-domain, cross-language closure) stays deferred.
+
+**Where the build stands:** Milestones D0–D5 are complete and D6 is in progress — what remains is docs, then the end-to-end acceptance run (TASK-127). `TASK_LIST.md`'s checkboxes are the authority; **disk is ground truth over both.**
 
 ---
 
@@ -18,7 +20,7 @@ All design docs live in **`./docs/`**. They are authoritative and frozen; you im
 
 1. **`docs/REQUIREMENTS.md`** — WHAT / WHY. FR/NFR IDs, MoSCoW, the resolved decisions **D1–D11**. **Read the ADR-008 supersession notice at its head first**: several D-blocks are ⛔ superseded or 🔧 amended by **D11** (the Solution Intent pivot) — never build against a ⛔ block. **Do not reopen D1–D11**; `docs/design/ADR-008-solution-intent-pivot.md` (Accepted) is normative for the new subsystems.
 2. **`docs/TECH_SPEC.md`** — HOW. On-disk schemas, the code-impact subsystem (extractor / dispatcher / onboarding gate), the seams, `jpmc_adapters`, telemetry→metrics, gate thresholds, build checks. **Every YAML/JSON block here is a contract; field names are part of it.** Build directly off these.
-3. Supporting context (read when a task cites them): `docs/SKILLS_INDEX.md`, `docs/BUILD_OVERVIEW.md`, `docs/brd_frd_overview.html`, `docs/COPILOT_VDI_VALIDATION.md`, and the seed skills `docs/brd_author.skill.md`, `docs/code_impact_assess.skill.md`, `docs/code_map_build.skill.md`, `docs/max-autonomy.skill.md`.
+3. Supporting context (read when a task cites them): `docs/BUILD_OVERVIEW.md` (orientation — the pipeline end to end), `docs/SKILLS_INDEX.md` (the per-skill catalog + the eight roles), `docs/design/README.md` (the ADR index), `docs/COPILOT_VDI_VALIDATION.md`, `docs/max-autonomy.skill.md`. The **built** skills live on disk at `core/skills/*.skill.md` and `core/profiles/<domain>/adapter/*.skill.md` — those are the instruction modules, and they are ground truth over any catalog.
 
 > The older **v1 8-layer platform (L0–L8)** is **dead**. Ignore any v1 reference.
 
@@ -26,7 +28,7 @@ All design docs live in **`./docs/`**. They are authoritative and frozen; you im
 
 ## How to execute a task
 
-**`TASK_LIST.md` is the single task list** — the only one. It opens with the execution protocol, the hard rules, and the VDI environment notes; then a **done ledger** (one line per completed task, TASK-000–063B); then the **open work**. (It was consolidated from `TASK_LIST.md` + `TASK_VDI.md` + `TASK_VDI_BOOTSTRAPS.md` on 2026-07-29 — the completed tasks' full specs and the Copilot bootstrap prompts live in git history at `f8f2ae1` and earlier. Do not recreate those files.)
+**`TASK_LIST.md` is the single task list** — the only one. It opens with the execution protocol, the hard rules, and the VDI environment notes; then a **done ledger** (one line per completed task, TASK-000 onward); then the **open work**. (It was consolidated from `TASK_LIST.md` + `TASK_VDI.md` + `TASK_VDI_BOOTSTRAPS.md` on 2026-07-29 — the completed tasks' full specs and the Copilot bootstrap prompts live in git history at `f8f2ae1` and earlier. Do not recreate those files.)
 
 Work through it in order. Each open task carries:
 
@@ -36,7 +38,9 @@ Work through it in order. Each open task carries:
 - **Acceptance** — concrete, checkable conditions. The task is done only when all are true.
 - **Proof** — what demonstrates correctness.
 
-After finishing a task, follow `TASK_LIST.md`'s **Execution protocol** step 5–6: verify, re-publish the registry, **tick the checkbox**, commit. Then collapse the task to a one-line entry in the done ledger. The checkbox state is how a later session knows what is done.
+After finishing a task, follow `TASK_LIST.md`'s **Execution protocol** step 5–6: verify, **tick the checkbox**, commit. Then collapse the task to a one-line entry in the done ledger. The checkbox state is how a later session knows what is done.
+
+> **Registry publish is ⏸ SUSPENDED** for the duration of the ADR-008 cutover — re-publishing mid-cutover would ship a half-re-cut core. It resumes at **TASK-127**. Read protocol step 5 before running `publish_registry.py`.
 
 ---
 
@@ -63,30 +67,35 @@ Durable state lives in **files and git**, never in the conversation. Never rely 
 
 ---
 
-## Resolved flag (F1 + 3, reconciled at TASK-017, V-approved)
-
-**F1 (and three more) — adapter emit-map vs vocabulary drift.** Authoring `adapter.yaml` (TASK-017) surfaced **four** per-tag drifts between §6.6.3's adapter instance and D5/`vocabulary.payment_brand.yaml`'s `emitted_by` column (only `mandate`/F1 was documented). Reconciled holistically against reality, V-approved:
-- **Class 1 (vocabulary right → fixed `adapter.yaml`):** `mandate` (F1) and `transaction_flow` — `article_summarize.emits` now includes both (§6.6.3 had omitted them).
-- **Class 2 (code skill right → fixed vocabulary, r2):** `card_brand`, `message_format` — `emitted_by` gained `code_map_build` (both are `code_tag: true` and in `CODE_MAP_TAGS`; the column had dropped it for these two). `vocab_sha` bumped `d5frozen → d5frozen-r2`.
-
-All 12 per-tag mappings now match; §10.5 verified green at TASK-017 (re-gated at TASK-021). **Port note:** the external `docs/REQUIREMENTS.md` D5 table is now reconciled (TASK-061 added `code_map_build` to `card_brand`/`message_format`) — carry the same fix into the JPMC-side D5 at port time.
-
----
-
 ## Resolved decision (D9 amendment — `start-ingest` Layer-1 kickoff, V-approved)
 
-**Gap found on VDI:** the prompt-file set (`start-brd`/`start-frd`/`start-jira`) had **no operator entry point for Layer 1** (Data & context). The surfaced start gesture pointed at `start-brd`, which overrides the orchestrator role and jumps to BRD authoring — so running it first silently skipped ingestion (no `context_set/index.json`, no `code_map.json`). **Resolution (full ladder, V-approved):** added **`start-ingest`** — a *non-interactive kickoff* prompt (distinct in kind from the three stage transitions) that keeps the orchestrator role and executes Run order step 1 (`source_processor` fan-out → `merge_manifest.py`), then surfaces `start-brd`. The per-tool **start gesture (FR-XS-22) is repointed** `start-brd → start-ingest`. Amended across the ladder: D9 + FR-XS-11 + §10.2 (`prompt_files: [start-ingest, start-brd, start-frd, start-jira]`), the manifest, both overlays, the generator, both `launch.md`, and the instruction template. §10.2 parity green (8 roles + 4 prompts). **Port note:** carry this amendment into the JPMC-side D9/manifest at port time.
+**Gap found on VDI:** the prompt-file set had **no operator entry point for Layer 1** (Data & context). The surfaced start gesture pointed straight at the authoring stage, which overrides the orchestrator role — so running it first silently skipped ingestion (no `context_set/index.json`, no code map). **Resolution (full ladder, V-approved):** added **`start-ingest`** — a *non-interactive kickoff* prompt, distinct in kind from the three stage transitions, that keeps the orchestrator role and executes Run order step 1 (`source_processor` fan-out → `merge_manifest.py`), then surfaces the next stage. The per-tool **start gesture (FR-XS-22) is repointed** at `start-ingest`. Amended across the ladder: D9 + FR-XS-11 + §10.2, the manifest, both overlays, the generator, both `launch.md`, and the instruction template. §10.2 parity green (8 roles + 4 prompts). **Port note:** carry this amendment into the JPMC-side D9/manifest at port time.
+
+*(Post-ADR-008 the set is `prompt_files: [start-ingest, start-si, start-enrich, start-jira]` — re-pointed at TASK-102. `core/overlay_manifest.yaml` is the contract.)*
+
+> **Retired 2026-08-01 (TASK-126).** A "Resolved flag (F1 + 3)" section stood here, recording a
+> reconciliation between the adapter emit-map and the tag vocabulary. **ADR-008 deletes the
+> vocabulary (D-A22)** — the drift it resolved cannot recur because neither side of it exists, and
+> its port note is moot (`VDI_WIRING.md` already marks it so). Removed rather than banner-ed,
+> because a fresh session should not have to read a resolution to machinery that is gone.
 
 ---
 
-## Repo layout (after TASK-000)
+## Repo layout
 
 ```
 ./CLAUDE.md            ← you are here
 ./TASK_LIST.md         ← the single task list: protocol + hard rules, done ledger, open work
-./docs/                ← authoritative design (REQUIREMENTS, TECH_SPEC, supporting)
-./core/                ← the generic core you build (skills, scripts, extractors, adapters, profiles, templates)
+./VDI_WIRING.md        ← what gets WIRED on the VDI (never a spec — see its disjointness rule)
+./docs/                ← authoritative design (REQUIREMENTS, TECH_SPEC, supporting, design/ ADRs)
+./core/                ← the generic core (skills, scripts, checks, extractors, code_profiles,
+                          adapters, profiles/<domain>, templates/<domain>, the manifests)
 ./overlays/            ← the two runtime-tool overlays (claude, copilot)
-./fixtures/            ← input fixtures (PDF, C repo, signed-off code_map)
-./runs/                ← run workspaces created when the spine is exercised (Phase 3+)
+./fixtures/            ← input fixtures + their verify scripts — one directory per subsystem,
+                          each with a `verify_*.py` that is that subsystem's proof
+./runs/                ← run workspaces (`_template/ledger/` is the schema-checked skeleton)
 ```
+
+**Every fixture directory's `verify_*.py` is runnable standalone and must stay green.** The full
+sweep is `for f in $(find fixtures -name "verify_*.py"); do python3 "$f"; done`, plus
+`python3 core/scripts/build_checks.py` for the §10 checks. A task is not done until both are clean.

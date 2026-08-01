@@ -1,5 +1,12 @@
 # ACCEPTANCE.md — spine end-to-end acceptance (TASK-049)
 
+> 🗄️ **HISTORICAL RECORD — do not build against this.** This is the run log of the **pre-ADR-008**
+> spine (BRD → FRD), executed 2026-06-17. **ADR-008 retired BRD and FRD on 2026-07-31**, so the
+> artifacts, stages and gates named below no longer exist under those names. It is kept unchanged
+> because it is a *record of what happened* — rewriting it would falsify the log, and its value is
+> as the format model for its successor. The post-pivot acceptance run is
+> **`docs/ACCEPTANCE_SI.md`** (TASK-127).
+
 **Run:** `r-2026-06-17-001` · **domain:** `payment_brand` · **runtime_tool:** `copilot`
 **Slice:** BRD → FRD only (no Jira). **Result: PASS.**
 
