@@ -11,7 +11,7 @@ Thin tool-specific wrapper (FR-XS-08, FR-XS-19, D9). **The logic is not here.** 
 the one shared skill; this file only points Claude at it and states how this overlay runs it.
 
 **Load and execute `core/skills/solution_intent_author.skill.md`** against this run's inputs
-(`UI_INPUT.yaml` · `brd_profile.<domain>.yaml` · `context_set/index.json` · `code_map.json`).
+(`UI_INPUT.yaml` · `si_profile.<domain>.yaml` · `context_set/index.json` · `code_map.json`).
 Follow that skill verbatim — do not restate, summarize, or fork its procedure here.
 
 - **Executor:** your own **interactive session**, started by the operator via the `/start-si`

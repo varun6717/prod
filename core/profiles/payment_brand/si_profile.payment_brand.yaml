@@ -1,0 +1,428 @@
+# si_profile.payment_brand.yaml — the Solution Intent section contract (D11.1, ADR-008).
+#
+# Replaces brd_profile/frd_profile: the SI has a FIXED 18-section contract, so this file does
+# not decide *which* sections exist (D11.1 does) — it carries, per section, what this domain
+# must capture, how to probe for it, and where its input comes from.
+#
+# ── The four things every section declares ────────────────────────────────────────────────
+#   authored  — v1 | v1_extended_in_v2 | v2_only            (D-A3 "Authored" column)
+#   touch     — what enrichment may do to it                (D-A3 "Enrichment touch")
+#               verdict · correct · extend · regenerate · none
+#   status    — required | required_may_be_empty | conditional   (D-A10)
+#   classes   — the D-A13 routing row, by DISPOSITION class: P primary · S supporting ·
+#               E enrichment-only (v2). `inputs` carries the two non-disposition sources.
+#
+# ── must_capture is doing THREE jobs (D-A18) ──────────────────────────────────────────────
+# It is (1) the authoring checklist, (2) what G1 scores `section_coverage` against, and (3)
+# **the retrieval query** — the model matches these lines semantically against per-artifact
+# index entries to pick which passages to read. That third job is why they are written as
+# concrete, matchable statements of the thing needed and not as section descriptions: a
+# must_capture that reads "background information" matches every index entry and selects
+# nothing. Prefer the words a document would actually use.
+#
+# ── classes vs inputs — why they are separate keys ────────────────────────────────────────
+# D-A13 draws one table, but its columns are two different kinds of thing. `classes` keys are
+# D-A12 disposition values and are matched against a manifest entry's `disposition` — they are
+# a routing key. `frame` and `discovery` are the OPERATOR as an input source, in two forms
+# (one text available up front and global; many answers elicited per section during
+# authoring); they never appear on a manifest entry. Keeping them apart means the §10.5′
+# class-totality check needs no list of keys to ignore.
+#
+# `other` appears in no row, deliberately: it is background context, never primary and never
+# supporting (D-A12). The empty column IS the definition, and `dispositions.NEVER_ROUTED`
+# records it so the §10.5′ check excludes it by declaration rather than by silence.
+#
+# Scope note: the fixed 18 sections and the D-A13 matrix are NOT domain content — they are
+# transcribed unchanged from the ladder. What varies per domain is `must_capture`,
+# `probe_if_missing`, and the boundary wording. A new domain rewrites those, not the frame.
+
+domain: payment_brand                # PBI — Payment Brand
+contract: solution_intent_18         # D11.1; the section set is fixed, not per-domain
+
+sections:
+
+  # ────────────────────────────────────────────────────────────────────────────────────────
+  - id: 1
+    title: Executive summary
+    authored: v1
+    touch: [regenerate]
+    touch_note: >
+      Regenerates, never revises (D-A4). It is derived from the body, so a summary of an
+      uncorrected problem statement is silently wrong. Authored LAST in v1 and re-authored in
+      v2 after every correction has landed.
+    status: required
+    classes: {}                      # takes no disposition class — derived from the body
+    inputs: { frame: P }             # + the frame's initiative identity
+    must_capture:
+      - "What this initiative is, in the operator's own framing — from frame.overview, not re-derived."
+      - "The mandate or driver behind it and the date it must be met by."
+      - "What is being delivered, at one level of detail (the §7 deliverable names)."
+      - "The one thing a reader must not miss — the material risk, decision, or constraint."
+    probe_if_missing: []             # §1 never probes: it summarises what is already written
+
+  # ────────────────────────────────────────────────────────────────────────────────────────
+  - id: 2
+    title: Problem statement
+    authored: v1
+    touch: [verdict, correct]
+    status: required
+    classes:
+      business_requirement: P
+      product_domain_knowledge: S
+      architecture: S
+      codebase: E
+    inputs: {}
+    must_capture:
+      - "How the capability works TODAY — the current-state mechanism, named concretely (e.g. brand identified by PAN/BIN-range lookup at authorization)."
+      - "What that current state cannot do, and the concrete consequence — misrouting, failed qualification, manual effort, dispute or decertification exposure."
+      - "Who feels the problem and where in the flow it surfaces."
+      - "What it costs today, with any figure the sources actually state (volumes, rates, defect counts) — never an estimated one."
+    probe_if_missing:
+      - "How is this handled today, end to end?"
+      - "What specifically breaks or is impossible with the current mechanism?"
+      - "Is there a measured cost or volume for the problem, or is it qualitative?"
+
+  # ────────────────────────────────────────────────────────────────────────────────────────
+  - id: 3
+    title: Client need & demand
+    authored: v1
+    touch: [none]
+    status: conditional
+    conditional_reason: >
+      A regulatory or network mandate has no client demand behind it — "Not applicable, this is
+      a compliance mandate" must be an honest answer (D-A10). Never silently omitted.
+    classes:
+      business_requirement: P
+      product_domain_knowledge: S
+    inputs: {}
+    must_capture:
+      - "Which clients or merchant segments are asking for this, and what they asked for."
+      - "Evidence of demand — named accounts, volumes, revenue at risk, or a client commitment."
+      - "Whether the demand is competitive (a capability clients can get elsewhere) or novel."
+    probe_if_missing:
+      - "Is this client-driven at all, or purely mandate-driven? If mandate-driven, say so — this section is dispositioned N/A, not left blank."
+      - "Which clients or segments are asking, and is there volume or revenue behind it?"
+
+  # ────────────────────────────────────────────────────────────────────────────────────────
+  - id: 4
+    title: Business objectives
+    authored: v1
+    touch: [none]
+    status: required
+    boundary: "What we intend to achieve. NO dates, NO metrics — a date or a number here is a §15 success criterion in disguise."
+    classes:
+      business_requirement: P
+    inputs: { frame: S }
+    must_capture:
+      - "What this work is FOR, stated as intent — the outcome, not the deadline and not the measure."
+      - "Each objective as its own stated item with a stable ID, so §15 criteria can trace to it."
+      - "Any obligation being discharged (network compliance, regulatory position) framed as intent, not as a date."
+    probe_if_missing:
+      - "What are we trying to achieve here, setting aside how we'd measure it?"
+      - "Is compliance the objective itself, or the means to something else?"
+
+  # ────────────────────────────────────────────────────────────────────────────────────────
+  - id: 5
+    title: Personas & actors
+    authored: v1
+    touch: [verdict]
+    touch_note: >
+      Verdict is ASYMMETRIC (D-A4). Nothing in a code map can confirm a human role exists, so
+      Arm 2 verdicts only the SYSTEM ACTOR half — an external interface implies a counterparty
+      system — and SKIPS human personas entirely rather than marking them unverifiable.
+    status: required_may_be_empty
+    classes:
+      product_domain_knowledge: P
+      architecture: S
+      codebase: E
+    inputs: {}
+    must_capture:
+      - "Each human persona as a TYPE defined by goal and context (merchant, certification analyst, settlement ops) — never a job title or a named individual."
+      - "Each system actor — the counterparty systems and external interfaces this change touches (the network gateway, the settlement platform, the certification portal)."
+      - "The persona → use-case matrix against §6: a coverage grid, so a use case with no participant and a persona with nothing to do are both visible."
+    probe_if_missing:
+      - "Who participates in this flow, and what is each of them trying to accomplish?"
+      - "Which external systems are on the other side of the interfaces involved?"
+
+  # ────────────────────────────────────────────────────────────────────────────────────────
+  - id: 6
+    title: High-level use case
+    authored: v1
+    touch: [verdict, correct]
+    status: conditional
+    conditional_reason: >
+      Some changes modify existing behaviour without introducing any new use case (D-A10) — a
+      field-format change to an existing flow, for instance. N/A with a reason is legitimate.
+    classes:
+      product_domain_knowledge: P
+      business_requirement: S
+      codebase: E
+    inputs: {}
+    must_capture:
+      - "The end-to-end flow in steps, from trigger to outcome, at business level."
+      - "Where in that flow this change lands, and what a reader would observe differently after it."
+      - "The alternate and failure paths that matter — decline, fallback, timeout, retry."
+    probe_if_missing:
+      - "Walk me through the flow end to end — what triggers it and what does the participant see?"
+      - "Does this introduce a new flow, or change an existing one? If the latter, this section may be N/A."
+
+  # ────────────────────────────────────────────────────────────────────────────────────────
+  - id: 7
+    title: Deliverables
+    authored: v1
+    touch: [extend]
+    touch_note: >
+      Extend only. §7 sits immediately BEFORE §8 — structure before detail (D-A14) — and is the
+      layer the Jira hierarchy hangs off: Deliverable ← §7, Epic ← §8 requirement (D11.6). Non-
+      code work lands here too, which is where a "not code at all" disposition routes (D-A16).
+    status: required
+    classes:
+      business_requirement: P
+      technical_specification: S
+      codebase: E
+    inputs: { frame: S, discovery: S }
+    must_capture:
+      - "Each distinct thing being delivered, with a stable ID — the units the §8 requirements will hang off."
+      - "Non-code deliverables explicitly: certification packages, network filings, operational runbooks, reporting submissions, training."
+      - "For each deliverable, one line on what 'delivered' means for it."
+      - "Anything a deliverable depends on being delivered first (ordering, not scheduling)."
+    probe_if_missing:
+      - "What are the distinct pieces of work here — what would you list if someone asked what's being delivered?"
+      - "Is there work that isn't code — certification, filings, runbooks, reporting?"
+
+  # ────────────────────────────────────────────────────────────────────────────────────────
+  - id: 8
+    title: Business requirements
+    authored: v1
+    touch: [extend]
+    touch_note: >
+      EXTEND ONLY — never corrected (D-A4, binding). A requirement states intent; code cannot
+      contradict an intent, only reveal it is incomplete (→ escalate) or unachievable (→ that is
+      a risk, §13). Letting enrichment rewrite a business requirement from code would invert the
+      ladder and let the existing implementation dictate business intent.
+    status: required
+    classes:
+      business_requirement: P
+      technical_specification: P
+      prior_artifact: S
+      codebase: E
+    inputs: {}
+    must_capture:
+      - "Each requirement as title + description + a stable ID + the §7 deliverable it serves (the §8→§7 trace is load-bearing — it builds the Jira hierarchy)."
+      - "Enumerated `assertions[]` per requirement — the individually checkable statements, each one a thing Arm 1 can match against code."
+      - "Normative detail carried verbatim from the technical specification: field and subelement numbers, type and length, presence conditions, permitted values, response codes."
+      - "The obligation's own identifiers — mandate ID, rule or bulletin reference — so a requirement traces back to the document that imposed it."
+    probe_if_missing:
+      - "What exactly must the system do? State it so each part can be checked separately."
+      - "Which deliverable does this requirement belong to?"
+      - "Is there a field-level or protocol-level specification behind this, and have we captured its exact values?"
+
+  # ────────────────────────────────────────────────────────────────────────────────────────
+  - id: 9
+    title: Strategic alignment
+    authored: v1
+    touch: [none]
+    status: conditional
+    conditional_reason: >
+      The section most likely to attract ceremonial filler (D-A10). Making it conditional lets
+      "not applicable — this is a compliance mandate" be an honest answer instead of a paragraph
+      that restates §4.
+    boundary: "Why this matters to the portfolio ABOVE this project. Must reference something EXTERNAL to it — a named program, strategy, or roadmap commitment. If it only restates §4, it is not alignment."
+    classes:
+      prior_artifact: S
+    inputs: { frame: S, discovery: P }
+    must_capture:
+      - "The named program, strategy or roadmap commitment this work supports — external to this project."
+      - "How this work advances that thing specifically, not generically."
+      - "Any prior decision or artifact that put this on the roadmap."
+    probe_if_missing:
+      - "Is there a named program or strategy this ladders up to? If not, this section is N/A — say so rather than writing filler."
+      - "What would the portfolio lose if this work didn't happen?"
+
+  # ────────────────────────────────────────────────────────────────────────────────────────
+  - id: 10
+    title: Constraints & design principles
+    authored: v1
+    touch: [verdict, extend]
+    status: required
+    classes:
+      technical_specification: P
+      architecture: P
+      codebase: E
+    inputs: {}
+    must_capture:
+      - "Hard technical constraints the solution must live within — protocol and message format limits, field capacity, encoding, endpoint behaviour, timeout budgets."
+      - "Non-functional requirements with their stated thresholds (latency, availability, retention, throughput)."
+      - "Design principles this change must honour — immutability of a decision once made, audit-record obligations, no-bypass rules."
+      - "Externally imposed dates or windows that constrain HOW rather than WHEN (network effective dates, freeze periods)."
+    probe_if_missing:
+      - "What can't change here — what are the fixed constraints the solution has to fit inside?"
+      - "Are there NFRs with actual numbers attached, or only qualitative expectations?"
+
+  # ────────────────────────────────────────────────────────────────────────────────────────
+  - id: 11
+    title: Stakeholders
+    authored: v1
+    touch: [none]
+    status: required
+    classes:
+      prior_artifact: S
+    inputs: { frame: P, discovery: S }
+    must_capture:
+      - "Who must be consulted or must approve, by role and team — sourced from frame.stakeholders."
+      - "Who is accountable for each §7 deliverable."
+      - "External parties with a stake — the network, regulators, named clients."
+    probe_if_missing:
+      - "Who signs off on this, and who has to be consulted along the way?"
+      - "Is there an external party — network, regulator, client — with approval rights?"
+
+  # ────────────────────────────────────────────────────────────────────────────────────────
+  - id: 12
+    title: Out of scope
+    authored: v1
+    touch: [extend]
+    touch_note: >
+      A TWO-WAY DOOR (D-A4). Escalated derived impacts can land IN it; code can equally reveal
+      that something already declared out of scope is structurally coupled and cannot be avoided
+      — an escalation INTO scope. Both directions run through the flag loop, operator-decided.
+    status: required
+    classes:
+      business_requirement: P
+      codebase: E
+    inputs: { frame: S, discovery: P }
+    must_capture:
+      - "What is deliberately NOT being done, each with the reason it is excluded."
+      - "Adjacent capabilities a reader would reasonably assume are included — named explicitly so the assumption is closed."
+      - "Anything deferred to a follow-on, with the follow-on named if one exists."
+      - "For each exclusion, whether it is a choice or a dependency on someone else."
+    probe_if_missing:
+      - "What might someone assume is included here that isn't?"
+      - "Is anything being deferred rather than dropped — and is there a follow-on for it?"
+
+  # ────────────────────────────────────────────────────────────────────────────────────────
+  - id: 13
+    title: Assumptions & risks
+    authored: v1
+    touch: [verdict, correct]
+    touch_note: >
+      The section best shaped for the verdict mechanism, so v1's authoring contract is
+      CONSTRAINED by v2's needs (D-A4): author assumptions in CHECKABLE form. "We assume
+      settlement is unaffected" verdicts cleanly against a code map; "we assume the architecture
+      is suitable" does not and is worth nothing to enrichment.
+    status: required
+    classes:
+      product_domain_knowledge: S
+      architecture: S
+      codebase: E
+    inputs: { discovery: P }
+    must_capture:
+      - "Each assumption stated so it can be CHECKED — name the component, system or behaviour being assumed about, not a general belief."
+      - "Assumptions about what this change does NOT touch (these are the highest-value ones — they are exactly what Arm 2 can confirm or contradict)."
+      - "Risks with their impact and, where the sources give one, a likelihood or precedent."
+      - "What each risk depends on, so a mitigation has something to attach to."
+    probe_if_missing:
+      - "What are we assuming is true that we haven't verified?"
+      - "What are we assuming this does NOT affect? Name the systems."
+      - "What would have to go wrong for this to fail or slip?"
+
+  # ────────────────────────────────────────────────────────────────────────────────────────
+  - id: 14
+    title: Dependencies
+    authored: v1
+    touch: [verdict, extend]
+    status: required_may_be_empty
+    classes:
+      architecture: P
+      technical_specification: S
+      codebase: E
+    inputs: {}
+    must_capture:
+      - "Systems and teams this work depends on, each with what is needed from them."
+      - "Upstream and downstream systems affected by the change, in both directions."
+      - "External dependencies — network platforms, certification bodies, vendor schedules — with any date they impose."
+      - "Anything that lives in another repository or another delivery track (this is where a 'lives in another repo' disposition routes, D-A16)."
+    probe_if_missing:
+      - "What has to be in place, or done by someone else, before this can land?"
+      - "What consumes the output of this flow downstream?"
+
+  # ────────────────────────────────────────────────────────────────────────────────────────
+  - id: 15
+    title: Success criteria
+    authored: v1
+    touch: [none]
+    status: required
+    boundary: "How we will measure §4. Must be MEASURABLE, and every criterion traces to an objective. An objective with no criterion is unmeasurable; a criterion with no objective is orphaned — both are checked at G1."
+    classes:
+      business_requirement: P
+      technical_specification: S
+    inputs: { frame: S, discovery: S }
+    must_capture:
+      - "Each criterion with a measurable target and the §4 objective it traces to."
+      - "How each will actually be measured — the report, feed, or metric it comes from."
+      - "The dates that matter, from the sources: network effective dates, compliance deadlines, internal sign-off gates."
+      - "What 'done' looks like for the non-code deliverables too (certification achieved, filing accepted)."
+    probe_if_missing:
+      - "How will we know this worked? Give me something with a number or a date in it."
+      - "Which objective does this criterion measure?"
+      - "Where does the measurement actually come from — which report or feed?"
+
+  # ────────────────────────────────────────────────────────────────────────────────────────
+  - id: 16
+    title: Derived system impacts
+    authored: v2_only
+    touch: []
+    touch_note: >
+      Not touched by enrichment — it IS enrichment's output. Arm 1 writes one entry per
+      (assertion × code location), and that granularity IS story granularity (D-A15), so the
+      decision about how finely to scope stories is made here rather than downstream. Also holds
+      the no-code gaps that survived the walkthrough as genuinely-new capability.
+    status: required                 # required in v2; absent from v1 by construction
+    classes:
+      codebase: P
+    inputs: {}
+    must_capture:
+      - "One entry per assertion × code location: the requirement assertion, the specific component or file, and what must change there."
+      - "The evidence for each — what in the code map or source read grounds it."
+      - "Whether the impact is a technical consequence or business-visible (the latter escalated and carries an operator disposition)."
+      - "Gaps kept as entries: an assertion with no implementation found, dispositioned as genuinely-new capability."
+    probe_if_missing: []             # authored from code evidence, never from operator answers
+
+  # ────────────────────────────────────────────────────────────────────────────────────────
+  - id: 17
+    title: Open questions
+    authored: v1_extended_in_v2
+    touch: [extend]
+    touch_note: >
+      v1-AUTHORED (D-A4). v1 already produces unsourced gaps that today have no home, so v1
+      ships with its own uncertainty visible and enrichment adds to the list rather than
+      introducing it. Also the destination of the walkthrough's `defer` call (D-A16): an
+      operator who genuinely cannot answer converts the finding into a real open question.
+    status: required_may_be_empty
+    classes: {}                      # accumulates gaps; takes no input class of its own
+    inputs: {}
+    must_capture:
+      - "Every `[TBD — unsourced]` left in the document, as a question with an owner where one is known."
+      - "Decisions deliberately deferred, and what is blocked until they are made."
+      - "Questions raised but not answered during discovery — never dropped for being inconvenient."
+      - "In v2: every finding the operator deferred at the walkthrough, with why it could not be resolved."
+    probe_if_missing: []             # accumulated, not elicited
+
+  # ────────────────────────────────────────────────────────────────────────────────────────
+  - id: 18
+    title: Verification summary
+    authored: v2_only
+    touch: []
+    touch_note: >
+      A SUMMARY, NOT A LEDGER (D-A4). Counts only — N checked, X confirmed, Y corrected, Z
+      unverifiable. The claim-by-claim record lives in `enrichment.json`; unverifiable claims
+      surface inline in their own sections where a reader actually needs them.
+    status: required                 # required in v2; absent from v1 by construction
+    classes:
+      codebase: P
+    inputs: {}
+    must_capture:
+      - "How many claims entered the verdict population, and how many were confirmed, corrected, or unverifiable."
+      - "How many assertions produced §16 impacts, and how many found no code."
+      - "How many findings escalated and how they were dispositioned."
+      - "What could not be analysed at all — the coverage report's `unanalyzable[]`, surfaced here rather than buried."
+    probe_if_missing: []             # derived by counting, never asked

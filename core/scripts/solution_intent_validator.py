@@ -3,7 +3,7 @@
 
 The `brd_validator` skill (`core/skills/brd_validator.skill.md`) is the *reader*: it parses
 `BRD.md`'s per-section ``<!-- coverage: {...} -->`` footers + inline citations against the
-domain `brd_profile`, classifying each required topic and counting cited-vs-substantive
+domain `si_profile`, classifying each required topic and counting cited-vs-substantive
 claims. That extraction is the model's job. This module is the part that MUST be
 deterministic and **model-free**: the §9.2 score arithmetic and the three hard-precondition
 predicates that decide **G1 eligibility**. Same parsed signals → same score + same verdict,
@@ -269,7 +269,7 @@ def _demo() -> None:
 
     T = "2026-06-22T00:00:00Z"  # fixed ts → deterministic proof
 
-    # The five required payment_brand topics (brd_profile.payment_brand.yaml) + optionals.
+    # The five required payment_brand topics (si_profile.payment_brand.yaml) + optionals.
     def topics(routing_cov: str):
         return [
             TopicResult("mandate", True, "source"),

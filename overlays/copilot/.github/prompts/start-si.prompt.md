@@ -9,7 +9,7 @@ act as the **`solution_intent_author`** agent — load and execute `core/skills/
 `solution_intent_author.agent.md` wrapper) against this run's inputs:
 
 - `UI_INPUT.yaml`
-- `brd_profile.<domain>.yaml`
+- `si_profile.<domain>.yaml`
 - `context_set/index.json`
 - `code_map.json`
 

@@ -52,6 +52,22 @@ CODE_SOURCE_TYPES: frozenset[str] = frozenset({"bitbucket"})
 # authoring/validator skills at cite time, declared here so there is one list.
 NON_PRIMARY_DISPOSITIONS: frozenset[str] = frozenset({"prior_artifact", "other"})
 
+# Classes that appear in NO cell of the D-A13 routing matrix, by design. `other` is background
+# context only: never primary, never supporting — "the empty column IS the definition" (D-A12).
+#
+# This is declared here rather than special-cased inside the §10.5′ check for one reason: that
+# check's whole job is to catch an orphan class (one the UI offers but nothing routes). An
+# exception buried in the checker would be indistinguishable from the bug it hunts. Recording
+# it as data means the check reports what it excluded and why, and adding a second never-routed
+# class is a data edit that stays visible.
+NEVER_ROUTED: frozenset[str] = frozenset({"other"})
+
+# The non-disposition input sources of the D-A13 matrix — the OPERATOR, in two forms. They are
+# not dispositions and never appear on a manifest entry, which is why the SI profile keeps them
+# under `inputs:` rather than `classes:`. Frame is one text, up front, global in effect;
+# discovery is many answers, elicited per section, accruing during authoring.
+NON_DISPOSITION_INPUTS: tuple[str, ...] = ("frame", "discovery")
+
 
 def default_for(source_type: str) -> list[str]:
     """The disposition a source of ``source_type`` starts with.

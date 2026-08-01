@@ -12,7 +12,7 @@ not here** — it lives in the one shared skill. Parity twin of the Claude
 `.claude/agents/solution_intent_validator.md` wrapper: same shared skill, native frontmatter + location.
 
 **Load and execute `core/skills/solution_intent_validator.skill.md`** against this run's inputs
-(`BRD.md` · `brd_profile.<domain>.yaml` · the sources · the code surface). Follow that skill
+(`BRD.md` · `si_profile.<domain>.yaml` · the sources · the code surface). Follow that skill
 verbatim — do not restate, summarize, or fork its procedure here.
 
 - **Executor:** a **subagent** in its own context (`user_invocable: false`), invoked by the

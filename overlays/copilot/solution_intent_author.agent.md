@@ -12,7 +12,7 @@ not here** — it lives in the one shared skill. Parity twin of the Claude
 `.claude/agents/solution_intent_author.md` wrapper: same shared skill, native frontmatter + location.
 
 **Load and execute `core/skills/solution_intent_author.skill.md`** against this run's inputs
-(`UI_INPUT.yaml` · `brd_profile.<domain>.yaml` · `context_set/index.json` · `code_map.json`).
+(`UI_INPUT.yaml` · `si_profile.<domain>.yaml` · `context_set/index.json` · `code_map.json`).
 Follow that skill verbatim — do not restate, summarize, or fork its procedure here.
 
 - **Executor:** an **interactive Copilot agent-mode session** the operator talks to directly

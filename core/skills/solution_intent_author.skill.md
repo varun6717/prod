@@ -2,7 +2,7 @@
 name: solution_intent_author
 type: Generation skill (interactive, chat-driven) — own session, user-invocable (/start-si)
 layer: BRD generation
-consumes: UI_INPUT.yaml · brd_profile.<domain>.yaml · context_set/index.json · code_map.json
+consumes: UI_INPUT.yaml · si_profile.<domain>.yaml · context_set/index.json · code_map.json
 produces: BRD.md
 delegates: code_impact (subagent)
 gate: G1 (via solution_intent_validator)
@@ -17,7 +17,7 @@ source-grounded `BRD.md` for a single project.
 
 You are a **generic engine** (FR-BR-01). You know nothing domain-specific — not which sections a
 domain needs, not what its topics mean, not what must be captured. **All domain substance comes from
-`brd_profile.<domain>.yaml`.** You execute the procedure below against whatever that profile defines.
+`si_profile.<domain>.yaml`.** You execute the procedure below against whatever that profile defines.
 The same skill — unedited — is used for every domain; composition is `skill(profile) → BRD.md`. You
 are never modified at runtime.
 
@@ -26,7 +26,7 @@ are never modified at runtime.
 - **`UI_INPUT.yaml`** — run config + the **requirement/project frame** (title, intent, scope hints,
   stakeholders, dates). This is the operator's authoritative statement of *what we're building now*.
   Also read `domain` (selects the profile).
-- **`brd_profile.<domain>.yaml`** — per-domain completeness contract: `sections[]`, each carrying
+- **`si_profile.<domain>.yaml`** — per-domain completeness contract: `sections[]`, each carrying
   `id` / optional `title` / `position` / `required` / `sources` (section-level routing) and
   `requirements[]` (per-topic `must_capture` / `probe_if_missing` / `required`). `topics` is the
   implicit set of `requirements[].topic` — there is no standalone `topics:` field (FR-BR-10).
@@ -94,7 +94,7 @@ satisfied from the `UI_INPUT` frame / skill structure, not from tag routing.
 
 ### Worked merge — `payment_brand` profile → ordered authoring plan
 
-Merging `brd_profile.payment_brand.yaml` (TASK-015) over the baseline yields this plan. The profile
+Merging `si_profile.payment_brand.yaml` (TASK-015) over the baseline yields this plan. The profile
 deep-merges `business_context` / `scope_objectives` / `requirements` / `success_metrics` /
 `constraints_assumptions`, inserts the net-new `code_impact` `after:requirements`, and raises
 `constraints_assumptions` to required. (See `fixtures/solution_intent_author/expected_section_plan.md`.)
@@ -123,7 +123,7 @@ Authoring **begins with a short framing exchange**, not with section drafting. D
 seeds the coarse code pass; it does **not** try to fill every section.
 
 1. **Load the frame.** Read `UI_INPUT.yaml` (intent, scope hints, stakeholders, dates) and the manifest
-   `context_set/index.json`. Read `domain` and load `brd_profile.<domain>.yaml`. The manifest stays
+   `context_set/index.json`. Read `domain` and load `si_profile.<domain>.yaml`. The manifest stays
    loaded for the whole session — you always see the full index of what exists.
 2. **Confirm intent — 2–3 clarifying questions.** Ask the operator a **short framing exchange** (2–3
    questions) to confirm the requirement intent and scope. Just enough to orient and to seed the coarse

@@ -218,6 +218,9 @@ connector's placeholder per hard rule **S**, done as connectors land on the VDI 
 
 **✅ Milestone D1 complete** — input side closed: ledger vocabulary, manifest v2 + disposition routing, per-artifact index + guardrail 7, and all four source types connected.
 
+**Phase D · Milestone D2 — Solution Intent v1**
+- [x] TASK-108 — `si_profile` (18 sections) + §10.5′ disposition-class totality: 🆕 `core/profiles/payment_brand/si_profile.payment_brand.yaml` — all 18 sections, each carrying `authored` (D-A3) · `touch` + `touch_note` (D-A3/D-A4) · `status` + `conditional_reason` (D-A10) · `classes`/`inputs` (the D-A13 row) · `boundary` (§4/§9/§15, D-A11) · `must_capture[]` · `probe_if_missing[]`. **`classes` and `inputs` are separate keys on purpose:** D-A13 draws one table but its columns are two kinds of thing — `classes` keys are D-A12 dispositions matched against a manifest entry's `disposition` (a routing key), while `frame`/`discovery` are the operator as an input source and never appear on an entry. Splitting them means the §10.5′ class check needs no list of keys to ignore. `brd_profile.payment_brand.yaml` **deleted**; its pointers renamed `brd_profile → si_profile` across both skills, the validator, 4 overlay wrappers and 2 prompt files (pointer rename only — the substantive recasts stay TASK-109/110). 🆕 `core/scripts/checks/check_disposition_totality.py` (§10.5′) — checks **both directions** (section-side alone passes a taxonomy with a dead class; class-side alone passes a profile with a starved section), plus fixed-18 membership, conditional marking, and cell/key well-formedness; registered in `build_checks.py` → **4/4**. §10.3 re-cut: `brd_profile` → `si_profile` **and** the folded-in **pack-pointer assertions** — every `docs_pipeline`/`code_pipeline` skill resolves to a file in the pack *or* shared `core/skills/`, and a mapping-form `docs_pipeline` carries its `default` lane (063B). 🆕 `fixtures/si_profile/verify_si_profile.py` — the **cell-identity oracle** acceptance #1 needed and nothing else covered: D-A13, D-A3 and D-A10 re-typed independently from the ADR and compared cell by cell (§10.5′ proves *totality*, which would happily pass a complete-but-wrong matrix). `dispositions.py` gains `NEVER_ROUTED = {other}` + `NON_DISPOSITION_INPUTS` — **`other` routes nowhere by design** (D-A12: "the empty column IS the definition"), and declaring it as data rather than special-casing it inside the checker matters because that checker's whole job is catching orphan classes; a buried exception would be indistinguishable from the bug it hunts. Proof: `build_checks --demo` 4/4 clean + **5 injected defects each turning the NAMED check red** (incl. the dangling `article_summarize` pointer — the exact TASK-100→105 state that stayed green); `check_disposition_totality --demo` 8 negatives; `verify_si_profile.py` **144/144 cells**; all **11** verifies green.
+
 ---
 
 ## Disposition of the pre-pivot open tasks (TASK-056, 064–083 — none carries over verbatim)
@@ -248,7 +251,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ## Open index (tick here; then collapse the task into the done ledger above)
 
 **Milestone D2 — Solution Intent v1**
-- [ ] TASK-108 — `si_profile` (18 sections) + §10.5′ disposition-class totality · `Opus`
 - [ ] TASK-109 — `solution_intent_author` recast · `Opus`
 - [ ] TASK-110 — `solution_intent_validator` + G1 + v1 freeze · `Opus`
 - [ ] TASK-111 — Discovery-question adequacy (promoted by D-A13) · `Opus`
@@ -280,33 +282,6 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 ---
 
 ## Milestone D2 — Solution Intent v1
-
-### TASK-108 — `si_profile` (18 sections) + §10.5′ disposition-class totality
-- **Depends on:** TASK-102.
-- **Model:** Opus — `must_capture` authoring quality is load-bearing (it is both the G1 checklist
-  and the retrieval query, D-A18).
-- **Reads:** D11.1 · D-A3 (section table) · D-A4 (binding rules) · D-A10 (conditional statuses) ·
-  D-A11 (boundary statements) · D-A13 (the routing matrix — transcribe exactly) · §10.5′ · §10.3.
-- **Creates / edits:** `core/profiles/payment_brand/si_profile.payment_brand.yaml` — per section:
-  `id` (1–18), `title`, `authored` (v1 / v2-only / v1-extended-in-v2), `touch` (D-A3 enrichment
-  touch type), `status` (required / required-may-be-empty / conditional), `classes` (the D-A13 row:
-  each input source marked P/S/E), boundary one-liner (§4/§9/§15), `must_capture[]`,
-  `probe_if_missing[]`. Delete `brd_profile.payment_brand.yaml`. New
-  `core/scripts/checks/check_disposition_totality.py` (§10.5′: every section has ≥1 routed input
-  class; every operator-selectable class in the UI taxonomy appears in ≥1 section row) — register
-  in `build_checks.py` (now 4 checks); §10.3 swaps `brd_profile` → `si_profile`.
-  **Also (added at TASK-105 — the §10.5 residue §10.3 was supposed to absorb but never did):**
-  §10.3 gains the adapter-pack pointer assertions — every `docs_pipeline` / `code_pipeline`
-  skill name resolves to a file (pack skill under `profiles/<d>/adapter/` **or** shared
-  `core/skills/`), and a mapping-form `docs_pipeline` carries its required `default` lane
-  (063B). Without it a pack can point at a deleted skill with §10 fully green — which is
-  exactly the state `adapter.yaml` was in between TASK-100 and TASK-105 (`article_summarize`,
-  `confluence_tag` both named, both deleted).
-- **Acceptance:** profile matrix is cell-identical to D-A13; §10.5′ green against the UI's
-  taxonomy list; §10.3 green **including the pack-pointer assertions**; `build_checks.py`
-  reports 4/4.
-- **Proof:** `build_checks.py` 4/4 green; a deliberate matrix-cell deletion turns §10.5′ red;
-  a `docs_pipeline` entry renamed to a non-existent skill turns §10.3 red.
 
 ### TASK-109 — `solution_intent_author` recast
 - **Depends on:** TASK-106 (index), TASK-108 (profile).

@@ -11,7 +11,7 @@ Thin tool-specific wrapper (FR-XS-08, FR-XS-19, D9). **The logic is not here.** 
 the one shared skill; this file only points Claude at it and states how this overlay runs it.
 
 **Load and execute `core/skills/solution_intent_validator.skill.md`** against this run's inputs
-(`BRD.md` · `brd_profile.<domain>.yaml` · the sources · the code surface). Follow that skill
+(`BRD.md` · `si_profile.<domain>.yaml` · the sources · the code surface). Follow that skill
 verbatim — do not restate, summarize, or fork its procedure here.
 
 - **Executor:** **subagent** in its own context window (`user_invocable: false`), spawned by the
