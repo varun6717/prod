@@ -1,0 +1,195 @@
+{
+  "path": "context_set/sharepoint/mastercard_mandate_part2_2026.md",
+  "disposition": [
+    "technical_specification"
+  ],
+  "lines_total": 208,
+  "lines_indexed": 208,
+  "entries": 20,
+  "subdivided": [
+    "2.1",
+    "3.1"
+  ],
+  "index": [
+    {
+      "id": "0",
+      "heading": "Front matter — technical spec identity",
+      "lines": [
+        1,
+        9
+      ],
+      "summary": "Title block for MCS-2026-R3-T, Part 2 of 2: the technical implementation specification accompanying the Part 1 mandate."
+    },
+    {
+      "id": "1",
+      "heading": "1. Introduction",
+      "lines": [
+        10,
+        16
+      ],
+      "summary": "Scope: ISO 8583 message format changes, revised interchange schedules, Banknet routing updates and reporting obligations implementing the Part 1 mandate."
+    },
+    {
+      "id": "2",
+      "heading": "2. ISO 8583 Message Format Changes",
+      "lines": [
+        17,
+        18
+      ],
+      "summary": "Section heading only — new and modified data elements follow in 2.1 and 2.2."
+    },
+    {
+      "id": "2.1a",
+      "heading": "2.1 New Data Elements — DE 48.66, DE 48.77",
+      "lines": [
+        19,
+        37
+      ],
+      "summary": "New DEs for ISO 8583:2003 authorization (MTI 0100/0110) and financial request (0200/0210) effective 2026-07-01. DE 48.66 Token Requestor ID (N-11, conditional): TRID assigned by MDES to the wallet/device, required when DE 2 is an MDES token (BIN 520000-529999), preserved end-to-end. DE 48.77 Digital Wallet Indicator (AN-2, conditional): 01=Apple Pay, 02=Google Pay, 03=Samsung Pay, 04=Masterpass, 05=Other."
+    },
+    {
+      "id": "2.1b",
+      "heading": "2.1 New Data Elements — DE 48.78, DE 48.79",
+      "lines": [
+        38,
+        48
+      ],
+      "summary": "DE 48.78 Token Assurance Level (N-2, conditional): 00-99 from the MDES vault indicating token binding strength; required when DE 2 is an MDES token; below 10 triggers RC 55. DE 48.79 Device Type (AN-2, optional): 00=POS, 01=Mobile, 02=Wearable, 03=IoT, 04=Browser; informational, used for fraud scoring."
+    },
+    {
+      "id": "2.2",
+      "heading": "2.2 Modified Data Elements",
+      "lines": [
+        49,
+        71
+      ],
+      "summary": "Existing data elements whose definition or usage changes under this mandate."
+    },
+    {
+      "id": "3",
+      "heading": "3. Interchange Fee Schedule",
+      "lines": [
+        72,
+        73
+      ],
+      "summary": "Section heading only — the revised tier table is in 3.1."
+    },
+    {
+      "id": "3.1a",
+      "heading": "3.1 Revised Consumer Credit Tiers — basis and World Elite",
+      "lines": [
+        74,
+        94
+      ],
+      "summary": "Interchange is remitted acquirer-to-issuer via the Mastercard Interchange System; tiers restructured around MDES token presence and contactless eligibility, with 'Token Enhanced' applying when DE 48.78 >= 50. MC World Elite: Card-Present 2.10%+$0.10 vs 1.95%+$0.10 token-enhanced; Card-Not-Present 2.40%+$0.10 vs 2.15%+$0.10; effective 2026-07-01."
+    },
+    {
+      "id": "3.1b",
+      "heading": "3.1 Revised Consumer Credit Tiers — MC World and MC Standard",
+      "lines": [
+        95,
+        114
+      ],
+      "summary": "MC World: Card-Present 1.90%+$0.10 vs 1.75%+$0.10; Card-Not-Present 2.20%+$0.10 vs 1.95%+$0.10. MC Standard: both transaction types UNCHANGED between columns (1.65%+$0.15 and 1.85%+$0.15) — no token-enhanced benefit at this tier."
+    },
+    {
+      "id": "3.1c",
+      "heading": "3.1 Revised Consumer Credit Tiers — debit tiers and the qualification obligation",
+      "lines": [
+        115,
+        129
+      ],
+      "summary": "Debit Mastercard and Maestro PIN Debit flat at 0.05%+$0.21 in either column. THE OBLIGATION: acquirers MUST update interchange qualification logic to populate DE 48.78 so eligible token transactions get the reduced rate; failure assesses the Standard rate regardless of actual assurance, and retroactive adjustments are NOT processed."
+    },
+    {
+      "id": "4",
+      "heading": "4. Transaction Routing Rules",
+      "lines": [
+        130,
+        131
+      ],
+      "summary": "Section heading only — endpoint selection, Reg II routing and token routing follow."
+    },
+    {
+      "id": "4.1",
+      "heading": "4.1 Banknet Endpoint Selection",
+      "lines": [
+        132,
+        141
+      ],
+      "summary": "How the acquirer chooses a Banknet endpoint, including the primary/secondary arrangement Part 1's BR-04 timeout rule depends on."
+    },
+    {
+      "id": "4.2",
+      "heading": "4.2 Regulation II (Durbin) Routing for Debit Mastercard",
+      "lines": [
+        142,
+        151
+      ],
+      "summary": "Debit routing obligations under Regulation II, governing unaffiliated-network choice for Debit Mastercard traffic."
+    },
+    {
+      "id": "4.3",
+      "heading": "4.3 MDES Token Routing",
+      "lines": [
+        152,
+        160
+      ],
+      "summary": "Routing rules specific to MDES token transactions, including how token BINs reach the correct endpoint."
+    },
+    {
+      "id": "5",
+      "heading": "5. Reporting and Downstream Data Obligations",
+      "lines": [
+        161,
+        162
+      ],
+      "summary": "Section heading only — three reporting obligations follow."
+    },
+    {
+      "id": "5.1",
+      "heading": "5.1 Daily Settlement Report (DSR) Format Changes",
+      "lines": [
+        163,
+        171
+      ],
+      "summary": "Format changes to the Daily Settlement Report that downstream settlement consumers must absorb."
+    },
+    {
+      "id": "5.2",
+      "heading": "5.2 Regulation II Quarterly Compliance Report",
+      "lines": [
+        172,
+        180
+      ],
+      "summary": "The quarterly Reg II compliance report: content and submission obligation."
+    },
+    {
+      "id": "5.3",
+      "heading": "5.3 MDES Token Coverage Reporting",
+      "lines": [
+        181,
+        189
+      ],
+      "summary": "MDES token coverage reporting obligation — the metrics Mastercard monitors for TRID population and DE 48.77 coverage."
+    },
+    {
+      "id": "6",
+      "heading": "6. Effective Dates and JPMC Internal Deadlines",
+      "lines": [
+        190,
+        197
+      ],
+      "summary": "Effective dates for the technical changes and the JPMC-internal deadlines derived from them."
+    },
+    {
+      "id": "7",
+      "heading": "7. Normative References",
+      "lines": [
+        198,
+        208
+      ],
+      "summary": "Referenced specifications and guides for the technical implementation."
+    }
+  ]
+}

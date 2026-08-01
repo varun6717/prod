@@ -1,0 +1,82 @@
+{
+  "run_id": "r-2026-08-01-si1",
+  "files": [
+    {
+      "path": "context_set/confluence/discover_routing_kb.md",
+      "source": "confluence",
+      "url": "fixtures/confluence/discover_routing_kb.html",
+      "adapter": "confluence_extract",
+      "disposition": [
+        "product_domain_knowledge"
+      ],
+      "descriptor": "KB: Card Brand Routing — how the Merchant Routing Service resolves brand from PAN BIN range and dispatches to per-brand handlers; steady-state reference, not a change",
+      "index_path": "context_set/confluence/discover_routing_kb.index.json"
+    },
+    {
+      "path": "context_set/confluence/message_format_kb.md",
+      "source": "confluence",
+      "url": "fixtures/confluence/message_format_kb.html",
+      "adapter": "confluence_extract",
+      "disposition": [
+        "technical_specification"
+      ],
+      "descriptor": "KB: Brand Message Formats — per-brand wire formats (Mastercard ISO 8583 field 48 usage; Discover's own layout) and the brand rules the format layer enforces before dispatch",
+      "index_path": "context_set/confluence/message_format_kb.index.json"
+    },
+    {
+      "path": "context_set/jira/PBI-4471.md",
+      "source": "jira",
+      "url": "fixtures/jira/PBI-4471.json",
+      "adapter": "ingest_jira",
+      "disposition": [
+        "prior_artifact"
+      ],
+      "descriptor": "PBI-4471 (Epic, Done/Delivered): Discover brand acceptance — authorization parser and routing table. Records settlement reconciliation as EXPLICITLY out of scope (deferred to PBI-4602) and co-badged Discover/Diners as indistinguishable by PAN range alone",
+      "index_path": "context_set/jira/PBI-4471.index.json"
+    },
+    {
+      "path": "context_set/sharepoint/mastercard_mandate_part1_2026.md",
+      "source": "sharepoint",
+      "url": "fixtures/pdf/mastercard_mandate_part1_2026.pdf",
+      "adapter": "pdf_extract",
+      "disposition": [
+        "business_requirement"
+      ],
+      "descriptor": "Mastercard Brand Implementation Mandate MCS-2026-R3, Part 1 of 2: Mandate Overview, Brand Rules & Certification; Version 1.2, Approved-Final; Compliance Deadline 2026-09-30",
+      "index_path": "context_set/sharepoint/mastercard_mandate_part1_2026.index.json"
+    },
+    {
+      "path": "context_set/sharepoint/mastercard_mandate_part2_2026.md",
+      "source": "sharepoint",
+      "url": "fixtures/pdf/mastercard_mandate_part2_2026.pdf",
+      "adapter": "pdf_extract",
+      "disposition": [
+        "technical_specification"
+      ],
+      "descriptor": "Mastercard Brand Implementation Mandate MCS-2026-R3-T, Part 2 of 2: Technical Implementation Specification — ISO 8583 DE 48 subelements, interchange tiers, Banknet/Reg II routing, reporting obligations",
+      "index_path": "context_set/sharepoint/mastercard_mandate_part2_2026.index.json"
+    }
+  ],
+  "sources_status": [
+    {
+      "source": "confluence",
+      "status": "ok",
+      "files": 2
+    },
+    {
+      "source": "jira",
+      "status": "ok",
+      "files": 1
+    },
+    {
+      "source": "repo",
+      "status": "ok",
+      "note": "code map built"
+    },
+    {
+      "source": "sharepoint",
+      "status": "ok",
+      "files": 2
+    }
+  ]
+}

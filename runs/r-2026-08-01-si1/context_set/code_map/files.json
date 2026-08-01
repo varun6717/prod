@@ -1,0 +1,697 @@
+{
+  "repo": "merchant-routing-svc",
+  "seal_id": "SEAL-12345",
+  "commit_sha": "95c15e6",
+  "generated_at": "2026-08-01T00:00:00Z",
+  "coverage": "coarse",
+  "language": "c",
+  "languages": [
+    "c"
+  ],
+  "onboarded_languages": [
+    "c"
+  ],
+  "built_with_extractor_sha": "ed703ff",
+  "profile_sha": "52dd3db",
+  "files": [
+    {
+      "path": "include/brand.h",
+      "language": "c",
+      "module": "c:shared_interfaces",
+      "purpose": "card brand identifiers and rule struct",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "register_brand(h)",
+        "lookup_handler(brand)",
+        "brand_name(brand)"
+      ],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "include/common.h",
+      "language": "c",
+      "module": "c:shared_interfaces",
+      "purpose": null,
+      "purpose_source": null,
+      "purpose_quality": null,
+      "interfaces": [],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "unanalyzable_reason": "no declared purpose, no header prose, no exported symbols or prototypes"
+    },
+    {
+      "path": "include/errors.h",
+      "language": "c",
+      "module": "c:shared_interfaces",
+      "purpose": "declares pdlc_strerror, retry_with_backoff, error_fallback, is_retryable",
+      "purpose_source": "symbols",
+      "purpose_quality": "generic",
+      "interfaces": [
+        "pdlc_strerror(s)",
+        "retry_with_backoff(op, ctx, max_attempts)",
+        "error_fallback(s)",
+        "is_retryable(s)"
+      ],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": []
+    },
+    {
+      "path": "include/message.h",
+      "language": "c",
+      "module": "c:shared_interfaces",
+      "purpose": "ISO 8583 message struct and field accessors",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "parse_iso8583(raw, len, out)",
+        "build_iso8583(m, buf, len)",
+        "format_settlement_msg(t, buf, len)",
+        "encode_field(m, field, buf, len)",
+        "decode_field(m, field, raw, len)"
+      ],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "include/txn.h",
+      "language": "c",
+      "module": "c:shared_interfaces",
+      "purpose": "transaction struct and stage enum",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "txn_authorize(t)",
+        "txn_capture(t)",
+        "txn_settle(t)",
+        "txn_advance(t, next)",
+        "txn_is_terminal(t)"
+      ],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "src/config/brand_rules.c",
+      "language": "c",
+      "module": "c:brand_group",
+      "purpose": "brand rule table load and cache",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "get_brand_rule(brand)"
+      ],
+      "depends_on": [],
+      "used_by": [
+        "routing/brand_router",
+        "routing/capture_route"
+      ],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "src/config/brand_rules.h",
+      "language": "c",
+      "module": "c:shared_interfaces",
+      "purpose": "declares get_brand_rule",
+      "purpose_source": "symbols",
+      "purpose_quality": "generic",
+      "interfaces": [
+        "get_brand_rule(brand)"
+      ],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": []
+    },
+    {
+      "path": "src/config/feature_flags.c",
+      "language": "c",
+      "module": "c:config",
+      "purpose": "feature_flags.c \u2014 build-time feature toggles + Stratus registration",
+      "purpose_source": "header_prose",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "feature_register_brands()"
+      ],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": []
+    },
+    {
+      "path": "src/errors/error_codes.c",
+      "language": "c",
+      "module": "c:error_codes",
+      "purpose": "error code definitions and text",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "pdlc_strerror(s)",
+        "is_retryable(s)"
+      ],
+      "depends_on": [],
+      "used_by": [
+        "errors/retry"
+      ],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "src/errors/fallback.c",
+      "language": "c",
+      "module": "c:fallback",
+      "purpose": "fallback handling when a brand handler is unavailable",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "error_fallback(s)"
+      ],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "src/errors/retry.c",
+      "language": "c",
+      "module": "c:retry",
+      "purpose": "retry.c \u2014 bounded retry with backoff. (Tier 1, coverage: deep)",
+      "purpose_source": "header_prose",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "retry_with_backoff(op, ctx, max_attempts)"
+      ],
+      "depends_on": [
+        "errors/error_codes"
+      ],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": []
+    },
+    {
+      "path": "src/messaging/codec.h",
+      "language": "c",
+      "module": "c:messaging",
+      "purpose": "declares codec_register",
+      "purpose_source": "symbols",
+      "purpose_quality": "generic",
+      "interfaces": [
+        "codec_register(field, enc, dec)"
+      ],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": []
+    },
+    {
+      "path": "src/messaging/field_codec.c",
+      "language": "c",
+      "module": "c:messaging",
+      "purpose": "per-field encode/decode codec table",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "codec_register(field, enc, dec)",
+        "encode_field(m, field, buf, len)",
+        "decode_field(m, field, raw, len)"
+      ],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "src/messaging/formatter.c",
+      "language": "c",
+      "module": "c:formatter",
+      "purpose": "formatter.c \u2014 settlement + transaction message formatting. (Tier 1, deep)",
+      "purpose_source": "header_prose",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "format_settlement_msg(t, buf, len)",
+        "parse_iso8583(raw, len, out)"
+      ],
+      "depends_on": [
+        "messaging/iso8583"
+      ],
+      "used_by": [
+        "settlement/reconciler"
+      ],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": []
+    },
+    {
+      "path": "src/messaging/iso8583.c",
+      "language": "c",
+      "module": "c:iso8583",
+      "purpose": "ISO 8583 message parse and build",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "build_iso8583(m, buf, len)"
+      ],
+      "depends_on": [],
+      "used_by": [
+        "messaging/formatter",
+        "settlement/settlement_batch"
+      ],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "src/messaging/iso8583_v2.c",
+      "language": "c",
+      "module": "c:iso8583_v2",
+      "purpose": "ISO 8583 message parse and build (2003 revision)",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "build_iso8583_v2(m, buf, len)",
+        "parse_iso8583_v2(buf, len, out)"
+      ],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "src/routing/brand_registry.c",
+      "language": "c",
+      "module": "c:brand_group",
+      "purpose": "registry of known card brands and their handlers",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "register_brand(h)",
+        "lookup_handler(brand)",
+        "register_default_brands()",
+        "brand_name(brand)"
+      ],
+      "depends_on": [],
+      "used_by": [
+        "routing/brand_router",
+        "routing/dispatch"
+      ],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "src/routing/brand_router.c",
+      "language": "c",
+      "module": "c:routing",
+      "purpose": "route an authorization to the brand handler",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "route_transaction(t)",
+        "register_brand_routes()"
+      ],
+      "depends_on": [
+        "config/brand_rules",
+        "routing/route_table",
+        "settlement/reconciler",
+        "routing/brand_registry"
+      ],
+      "used_by": [
+        "transaction/txn_lifecycle"
+      ],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "src/routing/capture_route.c",
+      "language": "c",
+      "module": "c:routing",
+      "purpose": "route capture-stage traffic to settlement",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "route_capture(t)"
+      ],
+      "depends_on": [
+        "config/brand_rules",
+        "routing/route_table"
+      ],
+      "used_by": [
+        "transaction/txn_lifecycle"
+      ],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "src/routing/dispatch.c",
+      "language": "c",
+      "module": "c:dispatch",
+      "purpose": "dispatch a routed txn to its handler entry point",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "dispatch_generic(t)",
+        "dispatch_via_ctx(t)"
+      ],
+      "depends_on": [
+        "routing/brand_registry"
+      ],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "src/routing/route_table.c",
+      "language": "c",
+      "module": "c:routing",
+      "purpose": "reloadable brand routing table lookup",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "route_table_install(brand, h)",
+        "route_via_table(t)"
+      ],
+      "depends_on": [],
+      "used_by": [
+        "routing/brand_router",
+        "routing/capture_route"
+      ],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "src/routing/route_table.h",
+      "language": "c",
+      "module": "c:routing",
+      "purpose": "declares route_via_table, route_table_install",
+      "purpose_source": "symbols",
+      "purpose_quality": "generic",
+      "interfaces": [
+        "route_via_table(t)",
+        "route_table_install(brand, h)"
+      ],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": []
+    },
+    {
+      "path": "src/routing/routing.h",
+      "language": "c",
+      "module": "c:routing",
+      "purpose": "routing entry points",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "route_transaction(t)",
+        "register_brand_routes()",
+        "route_capture(t)"
+      ],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "src/settlement/batch.h",
+      "language": "c",
+      "module": "c:routing",
+      "purpose": "declares batch_add, batch_flush, ledger_post",
+      "purpose_source": "symbols",
+      "purpose_quality": "generic",
+      "interfaces": [
+        "batch_add(b, t)",
+        "batch_flush(b)",
+        "ledger_post(t)"
+      ],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": []
+    },
+    {
+      "path": "src/settlement/ledger_post.c",
+      "language": "c",
+      "module": "c:routing",
+      "purpose": "post reconciled entries to the general ledger",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "ledger_post(t)"
+      ],
+      "depends_on": [],
+      "used_by": [
+        "settlement/reconciler"
+      ],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "src/settlement/reconciler.c",
+      "language": "c",
+      "module": "c:routing",
+      "purpose": "reconcile captured transactions against the ledger",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "reconcile_txn(t)",
+        "reconcile_close_window(window_id)"
+      ],
+      "depends_on": [
+        "messaging/formatter",
+        "settlement/settlement_batch",
+        "settlement/ledger_post"
+      ],
+      "used_by": [
+        "routing/brand_router"
+      ],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "src/settlement/reconciler.h",
+      "language": "c",
+      "module": "c:routing",
+      "purpose": "declares reconcile_txn, reconcile_close_window",
+      "purpose_source": "symbols",
+      "purpose_quality": "generic",
+      "interfaces": [
+        "reconcile_txn(t)",
+        "reconcile_close_window(window_id)"
+      ],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": []
+    },
+    {
+      "path": "src/settlement/settlement_batch.c",
+      "language": "c",
+      "module": "c:routing",
+      "purpose": "assemble and close settlement batches",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "batch_add(b, t)",
+        "batch_flush(b)"
+      ],
+      "depends_on": [
+        "messaging/iso8583"
+      ],
+      "used_by": [
+        "settlement/reconciler"
+      ],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "src/transaction/auth_handler.c",
+      "language": "c",
+      "module": "c:auth_handler",
+      "purpose": "authorization stage handler",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "auth_handle(t)"
+      ],
+      "depends_on": [],
+      "used_by": [
+        "transaction/txn_lifecycle"
+      ],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "src/transaction/capture_handler.c",
+      "language": "c",
+      "module": "c:capture_handler",
+      "purpose": "capture_handler.c \u2014 capture-phase handler. (Tier 1, coverage: deep)",
+      "purpose_source": "header_prose",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "capture_handle(t)"
+      ],
+      "depends_on": [],
+      "used_by": [
+        "transaction/txn_lifecycle"
+      ],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": []
+    },
+    {
+      "path": "src/transaction/settle_handler.c",
+      "language": "c",
+      "module": "c:settle_handler",
+      "purpose": "settlement stage handler",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "settle_handle(t)"
+      ],
+      "depends_on": [],
+      "used_by": [
+        "transaction/txn_lifecycle"
+      ],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "src/transaction/transaction.h",
+      "language": "c",
+      "module": "c:shared_interfaces",
+      "purpose": "declares auth_handle, capture_handle, settle_handle",
+      "purpose_source": "symbols",
+      "purpose_quality": "generic",
+      "interfaces": [
+        "auth_handle(t)",
+        "capture_handle(t)",
+        "settle_handle(t)"
+      ],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": []
+    },
+    {
+      "path": "src/transaction/txn_lifecycle.c",
+      "language": "c",
+      "module": "c:routing",
+      "purpose": "transaction state machine and stage advance",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "txn_authorize(t)",
+        "txn_capture(t)",
+        "txn_settle(t)"
+      ],
+      "depends_on": [
+        "transaction/auth_handler",
+        "routing/brand_router",
+        "transaction/txn_state",
+        "transaction/capture_handler",
+        "routing/capture_route",
+        "transaction/settle_handler"
+      ],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": [],
+      "purpose_declared_line": 4
+    },
+    {
+      "path": "src/transaction/txn_state.c",
+      "language": "c",
+      "module": "c:txn_state",
+      "purpose": "txn_state.c \u2014 transaction phase state machine. (Tier 1, coverage: deep)",
+      "purpose_source": "header_prose",
+      "purpose_quality": "specific",
+      "interfaces": [
+        "txn_advance(t, next)",
+        "txn_is_terminal(t)"
+      ],
+      "depends_on": [],
+      "used_by": [
+        "transaction/txn_lifecycle"
+      ],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": []
+    },
+    {
+      "path": "vendor/stratus/tpf_compat.h",
+      "language": "c",
+      "module": "c:config",
+      "purpose": "declares stratus_svc_dispatch, stratus_yield",
+      "purpose_source": "symbols",
+      "purpose_quality": "generic",
+      "interfaces": [
+        "stratus_svc_dispatch(svc_num, arg)",
+        "stratus_yield()"
+      ],
+      "depends_on": [],
+      "used_by": [],
+      "coverage": "coarse",
+      "external_calls": [],
+      "exposes": []
+    }
+  ]
+}

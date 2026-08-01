@@ -585,6 +585,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     ap.add_argument("--repo", default=str(FIXTURE),
                     help="repo to onboard (default: the c_repo fixture)")
     ap.add_argument("--commit", help="commit sha for the report header (default: the repo's HEAD)")
+    ap.add_argument("--profile", help="frozen signal profile to read this repo WITH "
+                                      "(core/code_profiles/<repo>.profile.yaml). Omit to run in "
+                                      "PROPOSE mode against the unfrozen defaults.")
     args = ap.parse_args(argv)
 
     root = Path(args.repo)
@@ -601,7 +604,28 @@ def main(argv: Sequence[str] | None = None) -> int:
               f"Check the --repo path.", file=sys.stderr)
         return 2
 
-    profile = json.loads(json.dumps(DEFAULT_PROFILE))
+    # The gate has two modes, and conflating them was a real defect (TASK-127):
+    #
+    #   PROPOSE  — no frozen profile yet. Scan with the defaults, report, the operator picks
+    #              one of the four actions, and the outcome is FROZEN as data.
+    #   VALIDATE — a frozen profile exists. Read the repo WITH IT and confirm it still holds.
+    #
+    # Until now `main()` always used DEFAULT_PROFILE, so a repo whose profile was already frozen
+    # got re-reported against rules nobody was using: `c_repo.profile.yaml` had
+    # `hub_threshold_fan_in: 3` (plus approved singleton_groups) while the gate reported on 8,
+    # and duly warned that the graph had collapsed — a decision the operator had already made
+    # and frozen. Worse than noise: `profile_sha` is half the map cache key, so a map derived
+    # from the defaults would be keyed against a profile that governs nothing.
+    if args.profile:
+        import yaml
+        frozen = yaml.safe_load(Path(args.profile).read_text(encoding="utf-8"))
+        profile = {**json.loads(json.dumps(DEFAULT_PROFILE)), **frozen}
+        mode = f"VALIDATE against frozen {Path(args.profile).name}"
+    else:
+        profile = json.loads(json.dumps(DEFAULT_PROFILE))
+        mode = "PROPOSE (unfrozen defaults — the four actions below are live)"
+
+    print(f"mode: {mode}\n")
     scan, dist, mods = run_gate(root, profile)
     print(render_gate_report(str(root), args.commit or _commit_of(root), scan, profile, dist, mods))
     ok, detail = check_freeze_integrity()

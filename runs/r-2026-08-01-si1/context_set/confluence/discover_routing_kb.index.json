@@ -1,0 +1,56 @@
+{
+  "path": "context_set/confluence/discover_routing_kb.md",
+  "disposition": [
+    "product_domain_knowledge"
+  ],
+  "lines_total": 26,
+  "lines_indexed": 26,
+  "entries": 5,
+  "index": [
+    {
+      "id": "0",
+      "heading": "Front matter — page purpose",
+      "lines": [
+        1,
+        6
+      ],
+      "summary": "KB page describing how the Merchant Routing Service routes authorization traffic to the correct brand handler. Explicitly reference material, not a change or mandate."
+    },
+    {
+      "id": "1",
+      "heading": "Supported card brands",
+      "lines": [
+        7,
+        11
+      ],
+      "summary": "Routes Mastercard, Visa and Discover. CURRENT STATE: card brand is resolved from the PAN BIN range during authorization."
+    },
+    {
+      "id": "2",
+      "heading": "Routing",
+      "lines": [
+        12,
+        17
+      ],
+      "summary": "After brand resolution the router dispatches to a brand-specific handler (mc_handler, visa_handler, discover_handler). Routing is table-driven and reloadable without a deploy."
+    },
+    {
+      "id": "3",
+      "heading": "Transaction flow",
+      "lines": [
+        18,
+        22
+      ],
+      "summary": "Authorization -> brand resolution -> handler dispatch -> response normalization -> ledger write, each step emitting a tracing span."
+    },
+    {
+      "id": "4",
+      "heading": "Error handling",
+      "lines": [
+        23,
+        26
+      ],
+      "summary": "When a brand handler is unavailable the router applies the configured fallback and records EBRAND_UNAVAILABLE; retries are bounded."
+    }
+  ]
+}

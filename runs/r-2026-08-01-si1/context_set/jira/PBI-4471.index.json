@@ -1,0 +1,137 @@
+{
+  "path": "context_set/jira/PBI-4471.md",
+  "disposition": [
+    "prior_artifact"
+  ],
+  "lines_total": 65,
+  "lines_indexed": 65,
+  "entries": 14,
+  "index": [
+    {
+      "id": "0",
+      "heading": "Front matter — issue identity",
+      "lines": [
+        1,
+        4
+      ],
+      "summary": "PBI-4471, 'Discover brand acceptance — authorization parser and routing table', with its source URL."
+    },
+    {
+      "id": "1",
+      "heading": "Issue type",
+      "lines": [
+        5,
+        8
+      ],
+      "summary": "Epic."
+    },
+    {
+      "id": "2",
+      "heading": "Status",
+      "lines": [
+        9,
+        12
+      ],
+      "summary": "Done."
+    },
+    {
+      "id": "3",
+      "heading": "Priority",
+      "lines": [
+        13,
+        16
+      ],
+      "summary": "High."
+    },
+    {
+      "id": "4",
+      "heading": "Resolution",
+      "lines": [
+        17,
+        20
+      ],
+      "summary": "Delivered."
+    },
+    {
+      "id": "5",
+      "heading": "Labels",
+      "lines": [
+        21,
+        28
+      ],
+      "summary": "payment-brand, discover, routing."
+    },
+    {
+      "id": "6",
+      "heading": "Components",
+      "lines": [
+        29,
+        34
+      ],
+      "summary": "auth-parser, routing-tables."
+    },
+    {
+      "id": "7",
+      "heading": "Fix versions",
+      "lines": [
+        35,
+        38
+      ],
+      "summary": "2025.11."
+    },
+    {
+      "id": "8",
+      "heading": "Created",
+      "lines": [
+        39,
+        42
+      ],
+      "summary": "2025-06-02."
+    },
+    {
+      "id": "9",
+      "heading": "Updated",
+      "lines": [
+        43,
+        46
+      ],
+      "summary": "2025-11-18."
+    },
+    {
+      "id": "10",
+      "heading": "Description",
+      "lines": [
+        47,
+        52
+      ],
+      "summary": "Delivered Discover as an accepted brand at authorization: PAN-range recognition for Discover BINs 601100-601109 and 644000-659999, a new discover_handler, and routing-table entries pointing Discover traffic at the DCI endpoint. EXPLICITLY OUT OF SCOPE: settlement reconciliation, deferred to PBI-4602 because the recon file format change required separate network certification."
+    },
+    {
+      "id": "11",
+      "heading": "Acceptance criteria",
+      "lines": [
+        53,
+        56
+      ],
+      "summary": "Discover PANs resolve to card_brand=DISCOVER; discover_handler dispatches to the DCI endpoint; routing-table reload requires no deploy; no regression in Mastercard or Visa dispatch."
+    },
+    {
+      "id": "12",
+      "heading": "Comments",
+      "lines": [
+        57,
+        62
+      ],
+      "summary": "Certification found co-badged Discover/Diners cards are NOT distinguishable by PAN range alone — raised as a known limitation rather than blocking delivery, with the network indicating an explicit brand indicator would follow in a later mandate. Closing comment reiterates settlement reconciliation remains untouched."
+    },
+    {
+      "id": "13",
+      "heading": "Other fields",
+      "lines": [
+        63,
+        65
+      ],
+      "summary": "customfield_10021 = SEAL-12345."
+    }
+  ]
+}

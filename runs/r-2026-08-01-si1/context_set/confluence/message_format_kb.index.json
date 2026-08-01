@@ -1,0 +1,38 @@
+{
+  "path": "context_set/confluence/message_format_kb.md",
+  "disposition": [
+    "technical_specification"
+  ],
+  "lines_total": 14,
+  "lines_indexed": 14,
+  "entries": 3,
+  "index": [
+    {
+      "id": "0",
+      "heading": "Front matter — page purpose",
+      "lines": [
+        1,
+        5
+      ],
+      "summary": "KB page documenting the wire/message formats the Merchant Routing Service uses per brand. Reference material, not a change request."
+    },
+    {
+      "id": "1",
+      "heading": "Message format",
+      "lines": [
+        6,
+        10
+      ],
+      "summary": "CURRENT STATE: Mastercard uses ISO 8583 (1987) with brand-specific field 48 usage; Discover uses its own field layout. Field-level mappings live in the format registry."
+    },
+    {
+      "id": "2",
+      "heading": "Brand rules",
+      "lines": [
+        11,
+        14
+      ],
+      "summary": "Each brand imposes operational rules on the message contract — mandatory fields, allowed values, certification constraints — enforced by the format layer before dispatch."
+    }
+  ]
+}

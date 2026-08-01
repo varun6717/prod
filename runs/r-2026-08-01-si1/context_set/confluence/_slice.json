@@ -1,0 +1,28 @@
+{
+  "source": "confluence",
+  "status": "ok",
+  "files": [
+    {
+      "path": "context_set/confluence/discover_routing_kb.md",
+      "source": "confluence",
+      "url": "fixtures/confluence/discover_routing_kb.html",
+      "adapter": "confluence_extract",
+      "disposition": [
+        "product_domain_knowledge"
+      ],
+      "descriptor": "KB: Card Brand Routing \u2014 how the Merchant Routing Service resolves brand from PAN BIN range and dispatches to per-brand handlers; steady-state reference, not a change",
+      "index_path": "context_set/confluence/discover_routing_kb.index.json"
+    },
+    {
+      "path": "context_set/confluence/message_format_kb.md",
+      "source": "confluence",
+      "url": "fixtures/confluence/message_format_kb.html",
+      "adapter": "confluence_extract",
+      "disposition": [
+        "technical_specification"
+      ],
+      "descriptor": "KB: Brand Message Formats \u2014 per-brand wire formats (Mastercard ISO 8583 field 48 usage; Discover's own layout) and the brand rules the format layer enforces before dispatch",
+      "index_path": "context_set/confluence/message_format_kb.index.json"
+    }
+  ]
+}

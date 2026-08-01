@@ -1,0 +1,28 @@
+{
+  "source": "sharepoint",
+  "status": "ok",
+  "files": [
+    {
+      "path": "context_set/sharepoint/mastercard_mandate_part1_2026.md",
+      "source": "sharepoint",
+      "url": "fixtures/pdf/mastercard_mandate_part1_2026.pdf",
+      "adapter": "pdf_extract",
+      "disposition": [
+        "business_requirement"
+      ],
+      "descriptor": "Mastercard Brand Implementation Mandate MCS-2026-R3, Part 1 of 2: Mandate Overview, Brand Rules & Certification; Version 1.2, Approved-Final; Compliance Deadline 2026-09-30",
+      "index_path": "context_set/sharepoint/mastercard_mandate_part1_2026.index.json"
+    },
+    {
+      "path": "context_set/sharepoint/mastercard_mandate_part2_2026.md",
+      "source": "sharepoint",
+      "url": "fixtures/pdf/mastercard_mandate_part2_2026.pdf",
+      "adapter": "pdf_extract",
+      "disposition": [
+        "technical_specification"
+      ],
+      "descriptor": "Mastercard Brand Implementation Mandate MCS-2026-R3-T, Part 2 of 2: Technical Implementation Specification \u2014 ISO 8583 DE 48 subelements, interchange tiers, Banknet/Reg II routing, reporting obligations",
+      "index_path": "context_set/sharepoint/mastercard_mandate_part2_2026.index.json"
+    }
+  ]
+}

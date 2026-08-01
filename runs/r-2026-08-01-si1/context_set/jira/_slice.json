@@ -1,0 +1,17 @@
+{
+  "source": "jira",
+  "status": "ok",
+  "files": [
+    {
+      "path": "context_set/jira/PBI-4471.md",
+      "source": "jira",
+      "url": "fixtures/jira/PBI-4471.json",
+      "adapter": "ingest_jira",
+      "disposition": [
+        "prior_artifact"
+      ],
+      "descriptor": "PBI-4471 (Epic, Done/Delivered): Discover brand acceptance \u2014 authorization parser and routing table. Records settlement reconciliation as EXPLICITLY out of scope (deferred to PBI-4602) and co-badged Discover/Diners as indistinguishable by PAN range alone",
+      "index_path": "context_set/jira/PBI-4471.index.json"
+    }
+  ]
+}
