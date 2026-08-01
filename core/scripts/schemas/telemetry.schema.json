@@ -24,7 +24,10 @@
     "tokens_in": { "type": "integer", "minimum": 0 },
     "tokens_out": { "type": "integer", "minimum": 0 },
     "cost_usd": { "type": "number", "minimum": 0 },
-    "artifact": { "enum": ["brd", "frd", "jira"] },
+    "artifact": {
+      "description": "What a `validation` event scored, keyed to its gate: si_v1 → G1, enrichment → G2, jira → G3 (§9). The BRD/FRD-era values died with the artifacts (ADR-008).",
+      "enum": ["si_v1", "enrichment", "jira"]
+    },
     "score": { "type": "number" },
     "gate": { "enum": ["G1", "G2", "G3"] },
     "outcome": { "enum": ["accept", "reopen"] },

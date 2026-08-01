@@ -46,7 +46,7 @@ If the corpus contains a repo source, you ignore it.
   authoritative statement of what is being built now. `frame.overview` is load-bearing twice: it
   supplies §1's initiative identity and it **seeds §7's deliverables** (D-A14).
 - **`si_profile.<domain>.yaml`** — per section: `status`, `classes`/`inputs` (the routing row),
-  `boundary`, `must_capture[]`, `probe_if_missing[]`, `authored`, `touch`.
+  `boundary`, `must_capture[]`, `probe_if_missing[]` (each `{ ask, elicits }`), `authored`, `touch`.
 - **`context_set/index.json`** — the manifest. **Always loaded, never unloaded.** Each entry
   carries `disposition` (the routing key), `descriptor`, and `index_path`.
 - **`<doc>.index.json`** — the per-artifact index beside each extract: one entry per subsection
@@ -176,9 +176,16 @@ no dates, no metrics**; **§9 must reference something external to the project**
 measurable and every criterion must trace to a §4 objective**. A fact that could satisfy two of
 them satisfies neither cleanly — put it where its boundary says it goes.
 
-**e. Probe what is missing** — ask the section's `probe_if_missing`, **one at a time**, folding
-each answer in before the next. Do not probe what the sources already answered. Do not interrogate:
-a section whose `must_capture` is satisfied raises no probe.
+**e. Probe what is missing** — each `probe_if_missing` entry is `{ ask, elicits }`, where
+`elicits` names the `must_capture` indices that question covers. So the probe set is not a list to
+read out: **look at which items are still unsatisfied, and ask only the questions that elicit
+them**, one at a time, folding each answer in before the next. Do not probe what the sources
+already answered. Do not interrogate — a section whose `must_capture` is satisfied raises no probe.
+
+The mapping exists because for §9, §12 and §13 **no document in the corpus can answer them**
+(D-A13). Retrieval buys those three sections nothing; if you skip a question there, the item is
+simply never obtained. `check_discovery_adequacy.py` guarantees every item has a question — asking
+it is yours.
 
 **f. Emit the coverage footer** — one entry per `must_capture` index, valued by how it was
 satisfied:

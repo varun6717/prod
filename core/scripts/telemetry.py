@@ -320,7 +320,7 @@ def _demo() -> None:
                       tokens_out=4200, cost_usd=0.91, ts=T)
         em.flag_decision(flag_type="scope_ripple", option="include in scope",
                          severity="material", ts=T)
-        em.validation(artifact="brd", score=88.0, ts=T)   # artifact enum re-cut at TASK-110
+        em.validation(artifact="si_v1", score=88.0, ts=T)
         em.gate_decision(gate="G1", outcome="accept", actor="vmunjal", version=1, ts=T)
         mark_stage(em, "si_v1", "done", duration_ms=402000, version=1, ts=T)
 
@@ -347,7 +347,7 @@ def _demo() -> None:
         mark_stage(em, "si_v2", "running", ts=T)
         em.model_call(stage="si_v2", model="claude-opus-4-8", tokens_in=12000,
                       tokens_out=3000, cost_usd=0.52, ts=T)
-        em.validation(artifact="frd", score=91.0, ts=T)   # artifact enum re-cut at TASK-121
+        em.validation(artifact="enrichment", score=91.0, ts=T)
         em.gate_decision(gate="G2", outcome="accept", actor="vmunjal", version=2, ts=T)
         mark_stage(em, "si_v2", "done", duration_ms=98000, version=2, ts=T)
 
