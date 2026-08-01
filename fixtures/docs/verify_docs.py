@@ -36,7 +36,7 @@ _FAILURES: list[str] = []
 
 # The docs a fresh session actually reads to orient itself.
 _ORIENTATION = ["CLAUDE.md", "VDI_WIRING.md", "docs/BUILD_OVERVIEW.md", "docs/SKILLS_INDEX.md",
-                "docs/design/README.md"]
+                "docs/design/README.md", "docs/PROGRAM_OVERVIEW.md"]
 
 # Produced BY a run or generated INTO a scaffold — correctly absent from the repo. Naming one is
 # not a dangling pointer; it is the doc describing an output. Kept explicit rather than pattern-
