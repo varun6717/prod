@@ -170,21 +170,26 @@ def main() -> int:
            and dist5["counts"].get(G.STAGE_C, 0) == 0)
 
     # 7) The freeze.
+    #    What gets frozen is `approved` (adjust + group), NOT `combined` — skipping stage C on a
+    #    35-file repo would be a strange call, and the committed profile should be the one a
+    #    sensible operator would actually sign. `combined` still proves the actions compose.
     print("\n7) freeze → profile_sha:")
-    frozen = G.freeze_profile(combined, repo="c_repo", commit_sha="9f3c1ab",
+    frozen = G.freeze_profile(approved, repo="c_repo", commit_sha="9f3c1ab",
                               reviewed_by="vmunjal",
-                              actions=["adjust profile", "group singletons", "skip stage C"])
+                              actions=["adjust profile", "group singletons"])
     _check("profile_sha is emitted", bool(frozen.get("profile_sha")), frozen["profile_sha"])
     _check("the gate record names the reviewer and the actions taken",
            frozen["gate"]["status"] == "frozen" and frozen["gate"]["reviewed_by"]
-           and len(frozen["gate"]["actions_taken"]) == 3)
-    other = G.freeze_profile(G.adjust_profile(combined,
+           and len(frozen["gate"]["actions_taken"]) == 2)
+    _check("stage C is NOT skipped in the frozen profile (a deliberate operator call)",
+           frozen["stages"]["skip_stage_c"] is False)
+    other = G.freeze_profile(G.adjust_profile(approved,
                                               **{"derivation.hub_threshold_fan_in": 5}),
                              repo="c_repo", commit_sha="9f3c1ab", reviewed_by="vmunjal")
     _check("a profile CHANGE moves profile_sha — this is what makes gate branch 4 work",
            other["profile_sha"] != frozen["profile_sha"],
            f"{frozen['profile_sha']} vs {other['profile_sha']}")
-    resigned = G.freeze_profile(combined, repo="c_repo", commit_sha="9f3c1ab",
+    resigned = G.freeze_profile(approved, repo="c_repo", commit_sha="9f3c1ab",
                                 reviewed_by="someone-else")
     _check("a re-signature does NOT move it (gate metadata is excluded, deliberately)",
            resigned["profile_sha"] == frozen["profile_sha"],

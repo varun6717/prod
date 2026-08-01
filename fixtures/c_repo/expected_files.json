@@ -1,50 +1,19 @@
 {
-  "repo": "merchant-routing-svc",
-  "seal_id": "SEAL-PBI-0001",
-  "commit_sha": "e94c70d",
-  "generated_at": "2026-06-19T00:00:00Z",
+  "repo": "c_repo",
+  "seal_id": "SEAL-12345",
+  "commit_sha": "9f3c1ab",
+  "generated_at": "2026-08-01T00:00:00Z",
   "coverage": "coarse",
   "language": "c",
-  "built_with_extractor_sha": "125a6ca",
-  "components": [
-    {
-      "module": "routing",
-      "purpose": "Dispatches a transaction to the correct card-brand handler"
-    },
-    {
-      "module": "settlement",
-      "purpose": "Reconciliation, batching, and ledger posting of settled transactions"
-    },
-    {
-      "module": "transaction",
-      "purpose": "End-to-end transaction lifecycle (auth -> capture -> settle) and phase state machine"
-    },
-    {
-      "module": "errors",
-      "purpose": "Canonical status codes, retry/backoff, and fallback dispositions"
-    },
-    {
-      "module": "messaging",
-      "purpose": "ISO 8583 wire-message parse/build and per-field codec"
-    },
-    {
-      "module": "config",
-      "purpose": "Brand rule tables, macro-generated brand handlers, and build-time feature flags"
-    },
-    {
-      "module": "shared",
-      "purpose": "Cross-module contract headers (txn record, brand vtable, status codes, message model)"
-    },
-    {
-      "module": "vendor",
-      "purpose": "Stratus/TPF compatibility shim (out-of-tree, index-escaping)"
-    }
-  ],
+  "built_with_extractor_sha": "ed703ff",
+  "profile_sha": "52dd3db",
   "files": [
     {
       "path": "include/brand.h",
-      "module": "shared",
-      "purpose": "Card-brand identifiers and the runtime brand-handler vtable type; registry API declarations.",
+      "module": "shared_interfaces",
+      "purpose": "card brand identifiers and rule struct",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
       "interfaces": [
         "register_brand(h)",
         "lookup_handler(brand)",
@@ -52,29 +21,31 @@
       ],
       "depends_on": [],
       "used_by": [],
-      "tags": [
-        "card_brand"
-      ],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "purpose_declared_line": 4
     },
     {
       "path": "include/common.h",
-      "module": "shared",
-      "purpose": "Shared utility expression macros (array length, bounds, bounded field accessor, logging stub).",
+      "module": "shared_interfaces",
+      "purpose": null,
+      "purpose_source": null,
+      "purpose_quality": null,
       "interfaces": [],
       "depends_on": [],
       "used_by": [],
-      "tags": [],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "unanalyzable_reason": "no declared purpose, no header prose, no exported symbols or prototypes"
     },
     {
       "path": "include/errors.h",
-      "module": "shared",
-      "purpose": "Canonical status-code enum and the retry/fallback API.",
+      "module": "shared_interfaces",
+      "purpose": "declares pdlc_strerror, retry_with_backoff, error_fallback, is_retryable",
+      "purpose_source": "symbols",
+      "purpose_quality": "generic",
       "interfaces": [
         "pdlc_strerror(s)",
         "retry_with_backoff(op, ctx, max_attempts)",
@@ -83,17 +54,16 @@
       ],
       "depends_on": [],
       "used_by": [],
-      "tags": [
-        "error_handling"
-      ],
       "coverage": "coarse",
       "external_calls": [],
       "exposes": []
     },
     {
       "path": "include/message.h",
-      "module": "shared",
-      "purpose": "ISO 8583 wire-message model and parse/build/codec prototypes.",
+      "module": "shared_interfaces",
+      "purpose": "ISO 8583 message struct and field accessors",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
       "interfaces": [
         "parse_iso8583(raw, len, out)",
         "build_iso8583(m, buf, len)",
@@ -103,17 +73,17 @@
       ],
       "depends_on": [],
       "used_by": [],
-      "tags": [
-        "message_format"
-      ],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "purpose_declared_line": 4
     },
     {
       "path": "include/txn.h",
-      "module": "shared",
-      "purpose": "Core transaction record threaded through every module; lifecycle and state-helper prototypes.",
+      "module": "shared_interfaces",
+      "purpose": "transaction struct and stage enum",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
       "interfaces": [
         "txn_authorize(t)",
         "txn_capture(t)",
@@ -123,17 +93,17 @@
       ],
       "depends_on": [],
       "used_by": [],
-      "tags": [
-        "transaction_flow"
-      ],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "purpose_declared_line": 4
     },
     {
       "path": "src/config/brand_rules.c",
-      "module": "config",
-      "purpose": "Brand rule table plus macro-generated per-brand route handlers; interface under-reported (visa_route/mastercard_route/amex_route invisible to the parser \u2014 DECLARE_BRAND_HANDLER macro not expanded).",
+      "module": "brand_group",
+      "purpose": "brand rule table load and cache",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
       "interfaces": [
         "get_brand_rule(brand)"
       ],
@@ -142,25 +112,22 @@
         "routing/brand_router",
         "routing/capture_route"
       ],
-      "tags": [
-        "card_brand"
-      ],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "purpose_declared_line": 4
     },
     {
       "path": "src/config/brand_rules.h",
-      "module": "config",
-      "purpose": "Brand rule-table lookup declaration.",
+      "module": "shared_interfaces",
+      "purpose": "declares get_brand_rule",
+      "purpose_source": "symbols",
+      "purpose_quality": "generic",
       "interfaces": [
         "get_brand_rule(brand)"
       ],
       "depends_on": [],
       "used_by": [],
-      "tags": [
-        "card_brand"
-      ],
       "coverage": "coarse",
       "external_calls": [],
       "exposes": []
@@ -168,23 +135,24 @@
     {
       "path": "src/config/feature_flags.c",
       "module": "config",
-      "purpose": "Build-time feature toggles and Stratus registration; #ifdef-gated branches and an out-of-tree vendor include defeat the index.",
+      "purpose": "feature_flags.c \u2014 build-time feature toggles + Stratus registration",
+      "purpose_source": "header_prose",
+      "purpose_quality": "specific",
       "interfaces": [
         "feature_register_brands()"
       ],
       "depends_on": [],
       "used_by": [],
-      "tags": [
-        "card_brand"
-      ],
       "coverage": "coarse",
       "external_calls": [],
       "exposes": []
     },
     {
       "path": "src/errors/error_codes.c",
-      "module": "errors",
-      "purpose": "Status-code to string mapping and retryability predicate.",
+      "module": "error_codes",
+      "purpose": "error code definitions and text",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
       "interfaces": [
         "pdlc_strerror(s)",
         "is_retryable(s)"
@@ -193,33 +161,33 @@
       "used_by": [
         "errors/retry"
       ],
-      "tags": [
-        "error_handling"
-      ],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "purpose_declared_line": 4
     },
     {
       "path": "src/errors/fallback.c",
-      "module": "errors",
-      "purpose": "Maps a hard error to a recovery disposition.",
+      "module": "fallback",
+      "purpose": "fallback handling when a brand handler is unavailable",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
       "interfaces": [
         "error_fallback(s)"
       ],
       "depends_on": [],
       "used_by": [],
-      "tags": [
-        "error_handling"
-      ],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "purpose_declared_line": 4
     },
     {
       "path": "src/errors/retry.c",
-      "module": "errors",
-      "purpose": "Bounded retry with backoff over a caller-supplied operation (generic callback, not a tracked edge).",
+      "module": "retry",
+      "purpose": "retry.c \u2014 bounded retry with backoff. (Tier 1, coverage: deep)",
+      "purpose_source": "header_prose",
+      "purpose_quality": "specific",
       "interfaces": [
         "retry_with_backoff(op, ctx, max_attempts)"
       ],
@@ -227,9 +195,6 @@
         "errors/error_codes"
       ],
       "used_by": [],
-      "tags": [
-        "error_handling"
-      ],
       "coverage": "coarse",
       "external_calls": [],
       "exposes": []
@@ -237,15 +202,14 @@
     {
       "path": "src/messaging/codec.h",
       "module": "messaging",
-      "purpose": "Per-field ISO 8583 codec-table interface (function-pointer per field).",
+      "purpose": "declares codec_register",
+      "purpose_source": "symbols",
+      "purpose_quality": "generic",
       "interfaces": [
         "codec_register(field, enc, dec)"
       ],
       "depends_on": [],
       "used_by": [],
-      "tags": [
-        "message_format"
-      ],
       "coverage": "coarse",
       "external_calls": [],
       "exposes": []
@@ -253,7 +217,9 @@
     {
       "path": "src/messaging/field_codec.c",
       "module": "messaging",
-      "purpose": "Per-field ISO 8583 codec table dispatched by field number through a function pointer (intra-file gap).",
+      "purpose": "per-field encode/decode codec table",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
       "interfaces": [
         "codec_register(field, enc, dec)",
         "encode_field(m, field, buf, len)",
@@ -261,17 +227,17 @@
       ],
       "depends_on": [],
       "used_by": [],
-      "tags": [
-        "message_format"
-      ],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "purpose_declared_line": 4
     },
     {
       "path": "src/messaging/formatter.c",
-      "module": "messaging",
-      "purpose": "Settlement/transaction ISO 8583 message formatting; tail of the scope-ripple chain.",
+      "module": "formatter",
+      "purpose": "formatter.c \u2014 settlement + transaction message formatting. (Tier 1, deep)",
+      "purpose_source": "header_prose",
+      "purpose_quality": "specific",
       "interfaces": [
         "format_settlement_msg(t, buf, len)",
         "parse_iso8583(raw, len, out)"
@@ -282,53 +248,52 @@
       "used_by": [
         "settlement/reconciler"
       ],
-      "tags": [
-        "message_format"
-      ],
       "coverage": "coarse",
       "external_calls": [],
       "exposes": []
     },
     {
       "path": "src/messaging/iso8583.c",
-      "module": "messaging",
-      "purpose": "Low-level ISO 8583 frame builder (bit/byte manipulation only).",
+      "module": "iso8583",
+      "purpose": "ISO 8583 message parse and build",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
       "interfaces": [
         "build_iso8583(m, buf, len)"
       ],
       "depends_on": [],
       "used_by": [
-        "settlement/settlement_batch",
-        "messaging/formatter"
-      ],
-      "tags": [
-        "message_format"
+        "messaging/formatter",
+        "settlement/settlement_batch"
       ],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "purpose_declared_line": 4
     },
     {
       "path": "src/messaging/iso8583_v2.c",
-      "module": "messaging",
-      "purpose": "ISO 8583 message parse and build for the 2003 field-set revision; the versioned duplicate of iso8583.c (D-A20 finding 3).",
+      "module": "iso8583_v2",
+      "purpose": "ISO 8583 message parse and build (2003 revision)",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
       "interfaces": [
         "build_iso8583_v2(m, buf, len)",
         "parse_iso8583_v2(buf, len, out)"
       ],
       "depends_on": [],
       "used_by": [],
-      "tags": [
-        "message_format"
-      ],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "purpose_declared_line": 4
     },
     {
       "path": "src/routing/brand_registry.c",
-      "module": "routing",
-      "purpose": "Brand-handler registry; binds vtables to macro-generated route functions (registration -> dispatch link not statically traceable).",
+      "module": "brand_group",
+      "purpose": "registry of known card brands and their handlers",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
       "interfaces": [
         "register_brand(h)",
         "lookup_handler(brand)",
@@ -340,18 +305,17 @@
         "routing/brand_router",
         "routing/dispatch"
       ],
-      "tags": [
-        "routing",
-        "card_brand"
-      ],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "purpose_declared_line": 4
     },
     {
       "path": "src/routing/brand_router.c",
       "module": "routing",
-      "purpose": "Primary transaction router; clean head of the routing -> settlement scope-ripple chain.",
+      "purpose": "route an authorization to the brand handler",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
       "interfaces": [
         "route_transaction(t)",
         "register_brand_routes()"
@@ -359,24 +323,23 @@
       "depends_on": [
         "config/brand_rules",
         "routing/route_table",
-        "routing/brand_registry",
-        "settlement/reconciler"
+        "settlement/reconciler",
+        "routing/brand_registry"
       ],
       "used_by": [
         "transaction/txn_lifecycle"
       ],
-      "tags": [
-        "routing",
-        "card_brand"
-      ],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "purpose_declared_line": 4
     },
     {
       "path": "src/routing/capture_route.c",
       "module": "routing",
-      "purpose": "Capture-phase routing entry point.",
+      "purpose": "route capture-stage traffic to settlement",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
       "interfaces": [
         "route_capture(t)"
       ],
@@ -387,17 +350,17 @@
       "used_by": [
         "transaction/txn_lifecycle"
       ],
-      "tags": [
-        "routing"
-      ],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "purpose_declared_line": 4
     },
     {
       "path": "src/routing/dispatch.c",
-      "module": "routing",
-      "purpose": "Computed-target dispatch through opaque vtable pointers; call targets unknowable to static analysis.",
+      "module": "dispatch",
+      "purpose": "dispatch a routed txn to its handler entry point",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
       "interfaces": [
         "dispatch_generic(t)",
         "dispatch_via_ctx(t)"
@@ -406,49 +369,43 @@
         "routing/brand_registry"
       ],
       "used_by": [],
-      "tags": [
-        "routing",
-        "card_brand"
-      ],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "purpose_declared_line": 4
     },
     {
       "path": "src/routing/route_table.c",
       "module": "routing",
-      "purpose": "Brand dispatch table; invokes handlers through a function pointer installed at runtime.",
+      "purpose": "reloadable brand routing table lookup",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
       "interfaces": [
-        "route_via_table(t)",
-        "route_table_install(brand, h)"
+        "route_table_install(brand, h)",
+        "route_via_table(t)"
       ],
       "depends_on": [],
       "used_by": [
         "routing/brand_router",
         "routing/capture_route"
       ],
-      "tags": [
-        "routing",
-        "card_brand"
-      ],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "purpose_declared_line": 4
     },
     {
       "path": "src/routing/route_table.h",
       "module": "routing",
-      "purpose": "Brand dispatch-table interface (function-pointer vtable per brand).",
+      "purpose": "declares route_via_table, route_table_install",
+      "purpose_source": "symbols",
+      "purpose_quality": "generic",
       "interfaces": [
         "route_via_table(t)",
         "route_table_install(brand, h)"
       ],
       "depends_on": [],
       "used_by": [],
-      "tags": [
-        "routing",
-        "card_brand"
-      ],
       "coverage": "coarse",
       "external_calls": [],
       "exposes": []
@@ -456,7 +413,9 @@
     {
       "path": "src/routing/routing.h",
       "module": "routing",
-      "purpose": "Public interface of the routing module.",
+      "purpose": "routing entry points",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
       "interfaces": [
         "route_transaction(t)",
         "register_brand_routes()",
@@ -464,17 +423,17 @@
       ],
       "depends_on": [],
       "used_by": [],
-      "tags": [
-        "routing"
-      ],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "purpose_declared_line": 4
     },
     {
       "path": "src/settlement/batch.h",
-      "module": "settlement",
-      "purpose": "Settlement batching and ledger-posting interfaces.",
+      "module": "routing",
+      "purpose": "declares batch_add, batch_flush, ledger_post",
+      "purpose_source": "symbols",
+      "purpose_quality": "generic",
       "interfaces": [
         "batch_add(b, t)",
         "batch_flush(b)",
@@ -482,17 +441,16 @@
       ],
       "depends_on": [],
       "used_by": [],
-      "tags": [
-        "settlement"
-      ],
       "coverage": "coarse",
       "external_calls": [],
       "exposes": []
     },
     {
       "path": "src/settlement/ledger_post.c",
-      "module": "settlement",
-      "purpose": "Posts a settled transaction to the GL ledger.",
+      "module": "routing",
+      "purpose": "post reconciled entries to the general ledger",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
       "interfaces": [
         "ledger_post(t)"
       ],
@@ -500,17 +458,17 @@
       "used_by": [
         "settlement/reconciler"
       ],
-      "tags": [
-        "settlement"
-      ],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "purpose_declared_line": 4
     },
     {
       "path": "src/settlement/reconciler.c",
-      "module": "settlement",
-      "purpose": "Settlement reconciliation; middle node of the scope-ripple chain (brand_router -> reconciler -> formatter).",
+      "module": "routing",
+      "purpose": "reconcile captured transactions against the ledger",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
       "interfaces": [
         "reconcile_txn(t)",
         "reconcile_close_window(window_id)"
@@ -523,34 +481,33 @@
       "used_by": [
         "routing/brand_router"
       ],
-      "tags": [
-        "settlement"
-      ],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "purpose_declared_line": 4
     },
     {
       "path": "src/settlement/reconciler.h",
-      "module": "settlement",
-      "purpose": "Settlement reconciliation interface.",
+      "module": "routing",
+      "purpose": "declares reconcile_txn, reconcile_close_window",
+      "purpose_source": "symbols",
+      "purpose_quality": "generic",
       "interfaces": [
         "reconcile_txn(t)",
         "reconcile_close_window(window_id)"
       ],
       "depends_on": [],
       "used_by": [],
-      "tags": [
-        "settlement"
-      ],
       "coverage": "coarse",
       "external_calls": [],
       "exposes": []
     },
     {
       "path": "src/settlement/settlement_batch.c",
-      "module": "settlement",
-      "purpose": "Settlement batch accumulation and flush.",
+      "module": "routing",
+      "purpose": "assemble and close settlement batches",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
       "interfaces": [
         "batch_add(b, t)",
         "batch_flush(b)"
@@ -561,17 +518,17 @@
       "used_by": [
         "settlement/reconciler"
       ],
-      "tags": [
-        "settlement"
-      ],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "purpose_declared_line": 4
     },
     {
       "path": "src/transaction/auth_handler.c",
-      "module": "transaction",
-      "purpose": "Authorization-phase handler (also a runtime function-pointer target of the route table).",
+      "module": "auth_handler",
+      "purpose": "authorization stage handler",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
       "interfaces": [
         "auth_handle(t)"
       ],
@@ -579,17 +536,17 @@
       "used_by": [
         "transaction/txn_lifecycle"
       ],
-      "tags": [
-        "transaction_flow"
-      ],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "purpose_declared_line": 4
     },
     {
       "path": "src/transaction/capture_handler.c",
-      "module": "transaction",
-      "purpose": "Capture-phase handler.",
+      "module": "capture_handler",
+      "purpose": "capture_handler.c \u2014 capture-phase handler. (Tier 1, coverage: deep)",
+      "purpose_source": "header_prose",
+      "purpose_quality": "specific",
       "interfaces": [
         "capture_handle(t)"
       ],
@@ -597,17 +554,16 @@
       "used_by": [
         "transaction/txn_lifecycle"
       ],
-      "tags": [
-        "transaction_flow"
-      ],
       "coverage": "coarse",
       "external_calls": [],
       "exposes": []
     },
     {
       "path": "src/transaction/settle_handler.c",
-      "module": "transaction",
-      "purpose": "Settle-phase handler.",
+      "module": "settle_handler",
+      "purpose": "settlement stage handler",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
       "interfaces": [
         "settle_handle(t)"
       ],
@@ -615,17 +571,17 @@
       "used_by": [
         "transaction/txn_lifecycle"
       ],
-      "tags": [
-        "transaction_flow"
-      ],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "purpose_declared_line": 4
     },
     {
       "path": "src/transaction/transaction.h",
-      "module": "transaction",
-      "purpose": "Concrete per-phase handler prototypes for the transaction module.",
+      "module": "shared_interfaces",
+      "purpose": "declares auth_handle, capture_handle, settle_handle",
+      "purpose_source": "symbols",
+      "purpose_quality": "generic",
       "interfaces": [
         "auth_handle(t)",
         "capture_handle(t)",
@@ -633,17 +589,16 @@
       ],
       "depends_on": [],
       "used_by": [],
-      "tags": [
-        "transaction_flow"
-      ],
       "coverage": "coarse",
       "external_calls": [],
       "exposes": []
     },
     {
       "path": "src/transaction/txn_lifecycle.c",
-      "module": "transaction",
-      "purpose": "End-to-end transaction lifecycle orchestrator (auth/capture/settle).",
+      "module": "routing",
+      "purpose": "transaction state machine and stage advance",
+      "purpose_source": "declared",
+      "purpose_quality": "specific",
       "interfaces": [
         "txn_authorize(t)",
         "txn_capture(t)",
@@ -651,24 +606,24 @@
       ],
       "depends_on": [
         "transaction/auth_handler",
-        "transaction/capture_handler",
-        "transaction/settle_handler",
-        "transaction/txn_state",
         "routing/brand_router",
-        "routing/capture_route"
+        "transaction/txn_state",
+        "transaction/capture_handler",
+        "routing/capture_route",
+        "transaction/settle_handler"
       ],
       "used_by": [],
-      "tags": [
-        "transaction_flow"
-      ],
       "coverage": "coarse",
       "external_calls": [],
-      "exposes": []
+      "exposes": [],
+      "purpose_declared_line": 4
     },
     {
       "path": "src/transaction/txn_state.c",
-      "module": "transaction",
-      "purpose": "Transaction phase state machine (forward-only advance and terminal predicate).",
+      "module": "txn_state",
+      "purpose": "txn_state.c \u2014 transaction phase state machine. (Tier 1, coverage: deep)",
+      "purpose_source": "header_prose",
+      "purpose_quality": "specific",
       "interfaces": [
         "txn_advance(t, next)",
         "txn_is_terminal(t)"
@@ -677,42 +632,25 @@
       "used_by": [
         "transaction/txn_lifecycle"
       ],
-      "tags": [
-        "transaction_flow"
-      ],
       "coverage": "coarse",
       "external_calls": [],
       "exposes": []
     },
     {
       "path": "vendor/stratus/tpf_compat.h",
-      "module": "vendor",
-      "purpose": "Stratus/TPF compatibility shim: opaque ECB type, SVC wrapper macro, extern decls. Indexable as a standalone header; referenced via an index-escaping relative path.",
+      "module": "config",
+      "purpose": "declares stratus_svc_dispatch, stratus_yield",
+      "purpose_source": "symbols",
+      "purpose_quality": "generic",
       "interfaces": [
         "stratus_svc_dispatch(svc_num, arg)",
         "stratus_yield()"
       ],
       "depends_on": [],
       "used_by": [],
-      "tags": [],
       "coverage": "coarse",
       "external_calls": [],
       "exposes": []
     }
-  ],
-  "coverage_report": {
-    "files_seen": 35,
-    "files_extracted": 29,
-    "files_fallback": 3,
-    "files_unresolved": 3,
-    "coverage": 0.83,
-    "unresolved_patterns": [
-      "function-pointer table dispatch in routing/route_table.c (entry->handler->route)",
-      "callback-registered brand vtables in routing/brand_registry.c -> macro-generated *_route",
-      "computed function-pointer dispatch in routing/dispatch.c (lookup_handler() then fn(t))",
-      "field-codec function-pointer table in messaging/field_codec.c (codec_table[field].encode)",
-      "macro-generated functions in config/brand_rules.c (DECLARE_BRAND_HANDLER token-paste)",
-      "#ifdef-gated registration + non-standard Stratus include in config/feature_flags.c"
-    ]
-  }
+  ]
 }

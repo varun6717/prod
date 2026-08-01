@@ -30,7 +30,7 @@ purpose:
   warn_if_human_authored_below: 0.7
   low_confidence_threshold: 0.5
 stages:
-  skip_stage_c: true
+  skip_stage_c: false
 overrides:
   singleton_groups:
   - name: brand_group
@@ -49,5 +49,4 @@ gate:
   actions_taken:
   - adjust profile
   - group singletons
-  - skip stage C
-profile_sha: 9ca5ca2
+profile_sha: 52dd3db
