@@ -473,34 +473,6 @@
       "local_id": "S20",
       "issue_type": "Story",
       "parent": "R9",
-      "evidence": "F-331",
-      "summary": "Deliver F-331",
-      "acceptance_criteria": [
-        "A new component exists that satisfies R9 R9.2.",
-        "Its output is verifiable end to end in UAT before Gate C2 submission.",
-        "No existing behaviour regresses."
-      ],
-      "description": "R9.2 requires 1,000 traces submitted in JSONL to the Mastercard Testing API. No trace-capture or submission path exists in the repo.",
-      "flag": "new_build"
-    },
-    {
-      "local_id": "S21",
-      "issue_type": "Story",
-      "parent": "R9",
-      "evidence": "F-361",
-      "summary": "Deliver F-361",
-      "acceptance_criteria": [
-        "A new component exists that satisfies R9 R9.1.",
-        "Its output is verifiable end to end in UAT before Gate C2 submission.",
-        "No existing behaviour regresses."
-      ],
-      "description": "R9.1 requires running the MTS v8.4 suite against a UAT environment. Test-harness work; nothing in this repo participates.",
-      "flag": "new_build"
-    },
-    {
-      "local_id": "S22",
-      "issue_type": "Story",
-      "parent": "R9",
       "evidence": "F-362",
       "summary": "Sustain C3 production monitoring thresholds",
       "acceptance_criteria": [
@@ -533,8 +505,6 @@
       "F-319",
       "F-330",
       "F-360",
-      "F-331",
-      "F-361",
       "F-362"
     ],
     "requirements": [

@@ -283,6 +283,14 @@ def disposition(record: dict, finding_id: str, *, call: str, rationale: str,
     f["status"] = "dispositioned"
     if call == "reject":
         f["section_target"] = "dropped"
+        # A reject WITHDRAWS the premise, so everything resting on it supersedes NOW, not
+        # whenever the walkthrough skill remembers to call supersede_dependents. Until the
+        # 2026-08-02 review that function's own docstring named reject as its canonical case —
+        # and nothing but a fixture ever called it. An invariant that lives in an uncalled
+        # function is a hope, not an invariant (code_review.md #4).
+        superseded = supersede_dependents(record, finding_id)
+        if superseded:
+            f["superseded_downstream"] = superseded
     elif target:
         f["section_target"] = target
     return record

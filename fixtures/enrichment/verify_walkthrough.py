@@ -119,9 +119,14 @@ def main() -> int:
     E.disposition(rec, "F-310", call="reject",
                   rationale="Arm 1 missed it — the emitter lives in the reporting repo, not here.",
                   actor="vmunjal")
-    superseded = E.supersede_dependents(rec, "F-310")
-    _check("rejecting the upstream gap supersedes BOTH derived findings",
+    # The reject itself supersedes (review #4) — disposition() calls supersede_dependents,
+    # so the walkthrough skill no longer has to remember to. The record carries the audit.
+    superseded = next(f for f in rec["findings"] if f["id"] == "F-310")\
+        .get("superseded_downstream", [])
+    _check("rejecting the upstream gap supersedes BOTH derived findings AUTOMATICALLY",
            set(superseded) == {"F-311", "F-312"}, str(sorted(superseded)))
+    _check("a redundant manual call is idempotent — nothing new to supersede",
+           E.supersede_dependents(rec, "F-310") == [])
     _check("supersession is transitive — F-312 depended on F-311, not on F-310 directly",
            "F-312" in superseded)
     sup = next(f for f in rec["findings"] if f["id"] == "F-311")

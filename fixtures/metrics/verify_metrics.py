@@ -296,8 +296,14 @@ def main() -> int:
                _close(f.m09_story_coverage_at_push, (93.0 + 68.0) / 2),
                f"{f.m09_story_coverage_at_push} — a global 'last jira score' would say 68.0, "
                "and a global max/last-seen over B would drag in 40.0")
+        # Computed from the plan file, not hardcoded (the 2026-08-02 review fixes changed the
+        # reference plan's shape: a DEFERRED finding no longer yields a §16 story, so the
+        # fixture regenerated with one story fewer — a hardcoded 7 went stale the moment the
+        # apply pass got section_target right).
         _check("M10 pools the pushed plans' shapes",
-               _close(f.m10_stories_per_epic, (7 + 5) / (12 + 3)), f"{f.m10_stories_per_epic:.4f}")
+               _close(f.m10_stories_per_epic,
+                      (len(plan["stories"]) + 5) / (len(plan["epics"]) + 3)),
+               f"{f.m10_stories_per_epic:.4f}")
         _check("M11 counts D's failure and does NOT count B's absence as one",
                _close(f.m11_push_success_rate, 0.5),
                f"{f.m11_push_success_rate} — 1 of 2 pushes; B never pushed so it is not a denominator")

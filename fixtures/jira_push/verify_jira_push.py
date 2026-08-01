@@ -78,9 +78,29 @@ def main() -> int:
            _raises(lambda: jira.push_plan(plan, {}, project_key="PBIROUTE", dry_run=False)),
            "structural, not a convention someone must remember")
     _check("an INELIGIBLE G3 result cannot mint an authorization",
-           _raises(lambda: jira.authorize(bad_g3, run_id="r", actor="v", ts=T)),
+           _raises(lambda: jira.authorize(bad_g3, plan=plan, run_id="r", actor="v", ts=T)),
            f"blocked plan scored {bad_g3.score} — the score alone would have let it through")
-    token = jira.authorize(good_g3, run_id="r-2026-08-01-si1", actor="vmunjal", ts=T)
+    token = jira.authorize(good_g3, plan=plan, run_id="r-2026-08-01-si1", actor="vmunjal", ts=T)
+
+    # ── the token binds to THE plan (review #2): authorize A, push B → refused ─────────
+    print("\n3b) the authorization is bound to the plan it accepted:")
+    import copy as _copy
+    tampered = _copy.deepcopy(plan)
+    tampered["stories"][0]["summary"] = "quietly widened scope after G3"
+    _check("a MODIFIED plan is refused under the original token",
+           _raises_type(lambda: jira.push_plan(tampered, {}, project_key="PBIROUTE",
+                                               dry_run=False, authorization=token),
+                        PermissionError))
+    wrong_run = _copy.deepcopy(plan)
+    wrong_run["run_id"] = "r-someone-elses-run"
+    _check("a token for another run is refused",
+           _raises_type(lambda: jira.push_plan(wrong_run, {}, project_key="PBIROUTE",
+                                               dry_run=False,
+                                               authorization=jira.authorize(
+                                                   good_g3, plan=wrong_run,
+                                                   run_id="r-2026-08-01-si1",
+                                                   actor="vmunjal", ts=T)),
+                        PermissionError))
     _check("an eligible result mints one", token.actor == "vmunjal" and token.score == good_g3.score)
     _check("the token records who authorised and when", bool(token.authorized_ts))
 

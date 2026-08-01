@@ -134,20 +134,33 @@ def derive_structure(extract: str | Path, *, max_entry_lines: int | None = None)
                 cuts.append(cut)
                 cur = cut
         bounds = [start] + cuts + [end + 1]
-        made = []
+        spans_out = []
         for k in range(len(bounds) - 1):
             a, b = bounds[k], bounds[k + 1] - 1
             if a > b:
                 continue
-            made.append({"id": f"{hid}{chr(ord('a') + len(made))}", "heading": title,
-                         "lines": [a, b]})
+            # A skipped seam (none left both sides ≥ min_part) can leave a span still over the
+            # limit — subdividing in name only (review #12). Re-split such spans EVENLY: an
+            # arbitrary mid-paragraph cut is worse than a seam cut but strictly better than an
+            # entry too coarse to select in, and the guarantee "no entry exceeds the limit" is
+            # what verify() can now check unconditionally.
+            span_len = b - a + 1
+            if span_len > limit:
+                n_parts = -(-span_len // limit)
+                sz = -(-span_len // n_parts)
+                spans_out += [(x, min(x + sz - 1, b)) for x in range(a, b + 1, sz)]
+            else:
+                spans_out.append((a, b))
+        made = [{"id": f"{hid}{chr(ord('a') + i)}", "heading": title, "lines": [a, b]}
+                for i, (a, b) in enumerate(spans_out)]
         if len(made) > 1:
             subdivided.append(hid)
             index.extend(made)
         else:
             index.append({"id": hid, "heading": title, "lines": [start, end]})
 
-    out = {"lines_total": total, "entries": len(index), "index": index}
+    out = {"lines_total": total, "entries": len(index), "max_entry_lines": limit,
+           "index": index}
     if subdivided:
         out["subdivided"] = subdivided
     return out
@@ -164,6 +177,12 @@ def verify(structure: dict) -> list[str]:
             if n in seen:
                 errs.append(f"line {n} in both {seen[n]} and {e['id']}")
             seen[n] = e["id"]
+    limit = structure.get("max_entry_lines")
+    if limit:
+        for e in structure["index"]:
+            if e["lines"][1] - e["lines"][0] + 1 > limit:
+                errs.append(f"{e['id']}: {e['lines'][1]-e['lines'][0]+1} lines exceeds "
+                            f"max_entry_lines={limit} — too coarse to be a selection unit")
     ids = [e["id"] for e in structure["index"]]
     dupes = sorted({i for i in ids if ids.count(i) > 1})
     if dupes:

@@ -1,5 +1,30 @@
 # code_review.md — full-repo review, 2026-08-02
 
+> ## ✅ ALL FINDINGS FIXED — same day, on V's instruction
+>
+> | # | Fix | Proven by |
+> |---|---|---|
+> | 1 | explicit non-§16 `section_target` wins over kind; reroute placement implemented (step 2b); **the run's v2/plan/trace regenerated with a recorded G2/G3 reopen→accept cycle** | `verify_spine`, `ACCEPTANCE_SI.md` correction note |
+> | 2 | `G3Authorization` carries `plan_sha256` + `run_id`; `push_plan` verifies both; a missing parent now raises instead of creating an orphan | `verify_jira_push` §3b (tampered plan and foreign-run token both refused); `verify_refusals` caught the run-binding working on its first run |
+> | 3 | `record_g2` re-verifies the freeze digest on accept | validator demo + the re-gated run |
+> | 4 | `reject` auto-supersedes dependents; audit trail in `superseded_downstream` (schema extended) | `verify_walkthrough` |
+> | 5 | §18 counts drawn from the applied report — corrections/reroutes/defers all visible | regenerated v2 §18 |
+> | 6 | `_NA` line-anchored | validator demo |
+> | 7 | span-based section extraction; duplicate heading ids refuse to parse | validator demo |
+> | 8 | `push_epics` defaults `dry_run=True`; §7.1 amended with the ruling + port note | `verify_jira_push` |
+> | 9 | both sides of `verdict_completeness` count the same units (assertion-refs and claim-ids) — first cut deduped claims by section and un-discriminated the score; `verify_spine` §7b caught it immediately | `verify_spine` |
+> | 10 | `push_plan` `ts` defaults to now, never `""` | — |
+> | 11 | page-numbering caveat stated at `extract_pages` | — |
+> | 12 | subdivision re-splits any span a skipped seam left oversized; `verify()` enforces the limit unconditionally | `verify_doc_index_derive` |
+> | 13 | no change needed (documented as correct) | — |
+>
+> Three fixes were themselves corrected by fixtures during this pass: #9's first cut deduped
+> claims by section and un-discriminated the score (`verify_spine` §7b caught it); the refusal
+> fixture tripped the new run-binding on its first run (a fixture plan carrying another run's id —
+> the check working, not failing); and `verify_metrics` had hardcoded the reference plan's story
+> count, which the #1 fix changed (a deferred finding no longer yields a §16 story). All recorded
+> rather than smoothed over.
+
 **Scope:** `core/scripts/` (all 26 modules), `core/adapters/jpmc_adapters/`, `core/extractors/`,
 `app/backend/`, with the acceptance run's artifacts (`runs/r-2026-08-01-si1/`) used as ground truth
 to verify findings rather than argue them. Every finding below was **reproduced against the code or

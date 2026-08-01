@@ -310,16 +310,6 @@
     {
       "local_id": "S6",
       "issue_type": "Story",
-      "parent": "R11",
-      "evidence": "F-311",
-      "summary": "Update ledger_post.c for R11",
-      "description": "Change grounded in F-311 at src/settlement/ledger_post.c.",
-      "acceptance_criteria": "ledger_post.c exhibits the asserted behaviour, verified by a regression test at that location.",
-      "code_location": "src/settlement/ledger_post.c"
-    },
-    {
-      "local_id": "S7",
-      "issue_type": "Story",
       "parent": "R12",
       "evidence": "D5",
       "flag": "non_code",
@@ -332,7 +322,6 @@
     "section16_entries": [
       "F-301",
       "F-310",
-      "F-311",
       "F-302",
       "F-303",
       "F-304"

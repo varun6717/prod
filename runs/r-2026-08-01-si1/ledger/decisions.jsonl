@@ -11,3 +11,7 @@
 {"ts": "2026-08-01T19:35:00Z", "kind": "disposition", "finding_id": "F-362", "call": "accept", "target": "§16", "rationale": "Accepted as build rather than rerouted, because sustaining C3's thresholds is not external tooling — it is the direct consequence of the metrics emitter F-330 identified as absent. Without that emitter there is nothing to monitor, so the two are one piece of work and belong in the same place.", "actor": "vmunjal"}
 {"ts": "2026-08-01T19:45:00Z", "kind": "gate", "gate": "G2", "outcome": "accept", "actor": "vmunjal", "version": 2}
 {"ts": "2026-08-01T20:00:00Z", "kind": "gate", "gate": "G3", "outcome": "accept", "actor": "vmunjal", "version": 1}
+{"ts": "2026-08-02T16:00:00Z", "kind": "gate", "gate": "G2", "outcome": "reopen", "actor": "vmunjal", "version": 3}
+{"ts": "2026-08-02T16:00:00Z", "kind": "gate", "gate": "G2", "outcome": "accept", "actor": "vmunjal", "version": 3}
+{"ts": "2026-08-02T16:00:00Z", "kind": "gate", "gate": "G3", "outcome": "reopen", "actor": "vmunjal", "version": 2}
+{"ts": "2026-08-02T16:00:00Z", "kind": "gate", "gate": "G3", "outcome": "accept", "actor": "vmunjal", "version": 2}

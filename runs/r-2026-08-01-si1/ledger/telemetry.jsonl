@@ -66,3 +66,12 @@
 {"ts": "2026-08-01T20:00:00Z", "run_id": "r-2026-08-01-si1", "domain": "payment_brand", "tool": "claude", "event": "gate_decision", "gate": "G3", "outcome": "accept", "actor": "vmunjal", "version": 1}
 {"ts": "2026-08-01T20:05:00Z", "run_id": "r-2026-08-01-si1", "domain": "payment_brand", "tool": "claude", "event": "jira_push", "epics": 9, "stories": 22, "success": true, "partial": false}
 {"ts": "2026-08-01T20:05:00Z", "run_id": "r-2026-08-01-si1", "domain": "payment_brand", "tool": "claude", "event": "stage_completed", "stage": "jira", "duration_ms": 310000}
+{"ts": "2026-08-02T16:00:00Z", "run_id": "r-2026-08-01-si1", "domain": "payment_brand", "tool": "claude", "event": "validation", "artifact": "enrichment", "score": 100.0}
+{"ts": "2026-08-02T16:00:00Z", "run_id": "r-2026-08-01-si1", "domain": "payment_brand", "tool": "claude", "event": "gate_decision", "gate": "G2", "outcome": "reopen", "actor": "vmunjal", "version": 3}
+{"ts": "2026-08-02T16:00:00Z", "run_id": "r-2026-08-01-si1", "domain": "payment_brand", "tool": "claude", "event": "validation", "artifact": "enrichment", "score": 100.0}
+{"ts": "2026-08-02T16:00:00Z", "run_id": "r-2026-08-01-si1", "domain": "payment_brand", "tool": "claude", "event": "gate_decision", "gate": "G2", "outcome": "accept", "actor": "vmunjal", "version": 3}
+{"ts": "2026-08-02T16:00:00Z", "run_id": "r-2026-08-01-si1", "domain": "payment_brand", "tool": "claude", "event": "validation", "artifact": "jira", "score": 100.0}
+{"ts": "2026-08-02T16:00:00Z", "run_id": "r-2026-08-01-si1", "domain": "payment_brand", "tool": "claude", "event": "gate_decision", "gate": "G3", "outcome": "reopen", "actor": "vmunjal", "version": 2}
+{"ts": "2026-08-02T16:00:00Z", "run_id": "r-2026-08-01-si1", "domain": "payment_brand", "tool": "claude", "event": "validation", "artifact": "jira", "score": 100.0}
+{"ts": "2026-08-02T16:00:00Z", "run_id": "r-2026-08-01-si1", "domain": "payment_brand", "tool": "claude", "event": "gate_decision", "gate": "G3", "outcome": "accept", "actor": "vmunjal", "version": 2}
+{"ts": "2026-08-02T16:00:00Z", "run_id": "r-2026-08-01-si1", "domain": "payment_brand", "tool": "claude", "event": "jira_push", "epics": 9, "stories": 20, "success": true, "partial": false}

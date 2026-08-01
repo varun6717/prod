@@ -173,12 +173,16 @@ def main() -> int:
         g3bad = JV.evaluate_g3(bad_plan, section16_ids=["F-1"])
         _check("an orphan-epic plan is INELIGIBLE", not g3bad.eligible)
         _check("authorize() refuses to mint for it",
-               _raises(lambda: jira.authorize(g3bad, run_id="r-refusals", actor="v", ts=T)))
+               _raises(lambda: jira.authorize(g3bad, plan=bad_plan, run_id="r-refusals", actor="v", ts=T)))
         _check("so the push is unreachable — no authorization exists to pass",
                _raises(lambda: jira.push_plan(bad_plan, {}, project_key="P", dry_run=False)))
 
         print("\n6) a mid-batch push failure preserves prior successes:")
         good_plan = json.loads((_REPO_ROOT / "fixtures/jira_plan/plan_pass.json").read_text())
+        good_plan["run_id"] = "r-refusals"   # the token is run-bound now (review #2): a token
+                                             # minted for this run must be pushed against a plan
+                                             # carrying the same run id — the fixture found the
+                                             # binding working the moment it landed
         g3ok = JV.evaluate_g3(good_plan,
                               section16_ids=good_plan["trace"]["section16_entries"],
                               dispositioned_without_story=good_plan["trace"]["section16_entries"])
@@ -202,7 +206,7 @@ def main() -> int:
             return {"key": key, "url": "https://x"}
 
         try:
-            auth = jira.authorize(g3ok, run_id="r-refusals", actor="vmunjal", ts=T)
+            auth = jira.authorize(g3ok, plan=good_plan, run_id="r-refusals", actor="vmunjal", ts=T)
             jira.set_target(flaky_create, stub_update)
             partial_trace: dict = {}
             try:

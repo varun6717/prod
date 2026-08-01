@@ -130,7 +130,13 @@ def _pypdf_pages(path: Path) -> list[list[str]]:
 
 
 def extract_pages(path: str | Path, *, backend: str | None = None) -> list[list[str]]:
-    """Extract ``[[line, …], …]`` — one list of lines per page. Deterministic; no model.
+    """Extract ``[[line, …], …]`` — one list of lines per "page". Deterministic; no model.
+
+    **Caveat (review #11):** the builtin backend equates one content stream with one page. A
+    page built from several streams, or a stream spanning pages, mislabels the boundaries —
+    the TEXT and its order are unaffected, only the page grouping. Nothing downstream keys on
+    page numbers (the index selects by line), so this is cosmetic; pypdf, when available, uses
+    the real page tree.
 
     ``backend`` forces ``"pypdf"`` or ``"builtin"``; omit to auto-select. A pypdf failure falls
     back to the builtin reader rather than raising: a partial extract is recoverable downstream

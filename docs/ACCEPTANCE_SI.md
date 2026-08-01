@@ -139,6 +139,31 @@ It found two more gaps:
 | `enrichment.disposition` **silently discarded** a `target` passed with `reject`, while `decisions.disposition` raises on the same input. Two writers disagreeing about one operator act — and the quiet one is what the apply pass reads, so a caller could believe it had placed a finding that was actually dropped. | now raises, matching the audit twin |
 | `push_plan` recorded each success as it returned, but on a mid-batch failure the partial trace **died with the stack frame** — so its own docstring's promise ("a retry resumes rather than re-creating") was true of a local variable and of nothing a caller could reach. Every caller had to track successes independently. | the exception now carries `partial_trace` and `pushed_before_failure`; additive, so existing handlers are unaffected |
 
+## Post-review correction of the accepted artifacts (2026-08-02)
+
+The full-repo review (`code_review.md`) found its top defect **in this run's accepted artifacts**:
+`apply_to_v2` selected §16 entries by *kind* regardless of `section_target`, and reroute placement
+was unimplemented — so the operator's reroute of **F-331/F-361 to §14** was silently overridden.
+Both sat in the accepted v2's §16, both generated build stories (S20/S21) in the pushed plan, and
+§14 never received them: the plan carried two stories the operator had explicitly ruled out.
+
+**Corrected on V's instruction ("fix all"), with an honest gate cycle rather than a quiet swap:**
+
+- `v2.md` regenerated deterministically from the same frozen v1 + `enrichment.json` — §16 now has
+  **20** entries, F-331/F-361 appear in **§14** under *"Added during enrichment
+  (operator-rerouted)"*, and §18's counts are drawn from what was actually applied (3 corrections,
+  not the route-based 1).
+- **G2 reopen → accept (version 3)** and **G3 reopen → accept (version 2)** recorded in the ledger
+  — the artifact changed, so the acceptances were re-earned, not carried over. The new
+  `record_g2` freeze-verification ran as part of the accept.
+- The plan rebuilt: **20 stories** (S20/S21 gone); `evaluate_g3`'s `dispositioned_without_story`
+  allowance now does real work, since the rerouted entries genuinely yield no story.
+- `jira_trace.json` regenerated from a fresh stub push (35 issues). The prior push hit a stub
+  target, so no external system ever held the old keys — regenerating is honest here; on a real
+  Jira it would instead have meant closing two pushed issues, which is exactly why the defect
+  class matters.
+- The push ran under the new **plan-bound authorization** (`plan_sha256` + `run_id` verified).
+
 ## Known limitations
 
 - ~~No deterministic PDF→text step.~~ **Closed** — see follow-up 1.

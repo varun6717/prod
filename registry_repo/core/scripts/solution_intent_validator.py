@@ -64,7 +64,11 @@ _CITE = re.compile(r"\[src:\s*([^\]\s]+)\s+L(\d+)[–-](\d+)\]")
 # The reason group is OPTIONAL on purpose: a bare "Not applicable" must still be recognised as an
 # N/A disposition so it can be REJECTED for having no reason. Requiring the dash here would let the
 # lazy form slip through as ordinary content — an omission with better manners (D-A10).
-_NA = re.compile(r"Not applicable\s*(?:[—-]\s*(\S.*))?")
+# Line-anchored (review #6): un-anchored, ANY prose containing the phrase — "Prepaid is
+# Not applicable — see Part 2" — silently marked the whole section N/A, which EXCLUDES its
+# coverage from scoring. An N/A disposition is a statement a section makes about itself, at
+# the start of a line; a mention mid-sentence is content.
+_NA = re.compile(r"^Not applicable\s*(?:[—-]\s*(\S.*))?", re.M)
 _DELIVERABLE_ID = re.compile(r"\*\*(D\d+)\*\*")
 _REQ_HEAD = re.compile(r"^#### (R\d+) — (.+)$", re.M)
 _REQ_DELIV = re.compile(r"\*\*Deliverable:\*\*\s*(D\d+)")
@@ -116,11 +120,25 @@ class V1Signals:
 def parse_v1(text: str, profile: dict) -> V1Signals:
     """Extract G1's signals from a v1 document. Deterministic; no model, no I/O."""
     prof = {s["id"]: s for s in profile["sections"]}
-    heads = [(int(n), t) for n, t in _SECTION_HEAD.findall(text)]
+    matches = list(_SECTION_HEAD.finditer(text))
+    heads = [(int(m.group(1)), m.group(2), m.start()) for m in matches]
+
+    # Loud on duplicates (review #7). A fenced example quoting "## 8. …" matches the heading
+    # regex (the parser is not fence-aware), and the old `text.index(f"## {sid}. ")` body
+    # extraction then silently mis-spanned EVERY section after the quote. Spans now come from
+    # the matches themselves, and a duplicated id — the fingerprint of a quoted heading —
+    # refuses to parse rather than corrupting the signals it feeds to a gate.
+    ids = [sid for sid, _, _ in heads]
+    dupes = sorted({i for i in ids if ids.count(i) > 1})
+    if dupes:
+        raise ValueError(
+            f"duplicate section heading(s) §{dupes} — a heading quoted inside a code block "
+            f"matches the section pattern; fence or dedent the example, the parse would be "
+            f"silently wrong otherwise")
+
     sections: list[SectionSignals] = []
-    for i, (sid, title) in enumerate(heads):
-        start = text.index(f"## {sid}. ")
-        end = text.index(f"## {heads[i + 1][0]}. ") if i + 1 < len(heads) else len(text)
+    for i, (sid, title, start) in enumerate(heads):
+        end = heads[i + 1][2] if i + 1 < len(heads) else len(text)
         body = text[start:end]
         cov: tuple[str, ...] = ()
         if (m := _COVERAGE.search(body)):
@@ -403,11 +421,24 @@ def evaluate_g2(record: dict, signals: V1Signals, *,
     precondition, so the soft score is doing real work rather than restating them.
     """
     fs = record["findings"]
-    verdicted = {f.get("assertion_ref") or f.get("section_ref") or f["id"]
-                 for f in fs if f.get("verdict")}
-    population = len(verdicted) + sum(1 for f in fs if f.get("verdict") is None
-                                      and f["action"] != "none" and f["status"] != "superseded"
-                                      and f["kind"] not in ("scope_move",))
+    def _ref(f):
+        # A work item's IDENTITY: assertions dedupe by assertion_ref (a confirmation and a
+        # derived impact on R2.3 are one assertion verdicted), but a CLAIM's identity is the
+        # finding itself — section_ref is a location, not an identity, and deduping claims by
+        # section collapsed 25 distinct unverdicted claims into a handful of sections, which
+        # un-discriminated the score the moment review #9's symmetry fix landed. Both sides
+        # now count the same units: assertion-refs and claim-ids.
+        return f.get("assertion_ref") or f["id"]
+    verdicted = {_ref(f) for f in fs if f.get("verdict")}
+    # Both sides of the ratio dedupe by ref (review #9). The old denominator added RAW
+    # unverdicted finding counts to a DEDUPED verdicted set — two verdicted findings on one
+    # section counted once, two unverdicted ones counted twice, so the ratio was not the
+    # fraction it claimed to be. Direction was conservative, but a metric should mean what
+    # it says. A ref both verdicted and not counts once, on the verdicted side.
+    unverdicted = {_ref(f) for f in fs if f.get("verdict") is None
+                   and f["action"] != "none" and f["status"] != "superseded"
+                   and f["kind"] not in ("scope_move",)} - verdicted
+    population = len(verdicted) + len(unverdicted)
     vc = (len(verdicted) / population) if population else 1.0
 
     # impact_coverage — AMENDED at TASK-121 against the first real run (see the module note).
@@ -451,13 +482,29 @@ def _assertion_ids(signals: V1Signals, req: str) -> list[str]:
 
 
 def record_g2(ledger_dir, *, result: G2Result, outcome: str, version: int,
-              actor: str = "vmunjal", ts: str | None = None):
+              actor: str = "vmunjal", ts: str | None = None,
+              si_dir: str | Path | None = None):
     """Wire the validator into G2. Same soft-gate discipline as G1: accept is the operator's, and
-    is refused when the hard preconditions do not hold."""
+    is refused when the hard preconditions do not hold.
+
+    ``si_dir`` (default: the ledger's sibling ``solution_intent/``) is where the freeze is
+    RE-VERIFIED on accept. `verify_frozen` was "the real guard" per its own docstring and had no
+    production caller (review #3) — the digest that makes tampering detectable was never actually
+    consulted on the live path, so a tampered v1 with a record recomputed against it would have
+    passed every gate. Absent freeze record → nothing to verify (G1 has not accepted yet, and
+    refusing here would invert the gate order).
+    """
     if outcome not in _VALID_OUTCOMES:
         raise ValueError(f"outcome must be one of {_VALID_OUTCOMES}; got {outcome!r}")
     if outcome == "accept" and not result.eligible:
         raise ValueError(f"G2 accept refused: {list(result.blockers)}")
+    if outcome == "accept":
+        d = Path(si_dir) if si_dir is not None else Path(ledger_dir).parent / "solution_intent"
+        if (d / "v1.frozen.json").is_file() and not verify_frozen(d):
+            raise ValueError(
+                f"G2 accept refused: v1.md no longer matches its freeze digest in "
+                f"{d / 'v1.frozen.json'} — the artifact G1 accepted has been altered, and "
+                f"everything enrichment computed against it is suspect")
     import telemetry
     locked = lock_version(version, outcome)
     em = telemetry.Emitter(ledger_dir, run_id=_run_id(ledger_dir), domain="payment_brand",

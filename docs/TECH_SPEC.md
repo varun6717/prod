@@ -805,9 +805,11 @@ The seam isolates **all** external integration: Jira write + auth. It is the **o
 
 ### 7.1 Interface signature (normative)
 
+> 🔧 **Amended 2026-08-02 (V ruling, code_review.md #8).** ``dry_run`` now defaults **True** (was ``False``). `push_plan` documents "a caller who forgets the argument previews, they do not push" as the safety property, and this pinned surface inverted it; the PermissionError backstop meant no unauthorized write either way, but a property advertised on one public surface must hold on both. Also amended here: ``authorize()`` now takes the ``plan`` and the minted ``G3Authorization`` carries ``plan_sha256`` + ``run_id``, both verified by ``push_plan`` — the token authorizes ONE plan for ONE run, for the same reason v1 freezes at G1. **Port note:** carry both into the JPMC-side §7.1.
+
 ```python
 # core/adapters/jpmc_adapters/jira.py
-def push_epics(plan: dict, trace: dict, *, project_key: str, dry_run: bool = False) -> dict:
+def push_epics(plan: dict, trace: dict, *, project_key: str, dry_run: bool = True) -> dict:
     """
     plan    : parsed jira_plan.json (epics[] with stable local_id)
     trace   : parsed jira_trace.json (existing local_id→key map; may be empty)

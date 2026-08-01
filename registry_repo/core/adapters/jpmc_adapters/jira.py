@@ -30,6 +30,8 @@ someone will act on. So the discipline here is heavier than anywhere else:
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -94,31 +96,45 @@ def reset_target() -> None:
 
 
 # ── the G3 authorization token ────────────────────────────────────────────────
+def plan_digest(plan: dict) -> str:
+    """A canonical sha256 of the plan — key-sorted JSON, so dict ordering cannot vary it."""
+    return hashlib.sha256(
+        json.dumps(plan, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+
 @dataclass(frozen=True)
 class G3Authorization:
-    """Proof that a human accepted G3. Structural, not advisory.
+    """Proof that a human accepted G3 — **for one specific plan**. Structural, not advisory.
 
     `push_plan` will not write without one, and only `authorize()` can mint one — so "the push is
     gated" is a property of the type system rather than a rule someone must remember. There is no
     flag, no override, and no default that bypasses it.
+
+    ``plan_sha256`` binds the token to the plan CONTENT that was evaluated (review #2). Without
+    it, authorize(plan A) → push(plan B) passed silently — the same defect the v1 freeze exists
+    to prevent: if the artifact can change after acceptance, the gate stops meaning anything. At
+    the only gate whose action is an external mutation, that binding cannot be optional.
     """
     run_id: str
     actor: str
     score: int
     authorized_ts: str
+    plan_sha256: str
 
 
-def authorize(result, *, run_id: str, actor: str, ts: str) -> G3Authorization:
-    """Mint the authorization. Refuses an ineligible G3 result.
+def authorize(result, *, plan: dict, run_id: str, actor: str, ts: str) -> G3Authorization:
+    """Mint the authorization for ``plan``. Refuses an ineligible G3 result.
 
     This is the single point where an irreversible action becomes possible, so the refusal is
-    here rather than at the call site: a caller that forgot to check could still not push.
+    here rather than at the call site: a caller that forgot to check could still not push. The
+    minted token carries the plan digest and run id; `push_plan` verifies both.
     """
     if not getattr(result, "eligible", False):
         raise ValueError(
             f"G3 authorization refused — the plan is not eligible: "
             f"{list(getattr(result, 'blockers', ()))[:3]}")
-    return G3Authorization(run_id=run_id, actor=actor, score=result.score, authorized_ts=ts)
+    return G3Authorization(run_id=run_id, actor=actor, score=result.score, authorized_ts=ts,
+                           plan_sha256=plan_digest(plan))
 
 
 # ── the push ──────────────────────────────────────────────────────────────────
@@ -136,7 +152,7 @@ def _issues_in_order(plan: dict) -> list[tuple[str, dict, str | None]]:
 
 def push_plan(plan: dict, trace: dict, *, project_key: str, dry_run: bool = True,
               authorization: G3Authorization | None = None,
-              auth_ref: str | None = _DEFAULT_AUTH_REF, ts: str = "") -> dict:
+              auth_ref: str | None = _DEFAULT_AUTH_REF, ts: str | None = None) -> dict:
     """Push the 4-level plan. Returns the updated trace — **does not write it to disk**.
 
     ``dry_run=True`` (the default, deliberately) validates completeness and reports the planned
@@ -149,7 +165,22 @@ def push_plan(plan: dict, trace: dict, *, project_key: str, dry_run: bool = True
         raise PermissionError(
             "refusing to push without a G3 authorization — this is the run's ONLY external "
             "mutation, and it happens exactly once a human has accepted G3")
+    if not dry_run:
+        # The token authorizes ONE plan for ONE run (review #2). A digest mismatch means the
+        # plan changed after G3 accepted it; a run mismatch means a token minted elsewhere is
+        # being replayed. Either way, what would be pushed is not what was accepted.
+        if authorization.plan_sha256 != plan_digest(plan):
+            raise PermissionError(
+                "G3 authorization does not match this plan — the plan changed after it was "
+                "accepted. Re-run G3 against the current plan.")
+        if plan.get("run_id") and authorization.run_id != plan["run_id"]:
+            raise PermissionError(
+                f"G3 authorization is for run {authorization.run_id!r}, not this plan's "
+                f"{plan['run_id']!r}")
 
+    if not ts:
+        from datetime import datetime, timezone
+        ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     handle = None
     if not dry_run:
         handle = _auth.resolve_auth(auth_ref)      # resolved lazily: a dry run needs no secret
@@ -160,6 +191,14 @@ def push_plan(plan: dict, trace: dict, *, project_key: str, dry_run: bool = True
         existing = out.get(local_id)
         action = "updated" if existing else "created"
         parent_key = out.get(parent_local, {}).get("key") if parent_local else None
+        if parent_local and parent_key is None:
+            # Parents push first, so a child whose parent has no key means the plan names a
+            # parent that exists nowhere — pushing it would create a silently ORPHANED issue
+            # in Jira (review #2). Raised in the dry run too: a preview that waves a broken
+            # parent chain through is a preview of the wrong push.
+            raise ValueError(
+                f"{local_id} names parent {parent_local!r}, which is in neither the plan "
+                f"(pushed so far) nor the trace — refusing to create an orphan")
         if dry_run:
             planned.append({"local_id": local_id, "action": action,
                             "issue_type": issue.get("issue_type"),
@@ -196,10 +235,16 @@ def push_plan(plan: dict, trace: dict, *, project_key: str, dry_run: bool = True
     return out
 
 
-def push_epics(plan: dict, trace: dict, *, project_key: str, dry_run: bool = False, **kw) -> dict:
+def push_epics(plan: dict, trace: dict, *, project_key: str, dry_run: bool = True, **kw) -> dict:
     """§7.1's pinned signature, kept as the compatibility surface over :func:`push_plan`.
 
     The name is pre-ADR-008 — the plan is four levels now, not epics — but §7.1 pins the
     signature, so it stays and delegates rather than being silently renamed.
+
+    ``dry_run`` now defaults **True**, amending §7.1's pinned ``False`` (V ruling 2026-08-02,
+    review #8): `push_plan` documents "a caller who forgets the argument previews, they do not
+    push" as THE safety property, and the pinned surface inverted it. The PermissionError
+    backstop meant no unauthorized write was possible either way — this aligns the advertised
+    property across both public surfaces. §7.1 carries the amendment note.
     """
     return push_plan(plan, trace, project_key=project_key, dry_run=dry_run, **kw)

@@ -128,9 +128,23 @@ def apply_to_v2(v1_text: str, record: dict, *, regenerate_summary=None) -> tuple
         report["corrections"].append({"id": f["id"], "section": target})
 
     # ── 2. §16, organised BY REQUIREMENT (FR-EN-06) — impacts AND accepted gaps
+    #
+    # An explicit section_target that is NOT §16 wins over kind — full stop. The original
+    # clause was `target == "§16" OR kind in (derived_impact, no_code_found)`, and the OR
+    # silently overrode the one disposition that moves a finding: a no_code_found gap the
+    # operator REROUTED to §14 still matched on kind, landed in §16, and generated a build
+    # story — the precise outcome the reroute forbade. In the first acceptance run this put
+    # two operator-excluded stories into the pushed plan, with the reroute rationale printed
+    # in §16 directly above the entries it failed to govern (code_review.md #1). A reroute
+    # is the operator's placement decision; kind is only the default when no human spoke.
     by_req: dict[str, list[dict]] = defaultdict(list)
+    rerouted = [f for f in applied if f.get("disposition") == "reroute"]
     for f in applied:
-        if f.get("section_target") == "§16" or f["kind"] in ("derived_impact", "no_code_found"):
+        target = f.get("section_target")
+        if target and target != "§16":
+            continue        # an explicit elsewhere-target: step 1 (corrections), 2b (reroutes)
+                            # or 3 (defers) owns its placement — §16 never does
+        if target == "§16" or f["kind"] in ("derived_impact", "no_code_found"):
             by_req[f.get("requirement_ref") or "unassigned"].append(f)
     s16 = ["## 16. Derived system impacts", ""]
     if by_req:
@@ -150,6 +164,24 @@ def apply_to_v2(v1_text: str, record: dict, *, regenerate_summary=None) -> tuple
         s16 += ["None identified.", ""]
     sections[16] = "\n".join(s16)
 
+    # ── 2b. REROUTED findings land at their operator-chosen target (code_review.md #1).
+    # This step did not exist before the 2026-08-02 review: `reroute` recorded a target and
+    # nothing ever wrote to it, so the one disposition that moves a finding moved nothing.
+    # Same append discipline as §17's deferrals — the target section is extended, never edited.
+    by_target: dict[int, list[dict]] = defaultdict(list)
+    for f in rerouted:
+        target = f.get("section_target") or ""
+        sid = int(target.lstrip("§").split()[0]) if target.startswith("§") else None
+        if sid in sections and sid not in (16, 17):
+            by_target[sid].append(f)
+    for sid, fs_here in sorted(by_target.items()):
+        block = sections[sid].rstrip() + "\n\n**Added during enrichment (operator-rerouted):**\n"
+        for f in sorted(fs_here, key=lambda x: x["id"]):
+            block += (f"\n- **{f['id']}** — {f.get('reasoning','')} "
+                      f"*Rerouted here: {f.get('rationale','')}*")
+            report["appended"].append(f["id"])
+        sections[sid] = block + "\n"
+
     # ── 3. §17 extended — v1's questions PLUS every deferral (never replaced)
     deferrals = [f for f in applied if f.get("disposition") == "defer"]
     s17 = sections.get(17, "## 17. Open questions\n").rstrip()
@@ -162,26 +194,36 @@ def apply_to_v2(v1_text: str, record: dict, *, regenerate_summary=None) -> tuple
             report["open_questions"].append(f["id"])
     sections[17] = s17 + "\n"
 
-    # ── 4. §18 — counts only, never a ledger (D-A4)
+    # ── 4. §18 — counts only, never a ledger (D-A4).
+    #
+    # The correction count is drawn from the APPLIED REPORT, not from routes. Route-based
+    # counting reported "1 corrected" while the document carried three in-place correction
+    # notes — an operator-accepted contradiction lands exactly like an auto-correction but
+    # rides the `escalate` route, so it was invisible to §18, and §18's entire purpose is an
+    # honest account of the v1→v2 delta (code_review.md #5). Verdict counts stay route/verdict
+    # based; placement counts come from what was placed.
     fs = record["findings"]
     c = {
         "population": sum(1 for f in fs if f.get("verdict")),
         "confirmed": sum(1 for f in fs if f.get("verdict") == "confirmed"),
-        "corrected": sum(1 for f in fs if f.get("route") == "auto_correct"),
-        "auto_filled": sum(1 for f in fs if f.get("route") == "auto_fill"),
+        "corrected": len(report["corrections"]),
         "unverifiable": sum(1 for f in fs if f.get("verdict") == "unverifiable"),
         "impacts": len(report["impacts"]),
+        "rerouted": len(report["appended"]),
+        "deferred": len(report["open_questions"]),
         "escalated": sum(1 for f in fs if f["action"] == "escalated"),
         "superseded": sum(1 for f in fs if f["status"] == "superseded"),
     }
     sections[18] = (
         "## 18. Verification summary\n\n"
         f"- Claims and assertions verdicted: **{c['population']}** — "
-        f"{c['confirmed']} confirmed · {c['corrected']} corrected · "
-        f"{c['auto_filled']} auto-filled · {c['unverifiable']} unverifiable\n"
+        f"{c['confirmed']} confirmed · {c['unverifiable']} unverifiable\n"
+        f"- Corrections applied in place: **{c['corrected']}** (auto-corrected, auto-filled, and "
+        f"operator-accepted alike — each carries its inline provenance note)\n"
         f"- §16 entries produced: **{c['impacts']}**\n"
-        f"- Findings escalated to the operator: **{c['escalated']}** "
-        f"({c['superseded']} superseded by an upstream reversal)\n\n"
+        f"- Findings escalated to the operator: **{c['escalated']}** — "
+        f"{c['rerouted']} rerouted to other sections · {c['deferred']} deferred to §17 · "
+        f"{c['superseded']} superseded by an upstream reversal\n\n"
         "*Counts only. The claim-by-claim record is `enrichment.json`.*\n")
 
     # ── 5. §1 LAST — regenerated from the corrected body, not revised
