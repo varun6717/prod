@@ -2,13 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "decisions.schema.json",
   "title": "decisions.jsonl — gate + flag + walkthrough audit record (TECH_SPEC §3.6, NFR-03)",
-  "description": "One object per line; append-only. Every gate, flag and walkthrough decision: who, when, outcome, rationale. Five record kinds keyed by `kind`. Field shapes match the writers in core/scripts/decisions.py. `disposition` is the ADR-008 addition (D-A16/D-A17): the operator's call on an escalated enrichment finding, and — uniquely among the ledger files — its RATIONALE, which is what lets someone at G2 ask \"why does §13 say this now?\" and get an answer. Records decisions only — never artifact content (FR-XS-05); a finding is referenced by `finding_id` into enrichment.json, never inlined.",
+  "description": "One object per line; append-only. Every gate, flag and walkthrough decision: who, when, outcome, rationale. Four record kinds keyed by `kind`. Field shapes match the writers in core/scripts/decisions.py. `disposition` is the ADR-008 addition (D-A16/D-A17): the operator's call on an escalated enrichment finding, and — uniquely among the ledger files — its RATIONALE, which is what lets someone at G2 ask \"why does §13 say this now?\" and get an answer. Records decisions only — never artifact content (FR-XS-05); a finding is referenced by `finding_id` into enrichment.json, never inlined.",
   "type": "object",
   "required": ["ts", "kind"],
   "additionalProperties": false,
   "properties": {
     "ts": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$" },
-    "kind": { "enum": ["gate", "flag", "reonboard_flag", "vocab_gap_flag", "disposition"] },
+    "kind": { "enum": ["gate", "flag", "reonboard_flag", "disposition"] },
     "actor": { "type": "string" },
     "gate": { "enum": ["G1", "G2", "G3"] },
     "outcome": { "enum": ["accept", "reopen"] },
@@ -22,12 +22,7 @@
     "coverage": { "type": "number", "minimum": 0, "maximum": 1 },
     "floor": { "type": "number", "minimum": 0, "maximum": 1 },
     "unresolved_patterns": { "type": "array", "items": { "type": "string" } },
-    "arm": { "enum": ["code", "docs"] },
-    "concept": { "type": "string" },
-    "evidence": { "type": "array", "items": { "type": "string" } },
-    "untagged_ratio": { "type": "number", "minimum": 0, "maximum": 1 },
-    "threshold": { "type": "number", "minimum": 0, "maximum": 1 },
-    "decision": { "enum": ["pending", "amend-vocab", "accept-as-is", "re-onboard"] },
+    "decision": { "enum": ["pending", "accept-as-is", "re-onboard"] },
     "finding_id": { "type": "string" },
     "call": {
       "description": "The operator's call on an escalated finding (D-A16/D-A17) — mirrors telemetry.schema.json's `call`. This is the FINDING disposition, not the D-A12 SOURCE disposition.",
@@ -45,14 +40,6 @@
       "required": ["flag_type", "option", "severity", "rationale"] },
     { "properties": { "kind": { "const": "reonboard_flag" } },
       "required": ["language", "coverage", "floor", "decision", "actor"] },
-    { "allOf": [
-        { "properties": { "kind": { "const": "vocab_gap_flag" } },
-          "required": ["arm", "decision", "actor"] },
-        { "oneOf": [
-            { "required": ["concept", "evidence"] },
-            { "required": ["untagged_ratio", "threshold"] }
-        ] }
-    ] },
     { "properties": { "kind": { "const": "disposition" } },
       "required": ["finding_id", "call", "rationale", "actor"] }
   ]

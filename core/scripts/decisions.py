@@ -17,17 +17,17 @@ in one place (the unified ledger-writing surface re-exports them via ``telemetry
     frozen `v1.md` they are what makes v2 reconstructable and auditable at G2.
   - ``reonboard_flag`` — the *extractor* coverage floor was tripped (§5.4, FR-DC-16):
     "a structural idiom the frozen tool can't parse — re-bless it?"
-  - ``vocab_gap_flag`` — the *vocabulary* adequacy detector raised its hand
-    (§5.4.1, ADR-003 / FR-DC-21): "a concept the frozen dictionary can't tag."
-    ⚠ Its producer (`checks/vocab_adequacy.py`) was deleted with the vocabulary in the
-    ADR-008 retirement sweep (TASK-100) and §5.4.1 is retired; the writer + schema branch
-    are kept only until §3.6 is consolidated, so nothing reading old ledgers breaks.
 
-``reonboard_flag`` / ``vocab_gap_flag`` are the same shape of event: a **frozen artifact
-noticing it has been outgrown and asking a human**. Neither writer mutates the artifact —
-it records a hand-raise for a human to dispose of (`decision` defaults to ``"pending"``
-until a human picks ``amend-vocab`` / ``accept-as-is`` / ``re-onboard``). The run is NOT
-blocked by either (advisory runtime flags; §10 containment stays the hard gate).
+``reonboard_flag`` is a **frozen artifact noticing it has been outgrown and asking a
+human**. The writer never mutates the artifact — it records a hand-raise for a human to
+dispose of (`decision` defaults to ``"pending"`` until a human picks ``re-onboard`` or
+``accept-as-is``). The run is NOT blocked by it (an advisory runtime flag).
+
+*(``vocab_gap_flag`` — the vocabulary-adequacy hand-raise — was removed at TASK-123's
+follow-up. Its producer died with the vocabulary in the ADR-008 sweep and §5.4.1 is
+retired, so the writer had no caller and the schema branch guarded a record nothing could
+emit. A record kind that cannot be produced is not backward compatibility, it is a
+sentence in a contract that reads as if something still works.)*
 
 Records are appended to a run's ``ledger/decisions.jsonl`` (created with the run
 workspace in TASK-022). The writers take an explicit ``ledger_path`` so they are
@@ -204,45 +204,4 @@ def reonboard_flag(
         "decision": decision,
         "actor": actor,
     }
-    return append_decision(ledger_path, record)
-
-
-def vocab_gap_flag(
-    ledger_path: str | Path,
-    *,
-    arm: str,
-    concept: str | None = None,
-    evidence: Sequence[str] | None = None,
-    untagged_ratio: float | None = None,
-    threshold: float | None = None,
-    decision: str = "pending",
-    actor: str = DEFAULT_ACTOR,
-    ts: str | None = None,
-) -> dict:
-    """Write a ``vocab_gap_flag`` record (§3.6 / §5.4.1, ADR-003). Two shapes, one kind.
-
-    - **Primary** (concept): pass ``concept`` + ``evidence`` — a recurring concept the
-      vocabulary lacks, caught from the model's ``uncovered_concepts`` (so it covers a
-      *partially*-tagged file too, not just a fully-untagged one).
-    - **Floor** (ratio): pass ``untagged_ratio`` + ``threshold`` — the deterministic,
-      model-free safety net crossed ``adequacy_threshold``.
-
-    Exactly one shape per call. The vocabulary is NEVER auto-grown — this is a
-    hand-raise, the dictionary's twin of ``reonboard_flag``.
-    """
-    if (concept is None) == (untagged_ratio is None):
-        raise ValueError("vocab_gap_flag: pass exactly one of (concept+evidence) | (untagged_ratio+threshold)")
-    record: dict = {
-        "ts": ts or _now_iso(),
-        "kind": "vocab_gap_flag",
-        "arm": arm,
-    }
-    if concept is not None:
-        record["concept"] = concept
-        record["evidence"] = list(evidence or [])
-    else:
-        record["untagged_ratio"] = untagged_ratio
-        record["threshold"] = threshold
-    record["decision"] = decision
-    record["actor"] = actor
     return append_decision(ledger_path, record)

@@ -278,12 +278,12 @@ def _demo() -> None:
          tel_schema,
          {"ts": "2026-06-22T00:00:00Z", "run_id": "r1", "domain": "payment_brand",
           "tool": "claude", "event": "teleport"}),
-        # decisions: vocab_gap_flag carrying BOTH shapes (must be exactly one).
-        ("decisions vocab_gap both shapes",
+        # decisions: a retired record kind must be REFUSED, not quietly accepted — the
+        # vocabulary-adequacy hand-raise died with the vocabulary (TASK-123 follow-up).
+        ("decisions retired vocab_gap_flag kind",
          dec_schema,
          {"ts": "2026-06-22T00:00:00Z", "kind": "vocab_gap_flag", "arm": "code",
-          "concept": "tokenization", "evidence": ["a.c"],
-          "untagged_ratio": 0.3, "threshold": 0.2, "decision": "pending", "actor": "v"}),
+          "concept": "tokenization", "evidence": ["a.c"], "decision": "pending", "actor": "v"}),
         # decisions: a walkthrough disposition with no rationale — the record's whole point
         # is *why* the operator decided (D-A17); without it G2 cannot answer "why this now?".
         ("decisions disposition no rationale",
@@ -314,9 +314,6 @@ def _demo() -> None:
         (dec_schema, {"ts": "2026-06-22T00:00:00Z", "kind": "reonboard_flag", "language": "c",
                       "coverage": 0.71, "floor": 0.80, "unresolved_patterns": ["macro"],
                       "decision": "re-onboard", "actor": "vmunjal"}),
-        (dec_schema, {"ts": "2026-06-22T00:00:00Z", "kind": "vocab_gap_flag", "arm": "code",
-                      "concept": "tokenization", "evidence": ["payment/tokenize.c"],
-                      "decision": "amend-vocab", "actor": "vmunjal"}),
         # The ADR-008 enrichment shapes — one telemetry event per new kind + its audit twin.
         (tel_schema, {"ts": "2026-06-22T00:00:00Z", "run_id": "r1", "domain": "payment_brand",
                       "tool": "claude", "event": "verdict", "finding_id": "F-002",

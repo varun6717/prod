@@ -17,8 +17,8 @@ The single surface every run stage writes its ledger through. Three concerns:
      driving §9 resume (NFR-08). Validated against the run_state schema on every write.
 
   3. The **decisions.jsonl** gate/flag/walkthrough audit (§3.6, NFR-03) — re-exported from
-     ``decisions.py`` (``gate``, ``flag``, ``disposition``, ``reonboard_flag``,
-     ``vocab_gap_flag``) so a run stage has one import for any ledger record. Those record
+     ``decisions.py`` (``gate``, ``flag``, ``disposition``, ``reonboard_flag``)
+     so a run stage has one import for any ledger record. Those record
      *who/when/outcome/**rationale***; their telemetry twins record the same decision
      without the prose, so metrics never have to read a rationale.
 
@@ -38,11 +38,11 @@ from pathlib import Path
 
 import ledger
 # Re-export the decisions.jsonl writers so telemetry.py is the one ledger-writing surface.
-from decisions import gate, flag, disposition, reonboard_flag, vocab_gap_flag  # noqa: F401
+from decisions import gate, flag, disposition, reonboard_flag  # noqa: F401
 
 __all__ = [
     "emit", "Emitter", "update_run_state", "mark_stage", "STAGES",
-    "gate", "flag", "disposition", "reonboard_flag", "vocab_gap_flag",
+    "gate", "flag", "disposition", "reonboard_flag",
 ]
 
 # The ADR-008 pipeline stage vocabulary (also pinned in the telemetry/run_state schemas).
@@ -355,7 +355,7 @@ def _demo() -> None:
         em.jira_push(epics=5, success=True, partial=False, ts=T)
         em.error(stage="ingest", kind="source_timeout", message="confluence read timed out", ts=T)
 
-        # All five decisions.jsonl kinds (the NFR-03 audit twins).
+        # All four decisions.jsonl kinds (the NFR-03 audit twins).
         decisions.gate(led / "decisions.jsonl", gate="G1", outcome="accept", version=1, ts=T)
         decisions.flag(led / "decisions.jsonl", flag_type="scope_ripple",
                        area="settlement/reconciler", option="include in scope",
@@ -366,8 +366,6 @@ def _demo() -> None:
                               ts=T)
         decisions.reonboard_flag(led / "decisions.jsonl", language="c", coverage=0.71,
                                  floor=0.80, patterns=["macro"], decision="re-onboard", ts=T)
-        decisions.vocab_gap_flag(led / "decisions.jsonl", arm="code", concept="tokenization",
-                                 evidence=["payment/tokenize.c"], decision="amend-vocab", ts=T)
 
         # 1) Whole ledger validates against all three schemas.
         report = ledger.validate_ledger(led)

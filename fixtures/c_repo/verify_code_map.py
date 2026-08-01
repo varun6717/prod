@@ -53,6 +53,16 @@ def main() -> int:
 
     print("verify_code_map — the two-file map over fixtures/c_repo\n")
 
+    # The oracle grades nothing until a human signs it (the TASK-005 binding rule). Two
+    # amendments are outstanding, so this run proves the map MATCHES the oracle without
+    # proving the oracle is right. Surfaced loudly rather than left to a reader of SIGNOFF.md,
+    # because an all-green sweep otherwise overstates what has been established.
+    signoff = (_REPO_ROOT / "fixtures/c_repo/SIGNOFF.md").read_text(encoding="utf-8")
+    if "PENDING RE-SIGN-OFF" in signoff:
+        print("  ⚠  ORACLE IS UNSIGNED — SIGNOFF.md carries a PENDING RE-SIGN-OFF. The checks")
+        print("     below prove the build MATCHES the oracle; they do NOT establish that the")
+        print("     oracle is correct. That needs an operator signature (TASK-005 rule).\n")
+
     # 1) oracle match, twice
     print("1) oracle match + determinism:")
     oc = json.loads((_HERE / "expected_components.json").read_text())

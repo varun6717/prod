@@ -35,6 +35,9 @@ sys.path.insert(0, str(_REPO_ROOT / "core" / "scripts" / "checks"))
 
 import yaml  # noqa: E402
 
+sys.path.insert(0, str(_REPO_ROOT / "core" / "scripts" / "checks"))
+from check_discovery_adequacy import check_discovery_adequacy  # noqa: E402
+
 _DOMAIN = "payment_brand"
 _FAILURES: list[str] = []
 
@@ -190,6 +193,18 @@ def main() -> int:
     _check("§13 records that v1 must author assumptions in checkable form",
            "checkable" in note(13))
     _check("§18 records summary-not-ledger", "not a ledger" in note(18))
+
+    # 7) Discovery adequacy — run HERE because the SI profile is the artifact it checks, and
+    #    until now nothing in the routine sweep invoked it. A check with no caller is a check
+    #    that stops being true the first time someone edits what it guards.
+    print("\n7) discovery-question adequacy (D-A13) over this profile:")
+    adq = check_discovery_adequacy("payment_brand", repo_root=_REPO_ROOT)
+    _check("no discovery-primary must_capture is left unelicited", adq.ok,
+           "; ".join(adq.errors[:2]))
+    _check("every must_capture in every elicited section has a question",
+           adq.covered == adq.total, f"{adq.covered}/{adq.total}")
+    _check("§9/§12/§13 are the discovery-primary set (D-A13)",
+           adq.primary_sections == [9, 12, 13], str(adq.primary_sections))
 
     print()
     if _FAILURES:
