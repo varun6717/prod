@@ -1035,8 +1035,8 @@ heuristic that could misfire silently; the conditional remains available later a
 
 ```json
 { "path": "context_set/sharepoint/mc_mandate_2027.md",
-  "disposition": "business_requirement",
-  "pages": 40, "lines_total": 1840, "lines_indexed": 1840, "entries": 27,
+  "disposition": ["business_requirement"],
+  "lines_total": 1840, "lines_indexed": 1840, "entries": 27,
   "subdivided": ["3.2.2"],
   "index": [
     { "id":"2.1", "heading":"Current Brand Identification", "lines":[92,148],
@@ -1045,6 +1045,9 @@ heuristic that could misfire silently; the conditional remains available later a
       "summary":"PAN ranges cannot distinguish co-badged products; causes misrouted interchange. Cites 2026 dispute volumes." }
   ] }
 ```
+
+> **Corrected 2026-08-02 (V ruling).** This example previously showed `"disposition"` as a **string** and carried a `"pages": 40` field. D-A12 makes `disposition` always a **list** (`merge_manifest.py` enforces it and every built index carries it that way), and nothing produces `pages`. An example that contradicts the contract is a trap for whoever implements from it — most likely at port time, which is exactly when this ADR is read fresh. **Port note:** carry this correction into the JPMC-side copy.
+
 
 Six SI sections drew six *different* slices from that one 40-page document (§2 → 8% of lines, §10 → 7%,
 §15 → 7% …). Per-document tagging would have handed all six the same 1840 lines.

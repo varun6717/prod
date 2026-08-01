@@ -32,7 +32,9 @@ absorb. So it is **referenced, not copied**, exactly like `doc_index` and `code_
 
 *(Design call made at TASK-127, when the first real end-to-end run found that §6.6.3's amended
 per-type lanes named `confluence_extract` but nothing had ever built it — Confluence pages staged
-as `.html` and stopped there, because `doc_index` requires a `.md` extract. Flagged for V.)*
+as `.html` and stopped there, because `doc_index` requires a `.md` extract.* **Ratified by V,
+2026-08-02** — `fixtures/confluence/verify_confluence.py` asserts this home, so a later move fails
+loudly and names what to change.)
 
 ## Principle — structure only, no interpretation
 
@@ -73,7 +75,8 @@ descriptor (`source`, `url`, `staged_path`, `auth_ref`, `ingest_ts` — §6.6.2)
    `<title>`) as the document's `#` heading.
 2. **A manifest-entry stub** (§3.2) for `merge_manifest.py`: `path`, `source`, `type`, `url`,
    `ingest_ts`, `disposition` (carried from `UI_INPUT`, never inferred), `lines_total`.
-   `index_path` is filled by the `doc_index` pass that follows, not by you.
+   **`index_path` and `descriptor` are filled by the `doc_index` pass that follows, not by you**
+   (V ruling 2026-08-02 — one field, one author, on the step that reads the whole document).
 
 ## Procedure
 

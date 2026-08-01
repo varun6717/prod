@@ -82,15 +82,20 @@ silently removing a source from the run.
 2. **A manifest-entry stub** (§3.2) for that file:
    - `path`, `source`, `url`, `ingest_ts`, `adapter: pdf_extract` — structural facts;
    - `disposition` — **copied verbatim** from the source's `UI_INPUT` entry (always a list);
-   - `descriptor` — a **one-line identification** of the document: its title, any document/mandate
-     identifier it states, part-of-N, and dates it literally prints. This is *transcription, not
-     summary* — every element of it appears on the page. (It moved here when the lane's tagging step
-     was retired; the interpretive per-subsection summaries live in the index, D-A18.)
-   - `index_path` — leave absent or `null`; the `doc_index` step that runs after you fills it.
+   - `index_path` and `descriptor` — leave both absent; the `doc_index` step that runs after you
+     fills them.
 
-   `merge_manifest.py` assembles the final `index.json` from these stubs (§3.2) and **rejects an entry
-   with no valid `disposition`** — an entry no SI section can match is an input that would silently
-   never be read.
+> 🔒 **V ruling 2026-08-02 — `descriptor` is NOT yours.** It briefly lived here when the lane's
+> tagging step was retired, and the per-type lanes then made it worse: `confluence_extract` and the
+> Jira connector each had to author the same field, so one manifest field had **three**
+> implementations and every new source type would add a fourth. It now belongs to `doc_index`, the
+> one step that already reads the whole document. That also restores this skill's own stated
+> principle — an extract step is *structural, not interpretive*, and identifying a document is an
+> act of reading it.
+
+`merge_manifest.py` assembles the final `index.json` from these stubs (§3.2) and **rejects an entry
+with no valid `disposition`** — an entry no SI section can match is an input that would silently
+never be read.
 
 ```
 context_set/
@@ -103,7 +108,6 @@ context_set/
 
 - Preserve, don't interpret — order, headings, and tables are content; keep them.
 - Copy the source's `disposition`; never infer one from the document's content.
-- Keep `descriptor` to transcribed identifiers — no characterization of what the document means.
 - Mark unreadable regions explicitly; never fabricate text or table cells.
 - Do not branch on `domain` (D7) — structural extraction is the same for any domain.
 
@@ -113,5 +117,6 @@ context_set/
   skill that runs after you in the same lane (D-A18). Your heading hierarchy is what it keys on, which
   is why structure fidelity here decides retrieval quality downstream.
 - Does not classify the document — `disposition` is operator-declared (D-A12).
+- Does not write `descriptor` or `index_path` — both are `doc_index`'s (V ruling 2026-08-02).
 - Does not read or process code — code routes to `code_map_build` via the `code_pipeline` (§6.6.3).
 - Does not ingest (no fetch/auth) — the connector stages the PDF before this skill runs (§6.6.2).

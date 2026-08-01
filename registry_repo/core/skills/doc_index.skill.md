@@ -135,6 +135,21 @@ index_document(extract_path, disposition, config):
 map an index entry to the document by eye. Where the document is unnumbered, use a document-order
 ordinal. Front matter (title block, cover, anything before the first heading) is always id `"0"`.
 
+## You also write the entry's `descriptor`
+
+Alongside the index, set the manifest entry's **`descriptor`** — a *one-line identification* of the
+document: its title, any document/mandate identifier it states, part-of-N, and dates it literally
+prints. **Transcription, not summary** — every element of it appears on the page.
+
+It used to be the extract step's, and the per-type lanes made that untenable: `pdf_extract`,
+`confluence_extract` and the Jira connector each authored the same field, so one manifest field had
+three implementations and every new source type added a fourth. It is yours because you already read
+the whole document, and because identifying a document is an act of reading it — which an extract
+step, by its own principle, does not do. *(V ruling 2026-08-02.)*
+
+Keep it to transcribed identifiers. What the document *means* belongs in the per-entry summaries
+below; the descriptor is how an operator recognises the file in a manifest listing.
+
 ## Output shape (normative)
 
 ```json

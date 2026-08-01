@@ -1,17 +1,48 @@
-# OPEN_RULINGS.md — decisions awaiting V
+# OPEN_RULINGS.md — the decision register
 
-Eight items. **None blocks the VDI port**; each is a judgment call I either made and should not
-have made alone, or deliberately did not make. Every one is stated with what it is, why it is
-yours, the options, and my recommendation.
+Eight items, **all ruled and executed on 2026-08-02**. Each was a judgment call I either made and
+should not have made alone, or deliberately did not make. Every one is stated with what it is, why
+it was V's, the options considered, and the ruling.
 
-Ruled items should be struck through with the ruling and the date, and the consequence carried
-into the ladder (`REQUIREMENTS.md` / `TECH_SPEC.md`) where one applies.
+**Nothing here is outstanding.** Keep the reasoning: a ruling without its alternatives reads as
+arbitrary later, and the next person to touch one of these seams will want to know what was weighed.
+
+New items append below with the same shape — what / why it's V's / options / recommendation — and
+are marked ✅ RULED when decided, with the consequence carried into the ladder
+(`REQUIREMENTS.md` / `TECH_SPEC.md`) where one applies.
 
 Status as of 2026-08-02. Raised by TASK-127 and its follow-ups unless noted.
+
+> ## ✅ ALL EIGHT RULED — V, 2026-08-02
+>
+> Every item was ruled as recommended and **executed**. This file is now a record of what was
+> decided and why, not a queue. Each ruling is written into the artifact it governs, so a fresh
+> session meets it where the decision applies rather than only here:
+>
+> | # | Ruling | Landed in |
+> |---|---|---|
+> | 1 | `confluence_extract` stays in `core/skills/` | the skill itself; `verify_confluence` asserts the home |
+> | 2 | At G3 the hard checks are the gate; the score informs | `TECH_SPEC.md` §9.4 |
+> | 3 | The §9.3 `impact_coverage` amendment is **ratified on evidence** | `TECH_SPEC.md` §9.3 + `verify_spine.py` §7c |
+> | 4 | `descriptor` moves to `doc_index` | all three lane skills |
+> | 5 | The D-A18 example is corrected | `ADR-008-solution-intent-pivot.md` + port note |
+> | 6 | A declared gap costs score but never blocks | `TECH_SPEC.md` §9.2 |
+> | 7 | Jira list fields render as lists | `ingest_jira._flatten` |
+> | 8 | The unaided-operator claim is attested on the VDI | `VDI_WIRING.md` |
+>
+> **Ruling 3 was the one with real work.** Ratification was withheld until the amended formula was
+> put through the same falsification test as the formula it replaced — because "has only ever
+> scored 1.0" was precisely what made the original suspect, and *a metric that cannot go down
+> measures nothing*. `verify_spine.py` §7c now drops Arm 1's findings for 4 of 12 requirements and
+> asserts coverage falls to exactly 8/12 (0.667), that the drop alone fails the gate (83 < 85), and
+> that a run where Arm 1 found nothing needing change still scores 1.0 — the regression the
+> amendment exists to prevent.
 
 ---
 
 ## 1. Where `confluence_extract` lives — `core/skills/` or the domain pack
+
+**✅ RULED A — V, 2026-08-02.** Stays in `core/skills/`.
 
 **What.** I built `confluence_extract` (the lane §6.6.3 named and nobody implemented) and put it in
 `core/skills/`, *not* `core/profiles/<domain>/adapter/` where its sibling `pdf_extract` sits.
@@ -38,6 +69,8 @@ duplicate the same extractor with nothing domain-specific to absorb.
 
 ## 2. G3's score gates structurally but never binds
 
+**✅ RULED A — V, 2026-08-02.** Accepted and documented in §9.4.
+
 **What.** All three gates compute `eligible = score_pass and hard_ok`, so the score *is* a gate. But
 a plan with an **orphan epic** — a structurally broken plan — scored **91/85**. It passed the score
 and was refused only by the hard checks.
@@ -59,6 +92,8 @@ does too.
 ---
 
 ## 3. The G2 §9.3 formula amendment is mine and unreviewed
+
+**✅ RULED B→A — V, 2026-08-02.** Discriminating case seeded first, then ratified.
 
 **What.** §9.3's provisional `impact_coverage` scored a **complete, correct run at 0.417** because 7
 of 12 requirements were fully analysed and found to need *no change* — they had no §16 entry and no
@@ -83,6 +118,8 @@ property I flagged in the original formula. It deserves the same test I applied 
 
 ## 4. `pdf_extract` owns the entry `descriptor`
 
+**✅ RULED A — V, 2026-08-02.** Moved to `doc_index`, executed now rather than deferred.
+
 **What.** The manifest entry's `descriptor` — the one-line identification the SI author reads when
 choosing sources — is written by `pdf_extract`, the *format* step, rather than `doc_index`, the
 *understanding* step.
@@ -102,6 +139,8 @@ produces correct descriptors today. Worth doing before a second domain, not befo
 ---
 
 ## 5. Two D-A18 example divergences in ADR-008
+
+**✅ RULED A — V, 2026-08-02.** Example corrected, port note added.
 
 **What.** ADR-008's illustrative index example (lines 1038–1039) disagrees with the built contract in
 two places:
@@ -127,6 +166,8 @@ one most likely to cost someone an afternoon.
 
 ## 6. G1: a declared gap costs score but does not block
 
+**✅ RULED A — V, 2026-08-02.** Kept, and confirmed as intentional in §9.2.
+
 **What.** An honest `[TBD — unsourced]` lowers `section_coverage` (so it costs score) but does not
 fail any hard precondition, provided it is declared in §17. In the acceptance run three such gaps
 left the score at 0.967 rather than 1.000.
@@ -146,6 +187,8 @@ an oversight until you see the alternatives.
 
 ## 7. `ingest_jira._flatten` renders list fields as paragraphs
 
+**✅ RULED — V, 2026-08-02.** Fixed now rather than after the port.
+
 **What.** Jira list fields (`labels`, `components`, `fixVersions`) render as blank-line-separated
 paragraphs rather than a Markdown bullet list, so `labels: [payment-brand, discover, routing]`
 becomes three paragraphs.
@@ -159,6 +202,8 @@ port. It has no correctness consequence and the Jira lane is not on the critical
 ---
 
 ## 8. The "unaided operator" acceptance claim is not attested
+
+**✅ RULED A — V, 2026-08-02.** Owed by the VDI run; recorded in `VDI_WIRING.md`.
 
 **What.** TASK-127's acceptance condition reads *"an operator completes the fresh run unaided through
 UI + tool."* Every gate in the run **was** an operator act, but performed by you in conversation
@@ -190,4 +235,8 @@ being claimed that was not shown.
 | 7 | Jira list rendering | fix after the port | low |
 | 8 | "unaided operator" | attest on the VDI run | **before port** |
 
-Three need action before the port (3, 5, 8); four are ratifications; one is deferred work.
+**All eight executed 2026-08-02.** Rulings 3, 5 and 8 were the port-critical ones; 4 and 7 were
+recommended as deferrable and were done anyway, since both were small and deferring them meant
+carrying known-wrong behaviour across the port.
+
+Verification: 30 fixture verifies green · §10 4/4 · registry snapshot re-staged and byte-identical.

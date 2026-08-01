@@ -208,8 +208,17 @@ def _flatten(value) -> str:
             return f"**{head}:** {_flatten(value['body'])}"
         return json.dumps(value, ensure_ascii=False, sort_keys=True)
     if isinstance(value, list):
-        parts = [_flatten(v) for v in value]
-        return "\n\n".join(p for p in parts if p)
+        parts = [p for p in (_flatten(v) for v in value) if p]
+        if not parts:
+            return ""
+        # A list renders as a LIST. Blank-line-joining made three labels occupy eight lines of
+        # index surface, and `lines` is the unit the index selects in and the author pulls by —
+        # so padding inflates every range that covers it for no content. Multi-line members
+        # (comments carry author + body) keep the blank-line form, since bulleting a paragraph
+        # block would misrepresent its structure rather than tighten it.
+        if any("\n" in p for p in parts):
+            return "\n\n".join(parts)
+        return "\n".join(f"- {p}" for p in parts)
     return str(value)
 
 

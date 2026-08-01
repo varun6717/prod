@@ -920,6 +920,27 @@ si_score = round(100 * (0.7 * section_coverage + 0.3 * citation_integrity))
 conditional section dispositioned (FR-SI-06) **AND** (hard) §15→§4 + §8→§7 traces intact **AND**
 (hard) all flags resolved/recorded. Accept → `v1.md` **frozen**; reopen → v1.1 pre-freeze.
 
+> 🔒 **V ruling 2026-08-02 — the amended `impact_coverage` is RATIFIED, on evidence.** The
+> provisional formula was falsified against the first real run (it scored a complete, correct run
+> **0.417**, because 7 of 12 requirements were analysed and found to need no change — and worse, it
+> made *manufacturing §16 entries* the cheapest way to pass). The replacement counts a requirement
+> as covered when Arm 1 **reached** it, whatever the verdict. Ratification was held until the
+> replacement was subjected to the same falsification test as its predecessor, because "has only
+> ever scored 1.0" is precisely what made the original suspect — **a metric that cannot go down
+> measures nothing.** `fixtures/enrichment/verify_spine.py` §7c now drops Arm 1's findings for 4 of
+> 12 requirements and asserts coverage falls to exactly 8/12 (0.667), that the drop alone fails the
+> gate (83 < 85), and that a run where Arm 1 found nothing needing change still scores 1.0 — the
+> regression the amendment exists to prevent. **Port note:** carry both the amendment and this test.
+
+> 🔒 **V ruling 2026-08-02 — a DECLARED gap costs score but never blocks.** An honest
+> `[TBD — unsourced]` lowers `section_coverage`, so it costs score, while failing no hard
+> precondition provided it is declared in §17. This is deliberate calibration, not an oversight, and
+> both alternatives are worse: making declared gaps **free** removes all pressure (a document of
+> pure `[TBD]`s could score 100), and making them **blocking** punishes honesty — an author who
+> cannot source something would be pushed toward inventing one, which is exactly what cite-or-flag
+> exists to prevent. Declaring a gap must stay cheaper than hiding it. In the TASK-127 run three
+> declared gaps held the score at 0.967 rather than 1.000, which is the intended shape.
+
 ### 9.3 enrichment score (feeds G2) *(new duty per ADR-008 — the old §9.3 FRD formula moved to §9.4)*
 
 ```
@@ -962,7 +983,17 @@ field_completeness = issues_with_all_required_and_controls_fields / total_issues
 jira_score = round(100 * (0.4 * traceability + 0.3 * testability + 0.3 * field_completeness))
 ```
 **G3 passes iff:** `jira_score ≥ threshold` **AND** (hard) hierarchy traceability complete
-(`traceability = 1.0`) **AND** (hard) all controls fields present. Accept = one combined sign-off
+(`traceability = 1.0`) **AND** (hard) all controls fields present.
+
+> 🔒 **V ruling 2026-08-02 — at G3 the HARD CHECKS are the gate; the score informs.** Eligibility is
+> `score_pass AND hard_ok` at all three gates, so the score is structurally a gate here too — but it
+> does not bind in practice: a plan with an **orphan epic**, structurally unpushable, still scored
+> **91/85** and was refused only by the hard checks (TASK-124, re-observed at TASK-127). That is
+> accepted rather than repaired, because G3 asks *"is this plan pushable"* — a structural question,
+> which the hard checks answer absolutely. It is recorded explicitly so no reader assumes otherwise:
+> **G1's and G2's scores DO bind** (G1 genuinely failed at 80/85 during the TASK-127 run before its
+> citations were completed), so a number that looks protective and is not would be a trap. The score
+> survives because M09 reads it as a trend signal across runs. Accept = one combined sign-off
 (review the 4-level plan + authorize push). Push is idempotent (§7). G3 **requires G2** — stories
 derive from enrichment evidence and cannot be authored from v1 (FR-JR-01).
 

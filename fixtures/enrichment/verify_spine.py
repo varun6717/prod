@@ -264,6 +264,46 @@ def main() -> int:
     _check("and the drop comes from verdict_completeness, not impact_coverage",
            g2thin.verdict_completeness < 1.0 and g2thin.impact_coverage == 1.0)
 
+    # ── RULING 3 (V, 2026-08-02): the AMENDED §9.3 impact_coverage must DISCRIMINATE ────
+    # The provisional formula was falsified against this run — it scored a complete, correct run
+    # 0.417 because 7 of 12 requirements were analysed and found to need no change, and worse, it
+    # made MANUFACTURING §16 entries the cheapest way to pass. The replacement counts a
+    # requirement as covered when Arm 1 REACHED it, whatever the verdict.
+    #
+    # But "has only ever scored 1.0" is exactly the property that made the original suspect. A
+    # metric that cannot go down measures nothing. So: drop Arm 1's findings for a third of the
+    # requirements and confirm the score falls proportionally — the same falsification test the
+    # formula it replaced was subjected to.
+    print("\n7c) the amended impact_coverage discriminates (it can go DOWN):")
+    import copy
+    missed = copy.deepcopy(rec)
+    drop = set(signals.requirements[:4])            # Arm 1 never reached these four
+    missed["findings"] = [f for f in missed["findings"]
+                          if f.get("requirement_ref") not in drop]
+    g2missed = V.evaluate_g2(missed, signals)
+    n_reqs = len(signals.requirements)
+    expected = (n_reqs - len(drop)) / n_reqs
+    _check("with 4 of 12 requirements unreached, impact_coverage falls to exactly 8/12",
+           abs(g2missed.impact_coverage - expected) < 1e-9,
+           f"{g2missed.impact_coverage:.3f} vs expected {expected:.3f}")
+    _check("it was 1.000 on the complete run — so the metric MOVES",
+           g2.impact_coverage == 1.0 and g2missed.impact_coverage < g2.impact_coverage)
+    _check("and the drop is enough to fail the gate on score alone",
+           not g2missed.score_pass, f"score {g2missed.score} < {g2missed.threshold}")
+
+    # The failure mode the amendment fixed must stay fixed: a requirement REACHED and found to
+    # need no change scores as covered, so nobody is rewarded for inventing a §16 entry.
+    confirmed_only = copy.deepcopy(rec)
+    for f in confirmed_only["findings"]:
+        if f["arm"] == "impact" and f.get("verdict") == "impacted":
+            f["verdict"] = "confirmed"
+            f["kind"] = "confirmation"
+    g2conf = V.evaluate_g2(confirmed_only, signals)
+    _check("a run where Arm 1 found NOTHING needed changing still scores 1.0 coverage",
+           g2conf.impact_coverage == 1.0,
+           "the old formula scored this 0.417 and made manufacturing impacts the cheapest way "
+           "to pass — that is the regression this guards")
+
     print("\n8) the G2 ledger record:")
     with tempfile.TemporaryDirectory(prefix="spine-") as td:
         led = ledger.init_ledger(Path(td) / "ledger", run_id="r-2026-08-01-si1")

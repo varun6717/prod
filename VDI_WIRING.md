@@ -110,6 +110,20 @@ contract downstream depends on.
 
 - [ ] SharePoint · [ ] Confluence · [ ] Bitbucket · [ ] Jira fetch · [ ] Jira push (stub target first)
 
+## Acceptance deferred to the VDI (V ruling 2026-08-02)
+
+One TASK-127 acceptance condition could not be attested in the external build and is **owed here**:
+
+- [ ] **"An operator completes the fresh run unaided through UI + tool."** In the external run every
+      gate *was* an operator act — G0, GF ×2, G1, the 6-item walkthrough, G2, G3 are all recorded in
+      `decisions.jsonl` — but they were performed in conversation rather than through a UI
+      affordance, and an agent cannot attest a usability claim about a human. `ACCEPTANCE_SI.md`
+      records the limitation rather than claiming it.
+
+      The VDI run is where the claim belongs anyway: real sources, the real operator, and the UI
+      operators will actually use. **Attest it there**, and note in the VDI run log which gates the
+      operator reached without asking for help — that, not the run completing, is the condition.
+
 ## Port notes carried from the external build
 
 - ~~JPMC-side D5 table (TASK-061 fix)~~ — **moot**: ADR-008 retires the vocabulary (D-A22)
