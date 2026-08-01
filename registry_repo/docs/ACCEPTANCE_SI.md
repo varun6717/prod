@@ -105,11 +105,43 @@ Every one was invisible to the per-subsystem fixtures. Each now has a regression
 
 *A fourth was reported and withdrawn: I claimed the checks passed vacuously on a nonexistent path. They do not — they exit 2 and 1 respectively. The original test piped through `tail`, so `$?` captured tail's exit code rather than the script's.*
 
+## Follow-up work (2026-08-02)
+
+Three items taken after acceptance, in the order of risk to the port.
+
+**1. PDF→text is now a declared dependency** (`core/scripts/pdf_text.py`). It was the only known
+thing that could stop the VDI run cold, and it was unverifiable beforehand because it rested on an
+ambient agent capability. Now: `pypdf` when importable, else a pure-stdlib reader, with the branch
+recorded in `ENV_PRECHECK.md` alongside the C-extractor entry it mirrors. `--which` answers it at
+port time. The limitation below is closed.
+
+**2. The index's structure is derived, not authored** (`core/scripts/doc_index.py`, amending
+D-A18). An entry is `{id, heading, lines, summary}`; the first three are facts about the extract.
+The split follows from asymmetry of error — **a wrong line range is invisible**, a wrong summary is
+caught on first read — so the unfalsifiable field was the one being guessed. Guardrail 7 now holds
+by construction. Two bugs surfaced while building it, both from real extracts: the document title
+took ordinal id `1` and collided with a `## 1.` heading claiming its own number, and subdivision
+preferred the nearest blank line, which split a dense table into a 1-line part and a still-oversized
+remainder. *(Raised by V on the Jira lane; it generalises to every extract.)*
+
+**3. The refusal paths are now driven through the spine**
+(`fixtures/spine_refusals/verify_refusals.py`). The acceptance run took the happy path at every
+gate, and nine breaks surfaced on that path alone. This drives G1's refusal (and proves v1 stays
+**unfrozen** — a refused gate that froze anyway would leave a document nobody accepted), the
+reopen→fix→accept cycle, G2 refusing while the walkthrough is unfinished, a rejected finding
+staying in the record without reaching v2, G3's authorization being unmintable for a broken plan,
+and a partial push resuming rather than duplicating.
+
+It found two more gaps:
+
+| Gap | Fix |
+|---|---|
+| `enrichment.disposition` **silently discarded** a `target` passed with `reject`, while `decisions.disposition` raises on the same input. Two writers disagreeing about one operator act — and the quiet one is what the apply pass reads, so a caller could believe it had placed a finding that was actually dropped. | now raises, matching the audit twin |
+| `push_plan` recorded each success as it returned, but on a mid-batch failure the partial trace **died with the stack frame** — so its own docstring's promise ("a retry resumes rather than re-creating") was true of a local variable and of nothing a caller could reach. Every caller had to track successes independently. | the exception now carries `partial_trace` and `pushed_before_failure`; additive, so existing handlers are unaffected |
+
 ## Known limitations
 
-- **No deterministic PDF→text step.** `pdf_extract` assumes the running agent can read a PDF. This
-  environment had no PDF library and no poppler; the extract was obtained by decoding the
-  ASCII85+Flate content streams directly. Not blocking, but a real portability risk for the VDI.
+- ~~No deterministic PDF→text step.~~ **Closed** — see follow-up 1.
 - **`ingest_jira._flatten` renders list fields as blank-line-separated paragraphs** rather than
   bullets. Totality holds and nothing is lost, but it inflates the line count the index selects in.
 - **Gate acts were performed by the operator in-conversation**, not through a UI affordance; the
