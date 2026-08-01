@@ -1,0 +1,32 @@
+{
+  "_comment": "Offline Jira-stand-in issue payload (TASK-107 proof fixture; D-A24 mock-per-source-type). Shaped like a Jira REST /issue response: `key` at the top, everything else under `fields`, objects wrapping names/values. A PRIOR ARTIFACT — a previously-delivered epic, the disposition class this source type defaults to.",
+  "key": "PBI-4471",
+  "self": "https://jira.jpmc.net/rest/api/2/issue/4471",
+  "fields": {
+    "summary": "Discover brand acceptance — authorization parser and routing table",
+    "issuetype": { "name": "Epic" },
+    "status": { "name": "Done" },
+    "priority": { "name": "High" },
+    "resolution": { "name": "Delivered" },
+    "labels": ["payment-brand", "discover", "routing"],
+    "components": [{ "name": "auth-parser" }, { "name": "routing-tables" }],
+    "fixVersions": [{ "name": "2025.11" }],
+    "created": "2025-06-02T09:14:00Z",
+    "updated": "2025-11-18T16:40:00Z",
+    "description": "Delivered Discover as an accepted brand at authorization. Scope covered PAN-range recognition for Discover BIN ranges 601100-601109 and 644000-659999, a new brand handler discover_handler, and routing-table entries pointing Discover traffic at the DCI endpoint.\n\nExplicitly OUT of scope for this epic: settlement reconciliation, which was deferred to a follow-on because the recon file format change required a separate network certification. See PBI-4602.",
+    "acceptance_criteria": "Authorization requests bearing a Discover PAN resolve to card_brand=DISCOVER; discover_handler dispatches to the DCI endpoint; routing table reload does not require a deploy; no regression in Mastercard or Visa dispatch.",
+    "comment": [
+      {
+        "author": { "displayName": "A. Rahman" },
+        "created": "2025-09-03T11:02:00Z",
+        "body": "Certification found that co-badged Discover/Diners cards are not distinguishable by PAN range alone. Raised as a known limitation rather than blocking delivery; the network indicated an explicit brand indicator would follow in a later mandate."
+      },
+      {
+        "author": { "displayName": "V. Munjal" },
+        "created": "2025-11-18T16:38:00Z",
+        "body": "Closing. Settlement reconciliation remains untouched by this epic."
+      }
+    ],
+    "customfield_10021": "SEAL-12345"
+  }
+}

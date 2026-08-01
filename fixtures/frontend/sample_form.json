@@ -1,5 +1,5 @@
 {
-  "_comment": "TASK-051/063B/103 proof input: the form-state a non-technical operator produces by filling the 5 tabs (the click-through). Field values mirror fixtures/UI_INPUT.example.yaml; emit.js maps these to a §3.1 UI_INPUT config. SharePoint + Bitbucket + Confluence emit; Lucid is present but deferred — buildConfig never emits it. Doc rows carry an operator-chosen `disp` (D-A12); the code row carries none — `codebase` is auto-set at emit.",
+  "_comment": "TASK-051/063B/103/107 proof input: the form-state a non-technical operator produces by filling the 5 tabs (the click-through). Field values mirror fixtures/UI_INPUT.example.yaml; emit.js maps these to a §3.1 UI_INPUT config. SharePoint + Bitbucket + Confluence + Jira emit; Lucid is present but deferred — buildConfig never emits it. Doc rows carry an operator-chosen `disp` (D-A12) — the Jira row deliberately omits it, so the proof exercises the per-type DEFAULT (prior_artifact); the code row carries none either — `codebase` is auto-set at emit.",
   "working_path": "/work/pbi/SEAL-12345-routing",
   "domain": "payment_brand",
   "runtime_tool": "copilot",
@@ -16,6 +16,7 @@
   "pdf": [{ "url": "https://sharepoint.jpmc.net/sites/PBI/Specs/mastercard_mandate_part1_2026.pdf", "disp": "technical_specification" }],
   "code": [{ "seal": "SEAL-12345", "url": "https://bitbucket.jpmc.net/scm/pbi/merchant-routing-svc.git" }],
   "confluence": [{ "url": "https://confluence.jpmc.net/display/PBI/Card+Brand+Routing" }],
+  "jira": [{ "url": "https://jira.jpmc.net/browse/PBI-4471" }],
   "lucid": [{ "url": "" }],
   "score_threshold": "85"
 }

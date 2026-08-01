@@ -68,7 +68,12 @@ fixture and its verify script already exist and are green offline.
 
 - [ ] **Jira — issue fetch** *(new source type, ADR-008 / D-A12 `Prior Artifact`)*
   - Fill `core/scripts/ingest_jira.py :: _fetch_issue`
-  - Mock it replaces: the Jira issue-payload fixture built alongside it
+  - Mock it replaces: `fixtures/jira/PBI-*.json`
+  - Verify: `fixtures/jira/verify_jira.py`
+  - Note the shape difference from the document connectors: `_fetch_issue` **returns the parsed
+    payload dict**, it does not write bytes to a path. Rendering the payload to the staged `.md`
+    is deterministic, shared, and already proven offline — so the VDI edit stays a pure
+    "make the network call" change
 
 - [ ] **Jira — push** *(the only external mutation of a run; gated by G3)*
   - Fill `core/adapters/jpmc_adapters/jira.py`

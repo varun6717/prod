@@ -85,15 +85,21 @@ def main() -> int:
     check(isinstance(config.get("gates", {}).get("score_threshold"), int)
           and config["gates"]["score_threshold"] == 85,
           "gates.score_threshold coerced to int 85")
-    check("jira" not in config, "jira omitted — deferred this slice")
+    # `jira` the top-level PUSH config is still deferred (it lands with the Jira layer, TASK-124).
+    # That is a different thing from a `type: jira` SOURCE, which TASK-107 does emit — the key
+    # collision is worth being explicit about.
+    check("jira" not in config, "top-level jira PUSH config omitted — deferred to the Jira layer")
 
-    print("\nSources: SharePoint + Bitbucket + Confluence (5B); Lucid still deferred:")
+    print("\nSources: SharePoint + Bitbucket + Confluence + Jira; Lucid still deferred:")
     types = [s["type"] for s in config.get("sources", [])]
-    check(types == ["sharepoint", "bitbucket", "confluence"],
-          f"sources = sharepoint + bitbucket + confluence (got {types})")
+    check(types == ["sharepoint", "bitbucket", "confluence", "jira"],
+          f"sources = sharepoint + bitbucket + confluence + jira (got {types})")
     cf = next((s for s in config["sources"] if s["type"] == "confluence"), None)
     check(cf is not None and cf.get("auth_ref") == "jpmc_adapters:confluence" and cf.get("url"),
           "Confluence emitted with url + auth_ref pointer (TASK-063B)")
+    ji = next((s for s in config["sources"] if s["type"] == "jira"), None)
+    check(ji is not None and ji.get("auth_ref") == "jpmc_adapters:jira" and ji.get("url"),
+          "Jira issue emitted with url + auth_ref pointer (TASK-107)")
     check("lucid" not in types, "Lucid NOT emitted (shown in UI but still deferred)")
     sp = next(s for s in config["sources"] if s["type"] == "sharepoint")
     bb = next(s for s in config["sources"] if s["type"] == "bitbucket")
@@ -113,9 +119,12 @@ def main() -> int:
     check(cf["disposition"] == ["product_domain_knowledge"],
           "Confluence falls back to its type DEFAULT when the operator leaves it alone "
           f"(got {cf['disposition']})")
+    check(ji["disposition"] == ["prior_artifact"],
+          "Jira falls back to its type DEFAULT — a previous epic is a record of decisions "
+          f"already made, reference-only (got {ji['disposition']})")
     check(bb["disposition"] == ["codebase"],
           f"Bitbucket is auto-set [codebase] — never operator-chosen (got {bb['disposition']})")
-    check("codebase" not in sp["disposition"] + cf["disposition"],
+    check("codebase" not in sp["disposition"] + cf["disposition"] + ji["disposition"],
           "no doc source can claim `codebase` (it is what routes the code arm)")
 
     print("\nMatches the locked example contract on operator-entered values:")

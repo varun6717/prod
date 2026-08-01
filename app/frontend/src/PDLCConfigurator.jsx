@@ -196,7 +196,8 @@ export default function PDLCConfigurator(){
     project_name:"", application_name:"", lob:"", requestor:"", requestor_sid:"",
     intent:"", overview:"", scope_hints:["routing"], stakeholders:[], compliance_deadline:"",
     pdf:[{url:"",disp:"business_requirement"}], code:[{seal:"",url:"",branch:""}],
-    confluence:[{url:"",disp:"product_domain_knowledge"}], lucid:[{url:""}],
+    confluence:[{url:"",disp:"product_domain_knowledge"}], jira:[{url:"",disp:"prior_artifact"}],
+    lucid:[{url:""}],
     score_threshold:"85",
   });
   // Config is immutable after Generate (FR-XS-16): any edit discards the generated scaffold,
@@ -334,8 +335,10 @@ export default function PDLCConfigurator(){
               items={f.pdf} onItem={(i,k,v)=>setItem("pdf",i,k,v)} onAdd={()=>addItem("pdf",{url:"",disp:"business_requirement"})} onRemove={i=>rmItem("pdf",i)}/>
             <SourceRow type="bitbucket" name="Bitbucket — Code Repo (Stratus)" bitbucket ph="https://bitbucket.jpmc.net/scm/pbi/merchant-routing-svc.git"
               items={f.code} onItem={(i,k,v)=>setItem("code",i,k,v)} onAdd={()=>addItem("code",{seal:"",url:"",branch:""})} onRemove={i=>rmItem("code",i)}/>
-            <SourceRow type="confluence" name="Confluence" ph="https://confluence.jpmc.net/display/PBI/Discover"
+            <SourceRow type="confluence" name="Confluence" ph="https://confluence.jpmc.net/display/PBI/Discover" defaultDisp="product_domain_knowledge"
               items={f.confluence} onItem={(i,k,v)=>setItem("confluence",i,k,v)} onAdd={()=>addItem("confluence",{url:"",disp:"product_domain_knowledge"})} onRemove={i=>rmItem("confluence",i)}/>
+            <SourceRow type="jira" name="Jira — Issue / Epic" ph="https://jira.jpmc.net/browse/PBI-4471" defaultDisp="prior_artifact"
+              items={f.jira} onItem={(i,k,v)=>setItem("jira",i,k,v)} onAdd={()=>addItem("jira",{url:"",disp:"prior_artifact"})} onRemove={i=>rmItem("jira",i)}/>
             <SourceRow type="lucid" name="Lucid" ph="https://lucid.app/lucidchart/…"
               items={f.lucid} onItem={(i,k,v)=>setItem("lucid",i,k,v)} onAdd={()=>addItem("lucid",{url:""})} onRemove={i=>rmItem("lucid",i)}
               deferred badge="5B — deferred"/>
@@ -428,7 +431,11 @@ const DISPOSITIONS=[
   {key:"other",                   label:"Other",                   hint:"background context only — not citable as a primary source"},
 ];
 
-function SourceRow({type,name,bitbucket,ph,items,onItem,onAdd,onRemove,deferred=false,badge}){
+// `defaultDisp` mirrors emit.js's DOC_DISPOSITION_DEFAULT per source type. Rows are always
+// seeded with a `disp`, so this is a backstop — but it must agree with emit.js, or the select
+// would show one class while the emitted config carried another.
+function SourceRow({type,name,bitbucket,ph,items,onItem,onAdd,onRemove,deferred=false,badge,
+                    defaultDisp="business_requirement"}){
   // Out-of-scope connectors (Lucid) are shown for the roadmap but disabled and never emitted.
   // Doc rows carry an operator-chosen `disposition` (D-A12); code rows show it as auto-set.
   return (
@@ -461,11 +468,11 @@ function SourceRow({type,name,bitbucket,ph,items,onItem,onAdd,onRemove,deferred=
             {!bitbucket && !deferred && <div>
               <label className="flabel">Disposition · what this is for</label>
               <div className="tinput">
-                <select value={it.disp||"business_requirement"} onChange={e=>onItem(i,"disp",e.target.value)}>
+                <select value={it.disp||defaultDisp} onChange={e=>onItem(i,"disp",e.target.value)}>
                   {DISPOSITIONS.map(d=><option key={d.key} value={d.key}>{d.label}</option>)}
                 </select>
               </div>
-              <div className="fhint">{(DISPOSITIONS.find(d=>d.key===(it.disp||"business_requirement"))||{}).hint}</div>
+              <div className="fhint">{(DISPOSITIONS.find(d=>d.key===(it.disp||defaultDisp))||{}).hint}</div>
             </div>}
             {bitbucket && <div>
               <label className="flabel">Disposition</label>
@@ -521,6 +528,7 @@ function buildYaml(f,generated){
   f.pdf.forEach(it=>{if(it.url){any=true;L.push(`  - ${k("type:")} ${v("sharepoint")}`);L.push(`    ${k("url:")} ${v(it.url)}`);L.push(`    ${k("disposition:")} [${v(it.disp||"business_requirement")}]`);L.push(`    ${k("auth_ref:")} ${s("jpmc_adapters:sharepoint")}`);}});
   f.code.forEach(it=>{if(it.url||it.seal){any=true;L.push(`  - ${k("type:")} ${v("bitbucket")}`);L.push(`    ${k("seal_id:")} ${v(it.seal)}`);L.push(`    ${k("repo_url:")} ${v(it.url)}`);if(it.branch&&it.branch.trim())L.push(`    ${k("ref:")} ${v(it.branch.trim())}`);L.push(`    ${k("disposition:")} [${v("codebase")}]  ${s("# auto-set")}`);L.push(`    ${k("auth_ref:")} ${s("jpmc_adapters:bitbucket")}`);}});
   f.confluence.forEach(it=>{if(it.url){any=true;L.push(`  - ${k("type:")} ${v("confluence")}`);L.push(`    ${k("url:")} ${v(it.url)}`);L.push(`    ${k("disposition:")} [${v(it.disp||"product_domain_knowledge")}]`);L.push(`    ${k("auth_ref:")} ${s("jpmc_adapters:confluence")}`);}});
+  f.jira.forEach(it=>{if(it.url){any=true;L.push(`  - ${k("type:")} ${v("jira")}`);L.push(`    ${k("url:")} ${v(it.url)}`);L.push(`    ${k("disposition:")} [${v(it.disp||"prior_artifact")}]`);L.push(`    ${k("auth_ref:")} ${s("jpmc_adapters:jira")}`);}});
   f.lucid.forEach(it=>{if(it.url){any=true;L.push(`  - ${k("type:")} ${v("lucid")}`);L.push(`    ${k("url:")} ${v(it.url)}`);L.push(`    ${k("auth_ref:")} ${s("jpmc_adapters:lucid")}`);}});
   if(!any)L.push(`  <span class="yc"># add sources in Stage 3</span>`);
   L.push("");

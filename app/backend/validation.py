@@ -59,6 +59,7 @@ _SOURCE_REQUIRED_FIELDS: dict[str, tuple[str, ...]] = {
     "bitbucket": ("repo_url", "auth_ref"),
     "sharepoint": ("url", "auth_ref"),
     "confluence": ("url", "auth_ref"),
+    "jira": ("url", "auth_ref"),          # an issue URL (TASK-107); D-A24's one new source type
 }
 
 

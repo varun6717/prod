@@ -1,0 +1,11 @@
+{
+  "_comment": "Second Jira-stand-in payload (TASK-107). Deliberately SPARSE — a story with most fields absent — so the proof can show that a missing field is OMITTED from the extract rather than rendered empty or invented, and that `_flatten` survives a minimal payload. Also proves two issues stage independently (one issue = one source entry).",
+  "key": "PBI-4602",
+  "fields": {
+    "summary": "Settlement reconciliation for Discover — deferred follow-on",
+    "issuetype": { "name": "Story" },
+    "status": { "name": "Open" },
+    "description": "Follow-on to PBI-4471. Settlement reconciliation was not changed when Discover acceptance shipped; the recon file format change needs its own network certification.",
+    "labels": ["discover", "settlement"]
+  }
+}

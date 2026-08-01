@@ -12,9 +12,10 @@
  *   - frame.title   — seeded from project_name (§3.1: project_name "also seeds frame.title").
  *   - auth_ref      — injected per source type at emit; the operator never enters a secret
  *                     (§7, FR-DC-12). Pointer only.
- *   - sources       — SharePoint PDF, Bitbucket code, and Confluence KB pages are emitted; one
- *                     Confluence link = one type:confluence source. Lucid is still shown in the
- *                     UI but deferred — never emitted.
+ *   - sources       — SharePoint PDF, Bitbucket code, Confluence KB pages and Jira issues are
+ *                     emitted; one Confluence link = one type:confluence source, one Jira issue
+ *                     = one type:jira source. Lucid is still shown in the UI but deferred —
+ *                     never emitted.
  *   - disposition   — per source, always a LIST (D-A12). Doc sources carry the operator's
  *                     selection; code sources are auto-set ["codebase"] and non-editable.
  *   - frame.overview— the free-form Initiative Overview (D-A13/D-A14): §1 identity, seeds §7
@@ -31,6 +32,7 @@ const AUTH_REF = {
   sharepoint: "jpmc_adapters:sharepoint",
   bitbucket: "jpmc_adapters:bitbucket",
   confluence: "jpmc_adapters:confluence",
+  jira: "jpmc_adapters:jira",
 };
 
 const trimmed = (x) => (x ?? "").toString().trim();
@@ -41,6 +43,7 @@ const trimmed = (x) => (x ?? "").toString().trim();
 export const DOC_DISPOSITION_DEFAULT = {
   sharepoint: "business_requirement",
   confluence: "product_domain_knowledge",
+  jira: "prior_artifact",
 };
 
 // A doc row's disposition: whatever the operator picked, else the type's default. Always a
@@ -86,6 +89,19 @@ export function buildConfig(form, { registrySha = DEFAULT_REGISTRY_SHA } = {}) {
       type: "confluence", url,
       disposition: dispositionOf(it, "confluence"),
       auth_ref: AUTH_REF.confluence,
+    });
+  }
+
+  // Jira issue sources → type:jira (ingest_jira.py, TASK-107). One issue = one source, exactly
+  // like a Confluence link. Defaults to `prior_artifact`: a previous epic or Solution Intent is
+  // a record of decisions already made, and is reference-only — never the sole citation for a
+  // NEW requirement (D-A12's copy-instead-of-derive hazard, enforced at authoring time).
+  for (const it of form.jira ?? []) {
+    const url = trimmed(it.url);
+    if (url) sources.push({
+      type: "jira", url,
+      disposition: dispositionOf(it, "jira"),
+      auth_ref: AUTH_REF.jira,
     });
   }
 
