@@ -1,0 +1,112 @@
+{
+  "path": "context_set/sharepoint/mastercard_mandate_part2_2026.md",
+  "disposition": ["technical_specification"],
+  "lines_total": 146,
+  "lines_indexed": 146,
+  "entries": 17,
+  "subdivided": [],
+  "index": [
+    {
+      "id": "0",
+      "heading": "Mastercard Brand Implementation Mandate MCS-2026-R3-T Part 2 of 2",
+      "lines": [1, 15],
+      "summary": "Cover block: Mandate ID MCS-2026-R3-T; Part 2 of 2 covering Message Formats, Interchange & Routing; the technical implementation specification for Mastercard, Maestro and Debit Mastercard; Version 1.2, Approved-Final; network effective date 2026-07-01 and compliance deadline 2026-09-30."
+    },
+    {
+      "id": "1",
+      "heading": "1. Introduction",
+      "lines": [16, 22],
+      "summary": "States this is the normative technical half of MCS-2026-R3, to be read with Part 1 (mandate overview, brand rules, certification). Pins the two dates that govern everything below: network effective 2026-07-01, JPMC internal compliance 2026-09-30."
+    },
+    {
+      "id": "2",
+      "heading": "2. ISO 8583 Message Format Changes",
+      "lines": [23, 24],
+      "summary": "Section heading only; the new and modified data elements are in subsections 2.1 and 2.2."
+    },
+    {
+      "id": "2.1",
+      "heading": "2.1 New Data Elements",
+      "lines": [25, 36],
+      "summary": "Table of four new ISO 8583:2003 data elements for authorization (MTI 0100/0110) and financial request (MTI 0200/0210) messages from 2026-07-01, with type/length and presence. DE 48.66 Token Requestor ID (N-11, conditional, required on MDES token BINs 520000–529999, must be preserved end-to-end); DE 48.77 Digital Wallet Indicator (AN-2, values 01 Apple Pay through 05 Other); DE 48.78 Token Assurance Level (N-2, 00–99, below 10 triggers RC 55); DE 48.79 Device Type (AN-2, optional, used for fraud scoring)."
+    },
+    {
+      "id": "2.2",
+      "heading": "2.2 Modified Data Elements",
+      "lines": [37, 45],
+      "summary": "Table of four changed data elements. DE 61.8 POS Environment gains bit 3 value '3' for Soft POS and must not be rejected; DE 104 Transaction Description grows 25 → 40 bytes and moves ASCII → UTF-8, truncating on bytes not characters; DE 55 makes EMV tag 9F6E mandatory for contactless above USD 50, with RC 96 on absence; DE 48.10 Mastercard Assigned ID extends to Maestro in EU/EEA."
+    },
+    {
+      "id": "3",
+      "heading": "3. Interchange Fee Schedule",
+      "lines": [46, 47],
+      "summary": "Section heading only; the revised rate table is in subsection 3.1."
+    },
+    {
+      "id": "3.1",
+      "heading": "3.1 Revised Consumer Credit Tiers (effective 2026-07-01)",
+      "lines": [48, 70],
+      "summary": "Restructured consumer credit interchange, remitted acquirer-to-issuer via the Mastercard Interchange System. Rate table by product and card-present/card-not-present giving Standard and Token Enhanced rates (MC World Elite 2.10%/2.40% standard vs 1.95%/2.15% enhanced; MC World 1.90%/2.20% vs 1.75%/1.95%; MC Standard and PIN debit unchanged at 1.65%/1.85% and 0.05% + $0.21). The Token Enhanced column applies only when DE 48.78 Token Assurance Level is 50 or above; failing to populate DE 48.78 forces Standard rate assessment and retroactive adjustments are not processed."
+    },
+    {
+      "id": "4",
+      "heading": "4. Transaction Routing Rules",
+      "lines": [71, 72],
+      "summary": "Section heading only; the three routing rule sets are in subsections 4.1 to 4.3."
+    },
+    {
+      "id": "4.1",
+      "heading": "4.1 Banknet Endpoint Selection",
+      "lines": [73, 82],
+      "summary": "BIN-first endpoint selection against Mastercard BIN Table v2026-Q2: extract the 6-digit BIN from DE 2, resolve network ID and product type, then select the primary or STIP Banknet endpoint using product type and Regulation II preference. Routing decisions must be immutable once made, with mid-transaction re-routing prohibited except on a documented primary-endpoint timeout of 4000ms or more; the selected network ID and reason code must reach the audit record within 200ms."
+    },
+    {
+      "id": "4.2",
+      "heading": "4.2 Regulation II (Durbin) Routing for Debit Mastercard",
+      "lines": [83, 91],
+      "summary": "Regulation II (12 CFR Part 235) obligations for US Debit Mastercard and Maestro: at least two unaffiliated PIN debit networks available; routing selection must weigh merchant preference (terminal flag), issuer preference (DE 55 ICC data) and cost optimization in that priority order; no routing exclusivity limiting merchant choice. The routing decision rationale must be retained in the audit ledger for Federal Reserve examination, minimum three years."
+    },
+    {
+      "id": "4.3",
+      "heading": "4.3 MDES Token Routing",
+      "lines": [92, 99],
+      "summary": "Token BIN transactions (520000–529999 in DE 2) must route exclusively to the Banknet MDES gateway, endpoint MCB-MDES-01, and must not go to acquirer-side processing or alternate debit networks. The gateway performs de-tokenization and forwards the real PAN to the issuer; any path bypassing MCB-MDES-01 for token BINs hard-declines with Response Code 58."
+    },
+    {
+      "id": "5",
+      "heading": "5. Reporting and Downstream Data Obligations",
+      "lines": [100, 101],
+      "summary": "Section heading only; the three reporting obligations are in subsections 5.1 to 5.3."
+    },
+    {
+      "id": "5.1",
+      "heading": "5.1 Daily Settlement Report (DSR) Format Changes",
+      "lines": [102, 110],
+      "summary": "DSR format changes effective 2026-07-01, due to Mastercard Settlement Services by 06:00 UTC: Product Code extends from 2 to 4 characters on MBT v2026-Q2 codes; a new Token Flag (Y/N) column derived from DE 48.77 presence; a wallet-type breakdown sub-section reporting DE 48.77 codes 01–05 separately whenever token transactions are in the batch. Files failing validation are rejected and the batch goes on settlement hold."
+    },
+    {
+      "id": "5.2",
+      "heading": "5.2 Regulation II Quarterly Compliance Report",
+      "lines": [111, 119],
+      "summary": "Quarterly Regulation II filing due to Mastercard Compliance by the 15th after each quarter end (Apr 15, Jul 15, Oct 15, Jan 15) via Mastercard Connect. Required content: transaction count and interchange paid by network, routing override count with justification codes, and a certification statement from the acquirer's Chief Compliance Officer. Subject to Federal Reserve audit."
+    },
+    {
+      "id": "5.3",
+      "heading": "5.3 MDES Token Coverage Reporting",
+      "lines": [120, 128],
+      "summary": "Monthly MDES token coverage report due by the 5th for the prior month, first due 2026-10-05 covering September 2026. Must carry total transaction count, token transaction count (DE 48.77 present), token assurance level distribution in buckets 0–9, 10–49, 50–99, and DE 48.66 TRID population rate. Mastercard uses these to assess MAC Level 2 compliance and flag acquirers at risk of interchange downgrade."
+    },
+    {
+      "id": "6",
+      "heading": "6. Effective Dates and JPMC Internal Deadlines",
+      "lines": [129, 136],
+      "summary": "Date summary: network effective 2026-07-01 for message format, interchange qualification and routing; JPMC internal UAT sign-off 2026-06-20 (10 business days ahead); full compliance including MAC Level 2 and the Gate C3 monitoring period 2026-09-30. Points to Part 1 for the full milestone table."
+    },
+    {
+      "id": "7",
+      "heading": "7. Normative References",
+      "lines": [137, 146],
+      "summary": "Reference list: Mastercard Rules April 2026 Sections 5.7 and 9.3, ISO 8583:2003, MDES Acquirer Implementation Guide v5.2, Mastercard BIN Table v2026-Q2, the DSR Format Guide v2026-07, Regulation II (12 CFR Part 235), EMV Contactless Kernel C-3 v3.1, and Part 1 MCS-2026-R3."
+    }
+  ]
+}

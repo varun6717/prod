@@ -1,0 +1,88 @@
+{
+  "path": "context_set/sharepoint/mastercard_mandate_part1_2026.md",
+  "disposition": ["business_requirement"],
+  "lines_total": 138,
+  "lines_indexed": 138,
+  "entries": 13,
+  "subdivided": ["4"],
+  "index": [
+    {
+      "id": "0",
+      "heading": "Mastercard Brand Implementation Mandate MCS-2026-R3 Part 1 of 2",
+      "lines": [1, 14],
+      "summary": "Cover block: issuer Mastercard International Incorporated; Mandate ID MCS-2026-R3; Part 1 of 2 covering Mandate Overview, Brand Rules & Certification; applicable brands Mastercard, Maestro, Debit Mastercard; Version 1.2, status Approved-Final; compliance deadline 2026-09-30."
+    },
+    {
+      "id": "1",
+      "heading": "1. Mandate Summary",
+      "lines": [15, 31],
+      "summary": "What the mandate is and its legal footing: issued under the Mastercard Rules and Security Rules and Procedures, binding on all Mastercard-licensed acquirers including JPMC Merchant Services. Requires support for MDES token-based transactions, revised interchange qualification criteria, and enhanced Banknet routing for Debit Mastercard and Maestro by 2026-09-30. Supersedes circular MCS-2024-R7 for MDES token routing and interchange qualification, and points at Part 2 (MCS-2026-R3-T) for the technical specification."
+    },
+    {
+      "id": "2",
+      "heading": "2. Scope and Affected Card Brands",
+      "lines": [32, 48],
+      "summary": "Which transactions are in scope: Mastercard Credit (Standard, World, World Elite, Corporate), Debit Mastercard, Maestro, and Mastercard Commercial. Prepaid Mastercard is excluded from MDES token requirements but still subject to Part 2's interchange and routing changes. Gives the in-scope BIN ranges — 510000–559999 Credit/Debit, 600000–699999 Maestro, and token BINs 520000–529999 — and states that PANs outside these ranges without an MDES token are unaffected."
+    },
+    {
+      "id": "3",
+      "heading": "3. Brand Rules and Operational Constraints",
+      "lines": [49, 50],
+      "summary": "Section heading only; the five brand rules BR-01 through BR-05 are in subsections 3.1 to 3.4."
+    },
+    {
+      "id": "3.1",
+      "heading": "3.1 MDES Token Handling",
+      "lines": [51, 64],
+      "summary": "Brand rules BR-01 and BR-02. BR-01: acquirers must not de-tokenize MDES tokens before forwarding to Banknet — de-tokenization belongs to MDES at the Banknet gateway, and stripping or substituting token values draws Response Code 14. BR-02: Token Requestor IDs must be preserved in DE 48.66 end-to-end for Mastercard's fraud analytics, and wallet-sourced transactions (Apple Pay, Google Pay, Samsung Pay) must also populate DE 48.77."
+    },
+    {
+      "id": "3.2",
+      "heading": "3.2 Cardholder Verification Rules",
+      "lines": [65, 72],
+      "summary": "Brand rule BR-03: contactless Mastercard transactions above USD 100.00 must request CVM results per EMV Contactless Kernel C-3. Acceptable CVM methods in priority order are Online PIN, Offline Enciphered PIN, Signature; NOCVM is permitted only for transit and toll MCCs 4111, 4121, 4131, 7523. The CVM result must appear in DE 55 tag 9F34."
+    },
+    {
+      "id": "3.3",
+      "heading": "3.3 Authorization Timeout and Fallback",
+      "lines": [73, 81],
+      "summary": "Brand rule BR-04: on a primary Banknet endpoint not responding within 4000ms the acquirer may try the secondary endpoint, logging reason code T (timeout) in the transaction audit record. On secondary-endpoint timeout the acquirer must forward to Mastercard stand-in processing (STIP) for enrolled issuers rather than declining at the acquiring host."
+    },
+    {
+      "id": "3.4",
+      "heading": "3.4 Decline Reason Code Updates",
+      "lines": [82, 90],
+      "summary": "Brand rule BR-05: Response Code 55 on MDES token transactions now means 'Token Assurance Level insufficient', not its legacy 'Incorrect PIN'. Acquirer hosts and merchant-facing decline engines must display 'Unable to process — please retry with chip card' for RC 55 on token transactions (identified by token BIN range 520000–529999). Mastercard monitors the consequence via dispute rate metrics."
+    },
+    {
+      "id": "4a",
+      "heading": "4. Certification and Conformance Requirements — overview and gate structure",
+      "lines": [91, 97],
+      "summary": "Certification requirement: acquirers must obtain Mastercard Acquirer Certification (MAC) Level 2 for MDES token processing before the compliance deadline. Administered by the Mastercard Certification Authority via the Mastercard Connect portal, through three gates detailed below."
+    },
+    {
+      "id": "4b",
+      "heading": "4. Certification and Conformance Requirements — the three certification gates",
+      "lines": [98, 113],
+      "summary": "The three gates in detail. C1 Functional Test Suite: Mastercard Test Suite v8.4 against UAT plus the Mastercard Simulator, requiring 100% of Category A and 85% of Category B cases, roughly 4 weeks. C2 Interoperability Testing: 1,000 end-to-end traces submitted via the Mastercard Testing API in JSONL, with minimums of 300 MDES token, 100 fallback chip and 50 Regulation II debit samples. C3 Production Validation: a 60-day monitoring period on token decline rates, TRID population and DE 48.77 coverage, where an alert-threshold breach forces remediation review within 5 business days and MAC Level 2 is revoked if remediation exceeds 30 calendar days."
+    },
+    {
+      "id": "4c",
+      "heading": "4. Certification and Conformance Requirements — consequence of missing the deadline",
+      "lines": [114, 118],
+      "summary": "Penalty for not achieving MAC Level 2 by 2026-09-30: all Mastercard and Maestro transactions are automatically downgraded to the Standard non-qualified interchange tier, and the acquirer is placed on a 90-day remediation plan under Mastercard Rules Section 9.3.2."
+    },
+    {
+      "id": "5",
+      "heading": "5. Compliance Deadline and Milestones",
+      "lines": [119, 129],
+      "summary": "Milestone table with target dates and owners: MTS v8.4 harness provisioned 2026-04-15 (JPMC Merchant Tech), Gate C1 complete 2026-06-15 (JPMC QA), Gate C2 submission 2026-07-31 (JPMC + MCA), production deployment and Gate C3 monitoring start both 2026-09-01 (JPMC Ops / MCA), and the MCS-2026-R3 compliance deadline 2026-09-30 for all parties."
+    },
+    {
+      "id": "6",
+      "heading": "6. Normative References",
+      "lines": [130, 138],
+      "summary": "Reference list: Mastercard Rules April 2026 Section 9.3, Security Rules and Procedures v2026-Q1, MDES Acquirer Implementation Guide v5.2, MTS v8.4 Acquirer Script Package, EMV Contactless Kernel C-3 v3.1, the superseded prior mandate MCS-2024-R7, and Part 2 MCS-2026-R3-T."
+    }
+  ]
+}

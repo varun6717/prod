@@ -32,8 +32,13 @@ docs_pipeline:                       # ORDERED; runs per non-code (document) sou
                                      # When the pack gains `confluence_extract` /
                                      # `jira_extract` (§6.6.3) they become type keys here.
   - { skill: pdf_extract }           # structural extraction → the .md extract + the manifest
-                                     # entry stub. The per-artifact index step (`doc_index`,
-                                     # D-A18) joins this lane at TASK-106.
+                                     # entry stub. Pack skill: PDF handling is where a domain's
+                                     # document formats show up, so it is placed here.
+  - { skill: doc_index }             # per-artifact index beside the extract (D-A18) → sets the
+                                     # entry's `index_path`. SHARED core skill, referenced not
+                                     # copied — an index describes a document, never a domain
+                                     # (D-A18 rule 4), so it is `core/skills/`, exactly like
+                                     # `code_map_build` on the other arm.
 
 code_pipeline:                       # code sources route to the SHARED core skill (D7); it is
                                      # referenced, not copied into the pack — code processing

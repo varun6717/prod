@@ -10,7 +10,8 @@
       "ingest_ts": "2026-06-22T11:02:00Z",
       "adapter": "pdf_extract",
       "disposition": ["product_domain_knowledge"],
-      "descriptor": "Zeta routing update; ID ZET-9; effective 2026-12-01"
+      "descriptor": "Zeta routing update; ID ZET-9; effective 2026-12-01",
+      "index_path": "context_set/confluence/zeta_routing.index.json"
     },
     {
       "path": "context_set/confluence/discover_mandate.md",

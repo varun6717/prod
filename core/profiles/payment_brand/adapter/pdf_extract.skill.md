@@ -30,6 +30,9 @@ because it was already the right input for indexing.
   headings and hierarchy, paragraph order, bullet/numbered lists, and tables (preserve rows/columns).
   Capture figure/caption text where it is real text; note images you cannot transcribe rather than
   inventing their content.
+- **Wrap prose at `extract_wrap_columns`** (`core/retrieval_config.yaml`, default 100). Not cosmetic:
+  the **line** is the unit the index selects in and the author pulls by, so an extract that puts a
+  200-word clause on one physical line makes every line range degenerate.
 - **No summarization.** Do not condense, paraphrase, or editorialize. The index pass summarizes;
   you preserve. A downstream summarizer cannot recover detail you dropped.
 - **No classification.** You do not decide what the document is *for*. That is the operator's
@@ -59,8 +62,7 @@ source's operator-declared `disposition` — which you **copy**, never derive.
      identifier it states, part-of-N, and dates it literally prints. This is *transcription, not
      summary* — every element of it appears on the page. (It moved here when the lane's tagging step
      was retired; the interpretive per-subsection summaries live in the index, D-A18.)
-   - `index_path` — leave absent or `null`; the `doc_index` pass fills it when the artifact exceeds
-     the whole-read budget.
+   - `index_path` — leave absent or `null`; the `doc_index` step that runs after you fills it.
 
    `merge_manifest.py` assembles the final `index.json` from these stubs (§3.2) and **rejects an entry
    with no valid `disposition`** — an entry no SI section can match is an input that would silently
@@ -83,7 +85,9 @@ context_set/
 
 ## Boundaries
 
-- Does not summarize the document or segment it into an index — that is `doc_index` (D-A18).
+- Does not summarize the document or segment it into an index — that is `doc_index`, the shared core
+  skill that runs after you in the same lane (D-A18). Your heading hierarchy is what it keys on, which
+  is why structure fidelity here decides retrieval quality downstream.
 - Does not classify the document — `disposition` is operator-declared (D-A12).
 - Does not read or process code — code routes to `code_map_build` via the `code_pipeline` (§6.6.3).
 - Does not ingest (no fetch/auth) — the connector stages the PDF before this skill runs (§6.6.2).

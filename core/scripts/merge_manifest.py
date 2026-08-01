@@ -299,6 +299,17 @@ def _demo() -> int:
         assert not any(f in e for f in _RETIRED_ENTRY_FIELDS), e
         print(f"  {e['path']:52} disposition={e['disposition']} index_path={e['index_path']!r}")
 
+    # Doc artifacts are indexed unconditionally (D-A18 rule 3: build always, consult
+    # conditionally), so a real run populates index_path on every doc entry — as the corpus
+    # above shows. The null NORMALIZATION still has to hold for the case where a lane
+    # produced no index, so that "no index" is visible rather than an absent key:
+    normalized = merge([{"source": "x", "status": "ok", "files": [
+        {"path": "context_set/x/a.md", "source": "x",
+         "disposition": ["other"]}]}], run_id="r-norm")
+    assert normalized["files"][0]["index_path"] is None, normalized["files"][0]
+    assert all(e["index_path"] for e in index["files"]), "the corpus is fully indexed"
+    print("  entry with no index written -> index_path normalized to null (field always present)")
+
     # D8c: the failed source is a recorded row with a reason, never a missing row.
     failed = [r for r in index["sources_status"] if r["status"] == "failed"]
     assert failed and all(r.get("reason") for r in failed), index["sources_status"]

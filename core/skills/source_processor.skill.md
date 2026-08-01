@@ -108,12 +108,14 @@ process_source(src, adapter):                 # src = one UI_INPUT.sources[] ent
       pipeline = select_docs_pipeline(adapter.docs_pipeline, src.type)   # variant by TYPE, else `default`
       entries = []
       for step in pipeline:                              # ORDERED; the FIRST step builds the manifest stub
-        run the pack skill `step.skill` over this source's staged content
-        # today's single lane: pdf_extract builds the stub (.md extract + path/source/url/
-        # ingest_ts/adapter/descriptor). Each later step enriches the SAME entry; the entry
-        # SHAPE is identical across lanes (parity).
+        run the skill `step.skill` over this source's staged content
+        # today's lane: pdf_extract builds the stub (.md extract + path/source/url/ingest_ts/
+        #   adapter/descriptor), then doc_index writes <extract>.index.json beside it and sets
+        #   the entry's index_path. Each later step enriches the SAME entry; the entry SHAPE is
+        #   identical across lanes (parity).
       for e in entries:
         e.disposition = src.disposition                  # COPIED verbatim (D-A12) — never inferred
+      run check_index_completeness over this source's extracts   # guardrail 7 — see below
       files = entries                                    # the §3.2 manifest entries the pipeline built
       note  = None
 
@@ -137,6 +139,32 @@ pipeline variant with `select_docs_pipeline(adapter.docs_pipeline, src.type)`:
   exists, else fall back to the **required** `docs_pipeline['default']`. The mechanism stands (063B);
   the pack simply has no second lane today, and gains type keys when it gains `confluence_extract` /
   `jira_extract` (§6.6.3).
+
+## The doc lane's second step — indexing (D-A18)
+
+After extraction, every doc artifact gets a **per-artifact index** written beside its `.md` by the
+shared core skill `core/skills/doc_index.skill.md` — the doc arm's twin of `code_map_build`:
+
+```
+context_set/sharepoint/
+  mc_mandate_2027.md           ← the full extract (pdf_extract) — nothing condensed
+  mc_mandate_2027.index.json   ← heading + line range + summary per subsection (doc_index)
+```
+
+Three things about this step you must not get wrong:
+
+- **Index every doc artifact, whatever its size** (D-A18 rule 3: *build always, consult
+  conditionally*). Building is cheap and is the audit trail for "did we consider this document for
+  this section?". Whether the **author** consults it is a separate decision, made later against
+  `whole_read_threshold_lines` across the routed **set** — not yours, and not per file.
+- **Set `index_path` on the entry** to the index you just wrote. Since indexes are built always,
+  `index_path` is populated for every doc entry; it stays `null` only where a lane genuinely produced
+  no index, which is then visible rather than assumed.
+- **Guardrail 7 is a hard gate on your own output.** Run
+  `core/scripts/checks/check_index_completeness.py` over your source's extracts before you write your
+  slice. An index with a gap is worse than no index — it makes "not in the index" look like a
+  defensible negative when the content was simply skipped. A failure is a **failed/partial slice with
+  a reason** (D8c), never a quietly-shipped index.
 
 You route by **`src.type`** only — **never** by `domain` (D7), and **never** by `disposition` either
 (that decides which SI sections may read the artifact, not how it is processed). Descriptor parity is
@@ -169,8 +197,8 @@ with this shape — `merge_manifest.py` already consumes it; do **not** invent a
 
 - **Doc arm** — `files[]` is the list of §3.2 manifest entries the `docs_pipeline` built, each with
   `path, source, url, ingest_ts, adapter, disposition, descriptor, index_path`. `note` usually absent.
-  `disposition` is the source's, copied; `index_path` stays `null` until the `doc_index` pass writes
-  a sidecar index for that artifact (D-A18).
+  `disposition` is the source's, copied; `index_path` points at the sidecar index `doc_index` wrote
+  for that artifact (D-A18) — populated for every doc entry, since indexes are built always.
 - **Code arm** — typically `files: []` plus `note: "code_map.json built"` (the code map is its own
   artifact, keyed by `commit_sha`; it is **not** a doc manifest entry).
 - **Failed source** — still writes a slice: `status: "failed"` + a `reason`, with `files` holding any
@@ -194,6 +222,7 @@ swallowed exception. You record the gap; you never invent content to paper over 
 context_set/
   mastercard_mandate/                  # one doc source → its slice + the pipeline's extractions
     mandate_2024.md                    #   ← pdf_extract structural extraction
+    mandate_2024.index.json            #   ← doc_index per-subsection index (D-A18); entry.index_path
     _slice.json                        #   ← {source, status:"ok", files:[<manifest entries>], domain}
   stratus_repo/                        # one code source
     _slice.json                        #   ← {source, status:"ok", files:[], note:"code_map.json built"}
@@ -210,6 +239,8 @@ repo/                                  # ← the code source cloned here by clon
 - Read `adapter.yaml` for run order + routing **only**; never branch on `domain` (D7).
 - **Copy** each source's `disposition` onto every entry it produces; never infer it from content, never
   branch your processing on it (D-A12).
+- **Index every doc artifact** and set its `index_path`; run guardrail 7 over your own extracts before
+  writing your slice — a gapped index is worse than none (D-A18).
 - Route by source **type** to the connector (`code → clone.py`; otherwise `ingest_<type>.py` — e.g.
   `file → ingest_file.py`, `sharepoint → ingest_sharepoint.py`, `confluence → ingest_confluence.py`) and by
   source **class** to the pipeline (doc → `docs_pipeline`, routed by `src.type` to its lane / `default`;
@@ -220,8 +251,8 @@ repo/                                  # ← the code source cloned here by clon
 
 - Does **not** assemble `index.json` — that is `merge_manifest.py`'s deterministic fan-in (§3.2), run by
   the orchestrator after all workers return.
-- Does **not** extract / summarize / index — those are the pack skills (`pdf_extract`, the `doc_index`
-  pass) and `code_map_build`.
+- Does **not** extract / summarize / index — those are the lane's skills (`pdf_extract` from the pack,
+  `doc_index` from shared core) and `code_map_build`. You invoke them and collect their output.
 - Does **not** classify a source — `disposition` is operator-declared (D-A12); you carry it.
 - Does **not** build the code map — it hands `repo/` to `code_map_build` (the shared core skill) and
   records the handoff in its slice.

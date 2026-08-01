@@ -26,7 +26,7 @@
         "product_domain_knowledge"
       ],
       "descriptor": "Zeta routing update; ID ZET-9; effective 2026-12-01",
-      "index_path": null
+      "index_path": "context_set/confluence/zeta_routing.index.json"
     }
   ],
   "sources_status": [

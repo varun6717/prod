@@ -1,0 +1,28 @@
+{
+  "path": "context_set/confluence/message_format_kb.md",
+  "disposition": ["product_domain_knowledge"],
+  "lines_total": 14,
+  "lines_indexed": 14,
+  "entries": 3,
+  "subdivided": [],
+  "index": [
+    {
+      "id": "0",
+      "heading": "Brand Message Formats — Reference",
+      "lines": [1, 5],
+      "summary": "Title block and scope note for the per-brand wire/message format KB page. States it is reference material, not a change request."
+    },
+    {
+      "id": "1",
+      "heading": "Message format",
+      "lines": [6, 10],
+      "summary": "Per-brand wire formats as they stand today: Mastercard uses ISO 8583 (1987) with brand-specific field 48 usage; Discover uses its own field layout. Field-level mappings live in the format registry."
+    },
+    {
+      "id": "2",
+      "heading": "Brand rules",
+      "lines": [11, 14],
+      "summary": "States that each brand imposes operational rules on the message contract — mandatory fields, allowed values, certification constraints — enforced by the format layer before dispatch. Names the categories only; no specific rules are listed."
+    }
+  ]
+}
