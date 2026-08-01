@@ -151,8 +151,12 @@ class Emitter:
         return self.emit("flag_decision", flag_type=flag_type, option=option,
                           severity=severity, ts=ts)
 
-    def jira_push(self, *, epics: int, success: bool, partial: bool, ts: str | None = None) -> dict:
-        return self.emit("jira_push", epics=epics, success=success, partial=partial, ts=ts)
+    def jira_push(self, *, epics: int, stories: int, success: bool, partial: bool,
+                  ts: str | None = None) -> dict:
+        """Record a push. `stories` joined `epics` at TASK-125 — the amended M10 is stories/epic,
+        which `epics` alone cannot express, so the count has to be on the event."""
+        return self.emit("jira_push", epics=epics, stories=stories, success=success,
+                         partial=partial, ts=ts)
 
     def error(self, *, stage: str, kind: str, message: str, ts: str | None = None) -> dict:
         return self.emit("error", stage=stage, kind=kind, message=message, ts=ts)
@@ -352,7 +356,7 @@ def _demo() -> None:
         mark_stage(em, "si_v2", "done", duration_ms=98000, version=2, ts=T)
 
         mark_stage(em, "jira", "running", ts=T)
-        em.jira_push(epics=5, success=True, partial=False, ts=T)
+        em.jira_push(epics=5, stories=17, success=True, partial=False, ts=T)
         em.error(stage="ingest", kind="source_timeout", message="confluence read timed out", ts=T)
 
         # All four decisions.jsonl kinds (the NFR-03 audit twins).

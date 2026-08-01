@@ -840,28 +840,44 @@ Envelope on every event: `ts, run_id, domain, tool, event`. Payloads:
 | `stage_started` | `stage` | M06, M07 |
 | `stage_completed` | `stage`, `duration_ms` | M06, M07 |
 | `model_call` | `stage`, `model`, `tokens_in`, `tokens_out`, `cost_usd` | M01, M02 |
-| `validation` | `artifact` (brd/frd/jira), `score` | M03, M09 |
+| `validation` | `artifact` (`si_v1`/`enrichment`/`jira`), `score` | M03, M09 |
 | `gate_decision` | `gate` (G1/G2/G3), `outcome` (accept/reopen), `actor`, `version` | M04 |
 | `flag_decision` | `flag_type`, `option`, `severity` | audit |
-| `jira_push` | `epics`, `success` (bool), `partial` (bool) | M10, M11 |
+| `jira_push` | `epics`, `stories`, `success` (bool), `partial` (bool) | M10, M11 |
 | `error` | `stage`, `kind`, `message` | error log |
+| `verdict` | `finding_id`, `arm`, `verdict`, `route` | M12 |
+| `escalation` | `finding_id`, `reason`, `severity` | G2 precondition |
+| `disposition` | `finding_id`, `call`, `actor`, `target` | G2 precondition, audit |
 
-`stage` vocabulary: `ingest`, `code_map`, `brd_authoring`, `code_impact`, `frd_authoring`, `jira_authoring`, `jira_push`.
+`stage` vocabulary: `ingest`, `si_v1`, `enrichment`, `si_v2`, `jira`.
 
-### 8.2 Metric derivations (FR-MX-02)
+> **Amended 2026-08-01 (TASK-125) — post-ADR-008 vocabulary.** The stage list, `validation.artifact`
+> and the three enrichment events landed with the ledger schemas at TASK-104/110/121; this table had
+> not been carried across. `jira_push.stories` is **new here**: the amended M10 is stories/**epic**,
+> which `epics` alone cannot express, so the count has to be on the event. **Port note:** carry this
+> §8.1/§8.2 amendment into the JPMC-side spec at port time.
+
+### 8.2 Metric derivations (FR-MX-02, amended)
+
+Every metric is computed **per run, then averaged across runs** — never pooled. Pooling lets one
+long run stand in for the fleet, and M09 in particular is a per-run score. A metric with no events
+yields **no value**, never `0`: a run that never pushed has no push-success *rate*, and reporting 0%
+would be a claim rather than a measurement. The exception is M12, where a run that enriched and
+yielded nothing genuinely yielded 0 — that is a finding about the run.
 
 | Metric | Derivation (scan of `telemetry.jsonl`) |
 |--------|----------------------------------------|
-| M01 $/BRD | Σ `model_call.cost_usd` where `stage ∈ {brd_authoring, code_impact}` per run; report mean across runs |
-| M02 $/FRD | Σ `model_call.cost_usd` where `stage = frd_authoring` per run; mean across runs |
-| M03 avg completion score | mean of `validation.score` for the accepted version (the `validation` event preceding each `gate_decision(accept)`), over brd+frd |
-| M04 first-pass acceptance | count(`gate_decision G1` `accept` at `version=1` with no prior `reopen`) / count(runs reaching G1) |
-| M05 docs/month | count(`run_started`) per calendar month (or count of accepted BRD/FRD) |
-| M06 BRD→FRD cycle time | `ts(gate G2 accept) − ts(gate G1 accept)` per run |
+| M01 $/SI-v1 | Σ `model_call.cost_usd` where `stage = si_v1` per run; mean across the runs that authored |
+| M02 $/enrichment | Σ `model_call.cost_usd` where `stage ∈ {enrichment, si_v2}` per run; mean across the runs that enriched. **Both stages** — the apply pass is enrichment's cost, not a separate one |
+| M03 avg score at acceptance | mean `validation.score` standing at each `gate_decision(accept)`, over G1/G2/G3. A score that was reopened never counts |
+| M04 first-pass acceptance | count(`gate_decision G1` `accept` at `version=1` with no prior `reopen`) / count(runs **reaching** G1). A run that never reached G1 is skipped, not scored 0 |
+| M05 docs/month | count(`run_started`) per calendar month |
+| M06 v1→v2 cycle time | `ts(gate G2 accept) − ts(gate G1 accept)` per run; mean across the runs that reached G2 |
 | M07 latency p95 | p95 of `stage_completed.duration_ms` across stages |
-| M09 FRD→epic coverage at push | `validation.score` for `artifact=jira` at the G3 `dry_run` preceding push |
-| M10 epics/FRD | `jira_push.epics` per run (1 FRD per run, MVP) |
-| M11 push success rate | count(`jira_push.success=true`) / count(`jira_push`) |
+| M09 §16→story coverage at push | `validation.score` for `artifact=jira` **standing at the moment of `jira_push`** (a later re-score says nothing about what shipped); mean across the runs that pushed |
+| M10 stories/epic | Σ `jira_push.stories` / Σ `jira_push.epics` |
+| M11 push success rate | count(`jira_push.success=true`) / count(`jira_push`). A run that never pushed is not a failed push |
+| M12 **enrichment yield** | count(`verdict.route ∈ {auto_correct, auto_write, auto_fill}`) per run, broken out as corrections / derived impacts / auto-fills; mean across the runs that enriched. **This is the v1→v2 delta** — the stage's value story, and the reason `verdict.route` is on the event |
 | M08 upstream-change alerts | **W** — depends on deferred change-detection; not computed in MVP |
 
 ---

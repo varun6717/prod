@@ -180,7 +180,8 @@ def main() -> int:
             em = telemetry.Emitter(led, run_id="r-2026-08-01-si1", domain="payment_brand",
                                    tool="claude")
             JV.record_g3(led, result=good_g3, outcome="accept", version=1, ts=T)
-            em.jira_push(epics=len(plan["epics"]), success=True, partial=False, ts=T)
+            em.jira_push(epics=len(plan["epics"]), stories=len(plan["stories"]),
+                         success=True, partial=False, ts=T)
             rep = ledger.validate_ledger(led)
             _check("both ledgers validate", all(not e for e in rep.values()), str(rep))
             tel = [json.loads(l) for l in (led / "telemetry.jsonl").read_text().splitlines()
