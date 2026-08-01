@@ -51,6 +51,30 @@ A single PDF staged by the connector (the slice-1 document/PDF source connector,
 its on-disk path, the source descriptor (`source`, `url`/path, `ingest_ts`) from the run config, and the
 source's operator-declared `disposition` — which you **copy**, never derive.
 
+## Getting the text — use `pdf_text.py`, do not assume you can read a PDF
+
+```bash
+python3 core/scripts/pdf_text.py <staged.pdf>            # lines, in reading order
+python3 core/scripts/pdf_text.py <staged.pdf> --pages    # with @@PAGE markers
+python3 core/scripts/pdf_text.py --which                 # backend the environment will use
+```
+
+**Do not rely on being able to open the PDF yourself.** Until TASK-127 this skill assumed the
+running agent could, which is an *ambient* capability rather than a declared one — and the first
+real end-to-end run had neither a PDF library nor poppler, so the doc lane would have stopped here
+and taken everything downstream with it. `pdf_text.py` makes it a dependency the environment can be
+checked for (`ENV_PRECHECK.md`), with a stdlib fallback so it works on a machine with nothing
+installed.
+
+It returns **lines already split at the document's own line breaks**, which is what you wrap and
+structure. It extracts text and nothing else — the heading hierarchy, list and table shaping below
+are still yours.
+
+**Exit codes are meaningful.** `2` = no such file. `1` = the PDF yielded no extractable text, which
+almost always means a scanned image: record `[[unreadable: <where>]]` per the fidelity rule rather
+than emitting an empty extract. An empty `.md` would pass `doc_index` and guardrail 7 happily while
+silently removing a source from the run.
+
 ## Output
 
 1. **`context_set/<source>/<doc>.md`** — the structured extraction: Markdown with the document's heading

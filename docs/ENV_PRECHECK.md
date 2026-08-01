@@ -81,3 +81,39 @@ Generate/onboarding as a **VDI prerequisite** — the scaffolder does NOT emit i
 
 Satisfies: FR-XS-22 (manual-start MVP), FR-XS-23 (Claude Code + Copilot co-equal),
 FR-XS-24 (Copilot/VDI PASSED), FR-XS-26 (allow-list home = user scope).
+
+---
+
+## PDF text extraction (`pdf_extract`'s input step) — added 2026-08-02 (TASK-127)
+
+**Same shape as the C-extractor entry above, and for the same reason.** The VDI is AppLocker-locked:
+binary installers (poppler / `pdftotext`) are blocked, while **pip into a venv runs in-policy**. So
+PDF text extraction is a Python dependency with a fallback, exactly as `tree-sitter` replaced
+`ctags` under ADR-001.
+
+**Why this entry exists at all.** `pdf_extract` previously assumed the *running agent* could read a
+PDF. That is an ambient capability, not a declared one, and it is unverifiable before a run. The
+first real end-to-end acceptance run (TASK-127) had **neither a PDF library nor poppler** — the doc
+lane would have stopped at its first step and taken every downstream stage with it, and no
+precheck would have predicted it. `core/scripts/pdf_text.py` turns it into something checkable.
+
+| Branch | Condition | Action |
+|---|---|---|
+| available | `import pypdf` succeeds | use it — best coverage of real-world PDFs (encryption, unusual filters, CID fonts) |
+| absent + provisionable | pip works in the venv | `pip install pypdf` — in-policy, no installer |
+| absent + unprovisionable | no pip, no binaries | **falls back automatically** to the builtin reader (`zlib` + `base64`, stdlib only) — degraded coverage, never a hard stop |
+
+**Check:** `python3 core/scripts/pdf_text.py --which` → prints `pypdf` or `builtin`.
+
+**External build, 2026-08-02:** `builtin` (no pypdf, no poppler). The full acceptance corpus
+extracted faithfully on it — 116 and 178 lines, heading hierarchy, table rows and font glyphs all
+intact (`fixtures/pdf/verify_pdf_text.py`). So the fallback is a genuine floor, not a token one.
+
+**At port time:** run `--which` on the VDI. `builtin` is acceptable; `pypdf` is preferred if pip is
+available, because the fallback only decodes the filters these fixtures use and a real corpus is
+more varied. Either way the run proceeds — which is the point of having two.
+
+> **A scanned PDF is not an empty one.** `pdf_text.py` exits **1** when a PDF yields no extractable
+> text, and `pdf_extract` must record `[[unreadable: <where>]]` rather than writing an empty
+> extract. An empty `.md` passes `doc_index` and guardrail 7 perfectly happily while silently
+> dropping a source out of the run — the exact invisibility the cite-or-flag floor exists to stop.

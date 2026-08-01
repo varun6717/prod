@@ -240,6 +240,18 @@ Always loaded by authoring agents; selective read routes off it. Assembled deter
 > `change_type` (retired with tags) and gain `disposition` (operator-declared, D-A12; multi allowed)
 > and `index_path` (the per-artifact index, present when the artifact exceeded the whole-read budget).
 >
+> 🔧 **Amended 2026-08-02 (TASK-127) — the index's structure is DERIVED, not authored.** An entry is
+> `{id, heading, lines, summary}`; the first three are facts about the extract and are now computed
+> by `core/scripts/doc_index.py`, leaving the `doc_index` skill only the summary. Rationale is
+> asymmetry of error: a wrong `lines` range is **invisible** — it sends the author to the wrong text
+> with no signal — while a wrong summary is caught on first read. Guessing the unfalsifiable field
+> and computing the checkable one was the wrong way round. Guardrail 7 now holds **by construction**
+> (the ranges are a partition), so `check_index_completeness.py` confirms an invariant instead of
+> catching a mistake. Two derivation rules are pinned: a **self-numbered heading owns its number**
+> as its id (ordinals shift when a section is inserted above), and a leading level-1 heading is the
+> **document title → front matter id `0`**, not a section — treating it as one collided with a
+> `## 1.` heading claiming `1`. **Port note:** carry this amendment into the JPMC-side D-A18.
+>
 > **Routing rule (the two-level funnel, FR-SI-03 / FR-DC-26):** for an SI section, (1) load entries
 > where `disposition ∈ section.classes` per the D-A13 matrix — deterministic; (2) check the routed
 > **set** against the whole-read budget — under: read the extracts whole; over: consult each large

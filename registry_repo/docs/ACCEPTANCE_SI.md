@@ -95,6 +95,16 @@ Every one was invisible to the per-subsystem fixtures. Each now has a regression
   skills carry their contracts inline. Adding `docs/` to `hydrate.py` would ship 5 design documents
   into every run and invite an agent to treat a stale copy as authoritative. `hydrate.py` unchanged.
 
+## Post-acceptance defects (found by auditing this run, fixed 2026-08-02)
+
+| Defect | Fix | Regression test |
+|---|---|---|
+| `registry_repo/` — the tracked, push-ready registry tree meant to travel to the VDI — was a **pre-ADR-008 snapshot** still holding `brd_author.skill.md` and `brd_validator.skill.md`, with no `confluence_extract`. The re-publish went to Bitbucket, not to this directory, and nothing compared them. | regenerated from the §10-gated subset (122 files) | `verify_registry` now asserts the snapshot holds exactly the published set and is **byte-identical** to source — it caught a drift within minutes of being written |
+| Both family-2 checks **silently swallowed unknown flags**: argv is a bare path list, so a typo'd or renamed `--flag` matched nothing, was dropped, and the run still exited 0 — a passing check that had quietly narrowed what it scanned. `check_map_totality --help` additionally crashed with a traceback about a missing `components.json`. | unknown options now exit 2 with usage; the map check also validates that its argument *is* a map directory | exercised directly |
+| 206 files of run workspace tracked in git — 137 of them verbatim copies of the registry (`core/`, the overlay wrappers, `prompts/`) plus a cloned `repo/` and an entire transient second run. | tracked down to the 35 files a run **cannot regenerate**: ledger, SI artifacts + freeze record, plan + trace, manifest, per-artifact indexes, code map | `.gitignore` |
+
+*A fourth was reported and withdrawn: I claimed the checks passed vacuously on a nonexistent path. They do not — they exit 2 and 1 respectively. The original test piped through `tail`, so `$?` captured tail's exit code rather than the script's.*
+
 ## Known limitations
 
 - **No deterministic PDF→text step.** `pdf_extract` assumes the running agent can read a PDF. This

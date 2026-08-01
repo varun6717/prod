@@ -91,6 +91,26 @@ Length: one to three sentences. Ground everything in the text — **never** infe
 editorialize (cite-or-flag applies here as everywhere). If a subsection is genuinely empty of substance
 (a bare heading before its children), say so plainly rather than inventing content for it.
 
+## Structure is COMPUTED — you write only the summaries
+
+```bash
+python3 core/scripts/doc_index.py <doc>.md            # the derived skeleton
+python3 core/scripts/doc_index.py <doc>.md --json     # machine-readable
+```
+
+**Do not derive ids, headings or line ranges yourself.** They are facts about the extract, and
+`doc_index.py` computes them as a *partition* — so exactly-once coverage (guardrail 7) holds by
+construction rather than being something you assert and a checker later catches.
+
+The reason for the split is asymmetry of error. **A wrong line range is invisible**: it sends the
+author to the wrong text with no signal, and `lines` is precisely what the author pulls by. A wrong
+summary is caught the moment anyone reads it against the section. Guessing the unfalsifiable field
+while computing the checkable one was backwards (amended TASK-127, on V's observation about the
+Jira lane — the connector already knows every heading's range at render time).
+
+So your entire job is the **summary** on each derived entry, per the rules below. Everything else
+is handed to you.
+
 ## Procedure
 
 ```
