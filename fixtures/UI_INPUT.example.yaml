@@ -5,7 +5,8 @@
 run_id: r-2026-06-17-001            # assigned by Generate
 schema_version: 1
 working_path: /work/pbi/SEAL-12345-routing
-domain: payment_brand               # selects profiles/templates/adapter/vocabulary (UI label "PBI")
+domain: payment_brand               # selects si_profile + jira_template + adapter pack (UI label
+                                    # "PBI"). NEVER affects ingestion — that is `type` + `disposition` (D7)
 runtime_tool: copilot               # claude | copilot  (FR-XS-06)
 registry_sha: 7d2e9a1               # resolved & pinned at Generate (FR-XS-10, NFR-01)
 # registry_url: "https://bitbucket.jpmc.net/scm/pbi/cmspbiaiml-commerce-interchange-app.git"
@@ -64,4 +65,7 @@ sources:
 gates:
   score_threshold: 85
 
-# jira: deferred this slice (BRD → FRD only; no push)
+# No `jira:` block, and that is not a deferral — the 4-level plan and the G3-gated push are BUILT
+# (ADR-008 L4). Nothing about them is configured here: `project_key` and the controls fields are
+# supplied at plan-build time, and the only unbuilt parts are the two `[TBD — VDI]` REST calls in
+# core/adapters/jpmc_adapters/jira.py. `push_plan` defaults to dry_run=True regardless.
