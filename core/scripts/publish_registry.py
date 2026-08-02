@@ -233,8 +233,23 @@ def publish_registry(
         has_head = subprocess.run(
             ["git", "rev-parse", "--verify", "HEAD"], cwd=str(clone), capture_output=True, text=True
         ).returncode == 0
-        # Land on the target branch in both the empty-repo and existing-repo cases.
-        _git(["checkout", "-B", branch], cwd=clone) if has_head else _git(["checkout", "-b", branch], cwd=clone)
+        # Land on the target branch. If it ALREADY EXISTS on the remote, check that out so the
+        # new commit DESCENDS from it — `checkout -B` branches from the clone's default branch
+        # instead, which diverges and makes the push a non-fast-forward.
+        #
+        # This bit only on the SECOND publish: the first created the branch, so nothing was
+        # there to diverge from. Every re-publish after a core/ change — which protocol step 5
+        # requires — failed with "tip of your current branch is behind its remote counterpart",
+        # and the obvious workaround (force) would silently discard whatever the remote held.
+        remote_has_branch = subprocess.run(
+            ["git", "rev-parse", "--verify", f"origin/{branch}"],
+            cwd=str(clone), capture_output=True, text=True).returncode == 0
+        if remote_has_branch:
+            _git(["checkout", "-B", branch, f"origin/{branch}"], cwd=clone)
+        elif has_head:
+            _git(["checkout", "-B", branch], cwd=clone)
+        else:
+            _git(["checkout", "-b", branch], cwd=clone)
 
         _clear_worktree(clone)
         for abs_path, rel in subset:
