@@ -291,11 +291,40 @@ Full old specs at `0d7d8aa` and earlier. Per ADR-008 / impact §13:
 - [x] TASK-126 — Docs re-cut (`SKILLS_INDEX`, `BUILD_OVERVIEW`, `design/README`, `CLAUDE.md`) · `Sonnet`
 - [x] TASK-127 — End-to-end acceptance + registry re-publish (lifts the publish suspension) · `Opus`
 
+**Milestone D7 — Port readiness**
+- [ ] TASK-128 — Doc review: `PROGRAM_OVERVIEW` + `BUILD_OVERVIEW` against disk · `Sonnet`
+
 ---
 
 ## Milestone D5 — Jira (4-level plan + the only external mutation)
 
 ## Milestone D6 — Metrics, docs, acceptance
+
+## Milestone D7 — Port readiness
+
+### TASK-128 — Doc review: `PROGRAM_OVERVIEW` + `BUILD_OVERVIEW` against disk
+- **Depends on:** TASK-127 (the landed, published state is what the docs describe).
+- **Model:** Sonnet.
+- **Reads:** `docs/PROGRAM_OVERVIEW.md` · `docs/BUILD_OVERVIEW.md` · then **disk** — `core/`,
+  `app/`, `fixtures/`. Disk is ground truth; the docs are the claim under test.
+- **Why this exists.** Both were written *before* the eight rulings and the thirteen review fixes
+  landed. Several of those moved things the docs describe: `descriptor` moved from the extract
+  steps to `doc_index`; `push_epics` flipped its default; the index's structure became derived;
+  `reject` now auto-supersedes; `G3Authorization` became plan-bound. The docs may already be
+  stale in exactly the places a VDI reader will rely on them most.
+- **Do:** For every claim either doc makes about *what a file is* or *what a stage does*, open
+  the file and check it. Specifically re-verify: the box→file mapping in `PROGRAM_OVERVIEW`; the
+  §7.1 push defaults; the doc-lane lane table vs `adapter.yaml`; the gate ladder vs the three
+  `evaluate*` functions; the "eight roles" claim vs `overlay_manifest.yaml`.
+- **Acceptance:** every file definition matches the file; every process description matches the
+  code path; `fixtures/docs/verify_docs.py` green (it already resolves all 62 of
+  `PROGRAM_OVERVIEW`'s path references, but resolving is not the same as being *accurate*).
+- **Proof:** a diff of what changed, plus the docs sweep green. **If nothing needed changing,
+  say so explicitly** — a review that reports no findings is a result, not a non-answer.
+- **Note:** VDI integration is deliberately NOT a task here. `VDI_WIRING.md` holds it (16 open
+  items), and the disjointness rule at that file's head is why: no task appears in both lists.
+
+---
 
 
 # Deferred / candidate tasks (capture only — promote when the trigger is hit)
