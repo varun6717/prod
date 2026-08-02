@@ -41,7 +41,7 @@ Work through it in order. Each open task carries:
 
 After finishing a task, follow `TASK_LIST.md`'s **Execution protocol** step 5–6: verify, **tick the checkbox**, commit. Then collapse the task to a one-line entry in the done ledger. The checkbox state is how a later session knows what is done.
 
-> **Registry publish is live again** — the ADR-008 cutover suspension was lifted at TASK-127, which re-published `feature/pdlc_app` and confirmed the published registry serves the new pipeline. Re-publish after any `core/` change; a red §10 blocks the push rather than warning about it.
+> **Registry publish is live** — the ADR-008 cutover suspension was lifted at TASK-127, and the published registry is confirmed to serve the new pipeline. **The registry lives at `https://github.com/varun6717/code_640011.git`, branch `main`** (re-pointed 2026-08-02; the repo holds the 126-file subset and nothing else). The build repo — this one — pushes to `https://github.com/varun6717/prod.git`. Re-publish after any `core/`, `overlays/` or `docs/` change: `python3 core/scripts/publish_registry.py https://github.com/varun6717/code_640011.git --branch main`. A red §10 blocks the push rather than warning about it.
 
 ---
 

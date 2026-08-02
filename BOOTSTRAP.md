@@ -29,8 +29,11 @@ through G0 → ingest → v1 → G1 → enrichment → G2 → 4-level plan → G
 with every gate an operator act and every metric derived from the run's own ledger.
 
 Also landed: eight design calls ruled and executed (`docs/OPEN_RULINGS.md`), and thirteen
-code-review findings fixed (`code_review.md`). The registry is published — `feature/pdlc_app` @
-`5f404fe`, 126 files, §10 green as a hard gate before the push.
+code-review findings fixed (`code_review.md`). The registry is published — `code_640011` @ `main`,
+126 files, §10 green as a hard gate before the push. **Two repos, and they are not the same one:**
+the **registry** (what a run hydrates from) is `https://github.com/varun6717/code_640011.git`, which
+holds the published subset and nothing else; the **build repo** (this one) is
+`https://github.com/varun6717/prod.git`.
 
 **Green means:** 30 fixture verifies + `python3 core/scripts/build_checks.py` (4/4). Run both
 before believing anything is fine.
@@ -98,9 +101,10 @@ the condition; the run completing is not.
   or is marked `[TBD — unsourced]`. Never invent.
 - **The Jira push is the only external mutation**, and it is structurally gated: `push_plan`
   requires a plan-bound `G3Authorization` that only `authorize()` can mint.
-- **Re-publish after any `core/` change** — `python3 core/scripts/publish_registry.py <url>
-  --branch feature/pdlc_app`. §10 red blocks the push; `verify_registry` fails if the tracked
-  `registry_repo/` snapshot drifts from source.
+- **Re-publish after any published-tree change** (`core/`, `overlays/`, `docs/`) —
+  `python3 core/scripts/publish_registry.py https://github.com/varun6717/code_640011.git --branch
+  main`. §10 red blocks the push; `verify_registry` fails if the tracked `registry_repo/` snapshot
+  drifts from source, so re-stage it (`--stage registry_repo --force`) in the same change.
 - **Fix generic code here, not there.** If the VDI surfaces a gap in the generic code rather than
   the wiring, change it in this repo and re-publish.
 

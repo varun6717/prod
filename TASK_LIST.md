@@ -36,12 +36,14 @@ green. **Disk + git are ground truth** — never rely on something said in an ea
 4. **Verify.** Run the task's **Proof**, then **`python core/scripts/build_checks.py`** — all
    **registered** §10 checks must be green (3 checks during the cutover after TASK-100; 4 from
    TASK-108 when §10.5′ registers). A connector also runs its `fixtures/<type>/verify_*.py`.
-5. **Publish — ✅ RESUMED.** The cutover suspension is over: TASK-127 re-published the registry
-   (`feature/pdlc_app` @ `0db09dd9`, 121 files) and confirmed by re-Generate that it serves the
-   new pipeline. Re-publish after any `core/` change —
-   `python core/scripts/publish_registry.py <registry-url> --branch feature/pdlc_app` — and note
-   the gate is hard: a red §10 blocks the push rather than warning about it.
-6. **Tick the box** and commit (and push, so the external copy stays current).
+5. **Publish — ✅ RESUMED.** The cutover suspension is over: TASK-127 re-published the registry and
+   confirmed by re-Generate that it serves the new pipeline. Re-publish after any change to a
+   **published tree** (`core/`, `overlays/`, `docs/`) —
+   `python3 core/scripts/publish_registry.py https://github.com/varun6717/code_640011.git --branch
+   main` — and re-stage the tracked snapshot in the same change
+   (`--stage registry_repo --force`), or `verify_registry` goes red. The gate is hard: a red §10
+   blocks the push rather than warning about it.
+6. **Tick the box** and commit, then `git push` (→ `prod`, the build repo).
 
 > ✅ **A task is done when:** Acceptance true · its proof green · `build_checks.py` (registered
 > checks) green · box ticked · committed.
@@ -97,8 +99,12 @@ green. **Disk + git are ground truth** — never rely on something said in an ea
 - **Auth (the seam, env backend).** User env vars: `PDLC_AUTH_BITBUCKET` (+ `_USER`),
   `PDLC_AUTH_SHAREPOINT` (+ `_USER`), `PDLC_AUTH_CONFLUENCE`, `PDLC_AUTH_JIRA`. The token never
   lands on disk — `auth_ref` is a pointer.
-- **Registry / code repos.** Registry = `feature/pdlc_app`; Stratus code = `feature/c_repo`
-  (one Bitbucket repo, two branches). Re-publish is live again (TASK-127).
+- **Registry / code repos.** *On the VDI:* registry = `feature/pdlc_app`; Stratus code =
+  `feature/c_repo` (one Bitbucket repo, two branches). *In the external build (re-pointed
+  2026-08-02, and the two are deliberately separate repos):* registry =
+  `github.com/varun6717/code_640011` @ `main` — the published subset and nothing else; build repo =
+  `github.com/varun6717/prod` @ `main`. Only the URL and branch differ; the publish command and its
+  §10 gate are identical. Re-publish is live again (TASK-127).
 - **Copilot layout (already fixed).** Generate emits `.github/copilot-instructions.md` +
   `.github/prompts/*.prompt.md`; agents are `*.agent.md` at the run root.
 
