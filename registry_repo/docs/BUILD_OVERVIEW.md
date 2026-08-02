@@ -139,8 +139,13 @@ instantiated **once per source in parallel**, each owning its source end to end 
 plus manifest entries; then a deterministic `merge_manifest.py` assembles `index.json`. Split at the
 **source boundary**, never per file. One source failing does not fail the batch.
 
-**The doc lane:** the domain pack's `pdf_extract` produces a structural `<doc>.md`; the shared
-`doc_index` skill then produces `<doc>.index.json` — one entry per semantic subsection, with
+**The doc lane:** one lane per source *type*, keyed in `adapter.yaml`, and **every lane ends in
+`doc_index`** — the extract step differs because the *format* does, the index step never does.
+`default` (PDFs) = the domain pack's `pdf_extract`; `confluence` = the core `confluence_extract`
+(one product, one DOM, identical across domains, so packing it would make every new domain
+duplicate it); `jira` = the index alone, because the connector already renders the issue payload
+to `.md` deterministically. The extract produces a structural `<doc>.md`; `doc_index` then produces
+`<doc>.index.json` — one entry per semantic subsection, with
 **guardrail 7** holding: `lines_total == lines_indexed`, exactly-once coverage. That is what makes
 "the index missed it" impossible rather than merely unlikely, and it is why there is no vector store:
 the per-artifact index *is* passage-level retrieval.
@@ -178,7 +183,10 @@ neither decides anything.
 - **Arm 1 — `code_impact` (requirement → code).** Per-assertion impact plus **dependency closure**, both directions, to a fixed point. Produces §16 derived-system-impact entries and gaps.
 - **Arm 2 — `claim_verifier` (claim → code).** Point lookup, then **stop**. Answers "is this claim true of the code?" — it does not go exploring. Runs after Arm 1, which has usually already pulled the slices its claims need. An honest `unverifiable` is a valid verdict.
 
-**Provenance decides authority (D-A16)** — this is the rule that makes the layer safe:
+**Scope-moving escalates first.** Before provenance is consulted at all, anything that moves a
+scope boundary escalates — however well grounded it is. Scope changes are operator-decided, always.
+
+**Provenance then decides authority (D-A16)** — this is the rule that makes the layer safe:
 
 | The claim came from | and the code contradicts it | so |
 |---|---|---|
@@ -251,9 +259,14 @@ registry/
   overlays/
     claude/                  # CLAUDE.md + .claude/agents/*.md + prompts + launch
     copilot/                 # copilot-instructions.md + *.agent.md + prompts + launch
+  docs/                      # the authoritative design travels with the registry
 ```
 
+`registry_manifest.yaml` publishes **whole trees** — `core/`, `overlays/`, `docs/` — rather than a
+hand-listed file set, so adding an ADR cannot silently fail to ship (D-A22).
+
 On Generate: scaffold = `core/` + `profiles[domain]` + `templates[domain]` + `overlays/<tool>`.
+`docs/` publishes to the registry but is **not** hydrated into a run workspace.
 
 ---
 

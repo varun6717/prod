@@ -1,6 +1,6 @@
 ---
 name: code_impact
-type: Assessment skill (subagent, fan-out — one instance per epic) — enrichment Arm 1
+type: Assessment skill (subagent, fan-out — one instance per requirement) — enrichment Arm 1
 layer: Enrichment (v1 → v2)
 consumes: accepted+frozen solution_intent/v1.md · context_set/code_map/{components,files}.json · repo/
 produces: §16 derived-system-impact entries + gaps, accumulated as findings in enrichment.json

@@ -85,7 +85,7 @@ preconditions are absolute, and neither advances the run — the operator does.
 | `app/backend/app.py` | The FastAPI surface. `POST /generate` validates then generates; invalid config → 422 naming the failing field. |
 | `app/backend/validation.py` | §3.1 validation of the `UI_INPUT` mapping: required fields, per-source-type requirements, disposition rules (D-A12). |
 | `app/backend/service.py` | The thin orchestration layer: writes `UI_INPUT.yaml`, calls `generate.generate()`, keeps a JSONL runs index (`run_id → working_path`). |
-| `core/scripts/generate.py` | The deterministic scaffolder: lays the §2.2 workspace (empty `context_set/`, `repo/`, `solution_intent/`, the ledger skeleton), then hydrates. |
+| `core/scripts/generate.py` | The deterministic scaffolder, **in this order**: hydrate the pinned registry slice → lift the overlay's wrappers + prompts to the run root → copy `UI_INPUT.yaml` in verbatim → render the instruction file → init the ledger → lay the empty §2.2 dirs (`context_set/`, `repo/`, `solution_intent/`) → emit `run_started`. Stops at G0 and never runs the workflow (FR-XS-09). |
 | `core/scripts/hydrate.py` | Pulls the SHA-pinned registry subset into the workspace — `core/` filtered to the run's domain, plus the chosen tool's overlay. Verifies `registry_sha`; a bad SHA fails naming the SHA. |
 | `core/scripts/generate_instruction.py` | Emits the run's instruction file (`CLAUDE.md` or `copilot-instructions.md`) from one canonical template — the runtime-tool seam's generator. |
 
@@ -179,7 +179,7 @@ every downstream change is now a traceable delta against a fixed document.
 | `core/skills/code_impact_assess.skill.md` | **Arm 1** (requirement → code): one subagent per requirement, per-assertion impact plus dependency closure, filing §16 entries and gaps. |
 | `core/scripts/tier_walk.py` | Arm 1's deterministic closure walker: both dependency directions, to a fixed point, over the two-file map. |
 | `core/skills/claim_verifier.skill.md` | **Arm 2** (claim → code): checks v1's current-state claims against the code — point lookup, then *stop*. An honest `unverifiable` is a valid verdict. |
-| `core/scripts/enrichment.py` | The findings record and the D-A16 router: **provenance decides authority** — a source-derived contradiction auto-corrects, an operator/frame contradiction escalates (a tool never overrules a person silently), an unsourced `[TBD]` auto-fills. Also the walkthrough machinery: dependency-ordered queue, triage, disposition writer (a `reject` auto-supersedes its dependents), resume point. |
+| `core/scripts/enrichment.py` | The findings record and the D-A16 router. **Scope-moving is tested first** and escalates however well grounded the finding is — scope is operator-decided, always. After that, **provenance decides authority**: a source-derived contradiction auto-corrects, an operator/frame contradiction escalates (a tool never overrules a person silently), an unsourced `[TBD]` auto-fills. Also the walkthrough machinery: dependency-ordered queue, triage, disposition writer (a `reject` auto-supersedes its dependents), resume point. |
 | `core/skills/disposition_walkthrough.skill.md` | The **one** operator turn of the stage: only escalated findings reach it; it proposes, the operator decides (`accept` / `reject` / `reroute` / `defer`), rationale lands in `decisions.jsonl`. Resumable. |
 | `core/scripts/apply_enrichment.py` | The deterministic apply pass: v1 + `enrichment.json` → `v2.md`. Corrections revise **in place with code provenance**; discoveries append; rerouted findings land at the operator's target; nothing is deleted; §16 organised by requirement; §1 regenerated **last** from the corrected body. `v1 + record` reconstruct v2 exactly. |
 
@@ -229,7 +229,7 @@ the run, not a report about it.
 | File | What it is |
 |---|---|
 | `core/scripts/build_checks.py` + `core/scripts/checks/` | Family 1 (§10, at build/publish): overlay parity, domain artifacts, connector coverage, disposition totality. Family 2 (in-run): `check_index_completeness.py` (guardrail 7), `check_map_totality.py`, `check_discovery_adequacy.py`. |
-| `core/scripts/publish_registry.py` | Packages the manifest subset (122 files) and pushes it to the registry — **§10 red blocks the push**. `--stage registry_repo` refreshes the tracked snapshot that travels to the VDI; `verify_registry` asserts it stays byte-identical to source. |
+| `core/scripts/publish_registry.py` | Packages the manifest subset — whole trees, `core/` + `overlays/` + `docs/` minus the `exclude` globs (126 files as of TASK-128) — and pushes it to the registry; **§10 red blocks the push**. `--stage registry_repo` refreshes the tracked snapshot that travels to the VDI; `verify_registry` asserts it stays byte-identical to source. |
 | `core/overlay_manifest.yaml` | The runtime-tool seam's contract: the eight roles, the four prompt files, both overlays' layouts. Parity-checked. |
 | `fixtures/*/verify_*.py` | Thirty standalone proofs, one per subsystem plus the end-to-end refusal paths — each check names the wrong-but-plausible implementation it kills. The full sweep plus `build_checks.py` is the definition of "green". |
 
