@@ -128,6 +128,39 @@ def main() -> int:
               and "PROCEED TO RUN" in checklist,
               "G0 inspection checklist printed for the operator (D4)")
 
+        # ── A domain with NO pack must fail AT GENERATE, not at authoring ────────────
+        # The wrong-but-plausible implementation this kills: trusting hydration's success.
+        # Pruning profiles/ + templates/ to a domain that has neither still copies the rest
+        # of core/, so hydrate returns a non-empty `copied` and the scaffold passes every
+        # structural assertion above. Without this check the operator inspects a complete-
+        # looking G0 scaffold and only learns the truth when the SI author cannot find its
+        # profile — by which point they have been told the run is ready.
+        print("\nunknown domain → refused at Generate:")
+        import yaml as _yaml
+        bad_cfg = _yaml.safe_load(_LOCKED_UI_INPUT.read_text(encoding="utf-8"))
+        bad_cfg["domain"] = "no_such_domain"
+        bad_input = tmp_path / "bad_UI_INPUT.yaml"
+        bad_input.write_text(_yaml.safe_dump(bad_cfg, sort_keys=False), encoding="utf-8")
+        bad_dest = tmp_path / "work" / "SEAL-99999-baddomain"
+
+        try:
+            with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+                generate.generate(bad_input, registry=str(registry), working_path=bad_dest)
+            raised = ""
+        except ValueError as exc:
+            raised = str(exc)
+        check(bool(raised), "generate() refuses a domain with no seam artifacts")
+        check("no_such_domain" in raised and "si_profile.no_such_domain.yaml" in raised,
+              "the refusal names the domain AND the missing artifact, not just 'failed'")
+        check("payment_brand" in raised,
+              "and names the domains the registry DOES publish (an operator typo is one glance)")
+        # It must fail at the SEAM check, not incidentally later — core/ did hydrate fine.
+        check((bad_dest / "core" / "overlay_manifest.yaml").is_file(),
+              "core/ hydrated before the refusal — proving the check is what caught it, "
+              "not a hydration failure")
+        check(not (bad_dest / "ledger").exists(),
+              "no ledger and no run_started for a refused run (nothing is recorded as started)")
+
     print()
     if failures:
         print(f"FAIL — {len(failures)} assertion(s) failed: {failures}")

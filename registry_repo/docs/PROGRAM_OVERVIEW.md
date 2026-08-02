@@ -16,59 +16,65 @@ decisions — a validator computes, an operator decides, never the reverse.
 
 ```mermaid
 flowchart TD
-    subgraph BOX0["0 · CONFIGURE + GENERATE — gate G0"]
-        A0["React UI → FastAPI backend<br/><i>app/frontend · app/backend/app.py<br/>validation.py · service.py</i>"]
-        A1["scaffold the run workspace<br/><i>generate.py · hydrate.py<br/>generate_instruction.py</i>"]
-        A0 --> A1
-    end
+    UI["<b>0 · Configure</b><br/>the operator fills in the UI"]
+    GEN["<b>0 · Generate</b><br/>scaffold the workspace,<br/>hydrate the pinned registry"]
+    G0{"<b>G0</b><br/>operator inspects<br/>the scaffold"}
+    ING["<b>1 · Ingest</b> — one worker per source, in parallel<br/>doc lane: extract → index<br/>code lane: clone → map gate → map"]
+    CTX[("context_set/<br/>index.json · per-doc indexes · code_map/")]
+    SI["<b>2 · Author Solution Intent v1</b><br/>18 sections, <b>code-blind</b>"]
+    GF{"<b>GF</b><br/>operator decides<br/>each scope flag"}
+    SIV["<b>2 · Validate v1</b><br/>score + 7 hard preconditions"]
+    G1{"<b>G1</b><br/>operator accepts"}
+    V1[("v1.md — FROZEN<br/>sha256 + read-only")]
+    A1["<b>3 · Arm 1</b> — requirement → code<br/>impact + dependency closure"]
+    A2["<b>3 · Arm 2</b> — claim → code<br/>point lookup, then stop"]
+    REC[("enrichment.json<br/>every finding routed by provenance")]
+    WALK["<b>3 · Disposition walkthrough</b><br/>escalations only — the ONE operator turn"]
+    APPLY["<b>3 · Apply pass</b><br/>v1 + findings → v2.md"]
+    ENV["<b>3 · Validate enrichment</b><br/>score + 3 hard preconditions"]
+    G2{"<b>G2</b><br/>operator accepts"}
+    PLAN["<b>4 · Assemble the plan</b><br/>Initiative → Deliverable → Epic → Story"]
+    JV["<b>4 · Validate the trace</b><br/>both directions + hard checks"]
+    G3{"<b>G3</b><br/>operator accepts<br/><b>= the push authorization</b>"}
+    PUSH["<b>4 · Push to Jira</b><br/>the run's ONLY external mutation"]
+    LED[("ledger/ — telemetry.jsonl · decisions.jsonl<br/><i>every stage and every gate writes here</i>")]
+    MET["<b>5 · Metrics</b><br/>derived by scanning the ledger"]
 
-    subgraph BOX1["1 · INGEST — the per-source fan-out"]
-        B0["connectors (one per source type)<br/><i>ingest_sharepoint.py · ingest_confluence.py<br/>ingest_jira.py · ingest_file.py · clone.py</i>"]
-        B1["doc lane: extract → index<br/><i>pdf_text.py + pdf_extract.skill.md<br/>confluence_extract.skill.md<br/>doc_index.py + doc_index.skill.md</i>"]
-        B2["code lane: onboard → map<br/><i>validate_onboarding.py · c_extractor.py<br/>code_map_build.py · gate.py · map_cache.py</i>"]
-        B3["fan-in: one manifest<br/><i>merge_manifest.py · dispositions.py</i>"]
-        B0 --> B1 --> B3
-        B0 --> B2 --> B3
-    end
+    UI --> GEN --> G0
+    G0 -. "reconfigure = a NEW run_id, never an edit" .-> UI
+    G0 -->|"looks right"| ING
+    ING --> CTX --> SI
+    SI --> GF
+    GF -->|"one more flag"| SI
+    GF -->|"all resolved"| SIV
+    SIV --> G1
+    G1 -->|"reopen"| SI
+    G1 -->|"accept — FREEZES v1"| V1
+    V1 --> A1
+    V1 --> A2
+    A1 --> REC
+    A2 --> REC
+    REC --> WALK --> APPLY --> ENV --> G2
+    G2 -->|"reopen"| WALK
+    G2 -->|"accept"| PLAN --> JV --> G3
+    G3 -->|"reopen"| PLAN
+    G3 -->|"accept"| PUSH
+    PUSH --> MET
+    LED --> MET
 
-    subgraph BOX2["2 · SOLUTION INTENT v1 — gates GF + G1"]
-        C0["author the 18 sections, CODE-BLIND<br/><i>solution_intent_author.skill.md<br/>si_profile.payment_brand.yaml</i>"]
-        C1["score + preconditions → G1<br/><i>solution_intent_validator.py + .skill.md</i>"]
-        C0 --> C1
-    end
-
-    subgraph BOX3["3 · ENRICHMENT v1 → v2 — gate G2"]
-        D0["Arm 1: requirement → code<br/><i>code_impact_assess.skill.md · tier_walk.py</i>"]
-        D1["Arm 2: claim → code<br/><i>claim_verifier.skill.md</i>"]
-        D2["record + routing + walkthrough<br/><i>enrichment.py<br/>disposition_walkthrough.skill.md</i>"]
-        D3["apply pass writes v2<br/><i>apply_enrichment.py</i>"]
-        D0 --> D2
-        D1 --> D2
-        D2 --> D3
-    end
-
-    subgraph BOX4["4 · JIRA — gate G3 + the ONLY external mutation"]
-        E0["assemble the 4-level plan<br/><i>jira_author.skill.md · jira_plan.py<br/>jira_template.payment_brand.yaml</i>"]
-        E1["validate the trace → G3<br/><i>jira_validator.py + .skill.md</i>"]
-        E2["push (authorized, idempotent)<br/><i>jpmc_adapters/jira.py · jpmc_adapters/auth.py</i>"]
-        E0 --> E1 --> E2
-    end
-
-    subgraph BOX5["5 · METRICS — derived, never entered"]
-        F0["scan the ledger<br/><i>metrics_scan.py</i>"]
-    end
-
-    subgraph LEDGER["LEDGER — every stage writes it"]
-        L0["<i>telemetry.py · decisions.py · ledger.py</i>"]
-    end
-
-    BOX0 -->|"G0: operator inspects the scaffold"| BOX1
-    BOX1 -->|"context_set/ complete"| BOX2
-    BOX2 -->|"G1 accept FREEZES v1"| BOX3
-    BOX3 -->|"G2 accept locks v2"| BOX4
-    BOX4 -->|"jira_trace.json"| BOX5
-    LEDGER -.-> BOX5
+    classDef gate fill:#fde68a,stroke:#a16207,stroke-width:2px,color:#111
+    classDef mutation fill:#fecaca,stroke:#b91c1c,stroke-width:2px,color:#111
+    classDef artifact fill:#e0e7ff,stroke:#4338ca,color:#111
+    class G0,GF,G1,G2,G3 gate
+    class PUSH mutation
+    class CTX,V1,REC,LED artifact
 ```
+
+**How to read it.** Diamonds are the five human gates — nothing crosses one without an operator.
+Every gate is preceded by its own validator step, because that separation *is* the rule: the
+validator computes a score and hard preconditions, the operator decides, never the reverse. The
+edges back up the page are the real ones — `reopen` is a live outcome at G1/G2/G3, and GF fires
+once per flag. The diagram shows the **flow**; each stage's table below names the **files**.
 
 The gate ladder, compressed: **G0** inspect the scaffold · **GF** decide each scope flag ·
 **G1** accept v1 (freezes it) · **G2** accept v2 · **G3** accept the plan — *that acceptance is the

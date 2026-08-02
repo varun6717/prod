@@ -209,6 +209,30 @@ def generate(
         registry, registry_sha, domain, runtime_tool, dest, ref=registry_ref, force=force
     )
 
+    # 1b) The domain seam must have ACTUALLY ARRIVED. Hydration prunes profiles/ + templates/
+    #     to the run's domain, so a domain with no pack prunes those to nothing while the rest
+    #     of core/ still lands — `copied` is non-empty, hydration reports success, and the
+    #     scaffold looks complete at G0. The failure then surfaces at AUTHORING time, when the
+    #     SI author goes hunting for a profile that was never published, which is well past the
+    #     point the operator was told to inspect. §3.1 validation checks shape only and names
+    #     "a domain with no registered profile" as this function's job; nothing was doing it.
+    #     Checked against the HYDRATED tree, not this repo's, because what the run uses is what
+    #     the registry served. (`jira_template` is deliberately not required here — §10.3 gates
+    #     it at publish, and a run that never reaches L4 should not be blocked at G0 for it.)
+    pack = dest / "core" / "profiles" / domain
+    missing_seam = [p for p in (pack / f"si_profile.{domain}.yaml",
+                                pack / "adapter" / "adapter.yaml") if not p.is_file()]
+    if missing_seam:
+        # The available list comes from hydrate's descriptor, NOT from the hydrated tree —
+        # pruning has already removed every other domain by the time we look here.
+        available = hydrate_desc.get("domains_available") or []
+        raise ValueError(
+            f"domain {domain!r} has no seam artifacts in the hydrated registry — missing "
+            + ", ".join(str(p.relative_to(dest)) for p in missing_seam)
+            + f". The registry at {registry_sha} publishes: "
+            + (", ".join(available) if available else "(no domains at all)")
+        )
+
     # 2) Lift the overlay wrappers + prompts to the run root (§2.2), drop the overlays/ tree.
     placed = _place_overlay(dest, runtime_tool)
     agents_count = sum(1 for p in placed if p.endswith(".agent.md") or p.startswith(".claude/agents/"))

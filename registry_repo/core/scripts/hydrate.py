@@ -225,6 +225,16 @@ def hydrate(
             verified_sha = _git(["rev-parse", "HEAD"], cwd=checkout)
             source_root = checkout
 
+        # Record what the registry OFFERS before pruning throws it away. Once `_core_keep` has
+        # run, the hydrated tree holds one domain at most, so nothing downstream can answer
+        # "which domains does this registry publish?" — and that is exactly the sentence an
+        # operator who mistyped `domain` needs to see. Reported, never enforced: hydrate does
+        # not decide whether the selected domain is valid (generate.py does), it only reports
+        # what it saw.
+        profiles_src = source_root / "core" / "profiles"
+        domains_available = sorted(p.name for p in profiles_src.iterdir()
+                                   if p.is_dir()) if profiles_src.is_dir() else []
+
         copied: list[str] = []
         copied += _copy_filtered(source_root / "core", dest / "core", dest, keep=_core_keep(domain))
         copied += _copy_filtered(
@@ -248,6 +258,7 @@ def hydrate(
         "runtime_tool": runtime_tool,
         "dest": str(dest),
         "file_count": len(copied),
+        "domains_available": domains_available,   # pre-pruning; see the note above
         "copied": copied,
     }
     if note:

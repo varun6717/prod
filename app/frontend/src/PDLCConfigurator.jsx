@@ -276,8 +276,9 @@ export default function PDLCConfigurator(){
             <h1 className="h">Domain</h1>
             <span className="driven">▣ User-driven</span>
             <div className="callout"><div className="ct">Objective</div>
-              <p>Pick the intake domain. The selection chooses the profiles, templates, adapter, and vocabulary
-                hydrated for the run, and is emitted as the <span className="mono" style={{color:"var(--val)"}}>domain</span> key.</p></div>
+              <p>Pick the intake domain. The selection chooses the SI section profile, the Jira template, and the
+                adapter pack hydrated for the run, and is emitted as the <span className="mono" style={{color:"var(--val)"}}>domain</span> key.
+                It never affects how a source is ingested — that is the source type and your disposition.</p></div>
             <Field label="Intake Domain Type" hint={`emits domain: ${f.domain}`}>
               <div className="tinput">
                 <select value={f.domain} onChange={e=>set("domain",e.target.value)}>
