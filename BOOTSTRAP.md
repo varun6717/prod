@@ -103,8 +103,10 @@ the condition; the run completing is not.
   requires a plan-bound `G3Authorization` that only `authorize()` can mint.
 - **Re-publish after any published-tree change** (`core/`, `overlays/`, `docs/`) —
   `python3 core/scripts/publish_registry.py https://github.com/varun6717/code_640011.git --branch
-  main`. §10 red blocks the push; `verify_registry` fails if the tracked `registry_repo/` snapshot
-  drifts from source, so re-stage it (`--stage registry_repo --force`) in the same change.
+  main`. §10 red blocks the push. A successful publish **also refreshes `registry_repo/`**, so
+  pushed and staged cannot diverge; you only need `--stage registry_repo --force` by hand when you
+  want the snapshot current *before* publishing (e.g. committing first). `verify_registry` fails
+  if that snapshot drifts from source.
 - **Fix generic code here, not there.** If the VDI surfaces a gap in the generic code rather than
   the wiring, change it in this repo and re-publish.
 

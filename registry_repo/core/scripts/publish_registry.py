@@ -178,6 +178,33 @@ def _clear_worktree(clone: Path) -> None:
             entry.unlink()
 
 
+def _refresh_snapshot(stage_dir, *, source_root, manifest_path, registry_sha: str) -> str:
+    """Bring the tracked snapshot in line with what was just published.
+
+    `--stage` and the push used to be separate paths, so "staged" and "pushed" could disagree:
+    staging without pushing left `verify_registry` GREEN while the remote lagged. That is worse
+    than it sounds — a run resolves `registry_sha` from the branch tip via ls-remote, so it would
+    pin the stale commit and hydrate old `core/` without complaint. It is TASK-127's rotten
+    snapshot rotated one position: then source and remote agreed while the snapshot lagged; now
+    source and snapshot could agree while the remote did.
+
+    Coupling the two here makes the divergence **impossible** rather than merely detectable —
+    the same reason `push_plan` requires a token instead of checking a flag.
+    """
+    snapshot = Path(stage_dir) if stage_dir else Path(source_root) / "registry_repo"
+    try:
+        stage_registry(snapshot, source_root=source_root, manifest_path=manifest_path, force=True)
+    except Exception as exc:                       # noqa: BLE001 — re-raised with the context
+        # The push already happened. Say so first: a caller who reads this as "publish failed"
+        # and re-runs would push a second identical commit chasing a local file-copy error.
+        raise RuntimeError(
+            f"THE PUSH SUCCEEDED (registry_sha={registry_sha}) — only the tracked snapshot "
+            f"refresh at {snapshot} failed: {exc}. Do NOT re-publish; run "
+            f"`publish_registry.py --stage {snapshot} --force` to bring it current."
+        ) from exc
+    return str(snapshot)
+
+
 def publish_registry(
     registry_url: str,
     *,
@@ -186,6 +213,7 @@ def publish_registry(
     branch: str = "main",
     message: str = "Publish PDLC registry subset",
     dry_run: bool = False,
+    stage_dir: str | Path | None = None,
 ) -> dict:
     """Gate on §10, package the manifest subset, and push it to ``registry_url`` as repo #1.
 
@@ -260,10 +288,16 @@ def publish_registry(
         _git(["add", "-A"], cwd=clone)
         status = _git(["status", "--porcelain"], cwd=clone)
         if not status and has_head:
-            # Remote already matches the subset — nothing to push; report current HEAD.
-            descriptor["registry_sha"] = _git(["rev-parse", "HEAD"], cwd=clone)
+            # Remote already matches the subset — nothing to push; report current HEAD. The
+            # snapshot is still refreshed: "the remote is current" says nothing about whether
+            # the local mirror is, and this is precisely the case where a stale one hides.
+            head = _git(["rev-parse", "HEAD"], cwd=clone)
+            descriptor["registry_sha"] = head
             descriptor["pushed"] = False
             descriptor["note"] = "remote already up to date with the registry subset"
+            descriptor["snapshot_refreshed"] = _refresh_snapshot(
+                stage_dir, source_root=source_root, manifest_path=manifest_path,
+                registry_sha=head)
             return descriptor
 
         _git(["-c", f"user.name={_COMMIT_NAME}", "-c", f"user.email={_COMMIT_EMAIL}",
@@ -273,6 +307,9 @@ def publish_registry(
 
         descriptor["registry_sha"] = registry_sha
         descriptor["pushed"] = True
+        descriptor["snapshot_refreshed"] = _refresh_snapshot(
+            stage_dir, source_root=source_root, manifest_path=manifest_path,
+            registry_sha=registry_sha)
         return descriptor
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

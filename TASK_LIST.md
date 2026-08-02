@@ -40,9 +40,10 @@ green. **Disk + git are ground truth** — never rely on something said in an ea
    confirmed by re-Generate that it serves the new pipeline. Re-publish after any change to a
    **published tree** (`core/`, `overlays/`, `docs/`) —
    `python3 core/scripts/publish_registry.py https://github.com/varun6717/code_640011.git --branch
-   main` — and re-stage the tracked snapshot in the same change
-   (`--stage registry_repo --force`), or `verify_registry` goes red. The gate is hard: a red §10
-   blocks the push rather than warning about it.
+   main`. A successful publish **also refreshes `registry_repo/`** (TASK-128 follow-up), so pushed
+   and staged cannot diverge; `--stage registry_repo --force` by hand is only for making the
+   snapshot current *before* the push, e.g. when you commit first — otherwise `verify_registry`
+   goes red on the commit. The gate is hard: a red §10 blocks the push rather than warning.
 6. **Tick the box** and commit, then `git push` (→ `prod`, the build repo).
 
 > ✅ **A task is done when:** Acceptance true · its proof green · `build_checks.py` (registered

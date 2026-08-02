@@ -79,13 +79,44 @@ def main() -> int:
         root = Path(td)
 
         # 1) GREEN publish to a bare "Bitbucket" remote.
+        #
+        # `stage_dir` is passed for two reasons. It keeps this proof side-effect-free — a publish
+        # now refreshes the tracked snapshot, and without an override that would rewrite the real
+        # `registry_repo/` in the working tree just by running the fixture. And it is what lets
+        # the coupling be asserted below against a KNOWN-STALE directory.
+        snapshot = root / "snapshot"
+        snapshot.mkdir()
+        (snapshot / "retired_skill.md").write_text("a file the manifest does not publish\n")
+        (snapshot / "core").mkdir()
+        (snapshot / "core" / "registry_manifest.yaml").write_text("stale: true\n")
+
         remote = _bare_remote(root / "registry.git")
         desc = publish_registry.publish_registry(str(remote), source_root=_REPO_ROOT,
-                                                 message="proof publish")
+                                                 message="proof publish", stage_dir=snapshot)
         _check("build checks gated green", desc["checks"] == "green")
         _check("publish pushed a commit", desc["pushed"] is True)
         _check("registry_sha returned", bool(desc.get("registry_sha")))
         registry_sha = desc["registry_sha"]
+
+        # ── a successful push leaves the tracked snapshot CURRENT ──────────────────────────
+        # The wrong-but-plausible implementation this kills: publish pushes and leaves the
+        # snapshot alone, which is what it did until now. `verify_registry`'s drift check
+        # compares snapshot ↔ source and would stay GREEN while the remote lagged — and a run
+        # resolves registry_sha from the branch tip, so it would pin the stale commit and
+        # hydrate old core/ silently. The snapshot is seeded stale above precisely so "it
+        # happened to already match" cannot pass this.
+        _check("publish reports the snapshot it refreshed",
+               desc.get("snapshot_refreshed") == str(snapshot))
+        manifest_ = publish_registry._load_yaml(publish_registry._DEFAULT_MANIFEST)
+        expected_ = {rel for _, rel in publish_registry.collect_subset(manifest_, _REPO_ROOT)}
+        actual_ = {p.relative_to(snapshot).as_posix() for p in snapshot.rglob("*") if p.is_file()}
+        _check("the pushed subset and the snapshot hold exactly the same files",
+               actual_ == expected_)
+        _check("the seeded stale file is GONE (refresh replaces, never merges)",
+               not (snapshot / "retired_skill.md").exists())
+        _check("and every snapshot file is byte-identical to source",
+               not [r for r in sorted(expected_)
+                    if (snapshot / r).read_bytes() != (_REPO_ROOT / r).read_bytes()])
 
         # 4) Published tree = the manifest subset (clone the remote and inspect).
         published = root / "published"
