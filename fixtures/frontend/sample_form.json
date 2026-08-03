@@ -1,5 +1,5 @@
 {
-  "_comment": "TASK-051/063B/103/107 proof input: the form-state a non-technical operator produces by filling the 5 tabs (the click-through). Field values mirror fixtures/UI_INPUT.example.yaml; emit.js maps these to a §3.1 UI_INPUT config. SharePoint + Bitbucket + Confluence + Jira emit; Lucid is present but deferred — buildConfig never emits it. Doc rows carry an operator-chosen `disp` (D-A12) — the Jira row deliberately omits it, so the proof exercises the per-type DEFAULT (prior_artifact); the code row carries none either — `codebase` is auto-set at emit.",
+  "_comment": "TASK-051/063B/103/107 proof input: the form-state a non-technical operator produces by filling the 5 tabs (the click-through). Field values mirror fixtures/UI_INPUT.example.yaml; emit.js maps these to a \u00a73.1 UI_INPUT config. SharePoint + Bitbucket + Confluence + Jira emit; Lucid is present but deferred \u2014 buildConfig never emits it. Doc rows carry an operator-chosen `disp` (D-A12) \u2014 the Jira row deliberately omits it, so the proof exercises the per-type DEFAULT (prior_artifact); the code row carries none either \u2014 `codebase` is auto-set at emit.",
   "working_path": "/work/pbi/SEAL-12345-routing",
   "domain": "payment_brand",
   "runtime_tool": "copilot",
@@ -10,13 +10,47 @@
   "requestor_sid": "vmunjal",
   "intent": "Implement Discover as a routable card brand end-to-end",
   "overview": "Merchant Services must accept Discover as a first-class routable brand across authorization, routing and settlement reconciliation. Today brand identification relies on PAN-range lookup, which cannot distinguish co-badged products; the mandate introduces an explicit brand indicator carried on the authorization message. Delivery spans the authorization parser, the routing tables, settlement reconciliation, and a certification package for the network.",
-  "scope_hints": ["routing", "settlement reconciliation touchpoints"],
-  "stakeholders": ["Payments Eng", "Brand Compliance"],
+  "scope_hints": [
+    "routing",
+    "settlement reconciliation touchpoints"
+  ],
+  "stakeholders": [
+    "Payments Eng",
+    "Brand Compliance"
+  ],
   "compliance_deadline": "2026-09-30",
-  "pdf": [{ "url": "https://sharepoint.jpmc.net/sites/PBI/Specs/mastercard_mandate_part1_2026.pdf", "disp": "technical_specification" }],
-  "code": [{ "seal": "SEAL-12345", "url": "https://bitbucket.jpmc.net/scm/pbi/merchant-routing-svc.git" }],
-  "confluence": [{ "url": "https://confluence.jpmc.net/display/PBI/Card+Brand+Routing" }],
-  "jira": [{ "url": "https://jira.jpmc.net/browse/PBI-4471" }],
-  "lucid": [{ "url": "" }],
+  "pdf": [
+    {
+      "url": "https://sharepoint.jpmc.net/sites/PBI/Specs/mastercard_mandate_part1_2026.pdf",
+      "disp": "technical_specification"
+    }
+  ],
+  "code": [
+    {
+      "seal": "SEAL-12345",
+      "url": "https://bitbucket.jpmc.net/scm/pbi/merchant-routing-svc.git"
+    }
+  ],
+  "confluence": [
+    {
+      "url": "https://confluence.jpmc.net/display/PBI/Card+Brand+Routing"
+    }
+  ],
+  "jira": [
+    {
+      "url": "https://jira.jpmc.net/browse/PBI-4471"
+    }
+  ],
+  "lucid": [
+    {
+      "url": ""
+    }
+  ],
+  "jira_project_key": "PBIROUTE",
+  "jira_level": "initiative",
+  "jira_parent_link": "",
+  "jira_seal_id": "SEAL-12345",
+  "jira_control_owner": "vmunjal",
+  "jira_risk": "medium",
   "score_threshold": "85"
 }

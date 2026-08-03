@@ -147,6 +147,19 @@ Each schema is normative. Types are JSON/YAML scalar types unless noted.
 
 ### 3.1 `UI_INPUT.yaml` — immutable run config (FR-XS-02, FR-XS-16, NFR-01)
 
+> 🔧 **TASK-129 amendment (normative, V-approved 2026-08-03) — `jira.level` + `jira.parent_link`.**
+> A run could previously only create a **whole new tree** (`build_plan` always emitted an `INIT` and
+> its own deliverables), but most programs need epics grafted under a **standing Deliverable**.
+> `level` ∈ `initiative | deliverable | epic` selects the highest level the run creates —
+> `initiative` is the default and is byte-identical to prior behaviour. `parent_link` is the
+> existing Jira key the top created level attaches to: **required** when `level != initiative`,
+> **forbidden** when it is (nothing sits above an Initiative).
+> **It lives here, not in the stage chat, for two reasons.** `G3Authorization` is bound to
+> `plan_sha256`, so any choice altering plan content must precede G3 — asking at push time raises
+> "the plan changed after it was accepted". And `UI_INPUT` is immutable, which makes the push root
+> part of the run's identity: a run cannot push epics-under-a-Deliverable and later the full tree,
+> so no re-parenting policy is needed. **Port note:** carry this into the JPMC-side §3.1.
+>
 > 🔧 **ADR-008 amendment (normative).** Each `sources[]` entry gains **`disposition:`** — one or more
 > of `business_requirement | technical_specification | product_domain_knowledge | architecture |
 > prior_artifact | other` (FR-DC-24; `codebase` is auto-set for repo sources, non-editable; multi
@@ -196,6 +209,8 @@ sources:
 # Jira push config (consumed only at L4) — controls fields per jira_template
 jira:
   project_key: PBIROUTE
+  level: initiative                       # initiative | deliverable | epic  (TASK-129 amendment)
+  parent_link: null                       # REQUIRED unless level: initiative; forbidden when it is
   controls:
     seal_id: SEAL-12345
     control_owner: "vmunjal"
@@ -388,6 +403,14 @@ solution_intent/
 
 ### 3.8 `jira_plan.json` / `jira_trace.json` — plan + push record (FR-JR-\* as amended, D11.6)
 
+> 🔧 **TASK-129 amendment (normative).** The plan gains **`push_root: {level, parent_link}`**,
+> copied from `UI_INPUT.jira` (§3.1). It records the highest level this run creates and the existing
+> Jira key it attaches to. At `level: deliverable` the plan carries no `initiative`; at
+> `level: epic` it carries neither `initiative` nor `deliverables[]`, and every epic's `parent` is
+> the external `parent_link`. `trace.deliverables` still lists the §7 D-ids **whether or not they
+> are pushed** — a story's `evidence` is provenance in the SI, not a claim about what exists in
+> Jira, and G3 reads it from there. **Port note:** carry into the JPMC-side §3.8.
+>
 > 🔧 **ADR-008 amendment.** The plan is **four-level**: `initiative` (from the SI) → `deliverables[]`
 > (D-ids) → `epics[]` (R-ids) → `stories[]`. Each story: `{epic: R-id, evidence: §16 entry id | "D-id
 > non-code", code_location | flag: new_build|non_code, acceptance_criteria}`. Authored **after G2**

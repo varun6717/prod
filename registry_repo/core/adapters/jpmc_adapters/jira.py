@@ -186,6 +186,18 @@ def push_plan(plan: dict, trace: dict, *, project_key: str, dry_run: bool = True
         handle = _auth.resolve_auth(auth_ref)      # resolved lazily: a dry run needs no secret
 
     out = dict(trace)
+
+    # TASK-129 — a partial-tree push attaches its top level to an issue that ALREADY EXISTS in
+    # Jira. Seed it as a resolved key so the orphan guard below finds it. Done explicitly rather
+    # than left to the guard's "nor the trace" clause: that clause exists for resuming a partial
+    # push, and relying on it here would make grafting a side effect of a retry mechanism.
+    # It is recorded with action "external" so the trace shows what the run attached to without
+    # claiming the run created it — and it is never in `_issues_in_order`, so it is never written.
+    root = plan.get("push_root") or {}
+    if root.get("parent_link"):
+        out.setdefault(root["parent_link"],
+                       {"key": root["parent_link"], "url": "", "action": "external"})
+
     planned: list[dict] = []
     for local_id, issue, parent_local in _issues_in_order(plan):
         existing = out.get(local_id)

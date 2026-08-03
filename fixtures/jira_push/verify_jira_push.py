@@ -222,6 +222,48 @@ def main() -> int:
                                                authorization=token, auth_ref=None),
                         NotImplementedError))
 
+    print("\n10) a grafted push attaches to a standing issue (TASK-129):")
+    # The orphan guard refuses a parent that is "in neither the plan (pushed so far) nor the
+    # trace". An external parent is in neither by definition, so without the explicit seed every
+    # grafted push would die on its first epic — and the message would blame the plan for naming
+    # a parent that does not exist, when the parent exists and it is the seeding that is missing.
+    grafted = json.loads(json.dumps(plan))
+    grafted.pop("initiative", None)
+    grafted["deliverables"] = []
+    for e in grafted["epics"]:
+        e["parent"] = "PBI-2000"
+    grafted["push_root"] = {"level": "epic", "parent_link": "PBI-2000"}
+
+    preview = jira.push_plan(grafted, {}, project_key="PBIROUTE")     # dry_run defaults True
+    _check("a grafted plan previews without raising the orphan guard",
+           preview["dry_run"] is True and preview["would_create"] == len(grafted["epics"])
+           + len(grafted["stories"]),
+           f"would_create={preview.get('would_create')}")
+    _check("...and every epic previews against the EXTERNAL parent key",
+           all(p["parent_key"] == "PBI-2000"
+               for p in preview["planned"] if p["issue_type"] == "Epic"))
+    _check("nothing above the graft point is planned — no Initiative, no Deliverable",
+           not any(p["issue_type"] in ("Initiative", "Deliverable") for p in preview["planned"]))
+
+    created: list[str] = []
+    try:
+        jira.set_target(lambda issue, *, project_key, parent_key, handle:
+                        (created.append(f"{issue['local_id']}<-{parent_key}"),
+                         {"key": f"PBIROUTE-{len(created)}", "url": ""})[1],
+                        lambda key, issue, *, handle: {"key": key, "url": ""})
+        tok = jira.authorize(good_g3, plan=grafted, run_id="r-2026-08-01-si1",
+                             actor="vmunjal", ts=T)
+        out = jira.push_plan(grafted, {}, project_key="PBIROUTE", dry_run=False,
+                             authorization=tok, auth_ref=None, ts=T)
+        _check("the real push creates every epic under the external key",
+               all(f"{e['local_id']}<-PBI-2000" in created for e in grafted["epics"]))
+        _check("the external parent is recorded as 'external', not as something this run created",
+               out["PBI-2000"]["action"] == "external")
+        _check("...and it was never pushed — no create call names it",
+               not any(c.startswith("PBI-2000<-") for c in created))
+    finally:
+        jira.reset_target()
+
     print()
     if _FAILURES:
         print(f"FAILED — {len(_FAILURES)} check(s): {_FAILURES}", file=sys.stderr)

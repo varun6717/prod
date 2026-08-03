@@ -166,7 +166,13 @@ const TABS=[
   {n:"1",label:"Domain",badge:"USER"},
   {n:"2",label:"Project & Requirement",badge:"USER"},
   {n:"3",label:"Artifact Inventory",badge:"USER"},
-  {n:"4",label:"Generator",badge:"ACTION"},
+  {n:"4",label:"Jira Creation",badge:"USER"},
+  {n:"5",label:"Generator",badge:"ACTION"},
+];
+const JIRA_LEVELS=[
+  {key:"initiative",label:"Initiative — create the whole tree",hint:"Initiative → Deliverable → Epic → Story. No parent needed; nothing sits above an Initiative."},
+  {key:"deliverable",label:"Deliverable and below",hint:"Deliverable → Epic → Story, attached to an existing Initiative."},
+  {key:"epic",label:"Epic and below",hint:"Epic → Story, attached to an existing Deliverable. Epics flatten under that one parent."},
 ];
 const DOMAINS=[{key:"payment_brand",label:"PBI — Payment Brand Implementations"}];
 
@@ -198,6 +204,8 @@ export default function PDLCConfigurator(){
     pdf:[{url:"",disp:"business_requirement"}], code:[{seal:"",url:"",branch:""}],
     confluence:[{url:"",disp:"product_domain_knowledge"}], jira:[{url:"",disp:"prior_artifact"}],
     lucid:[{url:""}],
+    jira_project_key:"", jira_level:"initiative", jira_parent_link:"",
+    jira_seal_id:"", jira_control_owner:"", jira_risk:"medium",
     score_threshold:"85",
   });
   // Config is immutable after Generate (FR-XS-16): any edit discards the generated scaffold,
@@ -346,6 +354,56 @@ export default function PDLCConfigurator(){
           </>}
 
           {tab===4 && <>
+            <div className="crumb">PDLC · Run Setup · Stage 4</div>
+            <h1 className="h">Jira Creation</h1>
+            <span className="driven">▣ User-driven</span>
+            <div className="callout"><div className="ct">Objective</div>
+              <p>Where the run writes its plan, emitted as the <span className="mono" style={{color:"var(--val)"}}>jira</span> block.
+                Consumed only at Layer 4, after <b style={{fontWeight:600,color:"var(--ink-soft)"}}>G3</b> — the run's only external mutation.
+                Set here rather than asked later because G3's authorization is bound to the plan's
+                content: a change after acceptance invalidates it.</p></div>
+
+            <Field label="Project Key" hint="emits jira.project_key — the target Jira project">
+              <Text value={f.jira_project_key} onChange={v=>set("jira_project_key",v)} placeholder="PBIROUTE"/>
+            </Field>
+
+            <Field label="Create At Level" hint={`emits jira.level: ${f.jira_level}`}>
+              <div className="tinput">
+                <select value={f.jira_level} onChange={e=>set("jira_level",e.target.value)}>
+                  {JIRA_LEVELS.map(l=><option key={l.key} value={l.key}>{l.label}</option>)}
+                </select>
+              </div>
+            </Field>
+            <div className="fhint" style={{maxWidth:560,marginTop:-4}}>
+              {(JIRA_LEVELS.find(l=>l.key===f.jira_level)||JIRA_LEVELS[0]).hint}
+            </div>
+
+            {f.jira_level!=="initiative" && (
+              <Field label="Parent Link (required)"
+                hint={`emits jira.parent_link — the existing ${f.jira_level==="epic"?"Deliverable":"Initiative"} this run attaches to`}>
+                <Text value={f.jira_parent_link} onChange={v=>set("jira_parent_link",v)} placeholder="PBI-1000"/>
+              </Field>
+            )}
+
+            <div className="callout" style={{marginTop:14}}><div className="ct">Controls</div>
+              <p>Ride on every pushed issue. Completeness is a <b style={{fontWeight:600,color:"var(--ink-soft)"}}>hard G3 check</b> —
+                a missing field blocks the push rather than warning about it.</p></div>
+            <Field label="Seal ID" hint="emits jira.controls.seal_id">
+              <Text value={f.jira_seal_id} onChange={v=>set("jira_seal_id",v)} placeholder="SEAL-12345"/>
+            </Field>
+            <Field label="Control Owner" hint="emits jira.controls.control_owner">
+              <Text value={f.jira_control_owner} onChange={v=>set("jira_control_owner",v)} placeholder="vmunjal"/>
+            </Field>
+            <Field label="Risk Classification" hint="emits jira.controls.risk_classification">
+              <div className="tinput">
+                <select value={f.jira_risk} onChange={e=>set("jira_risk",e.target.value)}>
+                  {["low","medium","high"].map(r=><option key={r} value={r}>{r}</option>)}
+                </select>
+              </div>
+            </Field>
+          </>}
+
+          {tab===5 && <>
             <div className="crumb">PDLC · Run Setup · Stage 4</div>
             <h1 className="h">Generator</h1>
             <span className="driven" style={{color:"var(--accent)",borderColor:"var(--accent-soft)"}}>⚡ Action</span>
@@ -533,8 +591,16 @@ function buildYaml(f,generated){
   f.lucid.forEach(it=>{if(it.url){any=true;L.push(`  - ${k("type:")} ${v("lucid")}`);L.push(`    ${k("url:")} ${v(it.url)}`);L.push(`    ${k("auth_ref:")} ${s("jpmc_adapters:lucid")}`);}});
   if(!any)L.push(`  <span class="yc"># add sources in Stage 3</span>`);
   L.push("");
+  L.push(`${k("jira:")}  ${s("# consumed only at L4, after G3")}`);
+  L.push(`  ${k("project_key:")} ${v(f.jira_project_key)}`);
+  L.push(`  ${k("level:")} ${v(f.jira_level)}`);
+  if(f.jira_level!=="initiative")L.push(`  ${k("parent_link:")} ${v(f.jira_parent_link)}`);
+  L.push(`  ${k("controls:")}`);
+  L.push(`    ${k("seal_id:")} ${v(f.jira_seal_id)}`);
+  L.push(`    ${k("control_owner:")} ${v(f.jira_control_owner)}`);
+  L.push(`    ${k("risk_classification:")} ${v(f.jira_risk)}`);
+  L.push("");
   L.push(`${k("gates:")} { ${k("score_threshold:")} ${v(f.score_threshold)} }`);
-  L.push(`<span class="yc"># jira: deferred this slice (no push)</span>`);
   return L.join("\n");
 }
 function esc(s){return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}

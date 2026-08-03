@@ -1,6 +1,10 @@
 {
   "run_id": "r-2026-08-01-si1",
   "project_key": "PBIROUTE",
+  "push_root": {
+    "level": "initiative",
+    "parent_link": null
+  },
   "initiative": {
     "local_id": "INIT",
     "issue_type": "Initiative",

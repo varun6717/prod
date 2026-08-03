@@ -188,6 +188,44 @@ def main() -> int:
         check(not (Path(bad["working_path"]) / "UI_INPUT.yaml").exists(),
               "invalid config wrote nothing (no scaffold on a rejected request)")
 
+    # ── TASK-129: the jira block's level/parent_link asymmetry ────────────────────────
+    # Not symmetric by accident. Below the top level a parent is REQUIRED — its absence would
+    # push an orphan into Jira, the run's only irreversible act. At `initiative` it is FORBIDDEN,
+    # because nothing sits above one and accepting it would let a run claim a parent it will
+    # never attach to. A validator that merely made it "optional" would allow both mistakes.
+    print("\njira block — §3.1 validation (TASK-129):")
+    from app.backend import validation as V
+
+    base = yaml.safe_load(_LOCKED_UI_INPUT.read_text(encoding="utf-8"))
+    check(V.validate_ui_input(base) == [],
+          "the locked example — with its jira block — is §3.1-valid")
+
+    def _with_jira(**over):
+        cfg = yaml.safe_load(_LOCKED_UI_INPUT.read_text(encoding="utf-8"))
+        cfg["jira"] = {**cfg["jira"], **over}
+        return V.validate_ui_input(cfg)
+
+    errs = _with_jira(level="epic")          # parent_link absent
+    check(any("jira.parent_link" in e for e in errs),
+          f"level 'epic' with no parent_link is REFUSED, naming the field (got {errs})")
+    errs = _with_jira(level="initiative", parent_link="PBI-1000")
+    check(any("jira.parent_link" in e for e in errs),
+          "a parent_link at level 'initiative' is REFUSED — nothing sits above an Initiative")
+    check(_with_jira(level="epic", parent_link="PBI-2000") == [],
+          "level 'epic' WITH a parent_link is accepted")
+    errs = _with_jira(level="story")
+    check(any("jira.level" in e for e in errs), "an unknown level is refused, naming the field")
+
+    cfg = yaml.safe_load(_LOCKED_UI_INPUT.read_text(encoding="utf-8"))
+    cfg["jira"]["controls"].pop("seal_id")
+    check(any("jira.controls.seal_id" in e for e in V.validate_ui_input(cfg)),
+          "a missing control is caught HERE, not left to fail the hard G3 check later")
+
+    cfg = yaml.safe_load(_LOCKED_UI_INPUT.read_text(encoding="utf-8"))
+    cfg.pop("jira")
+    check(V.validate_ui_input(cfg) == [],
+          "the block stays OPTIONAL — it is consumed only at L4, so an L1-only run is still valid")
+
     print()
     if failures:
         print(f"FAIL — {len(failures)} assertion(s) failed: {failures}")

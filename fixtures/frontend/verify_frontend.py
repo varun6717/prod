@@ -85,10 +85,21 @@ def main() -> int:
     check(isinstance(config.get("gates", {}).get("score_threshold"), int)
           and config["gates"]["score_threshold"] == 85,
           "gates.score_threshold coerced to int 85")
-    # `jira` the top-level PUSH config is still deferred (it lands with the Jira layer, TASK-124).
-    # That is a different thing from a `type: jira` SOURCE, which TASK-107 does emit — the key
-    # collision is worth being explicit about.
-    check("jira" not in config, "top-level jira PUSH config omitted — deferred to the Jira layer")
+    # The top-level `jira` PUSH config — a different thing from a `type: jira` SOURCE, and the key
+    # collision is worth being explicit about. Emitted since TASK-129: §3.1 declared this block and
+    # `jira_author` consumed it, but nothing produced it, so `project_key` and all three controls
+    # had no configured origin — and controls completeness is a hard G3 check.
+    jira_cfg = config.get("jira") or {}
+    check(jira_cfg.get("project_key") == example["jira"]["project_key"],
+          "jira.project_key emitted and matches the locked example")
+    check(jira_cfg.get("controls") == example["jira"]["controls"],
+          "jira.controls emitted with all three fields, matching the example")
+    check(jira_cfg.get("level") == "initiative",
+          "jira.level defaults to 'initiative' — the whole-tree behaviour that predates TASK-129")
+    # FORBIDDEN at the top level, not merely unused: emitting a null would be a value the
+    # validator must then special-case, so the key is absent instead.
+    check("parent_link" not in jira_cfg,
+          "jira.parent_link OMITTED at level 'initiative' (nothing sits above an Initiative)")
 
     print("\nSources: SharePoint + Bitbucket + Confluence + Jira; Lucid still deferred:")
     types = [s["type"] for s in config.get("sources", [])]

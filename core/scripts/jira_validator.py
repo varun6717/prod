@@ -78,18 +78,30 @@ def evaluate_g3(plan: dict, *, section16_ids: Sequence[str] = (),
     s16 = set(section16_ids)
     excused = set(dispositioned_without_story)
 
+    # TASK-129 — a run may create only part of the tree, attaching to a standing Jira issue.
+    # `parent_link` is then a legitimate parent that the plan does NOT declare, so the two
+    # "names a parent the plan does not declare" checks below have to know about it.
+    push_root = plan.get("push_root") or {}
+    parent_link = push_root.get("parent_link")
+    # §7 ids come from `trace`, not from the pushed deliverables: at level `epic` nothing declares
+    # them, yet a non-code story still legitimately cites one. Evidence is provenance in the SI,
+    # not an assertion about what exists in Jira — reading it off the pushed set would report a
+    # correctly-grounded story as invented work.
+    declared_deliverables = set(deliverables) | set((plan.get("trace") or {}).get("deliverables", []))
+
     # ── traceability: every required parent link resolves
     links, valid = 0, 0
     v_trace: list[str] = []
     for d in deliverables.values():
         links += 1
-        if d.get("parent") == plan.get("initiative", {}).get("local_id"):
+        if d.get("parent") == plan.get("initiative", {}).get("local_id") or (
+                parent_link and d.get("parent") == parent_link):
             valid += 1
         else:
             v_trace.append(f"deliverable {d['local_id']} has no initiative parent")
     for e in epics.values():
         links += 1
-        if e.get("parent") in deliverables:
+        if e.get("parent") in deliverables or (parent_link and e.get("parent") == parent_link):
             valid += 1
         else:
             v_trace.append(f"epic {e['local_id']} names deliverable {e.get('parent')!r}, which "
@@ -100,7 +112,7 @@ def evaluate_g3(plan: dict, *, section16_ids: Sequence[str] = (),
         if s.get("parent") not in epics:
             v_trace.append(f"story {s['local_id']} has no epic parent")
         ev = s.get("evidence")
-        if ev in s16 or ev in deliverables:
+        if ev in s16 or ev in declared_deliverables:
             valid += 1
         else:
             # the INVENTED-STORY catch
@@ -131,8 +143,11 @@ def evaluate_g3(plan: dict, *, section16_ids: Sequence[str] = (),
     testability = (ok_stories / len(stories)) if stories else 1.0
 
     # ── field completeness: controls ride on every pushed issue
-    issues = [plan.get("initiative", {})] + list(deliverables.values()) + list(epics.values()) \
-        + list(stories)
+    # An absent initiative is legitimate below level `initiative` (TASK-129). Including a bare {}
+    # would report "issue ? missing local_id or summary" — a controls failure invented by the
+    # scoring code rather than found in the plan.
+    issues = ([plan["initiative"]] if plan.get("initiative") else []) \
+        + list(deliverables.values()) + list(epics.values()) + list(stories)
     complete, v_fields = 0, []
     for i in issues:
         if not i.get("local_id") or not str(i.get("summary", "")).strip():

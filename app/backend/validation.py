@@ -107,6 +107,7 @@ def validate_ui_input(config: Any) -> list[str]:
     errors.extend(_validate_project_metadata(config.get("project_metadata")))
     errors.extend(_validate_frame(config.get("frame")))
     errors.extend(_validate_sources(config.get("sources")))
+    errors.extend(_validate_jira(config.get("jira")))
     errors.extend(_validate_gates(config.get("gates")))
 
     return errors
@@ -194,6 +195,55 @@ def _validate_disposition(value: Any, stype: str, where: str) -> list[str]:
     elif CODEBASE_DISPOSITION in value:
         errors.append(f"{field} — {CODEBASE_DISPOSITION!r} is auto-set for code sources only; "
                       f"a {stype!r} source cannot declare it (D-A12)")
+    return errors
+
+
+_JIRA_LEVELS = ("initiative", "deliverable", "epic")
+_JIRA_CONTROLS = ("seal_id", "control_owner", "risk_classification")
+
+
+def _validate_jira(jira: Any) -> list[str]:
+    """Validate the §3.1 `jira:` block. **Optional** — it is consumed only at L4 — but when
+    present it must be complete, because every field in it is load-bearing downstream:
+    `project_key` names the target project, and the three controls are a HARD G3 check
+    (`REQUIRED_CONTROLS`), so a half-filled block fails at the gate instead of here.
+
+    `level`/`parent_link` are the TASK-129 amendment. The asymmetry is the substance: below the
+    top level a parent is REQUIRED (its absence would push an orphan), and at `initiative` it is
+    FORBIDDEN (nothing sits above one). Same shape as `disposition`'s `codebase` rule — auto-set
+    for code sources, refused on doc sources — so it reads as native rather than special-cased.
+    """
+    if jira is None:
+        return []
+    if not isinstance(jira, dict):
+        return ["jira — must be a mapping when provided (§3.1)"]
+
+    errors: list[str] = []
+    if not _is_nonempty_str(jira.get("project_key")):
+        errors.append("jira.project_key — required non-empty string when `jira` is provided (§3.1)")
+
+    controls = jira.get("controls")
+    if not isinstance(controls, dict):
+        errors.append(f"jira.controls — required mapping with {list(_JIRA_CONTROLS)} (§3.1, §9.4)")
+    else:
+        errors.extend(
+            f"jira.controls.{field} — required; controls completeness is a hard G3 check (§9.4)"
+            for field in _JIRA_CONTROLS if not _is_nonempty_str(controls.get(field))
+        )
+
+    level = jira.get("level", "initiative")
+    if level not in _JIRA_LEVELS:
+        errors.append(f"jira.level — must be one of {list(_JIRA_LEVELS)}; got {level!r} (§3.1)")
+        return errors
+
+    parent = jira.get("parent_link")
+    has_parent = _is_nonempty_str(parent)
+    if level == "initiative" and has_parent:
+        errors.append("jira.parent_link — not valid at level 'initiative'; nothing sits above an "
+                      "Initiative (§3.1)")
+    elif level != "initiative" and not has_parent:
+        errors.append(f"jira.parent_link — required at level {level!r}: the top level this run "
+                      f"creates must attach to an existing Jira issue (§3.1)")
     return errors
 
 

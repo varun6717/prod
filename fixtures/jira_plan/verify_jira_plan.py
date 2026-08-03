@@ -198,6 +198,70 @@ def main() -> int:
            "non-code" in rb[1][2].lower(),
            "kind is derived from the delivered text, so the whole bullet is passed through")
 
+    # ── TASK-129: push level + external parent ────────────────────────────────────────
+    # A run may create only part of the tree, grafting onto a standing Jira issue. The
+    # wrong-but-plausible implementation these kill: projecting to the level BEFORE the plan is
+    # fully assembled. Non-code stories find their owning epic by `e["parent"] == d["local_id"]`,
+    # so rewriting epic parents first orphans every one of them — and G3 would report that as
+    # "story has no epic parent", pointing at the stories rather than at the projection.
+    print("\npush level + external parent (TASK-129):")
+    import solution_intent_validator  # noqa: F401  (already imported transitively)
+    v2, _sections, _signals = None, sections, signals
+    rec_full = json.loads(json.dumps(plan))            # level: initiative, for comparison
+
+    def _rebuild(level, parent):
+        p, _, _ = build()                              # rebuild from source, not from `plan`
+        return J._project_to_level(p, level, parent)
+
+    noncode_full = [s for s in plan["stories"] if s.get("flag") == "non_code"]
+    _check("baseline: level 'initiative' is unchanged — INIT + deliverables both present",
+           plan.get("initiative", {}).get("local_id") == "INIT" and bool(plan["deliverables"]))
+    _check("baseline carries push_root recording the level",
+           plan.get("push_root") == {"level": "initiative", "parent_link": None})
+    _check("baseline produced non-code stories (so their survival below is a real check)",
+           len(noncode_full) >= 1)
+
+    dl = _rebuild("deliverable", "PBI-1000")
+    _check("level 'deliverable' creates no Initiative", "initiative" not in dl)
+    _check("...and every deliverable attaches to the external parent",
+           all(d["parent"] == "PBI-1000" for d in dl["deliverables"]))
+    _check("...while epics still attach to their own §7 deliverable (trace intact)",
+           all(e["parent"] in {d["local_id"] for d in dl["deliverables"]} for e in dl["epics"]))
+
+    ep = _rebuild("epic", "PBI-2000")
+    _check("level 'epic' creates neither Initiative nor Deliverables",
+           "initiative" not in ep and ep["deliverables"] == [])
+    _check("...and every epic attaches to the external parent",
+           all(e["parent"] == "PBI-2000" for e in ep["epics"]))
+    _check("...the §7 D-ids SURVIVE in trace even though nothing pushes them",
+           ep["trace"]["deliverables"] == rec_full["trace"]["deliverables"] != [])
+    noncode_ep = [s for s in ep["stories"] if s.get("flag") == "non_code"]
+    _check("...non-code stories survive projection with an epic parent (the ordering bug)",
+           len(noncode_ep) == len(noncode_full)
+           and all(s["parent"] in {e["local_id"] for e in ep["epics"]} for s in noncode_ep),
+           f"{len(noncode_ep)} of {len(noncode_full)} survived")
+
+    # G3 must stay eligible at every level — otherwise the feature ships a plan nobody can push.
+    import jira_validator as JV
+    s16_ids = [e["id"] for e in J.parse_v2_section16(sections.get(16, ""))]
+    for name, p in (("initiative", plan), ("deliverable", dl), ("epic", ep)):
+        r = JV.evaluate_g3(p, section16_ids=s16_ids)
+        _check(f"G3 traceability is TOTAL at level {name!r} (score {r.score})",
+               r.traceability == 1.0 and r.hard_ok,
+               f"blockers: {list(r.blockers)[:3]}")
+
+    for bad, why in ((("epic", None), "a level below the top with NO parent_link"),
+                     (("initiative", "PBI-9"), "a parent_link at level 'initiative'")):
+        try:
+            J.build_plan(sections, signals, rec_full, run_id="x", project_key="P",
+                         controls={"seal_id": "s", "control_owner": "o",
+                                   "risk_classification": "low"},
+                         story_author=_story_author, level=bad[0], parent_link=bad[1])
+            raised = False
+        except ValueError:
+            raised = True
+        _check(f"build_plan REFUSES {why}", raised)
+
     print()
     if _FAILURES:
         print(f"FAILED — {len(_FAILURES)} check(s): {_FAILURES}", file=sys.stderr)

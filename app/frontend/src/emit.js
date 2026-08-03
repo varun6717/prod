@@ -135,6 +135,22 @@ export function buildConfig(form, { registrySha = DEFAULT_REGISTRY_SHA } = {}) {
       stakeholders: [...(form.stakeholders ?? [])],
     },
     sources,
+    // §3.1's `jira:` block — declared in the spec and consumed by `jira_author`
+    // (`UI_INPUT.jira.controls`), but emitted by nothing until TASK-129, so `project_key` and the
+    // three controls had no configured origin at all. `parent_link` is omitted at level
+    // `initiative` rather than sent as null: it is FORBIDDEN there, not merely unused.
+    jira: {
+      project_key: trimmed(form.jira_project_key),
+      level: trimmed(form.jira_level) || "initiative",
+      ...(trimmed(form.jira_level) && trimmed(form.jira_level) !== "initiative"
+        ? { parent_link: trimmed(form.jira_parent_link) }
+        : {}),
+      controls: {
+        seal_id: trimmed(form.jira_seal_id),
+        control_owner: trimmed(form.jira_control_owner),
+        risk_classification: trimmed(form.jira_risk) || "medium",
+      },
+    },
     gates: { score_threshold: Number.parseInt(form.score_threshold, 10) },
   };
 

@@ -76,10 +76,62 @@ def parse_v2_section16(s16: str) -> list[dict]:
     return out
 
 
+LEVELS = ("initiative", "deliverable", "epic")
+
+
+def _project_to_level(plan: dict, level: str, parent_link: str | None) -> dict:
+    """Cut the assembled plan down to the levels this run creates (§3.8, TASK-129).
+
+    **Runs LAST, after the whole logical plan exists, and that order is load-bearing.** Non-code
+    stories find their owning epic by matching ``e["parent"] == d["local_id"]`` — the §7→§8 wiring.
+    Rewrite epic parents to the external key *before* that lookup and every non-code story is
+    orphaned, which G3 then reports as "story has no epic parent" rather than as the bug it is.
+    So: build the full tree, then trim.
+
+    What is dropped is only what this run *creates*. ``trace.deliverables`` keeps every §7 D-id
+    regardless, because a story's ``evidence`` is provenance in the SI — not a claim about what
+    exists in Jira.
+    """
+    # The projection OWNS `push_root`, so the rewritten parents and the record of why they were
+    # rewritten cannot get out of step — the same reason `make_finding` builds its own route
+    # rather than trusting a caller to pass a matching one. G3 reads `parent_link` from here to
+    # know that an undeclared parent is legitimate; a stale value silently fails traceability.
+    plan["push_root"] = {"level": level, "parent_link": parent_link}
+    if level == "initiative":
+        return plan
+    if level == "deliverable":
+        plan.pop("initiative", None)
+        for d in plan["deliverables"]:
+            d["parent"] = parent_link
+        return plan
+    # level == "epic": the deliverables are not created, so every epic attaches to the standing
+    # one named by parent_link. This FLATTENS the §8→§7 fan-out in Jira — deliberately, since the
+    # operator asked for one parent — but the mapping survives in `trace` and in v2 itself.
+    plan.pop("initiative", None)
+    plan["deliverables"] = []
+    for e in plan["epics"]:
+        e["parent"] = parent_link
+    return plan
+
+
 def build_plan(v2_sections: dict, signals, record: dict, *, run_id: str, project_key: str,
                controls: dict, story_author: Callable[[dict], dict],
-               deliverable_kind: Callable[[str], str] | None = None) -> dict:
-    """Assemble `jira_plan.json`. ``story_author`` supplies summary + acceptance criteria."""
+               deliverable_kind: Callable[[str], str] | None = None,
+               level: str = "initiative", parent_link: str | None = None) -> dict:
+    """Assemble `jira_plan.json`. ``story_author`` supplies summary + acceptance criteria.
+
+    ``level`` / ``parent_link`` come from `UI_INPUT.jira` (§3.1) and select the highest level this
+    run creates; ``initiative`` (the default) is the original whole-tree behaviour.
+    """
+    if level not in LEVELS:
+        raise ValueError(f"jira.level must be one of {list(LEVELS)}; got {level!r}")
+    if level != "initiative" and not parent_link:
+        raise ValueError(
+            f"jira.level {level!r} needs a parent_link — the top level it creates has to attach "
+            f"to an existing Jira issue, or the push would create an orphan")
+    if level == "initiative" and parent_link:
+        raise ValueError("jira.parent_link is not valid at level 'initiative' — nothing sits "
+                         "above an Initiative")
     s16 = parse_v2_section16(v2_sections.get(16, ""))
     by_req: dict[str, list[dict]] = {}
     for e in s16:
@@ -131,8 +183,9 @@ def build_plan(v2_sections: dict, signals, record: dict, *, run_id: str, project
         stories.append({"local_id": f"S{n}", "issue_type": "Story", "parent": owning,
                         "evidence": d["local_id"], "flag": "non_code", **authored})
 
-    return {
+    plan = {
         "run_id": run_id, "project_key": project_key,
+        "push_root": {"level": level, "parent_link": parent_link},
         "initiative": {"local_id": "INIT", "issue_type": "Initiative",
                        "summary": _first_heading(v2_sections.get(1, "")),
                        "description": v2_sections.get(1, "").strip()[:600],
@@ -142,6 +195,7 @@ def build_plan(v2_sections: dict, signals, record: dict, *, run_id: str, project
                   "requirements": list(signals.requirements),
                   "deliverables": [d["local_id"] for d in deliverables]},
     }
+    return _project_to_level(plan, level, parent_link)
 
 
 def _first_heading(text: str) -> str:

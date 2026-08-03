@@ -61,6 +61,22 @@ sources:
     #                               # one-repo/two-feature layout (code on a feature branch).
     auth_ref: jpmc_adapters:bitbucket
 
+# Jira push config (§3.1) — consumed ONLY at L4, after G3. `level` selects the highest level this
+# run CREATES; `initiative` (the default) builds the whole tree. Below that, `parent_link` names the
+# existing Jira issue the top created level attaches to — required there, and forbidden at
+# `initiative` since nothing sits above one. It lives here rather than being asked at push time
+# because `G3Authorization` is bound to `plan_sha256`: a plan that changes after acceptance can no
+# longer be pushed. And because UI_INPUT is immutable, the push root is part of the run's identity —
+# one run cannot graft epics today and create a full tree tomorrow.
+jira:
+  project_key: PBIROUTE
+  level: initiative                 # initiative | deliverable | epic
+  # parent_link: PBI-1000           # REQUIRED unless level: initiative
+  controls:                         # completeness is a HARD G3 check (§9.4)
+    seal_id: SEAL-12345
+    control_owner: "vmunjal"
+    risk_classification: medium     # low | medium | high
+
 # gate threshold — soft-gate default (§9); per-gate override optional
 gates:
   score_threshold: 85
