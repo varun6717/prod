@@ -8,27 +8,30 @@ rather than merge.
 ships **in the same commit as the code it describes** (`TASK_LIST.md` protocol step 6). So it
 always describes exactly one change set: the one you are about to merge.
 
-**Scope of this edition.** Baseline `7b4d7ef` → this commit. **Trust the baseline SHA, not the
-filename.** If your working copy's merge-base is older than `7b4d7ef`, this file describes *less*
-than your actual diff — run `git log --oneline <your-base>..HEAD` and read the intervening
-commit messages, which carry the same detail.
+**Scope of this edition.** Baseline `f0dfe1f` → this commit. **Trust the baseline SHA, not the
+filename.** If your working copy's merge-base is older than `f0dfe1f`, this file describes *less*
+than your actual diff — run `git log --oneline <your-base>..HEAD` and read the intervening commit
+messages, which carry the same detail.
 
 ---
 
 ## This change set
 
-Documentation and process only. **No code, no fixtures, no spec.** Nothing to test, nothing that
-can break a merge.
+One new note. **No code, no fixtures, no spec, no docs/.** Nothing to test, nothing that can break
+a merge, nothing published.
 
 | File | Change |
 |---|---|
-| `TASK_LIST.md` | Protocol step 6 now requires regenerating this file and committing it *with* the code. |
-| `CLAUDE.md` | Repo layout names this file, so a fresh session knows what it is without opening it. |
-| `current_commit_changes_overview.md` | Rewritten for this change set (that is the convention, applied to itself). |
+| `notes/phase_2_epic_estimations.md` | **NEW.** Discussion draft for a Phase-2 capability: predicting engines-impacted and story sizing for a new epic *before* the pipeline runs. Captured so it survives the conversation. |
+| `current_commit_changes_overview.md` | Rewritten for this change set (the convention). |
 
-**Why the convention exists.** A briefing that lands in a separate commit can arrive without the
-code it describes — or worse, describe a change set the VDI already merged. One commit means the
-two cannot separate.
+**Why `notes/` and not `docs/`.** It is exploratory and non-authoritative, and `docs/` is a
+published tree — putting a draft there would ship it to the registry as though it were design.
+`notes/` is the repo's existing home for this kind of material and does not publish.
+
+**Read the status banner before acting on it.** Three decisions in that file are open (what an
+"engine" is; story-count vs points as the primary output; whether VDI Jira carries commit/PR links
+on stories) and each materially changes the design. It is not a methodology yet.
 
 ---
 
@@ -46,7 +49,7 @@ None.
 
 ## Conflict hot spots
 
-None. No `core/`, `app/`, or `fixtures/` file is touched.
+None. No `core/`, `app/`, `fixtures/`, or `docs/` file is touched.
 
 If your merge shows changes under any of those, they are **yours** — keep them.
 
@@ -71,7 +74,8 @@ for f in $(find fixtures -name "verify_*.py"); do python3 "$f" || echo "RED: $f"
 python3 core/scripts/build_checks.py
 ```
 
-Expected: **30 verifies green, §10 4/4.** Unchanged by this commit — no code moved.
+Expected: **30 verifies green, §10 4/4.** Unchanged by this commit — no code moved. No registry
+re-publish is owed either: `notes/` is outside the published trees.
 
 ---
 
@@ -80,8 +84,12 @@ Expected: **30 verifies green, §10 4/4.** Unchanged by this commit — no code 
 - **`origin` must be `github.com/varun6717/prod.git`.** `code_640011` is the **registry** — 126
   files, `core/` + `overlays/` + `docs/` only. Pulling it into the build repo reads as a mass
   deletion of `app/`, `fixtures/` and `TASK_LIST.md`.
-- **The five `[TBD — VDI]` placeholders are untouched** by this and the previous change set:
+- **The five `[TBD — VDI]` placeholders are untouched** by this and the previous change sets:
   `ingest_sharepoint.py::_download_pdf`, `ingest_confluence.py::_fetch_confluence`,
   `ingest_jira.py::_fetch_issue`, `jpmc_adapters/jira.py::_create_issue` + `_update_issue`.
+- **The run kickoff after Generate is `/start-ingest`** — then `/start-si`, `/start-enrich`,
+  `/start-jira`. The retired `start-brd` / `start-frd` names still appear in `docs/TECH_SPEC.md`,
+  `docs/REQUIREMENTS.md` and `docs/COPILOT_VDI_VALIDATION.md`; those docs are stale on this point,
+  the overlays on disk are correct.
 - **A gap in the generic code is fixed in the build repo and re-published** — not patched on the
   VDI.
