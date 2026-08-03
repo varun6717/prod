@@ -44,7 +44,14 @@ green. **Disk + git are ground truth** — never rely on something said in an ea
    and staged cannot diverge; `--stage registry_repo --force` by hand is only for making the
    snapshot current *before* the push, e.g. when you commit first — otherwise `verify_registry`
    goes red on the commit. The gate is hard: a red §10 blocks the push rather than warning.
-6. **Tick the box** and commit, then `git push` (→ `prod`, the build repo).
+6. **Regenerate `current_commit_changes_overview.md`, then tick the box and commit — one commit,
+   the overview included with the code it describes.** The file is **truncated and rewritten**
+   every time, never appended: it describes the *current* change set only, and its baseline SHA is
+   the commit this one lands on top of. It exists so a VDI-side merge knows what to expect —
+   newly-stricter behaviour, conflict hot spots, derived artifacts to regenerate rather than merge.
+   Shipping it in the same commit is the point: a separate commit would let the code and its
+   briefing arrive apart, which is the drift the file exists to prevent.
+   Then `git push` (→ `prod`, the build repo).
 
 > ✅ **A task is done when:** Acceptance true · its proof green · `build_checks.py` (registered
 > checks) green · box ticked · committed.

@@ -87,6 +87,10 @@ Durable state lives in **files and git**, never in the conversation. Never rely 
 ```
 ./CLAUDE.md            ← you are here
 ./TASK_LIST.md         ← the single task list: protocol + hard rules, done ledger, open work
+./current_commit_changes_overview.md
+                       ← the VDI merge briefing for the CURRENT change set. Truncated and
+                         rewritten every commit (never appended), and committed *with* the code
+                         it describes — see protocol step 6.
 ./VDI_WIRING.md        ← what gets WIRED on the VDI (never a spec — see its disjointness rule)
 ./docs/                ← authoritative design (REQUIREMENTS, TECH_SPEC, supporting, design/ ADRs)
 ./core/                ← the generic core (skills, scripts, checks, extractors, code_profiles,
