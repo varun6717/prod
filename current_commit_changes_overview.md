@@ -14,14 +14,54 @@ guide). **Trust the baseline SHA, not the filename.** If your merge-base is olde
 this file describes *less* than your diff — run `git log --oneline <your-base>..HEAD` and read the
 commit messages, which carry the same detail.
 
-> **The one commit that matters is `4f38156`.** It carries the skill, the `apply_enrichment`
-> change, both prompt rewires and the fixture. The other three refine wording and this file.
+> **Take this by cherry-pick, not by merge** — see the next section. Three commits:
+> **`4f38156`** (the substance), `708e29f` and `f293173` (skill wording).
+
+---
+
+## HOW TO TAKE THIS CHANGE — cherry-pick, because the VDI has deviated
+
+**Do not `git merge` or `git pull`.** The VDI has local work that is not in this repo (notably the
+SharePoint `.md` staging path), and a pull would drag in every unrelated commit since your
+merge-base. Take these three commits atomically instead:
+
+```bash
+git fetch origin
+
+# 1. stage all three WITHOUT committing (-n), newest last so the skill ends at its final wording
+git cherry-pick -n 4f38156 708e29f f293173
+
+# 2. drop the derived mirror — it is regenerated, never merged
+git restore --staged --worktree registry_repo
+
+# 3. take the CURRENT briefing, not the three intermediate versions of it
+git checkout origin/main -- current_commit_changes_overview.md
+
+# 4. one commit
+git commit -m "Cherry-pick TASK-130: FPI → mnemonic enrichment (4f38156, 708e29f, f293173)"
+
+# 5. regenerate the derived mirror from your merged source
+python3 core/scripts/publish_registry.py --stage registry_repo --force
+```
+
+| Commit | Carries |
+|---|---|
+| **`4f38156`** | the substance — skill, fixture, `apply_enrichment`, both prompts, ledger |
+| `708e29f` | skill wording: find the table by disposition, not directory |
+| `f293173` | skill wording: read the table whole, never via its index |
+
+**If step 1 stops on a conflict**, it will be in a file you have also edited locally. Resolve in
+favour of **both** — this change is additive everywhere. Then `git cherry-pick --continue`.
+The likeliest spot is the two `start-enrich` prompts, where a step was inserted and the rest
+renumbered; take the incoming step 3 and re-apply your local edits around it.
 
 ---
 
 ## THE ONLY FILES IN THIS CHANGE SET
 
-Merge these and nothing else. **Seven files, plus one derived tree.**
+Use this to **confirm the result**, not to hand-pick files — cherry-picking whole commits is what
+keeps the tree in a state something was actually tested against. **Seven files, plus one derived
+tree.**
 
 ```
 NEW ────────────────────────────────────────────────────────────────────────
@@ -43,18 +83,28 @@ DERIVED — regenerate, never merge ──────────────�
 **Nothing else is part of this change.** No connector, no `adapter.yaml`, no `si_profile`, no
 `overlay_manifest.yaml`, no `app/`, no spec section, none of the five `[TBD — VDI]` placeholders.
 
-**Verify before you merge.** Run this on the VDI — it prints exactly what is incoming from *your*
-position, which may be more than this change set if your merge-base predates `0310387`:
+**Verify after the cherry-pick** — this should list exactly the six files above (the briefing came
+from `origin/main` separately, and `registry_repo/` was regenerated):
 
 ```bash
-git fetch origin
+git show --stat HEAD -- . ':(exclude)registry_repo'
+```
+
+**A larger diff means something went wrong.** Nothing else belongs to this change: no connector, no
+`adapter.yaml`, no `si_profile`, no `overlay_manifest.yaml`, no `app/`, no spec section, and none
+of the five `[TBD — VDI]` placeholders.
+
+**If you want to see what a full merge *would* have brought** — useful for deciding what to take
+next, not for this operation:
+
+```bash
 git log  --oneline HEAD..origin/main
 git diff --stat HEAD..origin/main -- . ':(exclude)registry_repo'
 ```
 
-If that list matches the seven files above, you are taking only this change. **If it shows
-anything else, it is from an earlier commit this edition does not describe** — stop, and get the
-briefing re-cut against your actual merge-base rather than merging blind.
+Anything there beyond these three commits is earlier work this edition does not describe — TASK-129
+(the Jira Creation UI + push level/parent), the domain-pack fail-fast in `generate.py`, the registry
+re-point. Ask for a briefing cut against your actual base before taking any of it.
 
 ---
 
