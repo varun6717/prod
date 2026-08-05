@@ -38,10 +38,13 @@ where "no tag matched" could not be distinguished from "nobody tagged it".
 
 ## What you do
 
-1. **Locate the reference table.** A `technical_specification` source in `context_set/` carrying
-   interchange level codes. **If there is none, emit one finding saying so and stop.** Producing
-   nothing is indistinguishable from finding nothing, and this pass failing silently is how the
-   boarding work disappears.
+1. **Locate the reference table.** A `technical_specification` source **anywhere in
+   `context_set/`** carrying interchange level codes. **Which connector staged it is irrelevant** —
+   SharePoint, Confluence, or any other; by this point every source is a `.md` extract with an
+   index and a manifest entry, and descriptor parity is what guarantees that. Find it by
+   disposition and content, never by directory. **If there is none, emit one finding saying so and
+   stop.** Producing nothing is indistinguishable from finding nothing, and this pass failing
+   silently is how the boarding work disappears.
 2. **Scan v1** for FPI references and interchange level codes/names — §8 assertions especially,
    but anywhere they appear.
 3. **Resolve each** against the table.
@@ -57,7 +60,7 @@ only route from "this FPI resolves to VACD" to a PeopleSoft story someone works.
 
 ```json
 {"kind": "derived_impact", "requirement_ref": "R1", "assertion_ref": "R1.1",
- "evidence": [{"path": "context_set/confluence/interchange_levels.md", "lines": [45, 52]}],
+ "evidence": [{"path": "<the table's staged path>", "lines": [45, 52]}],
  "reasoning": "FPI 0501 → interchange level VACD (Visa Adj Consumer Debit); rate configuration "
               "lives in boarding/PeopleSoft, not in repo/"}
 ```
