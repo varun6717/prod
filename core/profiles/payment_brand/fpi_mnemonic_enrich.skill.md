@@ -45,10 +45,22 @@ where "no tag matched" could not be distinguished from "nobody tagged it".
    disposition and content, never by directory. **If there is none, emit one finding saying so and
    stop.** Producing nothing is indistinguishable from finding nothing, and this pass failing
    silently is how the boarding work disappears.
-2. **Scan v1** for FPI references and interchange level codes/names — §8 assertions especially,
+2. **Read the table's `.md` extract IN FULL. Do not use its index to select passages.**
+   The index exists to *choose* what to read, and choosing is precisely wrong here. Every other
+   reader in this pipeline may read selectively; **you may not**. This is a lookup, not retrieval:
+   a row you never looked at is indistinguishable from a row that does not exist, so an
+   index-guided read reports "FPI not found" for a level sitting in a section it happened not to
+   pick — and that silent miss becomes a mnemonic nobody configures.
+   Read the **extract**, never the summaries: a summary is written to help you choose, and no
+   resolution may ever be made from one.
+   **If the table is too large to hold in full, emit a finding saying so and stop.** A partial read
+   whose findings are reported as complete is the one failure here that nothing downstream can
+   catch.
+3. **Scan v1** for FPI references and interchange level codes/names — §8 assertions especially,
    but anywhere they appear.
-3. **Resolve each** against the table.
-4. **Stage a finding per outcome**, below.
+4. **Resolve each** against the table.
+5. **Stage a finding per outcome**, below. Cite the **exact rows** you resolved from — reading the
+   whole file is no excuse for a vague citation.
 
 ## What you emit — and the kind decides whether work gets planned
 
@@ -95,3 +107,5 @@ Four outcomes, and **all four are findings** — an outcome you do not record is
 - Does not read `repo/` or the code map. That is both arms' territory, and duplicating it would
   report the same impact twice.
 - Does not treat an absent FPI as an absent level.
+- Does **not** read the reference table through its index. Selective reading is correct everywhere
+  else in this pipeline and wrong here — completeness is the entire value of this pass.

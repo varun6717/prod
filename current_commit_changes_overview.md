@@ -8,7 +8,7 @@ rather than merge.
 ships **in the same commit as the code it describes** (`TASK_LIST.md` protocol step 6). So it
 always describes exactly one change set: the one you are about to merge.
 
-**Scope of this edition.** Baseline `4f38156` → this commit. **Trust the baseline SHA, not the
+**Scope of this edition.** Baseline `4f38156` → this commit (two commits). **Trust the baseline SHA, not the
 filename.** If your merge-base is older than `4f38156`, run `git log --oneline <your-base>..HEAD`.
 
 ---
@@ -19,7 +19,7 @@ Wording only, in one skill. **No code, no fixtures, no spec, no overlays.**
 
 | File | Change |
 |---|---|
-| `core/profiles/payment_brand/fpi_mnemonic_enrich.skill.md` | The reference-table lookup is now explicitly **connector-agnostic**. |
+| `core/profiles/payment_brand/fpi_mnemonic_enrich.skill.md` | Two wording changes: the lookup is **connector-agnostic**, and the table is read **in full, never through its index**. |
 
 **Why it mattered enough to change.** The skill's example evidence path read
 `context_set/confluence/interchange_levels.md`. This is a **model-executed instruction file**, so
@@ -27,6 +27,13 @@ an illustrative path can be read as a constraint — a model could go looking on
 `context_set/confluence/` and miss a table staged by SharePoint. The step now says: find it by
 **disposition and content, never by directory**, and names descriptor parity as the reason
 connector choice is irrelevant. The example path is a placeholder rather than a real directory.
+
+**And the table is now read whole, never through its index.** The index exists to *choose* what to
+read, and choosing is wrong for a lookup: a row never looked at is indistinguishable from a row that
+does not exist, so an index-guided read would report "FPI not found" for a level sitting in a
+section it happened not to pick — a silent miss that becomes a mnemonic nobody configures. If the
+table is too large to hold, the skill must say so and stop rather than report a partial read as
+complete.
 
 **Practical effect for the VDI:** a reference table staged through the **SharePoint** `.md` path
 works with no change to the skill, the prompts, or the pipeline. Configure it as a SharePoint
