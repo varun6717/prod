@@ -8,18 +8,34 @@ rather than merge.
 ships **in the same commit as the code it describes** (`TASK_LIST.md` protocol step 6). So it
 always describes exactly one change set: the one you are about to merge.
 
-**Scope of this edition.** Baseline `4f38156` → this commit (three commits: `708e29f`, `f293173`, and this one). **Trust the baseline SHA, not the
-filename.** If your merge-base is older than `4f38156`, run `git log --oneline <your-base>..HEAD`.
+**Scope of this edition.** Baseline `0310387` → this commit — **the whole FPI/mnemonic change set**,
+four commits: `4f38156` (the substance), `708e29f` + `f293173` (skill wording), `8e5a107` (this
+guide). **Trust the baseline SHA, not the filename.** If your merge-base is older than `0310387`,
+this file describes *less* than your diff — run `git log --oneline <your-base>..HEAD` and read the
+commit messages, which carry the same detail.
+
+> **The one commit that matters is `4f38156`.** It carries the skill, the `apply_enrichment`
+> change, both prompt rewires and the fixture. The other three refine wording and this file.
 
 ---
 
-## This change set
+## This change set — TASK-130: FPI → mnemonic enrichment
 
-Wording in one skill, plus the integration guide below. **No code, no fixtures, no spec, no overlays.**
+The card network writes in **FPIs**; our systems key on **interchange level code/name**, which the
+boarding system calls a **mnemonic** (`VACD`). Nothing downstream can act until those resolve — and
+**no existing pass could do it**, because mnemonic configuration lives in PeopleSoft rather than
+`repo/`, so Arm 1 has no code to find and Arm 2 nothing to verify against.
 
-| File | Change |
-|---|---|
-| `core/profiles/payment_brand/fpi_mnemonic_enrich.skill.md` | Two wording changes: the lookup is **connector-agnostic**, and the table is read **in full, never through its index**. |
+| File | Change | Commit |
+|---|---|---|
+| `core/profiles/payment_brand/fpi_mnemonic_enrich.skill.md` | **NEW** — the pass. Scans v1 for FPI/level refs, resolves against a reference table in the corpus, stages findings. Edits nothing. | `4f38156` (+ wording in `708e29f`, `f293173`) |
+| `core/scripts/apply_enrichment.py` | `provenance_note` prefix keyed on evidence location | `4f38156` |
+| `overlays/claude/prompts/start-enrich.md` | **new step 3** before the walkthrough; steps renumbered | `4f38156` |
+| `overlays/copilot/.github/prompts/start-enrich.prompt.md` | same, for §10.2 parity | `4f38156` |
+| `fixtures/enrichment/verify_fpi_enrich.py` | **NEW** — 17 checks | `4f38156` |
+| `TASK_LIST.md` | TASK-130 ledger entry | `4f38156` |
+
+**The published registry grew to 127 files** (was 126).
 
 **Why it mattered enough to change.** The skill's example evidence path read
 `context_set/confluence/interchange_levels.md`. This is a **model-executed instruction file**, so
@@ -43,23 +59,49 @@ source with disposition **`technical_specification`** and the enrichment pass wi
 
 ## Behaviour that is newly STRICTER
 
-None.
+**None.** But one output changes, and it will appear in diffs of regenerated artifacts:
+
+`provenance_note` no longer emits `[code: …]` for every finding. Evidence under `context_set/` now
+produces **`[ref: …]`**; repo paths are unchanged. It was hardcoded, so a fact resolved from a
+document would have been written into an **accepted** v2 claiming code provenance it never had. The
+existing repo-path contract is asserted intact by the new fixture.
 
 ---
 
 ## Signature / contract changes
 
-None.
+**None.** No new finding kind, role, source type, or spec amendment — the skill emits **existing**
+kinds (`derived_impact`, `gap_fill`) through the **existing** router and apply pass.
+`overlay_manifest.yaml` is untouched: this is a skill invoked within the stage, not a ninth role.
 
 ---
 
 ## Conflict hot spots
 
-None — the changed file is new as of the previous commit, so the VDI cannot have local edits in it
-unless they were made after that merge.
+- **Both `start-enrich` prompts** — a step was inserted and the following steps renumbered, so a
+  three-way merge may flag the whole numbered block. **Take this side, then re-apply any VDI
+  edits.** The ordering is load-bearing (see below).
+- **`core/scripts/apply_enrichment.py`** — one function (`provenance_note`). Low risk unless the
+  VDI edited the same function.
 
-**Still untouched:** the five `[TBD — VDI]` placeholders, every connector, `adapter.yaml`, the
-overlays, the SI profile.
+**Still untouched:** the five `[TBD — VDI]` placeholders, every connector, `adapter.yaml`, the SI
+profile, `overlay_manifest.yaml`.
+
+---
+
+## Two ordering facts that are load-bearing
+
+Easy to "tidy" into breakage, so do not reorder the enrichment steps:
+
+**The pass runs BEFORE the walkthrough** — escalations must join the single operator turn (D-A17)
+rather than needing a second one.
+
+**Its findings must reach §16 BEFORE G2** — `jira_plan` builds stories from §16, so a mnemonic
+arriving after v2 is accepted is identified and then **never planned**. Moving this pass later
+silently drops all boarding-system work from the Jira plan.
+
+Related: the first implementation emitted §8 corrections and the apply pass dropped them —
+`CORRECTABLE` excludes §8, because code cannot contradict an intent (D-A4).
 
 ---
 
