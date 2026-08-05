@@ -151,8 +151,8 @@ by source *type* (which connector) and the operator's *disposition* (what role t
 | `core/scripts/merge_manifest.py` | Deterministic fan-in of the per-source `_slice.json` files into `context_set/index.json`. Rejects an entry with no valid disposition (an unroutable input would silently never be read) and any tag-era field. |
 | `core/scripts/dispositions.py` | The D-A12 taxonomy as data: the six operator classes + auto-set `codebase`, the never-routed `other`, the per-type defaults. One list, no branches. |
 
-**Process.** Each source stages through its connector, then its lane: documents become a structural
-`.md` extract plus a `<doc>.index.json` (every line in exactly one entry); the repo becomes a
+**Process.** Each source stages through its connedocuments become a structural
+`.md` extract plus a `<doc>.index.json` (every line in exactly one entry); the ctor, then its lane: repo becomes a
 clone plus the two-file code map through the map gate. `merge_manifest.py` fans everything into one
 manifest, each entry carrying the operator's disposition — which is what the SI author will route
 on. Output: a complete `context_set/`.

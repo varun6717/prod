@@ -65,14 +65,21 @@ def split_sections(text: str) -> dict[int, str]:
 
 
 def provenance_note(finding: dict) -> str:
-    """The inline citation an in-place revision must carry."""
+    """The inline citation an in-place revision must carry.
+
+    The prefix is keyed on WHERE the evidence lives, because a finding sourced from a corpus
+    document is not a code citation and saying `[code: …]` over a Confluence path would be a
+    false claim about provenance in an accepted artifact — the one place this design refuses to
+    be casual. `context_set/` → `[ref: …]`; everything else (repo paths, `src/…`) → `[code: …]`.
+    """
     ev = (finding.get("evidence") or [{}])[0]
     ref = ev.get("path", "?")
+    prefix = "ref" if str(ref).startswith("context_set/") else "code"
     if ev.get("symbol"):
         ref += f":{ev['symbol']}"
     if ev.get("lines"):
         ref += f" L{ev['lines'][0]}–{ev['lines'][-1]}"
-    return f"[code: {ref}]"
+    return f"[{prefix}: {ref}]"
 
 
 def applicable(record: dict) -> list[dict]:
