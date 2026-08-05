@@ -19,6 +19,45 @@ commit messages, which carry the same detail.
 
 ---
 
+## THE ONLY FILES IN THIS CHANGE SET
+
+Merge these and nothing else. **Seven files, plus one derived tree.**
+
+```
+NEW ────────────────────────────────────────────────────────────────────────
+  core/profiles/payment_brand/fpi_mnemonic_enrich.skill.md    the pass itself
+  fixtures/enrichment/verify_fpi_enrich.py                    its proof (17 checks)
+
+MODIFIED ───────────────────────────────────────────────────────────────────
+  core/scripts/apply_enrichment.py                 11 lines — `provenance_note` ONLY
+  overlays/claude/prompts/start-enrich.md          13 lines — new step 3 + renumber
+  overlays/copilot/.github/prompts/
+                        start-enrich.prompt.md     13 lines — same, for parity
+  TASK_LIST.md                                      2 lines — ledger entry
+  current_commit_changes_overview.md                this file
+
+DERIVED — regenerate, never merge ──────────────────────────────────────────
+  registry_repo/**        → publish_registry.py --stage registry_repo --force
+```
+
+**Nothing else is part of this change.** No connector, no `adapter.yaml`, no `si_profile`, no
+`overlay_manifest.yaml`, no `app/`, no spec section, none of the five `[TBD — VDI]` placeholders.
+
+**Verify before you merge.** Run this on the VDI — it prints exactly what is incoming from *your*
+position, which may be more than this change set if your merge-base predates `0310387`:
+
+```bash
+git fetch origin
+git log  --oneline HEAD..origin/main
+git diff --stat HEAD..origin/main -- . ':(exclude)registry_repo'
+```
+
+If that list matches the seven files above, you are taking only this change. **If it shows
+anything else, it is from an earlier commit this edition does not describe** — stop, and get the
+briefing re-cut against your actual merge-base rather than merging blind.
+
+---
+
 ## This change set — TASK-130: FPI → mnemonic enrichment
 
 The card network writes in **FPIs**; our systems key on **interchange level code/name**, which the
