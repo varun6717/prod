@@ -53,10 +53,16 @@ where "no tag matched" could not be distinguished from "nobody tagged it".
    | **Tech Letter** | `technical_specification` | **what you resolve FROM** |
    | **reference table** | `reference_table` | **what you resolve AGAINST** |
 
-   **None found → emit one finding saying so and stop.** Producing nothing is indistinguishable
-   from finding nothing, and this pass failing silently is how the boarding work disappears.
-   **More than one → emit a finding naming them all and stop.** Picking one would resolve every
-   FPI against a document nobody chose, and report it as complete.
+   **None found → emit `kind: confirmation` saying so, and stop. This is NOT a failure.**
+   Most runs have nothing to do with interchange and will carry no reference table; that is the
+   normal case, not an omission. `confirmation` routes to **NONE** — recorded in `enrichment.json`,
+   no operator turn, no §16 entry, no effect on G2. The record simply shows the pass ran and had
+   nothing to resolve against, which is all anyone needs to know later.
+   **Never escalate a missing table, and never block a gate over one.** A run that does not need
+   this pass must sail through it without ceremony.
+   **More than one found → emit `kind: confirmation` naming them all, and stop.** Picking one would
+   resolve every FPI against a document nobody chose and report it as complete — so say which
+   candidates you saw and let the operator narrow the config on a later run.
 
    Note `reference_table` is `NEVER_ROUTED`, so **v1 has never read this file.** That is the point:
    a mapping resolved from a lookup table is a tool-resolved fact, and tool-resolved facts belong
@@ -126,3 +132,7 @@ Four outcomes, and **all four are findings** — an outcome you do not record is
 - Does not treat an absent FPI as an absent level.
 - Does **not** read the reference table through its index. Selective reading is correct everywhere
   else in this pipeline and wrong here — completeness is the entire value of this pass.
+- Does **not** fail, escalate, or block a gate when no reference table is configured. A run with no
+  interchange dimension passes through this step silently, leaving only a `confirmation` finding
+  that it ran. The pass is additive: it can add mnemonics to a run that has them, and it can never
+  cost a run that does not.

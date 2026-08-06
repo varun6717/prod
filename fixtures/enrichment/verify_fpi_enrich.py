@@ -107,7 +107,29 @@ def main() -> int:
     _check("the skill locates the table by disposition, not by shape or filename",
            "disposition: reference_table" in skill_body)
 
-    print("\n5) both overlays name the skill (§10.2 parity, by hand):")
+    print("\n5) NO reference table configured is a NON-EVENT:")
+    # Most runs have nothing to do with interchange. The pass must cost them nothing — it can add
+    # mnemonics to a run that has them and must never take anything from a run that does not.
+    none_found = E.make_finding("F-990", arm="claim", kind="confirmation",
+                                reasoning="no reference_table source in the corpus; nothing to "
+                                          "resolve against")
+    _check("it routes NONE — recorded, and that is all", none_found.route == E.NONE,
+           none_found.route)
+    _check("...it never reaches the walkthrough (no operator turn for a run that needs none)",
+           none_found.action != "escalated", none_found.action)
+    _check("...and writes nothing into v2", none_found.section_target is None,
+           str(none_found.section_target))
+    # The gate must be untouched: a missing table is a normal configuration, not a defect.
+    rec_none = E.new_record("r-no-table", "sha")
+    E.add(rec_none, none_found)
+    _check("...leaving NOTHING for the apply pass to write",
+           A.applicable(rec_none) == [] or all(f.get("route") == "none"
+                                               for f in A.applicable(rec_none)))
+    skill_body_2 = (_REPO_ROOT / "core/profiles/payment_brand/fpi_mnemonic_enrich.skill.md").read_text()
+    _check("the skill says so explicitly — no failing, no escalating, no blocking",
+           "NOT a failure" in skill_body_2 and "never block a gate" in skill_body_2)
+
+    print("\n6) both overlays name the skill (§10.2 parity, by hand):")
     skill = _REPO_ROOT / "core/profiles/payment_brand/fpi_mnemonic_enrich.skill.md"
     _check("the skill file exists on disk", skill.is_file())
     for p in (_REPO_ROOT / "overlays/claude/prompts/start-enrich.md",

@@ -67,6 +67,18 @@ wrong — stop and report it.
 
 ---
 
+## THE PASS IS ADDITIVE — A RUN WITHOUT A TABLE IS UNAFFECTED
+
+**No reference table configured is the normal case, not an omission.** Most runs have nothing to do
+with interchange. The pass then emits a single `confirmation` finding — route **NONE** — which is
+recorded in `enrichment.json` and does nothing else: no operator turn, no §16 entry, no v2 change,
+**no effect on G2**.
+
+It **never fails, never escalates, and never blocks a gate** over a missing table. The pass can add
+mnemonics to a run that has them; it can never cost a run that does not.
+
+---
+
 ## WHAT YOU ARE GETTING
 
 **1. A new enrichment pass: FPI → mnemonic.** The network writes in **FPIs**; our systems key on
