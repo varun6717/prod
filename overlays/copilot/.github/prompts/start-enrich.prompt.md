@@ -20,13 +20,22 @@ Run the stage in this order:
 2. **Arm 2 — `claim_verifier`**: the same inputs, checking v1's claims against the code. Point
    lookup, then stop. Runs **after** Arm 1, which has usually already pulled the slices its claims
    need. An honest `unverifiable` is a valid verdict.
-3. **The disposition walkthrough** — the **one** operator turn of this stage. Only *escalated*
+3. **Domain enrichment passes**, if the domain pack ships any — for `payment_brand`, run
+   `core/profiles/payment_brand/fpi_mnemonic_enrich.skill.md` when the corpus carries an
+   interchange-level reference table. It resolves the network's **FPIs** to our **interchange
+   level / mnemonic** codes and stages `gap_fill` findings. It runs **here, before the
+   walkthrough**, for two reasons: any escalation it raises must join the single operator turn
+   rather than needing a second one, and its findings must reach §16 **before G2** — a mnemonic
+   that arrives after v2 is accepted never becomes a Jira story, so the boarding-system work
+   would be identified and then silently dropped. **This is the only pass that can surface
+   PeopleSoft/boarding work**; both code arms are blind to it, since none of it lives in `repo/`.
+4. **The disposition walkthrough** — the **one** operator turn of this stage. Only *escalated*
    findings reach it. Provenance decides authority: a source-derived error **auto-corrects**, an
    operator- or frame-derived claim **escalates** (a tool does not overrule a person), an unsourced
    `[TBD]` **auto-fills**. Triage, don't enumerate; call a finding that supersedes others first;
    the walkthrough is **resumable**. You **propose**, the operator **decides**. Rationale goes to
    `decisions.jsonl`.
-4. **The apply pass** — `core/scripts/apply_enrichment.py` writes `solution_intent/v2.md`.
+5. **The apply pass** — `core/scripts/apply_enrichment.py` writes `solution_intent/v2.md`.
    Corrections revise in place with provenance, discoveries append, **nothing is deleted**, §1 is
    regenerated last.
 

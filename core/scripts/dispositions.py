@@ -36,6 +36,7 @@ OPERATOR_DISPOSITIONS: tuple[str, ...] = (
     "product_domain_knowledge",    # how the product works today: KB, product guides
     "architecture",                # system design: architecture docs, diagrams, integration maps
     "prior_artifact",              # decisions already made: Jira epics, previous SIs (reference-only)
+    "reference_table",             # a LOOKUP, not evidence: identifier↔identifier mappings (TASK-131)
     "other",                       # background context only — never a sole citation
 )
 
@@ -60,7 +61,24 @@ NON_PRIMARY_DISPOSITIONS: frozenset[str] = frozenset({"prior_artifact", "other"}
 # exception buried in the checker would be indistinguishable from the bug it hunts. Recording
 # it as data means the check reports what it excluded and why, and adding a second never-routed
 # class is a data edit that stays visible.
-NEVER_ROUTED: frozenset[str] = frozenset({"other"})
+#
+# `reference_table` joins it for a DIFFERENT reason (TASK-131), and the distinction matters:
+# `other` is not routed because it is too weak to ground anything; a reference table is not routed
+# because it is **not evidence at all**. It is a decoder ring — an identifier↔identifier mapping
+# consulted to resolve a code, not read to learn what the system does.
+#
+# Three consequences, all deliberate:
+#   1. **v1 never sees it.** A mapping resolved from a lookup table is a TOOL-resolved fact, not a
+#      source claim, so it belongs in v2 via enrichment — the same line that keeps v1 code-blind.
+#      Letting the author cite it in v1 would blur "what we intend" with "what tooling resolved",
+#      and leave enrichment less to find.
+#   2. **It costs nothing at authoring time.** A thousand-row table routed as `P` would consume the
+#      §9.2 whole-read budget on every section it fed, competing with the documents that actually
+#      state the ask.
+#   3. **Enrichment finds it by disposition**, a set membership test, instead of guessing which
+#      `technical_specification` source is the table and which is the letter that names codes in
+#      prose. Deterministic, where it belongs.
+NEVER_ROUTED: frozenset[str] = frozenset({"other", "reference_table"})
 
 # The non-disposition input sources of the D-A13 matrix — the OPERATOR, in two forms. They are
 # not dispositions and never appear on a manifest entry, which is why the SI profile keeps them

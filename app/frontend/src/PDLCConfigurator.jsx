@@ -487,6 +487,7 @@ const DISPOSITIONS=[
   {key:"product_domain_knowledge",label:"Product Domain Knowledge",hint:"how the product works today — KB, product guides"},
   {key:"architecture",            label:"Architecture",            hint:"system design — architecture docs, diagrams, integration maps"},
   {key:"prior_artifact",          label:"Prior Artifact",          hint:"decisions already made — reference only, never a primary citation"},
+  {key:"reference_table",         label:"Reference Table",         hint:"a lookup, not evidence — identifier↔identifier mappings. Never read at authoring; consulted whole during enrichment"},
   {key:"other",                   label:"Other",                   hint:"background context only — not citable as a primary source"},
 ];
 

@@ -28,6 +28,9 @@
 # authoring); they never appear on a manifest entry. Keeping them apart means the §10.5′
 # class-totality check needs no list of keys to ignore.
 #
+# `reference_table` likewise appears in no row (TASK-131) — it is a LOOKUP, not evidence, consulted
+# whole by enrichment and never read at authoring time.
+#
 # `other` appears in no row, deliberately: it is background context, never primary and never
 # supporting (D-A12). The empty column IS the definition, and `dispositions.NEVER_ROUTED`
 # records it so the §10.5′ check excludes it by declaration rather than by silence.
