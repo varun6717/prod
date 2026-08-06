@@ -1,280 +1,160 @@
 # current_commit_changes_overview.md — what changed, for the VDI merge
 
-**Who this is for.** The agent (Copilot or Claude) merging this push into the VDI-side working
-copy. It states what moved, what is newly strict, what will conflict, and what to regenerate
-rather than merge.
+**Who this is for.** The agent taking this change into the VDI-side working copy. It states exactly
+what to run, exactly which files land, and what to check afterwards.
 
-**How this file works.** It is **truncated and rewritten on every commit**, never appended, and it
-ships **in the same commit as the code it describes** (`TASK_LIST.md` protocol step 6). So it
-always describes exactly one change set: the one you are about to merge.
+**How this file works.** Truncated and rewritten every commit, never appended. It always describes
+one change set — the one you are about to take.
 
-**Scope of this edition.** Baseline `0310387` → this commit — **the whole FPI/mnemonic change set**,
-four commits: `4f38156` (the substance), `708e29f` + `f293173` (skill wording), `8e5a107` (this
-guide). **Trust the baseline SHA, not the filename.** If your merge-base is older than `0310387`,
-this file describes *less* than your diff — run `git log --oneline <your-base>..HEAD` and read the
-commit messages, which carry the same detail.
-
-> **Take this by cherry-pick, not by merge** — see the next section. Three commits:
-> **`4f38156`** (the substance), `708e29f` and `f293173` (skill wording).
+**Scope of this edition.** **TASK-130 + TASK-131 together** — the FPI → mnemonic enrichment pass,
+and the `reference_table` disposition it now depends on. Take them as **one** transfer; TASK-131
+changes how the TASK-130 skill finds its input, so taking only one leaves the pass looking for a
+disposition that does not exist.
 
 ---
 
-## HOW TO TAKE THIS CHANGE — cherry-pick, because the VDI has deviated
+## HOW TO TAKE IT — one cherry-pick, from a prepared branch
 
-**Do not `git merge` or `git pull`.** The VDI has local work that is not in this repo (notably the
-SharePoint `.md` staging path), and a pull would drag in every unrelated commit since your
-merge-base. Take these three commits atomically instead:
+The VDI has diverged (local commits not upstream, e.g. the SharePoint `.md` staging path). **Do not
+`git pull` or `git merge`** — that would drag in every unrelated commit since your merge-base.
+
+A branch has been prepared containing **only** this change, squashed into one commit:
 
 ```bash
 git fetch origin
+git cherry-pick origin/task130-squashed
 
-# 1. stage all three WITHOUT committing (-n), newest last so the skill ends at its final wording
-git cherry-pick -n 4f38156 708e29f f293173
-
-# 2. drop the derived mirror — it is regenerated, never merged
-git restore --staged --worktree registry_repo
-
-# 3. take the CURRENT briefing, not the three intermediate versions of it
-git checkout origin/main -- current_commit_changes_overview.md
-
-# 4. one commit
-git commit -m "Cherry-pick TASK-130: FPI → mnemonic enrichment (4f38156, 708e29f, f293173)"
-
-# 5. regenerate the derived mirror from your merged source
+# regenerate the derived mirror from your own merged source
 python3 core/scripts/publish_registry.py --stage registry_repo --force
+
+# rebuild the SPA — dist/ is gitignored and never travels
+cd app/frontend && npm run build && cd -
 ```
 
-| Commit | Carries |
-|---|---|
-| **`4f38156`** | the substance — skill, fixture, `apply_enrichment`, both prompts, ledger |
-| `708e29f` | skill wording: find the table by disposition, not directory |
-| `f293173` | skill wording: read the table whole, never via its index |
-
-**If step 1 stops on a conflict**, it will be in a file you have also edited locally. Resolve in
-favour of **both** — this change is additive everywhere. Then `git cherry-pick --continue`.
-The likeliest spot is the two `start-enrich` prompts, where a step was inserted and the rest
-renumbered; take the incoming step 3 and re-apply your local edits around it.
+**On conflict** — most likely the two `start-enrich` prompts, where a step was inserted and the rest
+renumbered. **This change is additive everywhere: keep both sides.** Take the incoming step 3,
+re-apply your local edits around it, then `git cherry-pick --continue`.
 
 ---
 
-## THE ONLY FILES IN THIS CHANGE SET
+## THE ONLY FILES THAT LAND
 
-Use this to **confirm the result**, not to hand-pick files — cherry-picking whole commits is what
-keeps the tree in a state something was actually tested against. **Seven files, plus one derived
-tree.**
+Use this to confirm the result — `git show --stat HEAD -- . ':(exclude)registry_repo'`
 
 ```
 NEW ────────────────────────────────────────────────────────────────────────
-  core/profiles/payment_brand/fpi_mnemonic_enrich.skill.md    the pass itself
-  fixtures/enrichment/verify_fpi_enrich.py                    its proof (17 checks)
+  core/profiles/payment_brand/fpi_mnemonic_enrich.skill.md    the enrichment pass
+  fixtures/enrichment/verify_fpi_enrich.py                    its proof (21 checks)
 
 MODIFIED ───────────────────────────────────────────────────────────────────
-  core/scripts/apply_enrichment.py                 11 lines — `provenance_note` ONLY
-  overlays/claude/prompts/start-enrich.md          13 lines — new step 3 + renumber
-  overlays/copilot/.github/prompts/
-                        start-enrich.prompt.md     13 lines — same, for parity
-  TASK_LIST.md                                      2 lines — ledger entry
-  current_commit_changes_overview.md                this file
+  core/scripts/dispositions.py                     + reference_table, + NEVER_ROUTED
+  core/scripts/apply_enrichment.py                 provenance_note prefix ONLY
+  core/profiles/payment_brand/si_profile.payment_brand.yaml   comment only (routing note)
+  overlays/claude/prompts/start-enrich.md          new step 3 + renumber
+  overlays/copilot/.github/prompts/start-enrich.prompt.md     same, for §10.2 parity
+  app/frontend/src/PDLCConfigurator.jsx            one dropdown entry
+  docs/TECH_SPEC.md                                §3.1 enum + normative banner
+  docs/REQUIREMENTS.md                             D-A12 list
 
-DERIVED — regenerate, never merge ──────────────────────────────────────────
-  registry_repo/**        → publish_registry.py --stage registry_repo --force
+REGENERATE — never merge ───────────────────────────────────────────────────
+  registry_repo/**          publish_registry.py --stage registry_repo --force
+  app/frontend/dist/**      npm run build   (gitignored — does not travel)
 ```
 
-**Nothing else is part of this change.** No connector, no `adapter.yaml`, no `si_profile`, no
-`overlay_manifest.yaml`, no `app/`, no spec section, none of the five `[TBD — VDI]` placeholders.
-
-**Verify after the cherry-pick** — this should list exactly the six files above (the briefing came
-from `origin/main` separately, and `registry_repo/` was regenerated):
-
-```bash
-git show --stat HEAD -- . ':(exclude)registry_repo'
-```
-
-**A larger diff means something went wrong.** Nothing else belongs to this change: no connector, no
-`adapter.yaml`, no `si_profile`, no `overlay_manifest.yaml`, no `app/`, no spec section, and none
-of the five `[TBD — VDI]` placeholders.
-
-**If you want to see what a full merge *would* have brought** — useful for deciding what to take
-next, not for this operation:
-
-```bash
-git log  --oneline HEAD..origin/main
-git diff --stat HEAD..origin/main -- . ':(exclude)registry_repo'
-```
-
-Anything there beyond these three commits is earlier work this edition does not describe — TASK-129
-(the Jira Creation UI + push level/parent), the domain-pack fail-fast in `generate.py`, the registry
-re-point. Ask for a briefing cut against your actual base before taking any of it.
+**Nothing else.** No connector, no `adapter.yaml`, no `overlay_manifest.yaml`, no backend, no
+`jira_*`, and none of the five `[TBD — VDI]` placeholders. A larger diff means something went
+wrong — stop and report it.
 
 ---
 
-## This change set — TASK-130: FPI → mnemonic enrichment
+## WHAT YOU ARE GETTING
 
-The card network writes in **FPIs**; our systems key on **interchange level code/name**, which the
-boarding system calls a **mnemonic** (`VACD`). Nothing downstream can act until those resolve — and
-**no existing pass could do it**, because mnemonic configuration lives in PeopleSoft rather than
-`repo/`, so Arm 1 has no code to find and Arm 2 nothing to verify against.
+**1. A new enrichment pass: FPI → mnemonic.** The network writes in **FPIs**; our systems key on
+**interchange level code/name**, which boarding calls a **mnemonic** (`VACD`). Nothing downstream
+can act until those resolve — and **no existing pass could do it**, because mnemonic configuration
+lives in PeopleSoft rather than `repo/`. Arm 1 has no code to find; Arm 2 has nothing to verify.
+**This is the only pass that can surface boarding-system work.**
 
-| File | Change | Commit |
-|---|---|---|
-| `core/profiles/payment_brand/fpi_mnemonic_enrich.skill.md` | **NEW** — the pass. Scans v1 for FPI/level refs, resolves against a reference table in the corpus, stages findings. Edits nothing. | `4f38156` (+ wording in `708e29f`, `f293173`) |
-| `core/scripts/apply_enrichment.py` | `provenance_note` prefix keyed on evidence location | `4f38156` |
-| `overlays/claude/prompts/start-enrich.md` | **new step 3** before the walkthrough; steps renumbered | `4f38156` |
-| `overlays/copilot/.github/prompts/start-enrich.prompt.md` | same, for §10.2 parity | `4f38156` |
-| `fixtures/enrichment/verify_fpi_enrich.py` | **NEW** — 17 checks | `4f38156` |
-| `TASK_LIST.md` | TASK-130 ledger entry | `4f38156` |
+It runs at `/start-enrich` as **step 3** — after both arms, **before** the walkthrough. It reads the
+reference table **in full** (never through its index: this is a lookup, and a row never looked at is
+indistinguishable from one that does not exist), and **stages findings; it edits nothing.**
 
-**The published registry grew to 127 files** (was 126).
+**2. A seventh disposition: `reference_table`.** A *lookup*, not evidence. It is **`NEVER_ROUTED`**,
+so **v1 never reads it** — a mapping resolved from a lookup table is a *tool-resolved* fact, and
+those belong in v2 via enrichment. It also keeps a 1000-row table out of §9.2's whole-read budget,
+and it lets the pass find its input by set membership instead of guessing which
+`technical_specification` source is the table and which is the Tech Letter that names codes in prose.
 
-**Why it mattered enough to change.** The skill's example evidence path read
-`context_set/confluence/interchange_levels.md`. This is a **model-executed instruction file**, so
-an illustrative path can be read as a constraint — a model could go looking only under
-`context_set/confluence/` and miss a table staged by SharePoint. The step now says: find it by
-**disposition and content, never by directory**, and names descriptor parity as the reason
-connector choice is irrelevant. The example path is a placeholder rather than a real directory.
-
-**And the table is now read whole, never through its index.** The index exists to *choose* what to
-read, and choosing is wrong for a lookup: a row never looked at is indistinguishable from a row that
-does not exist, so an index-guided read would report "FPI not found" for a level sitting in a
-section it happened not to pick — a silent miss that becomes a mnemonic nobody configures. If the
-table is too large to hold, the skill must say so and stop rather than report a partial read as
-complete.
-
-**Practical effect for the VDI:** a reference table staged through the **SharePoint** `.md` path
-works with no change to the skill, the prompts, or the pipeline. Configure it as a SharePoint
-source with disposition **`technical_specification`** and the enrichment pass will find it.
+**3. Honest provenance.** `provenance_note` no longer labels everything `[code: …]`. Evidence under
+`context_set/` now cites **`[ref: …]`**; repo paths are unchanged. It was hardcoded, so a fact
+resolved from a document would have claimed code provenance it never had, inside an **accepted**
+artifact.
 
 ---
 
-## Behaviour that is newly STRICTER
+## HOW TO USE IT ON A RUN
 
-**None.** But one output changes, and it will appear in diffs of regenerated artifacts:
+**Keep your SharePoint `.md` staging path exactly as it is** — the pass is connector-agnostic and
+needs no change to it.
 
-`provenance_note` no longer emits `[code: …]` for every finding. Evidence under `context_set/` now
-produces **`[ref: …]`**; repo paths are unchanged. It was hardcoded, so a fact resolved from a
-document would have been written into an **accepted** v2 claiming code provenance it never had. The
-existing repo-path contract is asserted intact by the new fixture.
+1. **Author the table as Markdown.** Headings every **~15–20 rows** (`max_entry_lines: 25`), grouped
+   by a real column. **One table row = one line** — never wrap a row, or the `L45–52` citation stops
+   meaning "these 8 levels". Put a line at the top: **a blank FPI means "no observed volume", not
+   "not applicable"**.
+2. **Add it in the UI** under Artifact Inventory, via your SharePoint `.md` path.
+3. **Set disposition → `Reference Table`.** ← the new dropdown entry, and the step that matters.
+   Not `Technical Specification` — that is the Tech Letter's class, and the pass would then find two
+   candidates and refuse to guess.
+4. **Generate.** `UI_INPUT.yaml` is immutable: a source not configured now cannot be added later.
+5. `/start-ingest` → `/start-si` → `/start-enrich`. The pass fires automatically.
 
----
-
-## Signature / contract changes
-
-**None.** No new finding kind, role, source type, or spec amendment — the skill emits **existing**
-kinds (`derived_impact`, `gap_fill`) through the **existing** router and apply pass.
-`overlay_manifest.yaml` is untouched: this is a skill invoked within the stage, not a ninth role.
-
----
-
-## Conflict hot spots
-
-- **Both `start-enrich` prompts** — a step was inserted and the following steps renumbered, so a
-  three-way merge may flag the whole numbered block. **Take this side, then re-apply any VDI
-  edits.** The ordering is load-bearing (see below).
-- **`core/scripts/apply_enrichment.py`** — one function (`provenance_note`). Low risk unless the
-  VDI edited the same function.
-
-**Still untouched:** the five `[TBD — VDI]` placeholders, every connector, `adapter.yaml`, the SI
-profile, `overlay_manifest.yaml`.
+**What you should see:** §16 of v2 carrying resolved mnemonics grouped by requirement, each citing
+the table by path **and line range**; Jira stories flagged **`non_code`** (PeopleSoft config has no
+`code_location`, and inventing one is what that flag exists to make unnecessary); and findings for
+the **misses** too — an FPI absent from the table, levels in the affected family the letter never
+named. Silence on those is the one outcome you cannot act on.
 
 ---
 
-## Two ordering facts that are load-bearing
+## TWO ORDERING FACTS THAT ARE LOAD-BEARING
 
-Easy to "tidy" into breakage, so do not reorder the enrichment steps:
+Do not reorder the enrichment steps:
 
-**The pass runs BEFORE the walkthrough** — escalations must join the single operator turn (D-A17)
-rather than needing a second one.
+**The pass runs BEFORE the walkthrough** — escalations must join the single operator turn (D-A17),
+not require a second one.
 
 **Its findings must reach §16 BEFORE G2** — `jira_plan` builds stories from §16, so a mnemonic
-arriving after v2 is accepted is identified and then **never planned**. Moving this pass later
-silently drops all boarding-system work from the Jira plan.
+arriving after v2 is accepted is identified and then **never planned**. Moving this later silently
+drops all boarding-system work from the Jira plan.
 
 Related: the first implementation emitted §8 corrections and the apply pass dropped them —
 `CORRECTABLE` excludes §8, because code cannot contradict an intent (D-A4).
 
 ---
 
-## HOW TO USE THIS ON THE VDI — the interchange reference table
-
-**Keep your existing SharePoint `.md` mechanism exactly as it is. Change nothing about it.** The
-new skill was written to be connector-agnostic precisely so it works with whatever staged the file.
-There is no new input, no new source type, and no new UI field.
-
-**Wiring it up, end to end:**
-
-1. **Author the table as Markdown.** Headings every **~15–20 rows** (`max_entry_lines: 25`), grouped
-   by a real column — product, card type, fee category. One table row = **one line**; never wrap a
-   row. Put a line at the top saying a **blank FPI means "no observed volume", not "not
-   applicable"** — the skill and the SI author both read that and will otherwise misread the gaps.
-2. **Stage it via your SharePoint `.md` path** and add it in the UI under **Artifact Inventory** as
-   a SharePoint source.
-3. **Set the disposition to `technical_specification`.** ← *the one step that is easy to miss.*
-   It is not the row's default. This disposition routes it to **§8 as primary**, so the SI author
-   sees it too; left as `product_domain_knowledge` it routes elsewhere, and as `other` it routes
-   nowhere and can never be cited.
-4. **Generate.** `UI_INPUT.yaml` is **immutable** — a source not configured now cannot be added
-   later; that would be a new `run_id`. If the table is missing at Generate, the enrichment pass
-   will correctly report "no reference table in the corpus" and stop.
-5. **`/start-ingest`** — nothing special; it stages, indexes, and lands a manifest entry like any
-   other source.
-6. **`/start-si`** — v1 may already cite the table (it is primary for §8).
-7. **`/start-enrich`** — the pass runs automatically as **step 3**, before the walkthrough. It
-   finds the table **by disposition and content, not by directory**, reads it **in full** (not via
-   its index — this is a lookup, and a row never looked at is indistinguishable from one that does
-   not exist), and stages findings.
-
-**What you should see afterwards:**
-
-- **§16 of v2** carries the resolved mnemonics, grouped under their requirement, each citing the
-  table by **path and line range** (`[ref: …/interchange_levels.md L45–52]`).
-- **The Jira plan** contains a story per mnemonic-driven change, flagged **`non_code`** — because
-  PeopleSoft configuration has no `code_location` to name, and inventing a path is exactly what
-  that flag exists to make unnecessary.
-- **Findings for the misses too** — an FPI in the SI that is absent from the table, and levels in
-  the affected family the letter never mentioned. Silence on those is the one outcome you cannot
-  act on.
-
-**Two contracts to confirm about your `.md` path**, because neither fails loudly:
-
-1. **Descriptor parity.** It must emit the same descriptor shape as every other connector, or
-   downstream breaks in places that will not point back at the connector.
-2. **The staged file is byte-identical to the source.** Bypassing extraction is the *point*. If
-   anything re-wraps a table row, one row stops being one line and the `L45–52` citation quietly
-   stops meaning "these 8 levels."
-
-**And that mechanism is not in this repo**, so the next hydrate overwrites it. Send the diff and it
-gets landed generically, with a fixture asserting a staged `.md` reaches `doc_index` unmodified —
-exactly the kind of invariant that stops being true without anyone noticing.
-
----
-
-## Derived artifacts — regenerate, never merge
-
-| Path | Do this |
-|---|---|
-| `registry_repo/**` | `python3 core/scripts/publish_registry.py --stage registry_repo --force` |
-| `app/frontend/dist/**` | **Gitignored — never travels.** `cd app/frontend && npm run build` |
-| `fixtures/jira_plan/plan_pass.json` | Regenerated by `verify_jira_plan.py` |
-
----
-
-## After merging, run the green bar
+## AFTER MERGING
 
 ```bash
 for f in $(find fixtures -name "verify_*.py"); do python3 "$f" || echo "RED: $f"; done
 python3 core/scripts/build_checks.py
 ```
 
-Expected: **31 verifies green, §10 4/4.** A `core/` file changed, so a re-publish is owed (registry
-stays at 127 files).
+Expect **§10 4/4**, and your verify count up by one (`verify_fpi_enrich.py`).
+
+If `verify_fpi_enrich.py` fails on the prompt-ordering checks, the conflict resolution dropped or
+misplaced step 3 — **fix the prompts, not the fixture.**
+
+**A `core/` change means a re-publish is owed.** Do not patch generic code locally to make something
+pass: if the gap is in the generic build rather than the VDI wiring, report it for an upstream fix.
 
 ---
 
-## Standing reminders
+## STANDING REMINDERS
 
 - **`origin` must be `github.com/varun6717/prod.git`.** `code_640011` is the **registry**.
 - **Kickoff after Generate is `/start-ingest`** → `/start-si` → `/start-enrich` → `/start-jira`.
   The retired `start-brd` / `start-frd` names still appear in `docs/TECH_SPEC.md`,
-  `docs/REQUIREMENTS.md` and `docs/COPILOT_VDI_VALIDATION.md`; those docs are stale, the overlays
-  on disk are correct.
-- **A gap in the generic code is fixed in the build repo and re-published** — not patched on the VDI.
+  `docs/REQUIREMENTS.md` and `docs/COPILOT_VDI_VALIDATION.md`; those docs are stale, the overlays on
+  disk are correct.
+- **Your SharePoint `.md` staging path is not in this repo** — the next hydrate overwrites it. Send
+  the diff so it can be landed generically with a fixture.

@@ -645,7 +645,9 @@ discoveries append; enrichment never deletes (D-A2, D-A7).
 
 - **Disposition (operator-declared, multi allowed, per D-A12):** Business Requirement · Technical
   Specification · Product Domain Knowledge · Architecture · Prior Artifact *(reference-only — never
-  the primary citation for a new requirement)* · Other *(background only — never citable)* ·
+  the primary citation for a new requirement)* · **Reference Table** *(TASK-131 — a lookup, not
+  evidence; NEVER_ROUTED, so v1 never reads it and enrichment consults it whole)* · Other
+  *(background only — never citable)* ·
   **Codebase** *(auto-set for repo URLs)*. Source **type** ≠ disposition: type is where it came from
   (fetching); disposition is what it is for (routing). PDFs always arrive via `sharepoint`.
 - **Routing matrix (D-A13, normative):** section × input source, with **Frame** and **Discovery** as

@@ -2,7 +2,7 @@
 name: fpi_mnemonic_enrich
 type: Enrichment skill (domain pack) — the vocabulary bridge
 layer: Enrichment (v1 → v2)
-consumes: frozen solution_intent/v1.md · the reference table in context_set/ (a technical_specification source)
+consumes: frozen solution_intent/v1.md · the `disposition: reference_table` source in context_set/
 produces: gap_fill findings in enrichment.json — never edits a document
 runs: alongside the two arms, BEFORE the disposition walkthrough
 ---
@@ -38,30 +38,30 @@ where "no tag matched" could not be distinguished from "nobody tagged it".
 
 ## What you do
 
-1. **Locate the reference table.** A `technical_specification` source **anywhere in
-   `context_set/`**. **Which connector staged it is irrelevant** — SharePoint, Confluence, or any
-   other; by this point every source is a `.md` extract with an index and a manifest entry, and
-   descriptor parity is what guarantees that. There is **no filename convention**: identify it by
-   disposition and **shape**, never by directory or name.
+1. **Locate the reference table — by `disposition: reference_table`.** A set membership test over
+   `context_set/index.json`, not a judgment. **Which connector staged it and what it is named are
+   both irrelevant**: by this point every source is a `.md` extract with an index and a manifest
+   entry, and descriptor parity guarantees that. There is **no filename convention**.
 
-   **Do not confuse it with the Tech Letter.** Both are `technical_specification` — that class
-   explicitly covers "network specs, tech letters, field formats" — so disposition alone cannot
-   separate them. They differ in kind:
+   That disposition exists precisely so you never have to guess. The Visa Tech Letter is
+   `technical_specification` — a class that explicitly covers "network specs, tech letters, field
+   formats" — and it also names FPIs, in prose. Separating "the document that names codes" from
+   "the table that resolves them" by *shape* was guesswork; the operator now declares it.
 
-   | | shape | role here |
+   | | disposition | role here |
    |---|---|---|
-   | **Tech Letter** | prose, naming FPIs and rates in sentences | **what you resolve FROM** |
-   | **reference table** | a table of level codes, one row per level, repeated across headed sections | **what you resolve AGAINST** |
+   | **Tech Letter** | `technical_specification` | **what you resolve FROM** |
+   | **reference table** | `reference_table` | **what you resolve AGAINST** |
 
-   The reference table is the one whose body **is** rows of interchange level codes. Read the
-   manifest `descriptor` first — it is a one-line identification written for exactly this purpose.
-   If two candidates remain, **emit a finding naming both and stop**; guessing between two
-   `technical_specification` sources is how you resolve every FPI against the wrong document and
-   report it as complete.
+   **None found → emit one finding saying so and stop.** Producing nothing is indistinguishable
+   from finding nothing, and this pass failing silently is how the boarding work disappears.
+   **More than one → emit a finding naming them all and stop.** Picking one would resolve every
+   FPI against a document nobody chose, and report it as complete.
 
-   **If there is no reference table at all, emit one finding saying so and stop.** Producing
-   nothing is indistinguishable from finding nothing, and this pass failing silently is how the
-   boarding work disappears.
+   Note `reference_table` is `NEVER_ROUTED`, so **v1 has never read this file.** That is the point:
+   a mapping resolved from a lookup table is a tool-resolved fact, and tool-resolved facts belong
+   in v2. You are not filling a gap the author was careless about — you are doing the step the
+   author was never given the means to do.
 2. **Read the table's `.md` extract IN FULL. Do not use its index to select passages.**
    The index exists to *choose* what to read, and choosing is precisely wrong here. Every other
    reader in this pipeline may read selectively; **you may not**. This is a lookup, not retrieval:

@@ -147,6 +147,19 @@ Each schema is normative. Types are JSON/YAML scalar types unless noted.
 
 ### 3.1 `UI_INPUT.yaml` — immutable run config (FR-XS-02, FR-XS-16, NFR-01)
 
+> 🔧 **TASK-131 amendment (normative, V-approved 2026-08-06) — the `reference_table` disposition.**
+> D-A12's operator classes gain a seventh: **`reference_table`** — a *lookup*, not evidence. An
+> identifier↔identifier mapping (interchange level ↔ mnemonic, code ↔ product) consulted to resolve
+> a code, never read to learn what the system does. It is **`NEVER_ROUTED`**, joining `other` in the
+> §10.5′ exclusion, but for the opposite reason: `other` is too weak to ground a claim, a reference
+> table is **not a claim at all**.
+> **Three consequences, all intended.** v1 never reads it — a mapping resolved from a lookup table
+> is a *tool-resolved* fact, so it belongs in v2 via enrichment, the same line that keeps v1
+> code-blind. It costs nothing at authoring time, where a thousand-row table routed as `P` would
+> consume §9.2's whole-read budget on every section it fed. And enrichment locates it by a set
+> membership test rather than guessing which `technical_specification` source is the table and
+> which is the letter that names codes in prose. **Port note:** carry into the JPMC-side D-A12/§3.1.
+>
 > 🔧 **TASK-129 amendment (normative, V-approved 2026-08-03) — `jira.level` + `jira.parent_link`.**
 > A run could previously only create a **whole new tree** (`build_plan` always emitted an `INIT` and
 > its own deliverables), but most programs need epics grafted under a **standing Deliverable**.
@@ -162,7 +175,7 @@ Each schema is normative. Types are JSON/YAML scalar types unless noted.
 >
 > 🔧 **ADR-008 amendment (normative).** Each `sources[]` entry gains **`disposition:`** — one or more
 > of `business_requirement | technical_specification | product_domain_knowledge | architecture |
-> prior_artifact | other` (FR-DC-24; `codebase` is auto-set for repo sources, non-editable; multi
+> prior_artifact | reference_table | other` (FR-DC-24; `reference_table` added at TASK-131; `codebase` is auto-set for repo sources, non-editable; multi
 > allowed, default one). `frame:` gains **`overview:`** — the free-form Initiative Overview (feeds §1
 > identity, seeds §7 deliverables, and is Arm 1's semantic query context). Everything else below
 > stands; immutability + `run_id` semantics unchanged.

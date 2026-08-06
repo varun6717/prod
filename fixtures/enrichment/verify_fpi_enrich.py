@@ -92,7 +92,22 @@ def main() -> int:
     _check("...carrying its reference citation", _TABLE in v2)
     _check("v1 is untouched — the pass stages, it never edits", "VACD" not in v1)
 
-    print("\n4) both overlays name the skill (§10.2 parity, by hand):")
+    print("\n4) `reference_table` is a real class that routes NOWHERE (TASK-131):")
+    sys.path.insert(0, str(_REPO_ROOT / "core" / "scripts"))
+    import dispositions as D
+    _check("it is operator-selectable", "reference_table" in D.OPERATOR_DISPOSITIONS)
+    # NEVER_ROUTED is what keeps a 1000-row lookup out of §9.2's whole-read budget, and what makes
+    # v1 tool-blind: a mapping resolved from a table is a tool-resolved fact, so it belongs in v2.
+    _check("...and NEVER_ROUTED, so v1 never reads it", "reference_table" in D.NEVER_ROUTED)
+    _check("...which is why §10.5' totality still passes — excluded BY DECLARATION, not silence",
+           set(D.NEVER_ROUTED) == {"other", "reference_table"}, str(sorted(D.NEVER_ROUTED)))
+    # The whole point of the class: enrichment finds the table by set membership, not by guessing
+    # which technical_specification source is a table and which is prose that names codes.
+    skill_body = (_REPO_ROOT / "core/profiles/payment_brand/fpi_mnemonic_enrich.skill.md").read_text()
+    _check("the skill locates the table by disposition, not by shape or filename",
+           "disposition: reference_table" in skill_body)
+
+    print("\n5) both overlays name the skill (§10.2 parity, by hand):")
     skill = _REPO_ROOT / "core/profiles/payment_brand/fpi_mnemonic_enrich.skill.md"
     _check("the skill file exists on disk", skill.is_file())
     for p in (_REPO_ROOT / "overlays/claude/prompts/start-enrich.md",
