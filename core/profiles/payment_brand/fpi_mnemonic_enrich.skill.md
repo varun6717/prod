@@ -39,12 +39,29 @@ where "no tag matched" could not be distinguished from "nobody tagged it".
 ## What you do
 
 1. **Locate the reference table.** A `technical_specification` source **anywhere in
-   `context_set/`** carrying interchange level codes. **Which connector staged it is irrelevant** —
-   SharePoint, Confluence, or any other; by this point every source is a `.md` extract with an
-   index and a manifest entry, and descriptor parity is what guarantees that. Find it by
-   disposition and content, never by directory. **If there is none, emit one finding saying so and
-   stop.** Producing nothing is indistinguishable from finding nothing, and this pass failing
-   silently is how the boarding work disappears.
+   `context_set/`**. **Which connector staged it is irrelevant** — SharePoint, Confluence, or any
+   other; by this point every source is a `.md` extract with an index and a manifest entry, and
+   descriptor parity is what guarantees that. There is **no filename convention**: identify it by
+   disposition and **shape**, never by directory or name.
+
+   **Do not confuse it with the Tech Letter.** Both are `technical_specification` — that class
+   explicitly covers "network specs, tech letters, field formats" — so disposition alone cannot
+   separate them. They differ in kind:
+
+   | | shape | role here |
+   |---|---|---|
+   | **Tech Letter** | prose, naming FPIs and rates in sentences | **what you resolve FROM** |
+   | **reference table** | a table of level codes, one row per level, repeated across headed sections | **what you resolve AGAINST** |
+
+   The reference table is the one whose body **is** rows of interchange level codes. Read the
+   manifest `descriptor` first — it is a one-line identification written for exactly this purpose.
+   If two candidates remain, **emit a finding naming both and stop**; guessing between two
+   `technical_specification` sources is how you resolve every FPI against the wrong document and
+   report it as complete.
+
+   **If there is no reference table at all, emit one finding saying so and stop.** Producing
+   nothing is indistinguishable from finding nothing, and this pass failing silently is how the
+   boarding work disappears.
 2. **Read the table's `.md` extract IN FULL. Do not use its index to select passages.**
    The index exists to *choose* what to read, and choosing is precisely wrong here. Every other
    reader in this pipeline may read selectively; **you may not**. This is a lookup, not retrieval:
