@@ -476,12 +476,15 @@
 
       <div class="stage-hd" style="--hue: var(--codemap)"><span class="s">STAGE 1</span><span class="nm">Ingest</span></div>
 
-      <div class="step" style="--hue: var(--codemap)">
-        <div class="n">02</div><div class="chip">code map</div>
-        <div class="t"><b>The repository becomes a map</b>
-          <span class="ref">STAGE 1 &middot; /start-ingest <i>&rarr;</i> code_map_build.py <i>&rarr;</i> code_map/</span>
-          <span>Modules, dependencies and interface points, derived mechanically. Nothing is guessed and
-            nothing is sampled. Cached, so a re-run is instant.</span></div>
+      <div class="step" style="--hue: var(--articles)">
+        <div class="n">02</div><div class="chip">articles + source</div>
+        <div class="t"><b>Raw material becomes the knowledge base</b>
+          <span class="ref">STAGE 1 &middot; /start-ingest <i>&rarr;</i> doc_index &middot; code_map_build <i>&rarr;</i> context_set/ &middot; code_map/</span>
+          <span>The mandate and Tech Letter are extracted and indexed, so a later stage can ask them
+            questions by section rather than re-reading them whole. The repository is cloned and turned
+            into a map &mdash; modules, dependencies, interface points &mdash; derived mechanically:
+            nothing guessed, nothing sampled. Both are cached, so a re-run is instant.
+            <em>This is the only stage that builds layers rather than reading them.</em></span></div>
       </div>
 
       <div class="stage-hd" style="--hue: var(--history)"><span class="s">STAGE 2</span><span class="nm">Solution Intent</span><span class="g">&#8594; G1 &#183; v1 freezes</span></div>

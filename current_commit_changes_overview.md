@@ -39,6 +39,17 @@ documented in the feed table and in step 13's text, where it can carry what an a
 precedent is **read as a pattern, never applied**, and that drafting proceeds without it when no
 comparable change exists.
 
+**Step 02 of the walkthrough now covers both halves of ingest.** It described only the repository
+becoming a map, which left the articles apparently reaching Solution Intent without ever being taken
+in — the same asymmetry the diagram had. It now reads *"Raw material becomes the knowledge base"*: the
+mandate and Tech Letter extracted and indexed so a later stage can question them **by section**, and
+the repository cloned and mapped.
+
+> Worth noting why this recurred in three places — the arrows, the Ingest box label, and the
+> walkthrough. **Ingest is the only stage that builds layers rather than reading them**, so it does
+> not fit the pattern the rest of the page uses, and it kept getting flattened into that pattern. The
+> step now states the exception outright rather than leaving it to be rediscovered.
+
 **`VDI_TASK_V2.md` — 003.7c gains the reason the KB union matters.** The code map covers 100% of
 files, so nothing is missing from it — but **closure follows structural edges**, and in a file-coupled
 estate two deeply related files can have no edge at all. Two programs that both touch MPT share no
