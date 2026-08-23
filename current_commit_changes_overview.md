@@ -23,6 +23,30 @@ registry.
 | `neuro_architecture_v1.html` | new | Engineering reference — 12 sections, what runs and what each step may decide |
 | `neuro_overview_v2.html` | new | Exec overview — the knowledge base, the flow, the gates, one worked example. **v2** supersedes v1 |
 
+### Later refinements in this set
+
+**Stage headers group the walkthrough.** The thirteen steps now sit under six headings — Configure,
+Ingest, Solution Intent, Enrichment, Jira plan, Code change — each in its stage colour with its gate
+on the right. Grouping rather than per-step labels, because six steps would otherwise all read
+"ENRICHMENT". The payoff is that the shape becomes visible: **six of the thirteen steps are
+enrichment**, and Stage 1 is a single step with no gate.
+
+**The precedent-diff arrow into Code change was removed.** The diagram draws KB layers only, and at
+drafting time the primary inputs are the **plan** and **§16** — both pipeline artifacts, both
+deliberately not on this diagram. Drawing a *proposed, secondary* input as an arrow made it look like
+the main driver while the two things actually driving the draft were invisible. The usage stays
+documented in the feed table and in step 13's text, where it can carry what an arrow cannot: that the
+precedent is **read as a pattern, never applied**, and that drafting proceeds without it when no
+comparable change exists.
+
+**`VDI_TASK_V2.md` — 003.7c gains the reason the KB union matters.** The code map covers 100% of
+files, so nothing is missing from it — but **closure follows structural edges**, and in a file-coupled
+estate two deeply related files can have no edge at all. Two programs that both touch MPT share no
+call, no import, no symbol; dependency traversal correctly reports them unrelated. **Co-change is the
+only signal that sees it.** That makes the union coverage of a class the scan is constitutionally
+unable to reach, rather than a nice-to-have ranking. A KB proposal still only *adds to scope* — the
+pass must file a finding or an explicit non-event, and 003.9 compares the two.
+
 ### Why the overview is at v2
 
 The two arrows that **feed** ingest now leave the cylinder on the left, run over the top, and drop

@@ -2148,6 +2148,22 @@ way all work does. Stage 5 never consults history for *scope*; it reads §16, wh
 informed. Only the diff's **content** is a Stage-5 input, and only as an example. Two independent
 history consultations that could disagree is exactly what this avoids.
 
+> **Why the union matters: closure has a blind spot that structure cannot fix.** The code map covers
+> 100% of files, so nothing is *missing* from it — but the **closure walk follows structural edges**,
+> and in a file-coupled estate two deeply related files can have **no edge between them at all**. Two
+> programs that both touch MPT share no call, no import, no symbol. Dependency traversal correctly
+> reports them as unrelated, because by its own measure they are.
+>
+> **Co-change is the only signal that sees it.** *"Comparable changes touched `brand_registry.c`"* is
+> evidence of a relationship nothing structural would surface. That is the union earning its place:
+> not a nice-to-have ranking, but coverage of a class the scan is constitutionally unable to reach.
+>
+> **And the file still has to be assessed.** A KB proposal adds it to scope; it does not conclude
+> anything. The pass scans it and files a finding **or an explicit non-event** — the model may decide
+> *not impacted*, but it cannot decline to look, and the outcome is recorded either way. 003.9 then
+> compares the two: a file the KB expected where the scan found nothing lands in the **gap** quadrant
+> and reaches the operator, because the disagreement is the interesting part.
+
 **Use 1 — Part G.2's analogy search becomes evidenced rather than inferred.** When the scan finds a
 **gap**, Part G locates the nearest existing instance of the same kind of thing and reports where a new
 one would go. Today that prospective location is derived from the code map plus surrounding pattern —

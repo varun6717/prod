@@ -143,6 +143,23 @@
   }
   .wt-head p { margin: 0; color: var(--muted); font-size: 0.98rem; }
   .steps { display: flex; flex-direction: column; gap: 2px; }
+  .stage-hd {
+    display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+    margin: 34px 0 2px; padding-bottom: 9px;
+    border-bottom: 1px solid var(--hue, var(--rule-lit));
+  }
+  .stage-hd:first-child { margin-top: 0; }
+  .stage-hd .s {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; color: var(--dim);
+  }
+  .stage-hd .nm {
+    font-family: var(--display); font-weight: 800; font-size: 1.12rem;
+    letter-spacing: -0.015em; color: var(--hue, var(--ink));
+  }
+  .stage-hd .g {
+    margin-left: auto; font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.12em; color: var(--articles);
+  }
   .step {
     display: grid; grid-template-columns: 54px 168px 1fr; gap: 20px;
     padding: 18px 0; border-bottom: 1px solid var(--rule); align-items: start;
@@ -328,7 +345,6 @@
 
         <path d="M380 250 C 480 250 540 182 640 182" fill="none" stroke="#B98CE0" stroke-width="1.7" marker-end="url(#m-history)" />
         <path d="M380 258 C 500 258 550 244 640 244" fill="none" stroke="#B98CE0" stroke-width="1.7" marker-end="url(#m-history)" />
-        <path d="M380 268 C 545 268 560 378 640 378" fill="none" stroke="#B98CE0" stroke-width="1.1" stroke-dasharray="5 4" opacity="0.65" marker-end="url(#m-history)" />
 
         <path d="M380 324 C 495 324 545 256 640 256" fill="none" stroke="#5BD6A0" stroke-width="1.7" marker-end="url(#m-codemap)" />
 
@@ -366,7 +382,7 @@
         <tr><td class="k" style="--hue:var(--flows)">Payment system flows</td><td>Enrichment</td><td>how does impact cross between systems?</td></tr>
         <tr><td class="k" style="--hue:var(--history)">Change history KB</td><td>Solution Intent</td><td>what kind of change is this?</td></tr>
         <tr><td class="k dim" style="--hue:var(--history)">&#8942;</td><td>Enrichment</td><td>which files did comparable changes touch?</td></tr>
-        <tr><td class="k dim" style="--hue:var(--history)">&#8942;</td><td>Code change</td><td>what did the last one actually look like?</td></tr>
+        <tr><td class="k dim" style="--hue:var(--history)">&#8942;</td><td>Code change</td><td>what did the last one actually look like? &mdash; <em>read as a pattern, never applied; not drawn above because &sect;16 and the plan are what drive the draft</em></td></tr>
         <tr><td class="k" style="--hue:var(--codemap)">Code map</td><td>Enrichment</td><td>what depends on what?</td></tr>
         <tr><td class="k" style="--hue:var(--code)">System code &amp; data</td><td>Ingest</td><td>the repository is read once and turned into the code map</td></tr>
         <tr><td class="k dim" style="--hue:var(--code)">&#8942;</td><td>Enrichment</td><td>what is really there now &#8212; code, and current rates?</td></tr>
@@ -446,6 +462,8 @@
 
     <div class="steps">
 
+      <div class="stage-hd" style="--hue: var(--dim)"><span class="s">STAGE 0</span><span class="nm">Configure</span><span class="g">&#8594; G0 &#183; scaffold review</span></div>
+
       <div class="step" style="--hue: var(--dim)">
         <div class="n">01</div><div class="chip">operator</div>
         <div class="t"><b>The run is configured</b>
@@ -456,6 +474,8 @@
             produce.</em></span></div>
       </div>
 
+      <div class="stage-hd" style="--hue: var(--codemap)"><span class="s">STAGE 1</span><span class="nm">Ingest</span></div>
+
       <div class="step" style="--hue: var(--codemap)">
         <div class="n">02</div><div class="chip">code map</div>
         <div class="t"><b>The repository becomes a map</b>
@@ -463,6 +483,8 @@
           <span>Modules, dependencies and interface points, derived mechanically. Nothing is guessed and
             nothing is sampled. Cached, so a re-run is instant.</span></div>
       </div>
+
+      <div class="stage-hd" style="--hue: var(--history)"><span class="s">STAGE 2</span><span class="nm">Solution Intent</span><span class="g">&#8594; G1 &#183; v1 freezes</span></div>
 
       <div class="step" style="--hue: var(--articles)">
         <div class="n">03</div><div class="chip">articles</div>
@@ -493,6 +515,8 @@
             its citation, so "we checked" never looks like "nobody asked."</em> The requirements
             document is then frozen.</span></div>
       </div>
+
+      <div class="stage-hd" style="--hue: var(--flows)"><span class="s">STAGE 3</span><span class="nm">Enrichment</span><span class="g">&#8594; G2 &#183; v2 accepted</span></div>
 
       <div class="step" style="--hue: var(--history)">
         <div class="n">06</div><div class="chip">change history kb</div>
@@ -554,6 +578,8 @@
             comparable change ever touched."</em> Both directions, both worth a human minute.</span></div>
       </div>
 
+      <div class="stage-hd" style="--hue: var(--articles)"><span class="s">STAGE 4</span><span class="nm">Jira plan</span><span class="g">&#8594; G3 &#183; push to Jira</span></div>
+
       <div class="step" style="--hue: var(--dim)">
         <div class="n">12</div><div class="chip">&rarr; the plan</div>
         <div class="t"><b>Findings become the plan</b>
@@ -563,6 +589,8 @@
             batch breaks. <em>Today nobody learns that until implementation.</em> A person accepts before
             anything reaches Jira.</span></div>
       </div>
+
+      <div class="stage-hd" style="--hue: var(--code)"><span class="s">STAGE 5</span><span class="nm">Code change</span><span class="g">&#8594; G4 &#183; push to branch</span></div>
 
       <div class="step" style="--hue: var(--code)">
         <div class="n">13</div><div class="chip">system code &amp; data</div>
