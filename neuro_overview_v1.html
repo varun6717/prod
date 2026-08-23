@@ -276,7 +276,7 @@
 
         <rect x="646" y="80" width="368" height="50" rx="2" fill="#18222D" stroke="#2C3D4E" />
         <text class="t-stage" x="668" y="103">Ingest</text>
-        <text class="t-role"  x="668" y="119">READ EVERYTHING, INDEX IT</text>
+        <text class="t-role"  x="668" y="119">READS ARTICLES + SOURCE &#183; BUILDS THE INDEX AND THE MAP</text>
         <text class="t-gate" text-anchor="end" x="996" y="103">G0</text>
 
         <rect x="646" y="150" width="368" height="50" rx="2" fill="#18222D" stroke="#2C3D4E" />
@@ -323,6 +323,7 @@
 
         <path d="M380 324 C 495 324 545 256 640 256" fill="none" stroke="#5BD6A0" stroke-width="1.7" marker-end="url(#m-codemap)" />
 
+        <path d="M380 384 C 432 384 440 128 636 112" fill="none" stroke="#F2825C" stroke-width="1.2" opacity="0.8" marker-end="url(#m-code)" />
         <path d="M380 390 C 570 390 575 266 640 266" fill="none" stroke="#F2825C" stroke-width="1.7" marker-end="url(#m-code)" />
         <path d="M380 404 C 490 404 545 392 640 392" fill="none" stroke="#F2825C" stroke-width="1.1" stroke-dasharray="5 4" opacity="0.65" marker-end="url(#m-code)" />
 
@@ -333,6 +334,10 @@
       and the source in view at once. Every other stage needs one or two layers; enrichment needs
       nearly all of them. Solid lines are a primary source, dashed a secondary one &mdash; each is
       named in the table below.
+      <br><br><b>Ingest looks thin because it is the only stage that <em>builds</em> layers rather than
+      reading them.</b> It takes the articles and the source and turns them into the searchable index
+      and the code map. Every stage after it queries what ingest produced &mdash; nothing re-reads a
+      PDF or re-walks the repository. You pay the extraction cost once.
       <br><br><b>One join worth seeing:</b> the mandate says where a rate is <em>going</em>; PeopleSoft
       says where it is <em>now</em>. Neither side is complete, and putting the two together is the kind
       of work this pipeline exists to do.
@@ -355,7 +360,8 @@
         <tr><td class="k dim" style="--hue:var(--history)">&#8942;</td><td>Enrichment</td><td>which files did comparable changes touch?</td></tr>
         <tr><td class="k dim" style="--hue:var(--history)">&#8942;</td><td>Code change</td><td>what did the last one actually look like?</td></tr>
         <tr><td class="k" style="--hue:var(--codemap)">Code map</td><td>Enrichment</td><td>what depends on what?</td></tr>
-        <tr><td class="k" style="--hue:var(--code)">System code &amp; data</td><td>Enrichment</td><td>what is really there now &#8212; code, and current rates?</td></tr>
+        <tr><td class="k" style="--hue:var(--code)">System code &amp; data</td><td>Ingest</td><td>the repository is read once and turned into the code map</td></tr>
+        <tr><td class="k dim" style="--hue:var(--code)">&#8942;</td><td>Enrichment</td><td>what is really there now &#8212; code, and current rates?</td></tr>
         <tr><td class="k dim" style="--hue:var(--code)">&#8942;</td><td>Code change</td><td>the file being edited</td></tr>
       </tbody>
     </table>

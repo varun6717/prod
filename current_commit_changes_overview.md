@@ -1,7 +1,11 @@
 # current_commit_changes_overview.md
 
-**Commit of 2026-08-23 — the VDI design review: Stages 4 and 5 closed, four new tasks, two
+**Commit of 2026-08-23 — the VDI design review: Stages 4 and 5 closed, five new tasks, two
 stakeholder artifacts.**
+
+> **Filenames carry a version** — `neuro_architecture_v1.html`, `neuro_overview_v1.html` — so a pulled
+> copy is unambiguous about which revision it holds. Bump the suffix on the next substantive revision
+> rather than editing in place.
 
 This commit carries **no application code**. It is review output: the task catalogue the VDI Copilot
 executes from, and two published documents that explain the system at two altitudes. Nothing in
@@ -15,8 +19,8 @@ registry.
 | File | State | What it is |
 |---|---|---|
 | `VDI_TASK_V2.md` | edited | The deliverable. 11 task specs, 8 PARKED findings, 23 review-log rows |
-| `neuro_architecture.html` | new | Engineering reference — 12 sections, what runs and what each step may decide |
-| `kb_flow.html` | new | Exec overview — the knowledge base, the flow, the gates, one worked example |
+| `neuro_architecture_v1.html` | new | Engineering reference — 12 sections, what runs and what each step may decide |
+| `neuro_overview_v1.html` | new | Exec overview — the knowledge base, the flow, the gates, one worked example |
 | `CLAUDE.md` | edited | Three hard rules added, each earned by a mistake made during the review |
 
 ---
