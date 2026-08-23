@@ -65,6 +65,9 @@ Durable state lives in **files and git**, never in the conversation. Never rely 
 - **Binding rationales (never violate):** the structural extractor is **deterministic and frozen** — never model-rewritten at runtime; the map-build gate is **model-free**; the model owns only `purpose` **text** in the code map (tags are deleted; module membership + edges are deterministic per the frozen signal profile); ingestion **never branches on domain**; the only external mutation is the (deferred) Jira push; scope changes are **operator-decided** (human-mediated flag loop).
 - **MVP scope:** single domain `payment_brand`; single repo; **in-session execution** (no direct Claude API); files-as-artifacts + **JSONL ledger** (no SQLite); **Solution Intent v1 → v2** this slice (ADR-008).
 - **Cite-or-flag:** every substantive artifact claim is grounded to a source/frame/operator answer or marked `[TBD — unsourced]`. Never invent.
+- **Cite-or-flag cuts both ways — verify against the artifact, not `docs/`.** Before calling something unsourced, absent, or wrong, read **the file that owns it**: `core/profiles/**`, `core/*.yaml`, `core/skills/*.skill.md`. The design docs are **not a complete index of the artifacts** — field names and behaviours are routinely documented only in the YAML that defines them. A false "unsourced" flag is as damaging as an invention: it deletes something correct.
+- **Never restate a fact that is derivable by following a declared id.** A pass names no probe (`activates:` points one way); an interface party names no `acquired` (it lives on the application); a floor entry is not a copy of the pass list. Every echo is a place two files can drift — check for this before adding a field that "helpfully" repeats context.
+- **Change a contract, then sweep its derived views.** Edits to `flow.yaml`, `applications.yaml` or `interfaces.yaml` leave stale keys in diagrams, tables and worked examples that still render arrows for joins that no longer exist. Grep the changed key across every file that describes it before declaring the change done.
 
 ---
 
@@ -104,3 +107,26 @@ Durable state lives in **files and git**, never in the conversation. Never rely 
 **Every fixture directory's `verify_*.py` is runnable standalone and must stay green.** The full
 sweep is `for f in $(find fixtures -name "verify_*.py"); do python3 "$f"; done`, plus
 `python3 core/scripts/build_checks.py` for the §10 checks. A task is not done until both are clean.
+
+---
+
+## Commands
+
+**Setup**
+```bash
+.venv/bin/pip install -r app/backend/requirements.txt
+cd app/frontend && npm install
+```
+`.venv` is pre-provisioned for the tree-sitter C-extractor toolchain (ADR-001); plain `python3`
+works for everything except the `c_repo` fixtures.
+
+**Run a single test** (each fixture directory's `verify_*.py` is standalone)
+```bash
+python3 fixtures/c_repo/verify_code_map.py       # e.g.
+```
+
+**Run the app locally**
+```bash
+.venv/bin/uvicorn app.backend.app:app --reload --port 8000   # backend, from repo root
+cd app/frontend && npm run dev                                # frontend — http://localhost:5173, proxies /api to the backend
+```

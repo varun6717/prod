@@ -1,0 +1,1224 @@
+<title>PBI PDLC — Neuro — Architecture</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  :root {
+    --void:      #0A0E13;
+    --panel:     #121A23;
+    --panel-2:   #18222D;
+    --ink:       #DFE7EF;
+    --muted:     #7C8FA3;
+    --dim:       #55677A;
+    --rule:      #1E2A36;
+    --rule-lit:  #2C3D4E;
+
+    --articles:  #E8B34A;
+    --flows:     #4FC3D9;
+    --history:   #B98CE0;
+    --codemap:   #5BD6A0;
+    --code:      #F2825C;
+
+    --display: "Chivo", "Helvetica Neue", Arial, sans-serif;
+    --body:    "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --mono:    "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  body {
+    background: var(--void); color: var(--ink); font-family: var(--body);
+    font-size: 16px; line-height: 1.62; -webkit-font-smoothing: antialiased;
+    padding: 0 28px 120px;
+    background-image:
+      radial-gradient(ellipse 900px 500px at 15% 4%, rgba(79,195,217,0.06), transparent 70%),
+      radial-gradient(ellipse 700px 420px at 90% 2%, rgba(185,140,224,0.045), transparent 70%);
+  }
+  .frame { max-width: 1180px; margin: 0 auto; }
+  .col   { max-width: 74ch; }
+
+  /* ── masthead ─────────────────────────────────────────────── */
+  header { padding: 68px 0 40px; display: flex; flex-direction: column; gap: 20px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--flows); margin: 0;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .eyebrow::after {
+    content: ""; flex: 1; height: 1px; max-width: 240px;
+    background: linear-gradient(90deg, var(--rule-lit), transparent);
+  }
+  h1 {
+    font-family: var(--display); font-weight: 800;
+    font-size: clamp(2.1rem, 4.4vw, 3.4rem); line-height: 1.08;
+    letter-spacing: -0.03em; margin: 0; text-wrap: balance;
+  }
+  .lede { font-size: clamp(1.02rem, 1.5vw, 1.22rem); color: var(--muted); max-width: 66ch; margin: 0; }
+  .lede b { color: var(--ink); font-weight: 600; }
+  .scope {
+    font-family: var(--mono); font-size: 11.5px; color: var(--dim);
+    letter-spacing: 0.06em; display: flex; flex-wrap: wrap; gap: 8px 22px;
+    border-top: 1px solid var(--rule); padding-top: 16px;
+  }
+  .scope b { color: var(--muted); font-weight: 500; }
+
+  /* ── sections ─────────────────────────────────────────────── */
+  .sections { display: flex; flex-direction: column; gap: 76px; padding-top: 40px; }
+  section { display: flex; flex-direction: column; gap: 22px; }
+  .head { border-top: 1px solid var(--rule-lit); padding-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .head .num {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.2em;
+    color: var(--dim); text-transform: uppercase;
+  }
+  h2 {
+    font-family: var(--display); font-weight: 700;
+    font-size: clamp(1.45rem, 2.4vw, 1.85rem); letter-spacing: -0.02em;
+    margin: 0; text-wrap: balance;
+  }
+  h3 {
+    font-family: var(--display); font-weight: 700; font-size: 1.04rem;
+    margin: 0; color: var(--ink);
+  }
+  p { margin: 0; }
+  .note { color: var(--muted); font-size: 0.95rem; }
+  strong { color: var(--ink); font-weight: 600; }
+  em { font-style: italic; }
+  code {
+    font-family: var(--mono); font-size: 0.85em;
+    background: #172029; color: #B6C6D6; padding: 0.1em 0.36em; border-radius: 2px;
+  }
+  .stack { display: flex; flex-direction: column; gap: 16px; }
+
+  /* ── figures ──────────────────────────────────────────────── */
+  figure { margin: 0; display: flex; flex-direction: column; gap: 16px; }
+  .figwrap {
+    overflow-x: auto; background: var(--panel);
+    border: 1px solid var(--rule); border-radius: 3px; padding: 24px 20px;
+  }
+  figure svg { display: block; max-width: 100%; height: auto; min-width: 880px; }
+  figcaption { font-size: 0.94rem; color: var(--muted); max-width: 74ch; }
+  figcaption b { color: var(--ink); font-weight: 600; }
+  svg text { font-family: var(--mono); }
+  .t-lbl  { font-size: 10px; fill: var(--dim); letter-spacing: 0.12em; }
+  .t-name { font-family: var(--display); font-size: 14px; font-weight: 700; fill: var(--ink); }
+  .t-sm   { font-size: 10px; fill: var(--muted); }
+  .t-art  { font-size: 10.5px; fill: var(--codemap); }
+
+  /* ── tables ───────────────────────────────────────────────── */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 2px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 680px; }
+  thead th {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--dim); font-weight: 500;
+    text-align: left; padding: 12px 16px; background: var(--panel);
+    border-bottom: 1px solid var(--rule); vertical-align: bottom;
+  }
+  tbody td { padding: 11px 16px; border-bottom: 1px solid var(--rule); color: var(--muted); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.k { font-family: var(--mono); font-size: 12px; color: var(--ink); white-space: nowrap; }
+  td.k.hue { color: var(--hue); border-left: 2px solid var(--hue); }
+  td b { color: var(--ink); font-weight: 600; }
+
+  /* ── code blocks ──────────────────────────────────────────── */
+  pre {
+    margin: 0; background: #101820; border: 1px solid var(--rule);
+    border-left: 2px solid var(--rule-lit); border-radius: 2px;
+    padding: 16px 18px; overflow-x: auto;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.65; color: #B6C6D6;
+  }
+  pre .c { color: var(--dim); }
+  pre .k { color: var(--flows); }
+  pre .v { color: var(--codemap); }
+  pre .w { color: var(--articles); }
+
+  /* ── callout ──────────────────────────────────────────────── */
+  .callout {
+    border-left: 2px solid var(--hue, var(--flows)); background: var(--panel);
+    padding: 16px 20px; display: flex; flex-direction: column; gap: 8px;
+    font-size: 0.95rem; color: var(--muted); border-radius: 0 2px 2px 0;
+  }
+  .callout .t {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--hue, var(--flows));
+  }
+  .callout strong { color: var(--ink); }
+
+  /* ── grid cards ───────────────────────────────────────────── */
+  .cards { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+  .card {
+    background: var(--panel); border: 1px solid var(--rule);
+    border-left: 2px solid var(--hue, var(--rule-lit)); border-radius: 2px;
+    padding: 15px 16px; display: flex; flex-direction: column; gap: 7px;
+  }
+  .card .p { font-family: var(--mono); font-size: 11.5px; color: var(--hue, var(--ink)); word-break: break-word; }
+  .card .d { font-size: 0.86rem; color: var(--muted); line-height: 1.5; }
+
+  /* ── walkthrough steps ────────────────────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 30px; }
+  .step { display: grid; grid-template-columns: 66px 1fr; gap: 20px; align-items: start; }
+  .step .n {
+    font-family: var(--mono); font-size: 11px; color: var(--dim);
+    letter-spacing: 0.08em; border-top: 2px solid var(--hue, var(--flows)); padding-top: 9px;
+  }
+  .step .body { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .step .body h3 .f { font-family: var(--mono); font-size: 0.78em; color: var(--hue, var(--flows)); font-weight: 500; }
+  .step .body p { font-size: 0.95rem; color: var(--muted); }
+  .tag {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--history);
+    border: 1px solid #3B2F4A; padding: 2px 7px; border-radius: 2px;
+    align-self: flex-start;
+  }
+
+  /* ── rules list ───────────────────────────────────────────── */
+  .rules { display: flex; flex-direction: column; border-top: 1px solid var(--rule); }
+  .rule {
+    display: grid; grid-template-columns: minmax(190px, 260px) 1fr; gap: 24px;
+    padding: 17px 0; border-bottom: 1px solid var(--rule);
+  }
+  .rule .l { font-family: var(--mono); font-size: 12px; color: var(--flows); line-height: 1.5; }
+  .rule .r { font-size: 0.95rem; color: var(--muted); }
+  .rule .r strong { color: var(--ink); }
+
+  footer {
+    margin-top: 84px; border-top: 1px solid var(--rule); padding-top: 18px;
+    font-family: var(--mono); font-size: 10.5px; color: var(--dim);
+    letter-spacing: 0.08em; display: flex; gap: 24px; flex-wrap: wrap;
+  }
+
+  @media (max-width: 820px) {
+    body { padding: 0 18px 80px; }
+    .rule { grid-template-columns: 1fr; gap: 8px; }
+    .sections { gap: 56px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="frame">
+
+  <header>
+    <p class="eyebrow">Merchant Services &middot; Payment Brand Interchange</p>
+    <h1>PBI PDLC &mdash; Neuro &mdash; Architecture</h1>
+    <p class="lede">The engineering reference: <b>what runs, in what order, reading which files, and
+      what each one is allowed to decide.</b> Read this to work on the system rather than to be
+      briefed on it.</p>
+    <div class="scope">
+      <span><b>Slice</b> &nbsp;interchange &middot; Stratus code &middot; PeopleSoft rates</span>
+      <span><b>Stages</b> &nbsp;six, five gates</span>
+      <span><b>External writes</b> &nbsp;two, both gated</span>
+    </div>
+  </header>
+
+  <div class="sections">
+
+    <!-- ══════════════════════════════════ 1 -->
+    <section>
+      <div class="head col">
+        <p class="num">01 &mdash; The spine</p>
+        <h2>Six stages, five gates, two writes</h2>
+      </div>
+      <p class="col note">Each stage is a separate agent session started by its own prompt file. The
+        agent <em>surfaces</em> the next transition; it never issues it. Context hygiene is the
+        reason &mdash; every stage starts clean, so nothing leaks between them except artifacts on
+        disk.</p>
+
+      <figure>
+        <div class="figwrap">
+          <svg viewBox="0 0 1080 300" role="img"
+               aria-label="Six pipeline stages left to right: config, ingest, Solution Intent v1, enrichment, Jira plan, code change. Gates G0 through G4 sit between them. Each stage names the artifact it produces.">
+            <defs>
+              <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M0 0 L10 5 L0 10 z" fill="#55677A" /></marker>
+            </defs>
+
+            <text class="t-lbl" x="24" y="26">STAGE</text>
+            <text class="t-lbl" x="24" y="168">PRODUCES</text>
+            <text class="t-lbl" x="24" y="248">PROMPT</text>
+
+            <rect x="24"  y="40" width="150" height="60" rx="2" fill="#18222D" stroke="#2C3D4E" />
+            <text class="t-name" x="40" y="66">Config</text>
+            <text class="t-sm"   x="40" y="84">UI &#183; Generate</text>
+            <text class="t-art"  x="24" y="188">UI_INPUT.yaml</text>
+            <text class="t-art"  x="24" y="204">run scaffold</text>
+
+            <rect x="204" y="40" width="150" height="60" rx="2" fill="#18222D" stroke="#2C3D4E" />
+            <text class="t-name" x="220" y="66">Ingest</text>
+            <text class="t-sm"   x="220" y="84">non-interactive</text>
+            <text class="t-art"  x="204" y="188">context_set/</text>
+            <text class="t-art"  x="204" y="204">code_map/</text>
+            <text class="t-sm"   x="204" y="252">/start-ingest</text>
+
+            <rect x="384" y="40" width="150" height="60" rx="2" fill="#18222D" stroke="#B98CE0" />
+            <text class="t-name" x="400" y="66" fill="#B98CE0">Intent v1</text>
+            <text class="t-sm"   x="400" y="84">code-blind</text>
+            <text class="t-art"  x="384" y="188">solution_intent/</text>
+            <text class="t-art"  x="384" y="204">v1.md &#8212; frozen</text>
+            <text class="t-sm"   x="384" y="252">/start-si</text>
+
+            <rect x="564" y="40" width="150" height="60" rx="2" fill="#18222D" stroke="#4FC3D9" stroke-width="1.4" />
+            <text class="t-name" x="580" y="66" fill="#4FC3D9">Enrichment</text>
+            <text class="t-sm"   x="580" y="84">code-checked</text>
+            <text class="t-art"  x="564" y="188">enrichment.json</text>
+            <text class="t-art"  x="564" y="204">v2.md</text>
+            <text class="t-sm"   x="564" y="252">/start-enrich</text>
+
+            <rect x="744" y="40" width="150" height="60" rx="2" fill="#18222D" stroke="#2C3D4E" />
+            <text class="t-name" x="760" y="66">Jira plan</text>
+            <text class="t-sm"   x="760" y="84">epic + stories</text>
+            <text class="t-art"  x="744" y="188">jira_plan.json</text>
+            <text class="t-sm"   x="744" y="252">/start-jira</text>
+
+            <rect x="924" y="40" width="132" height="60" rx="2" fill="#18222D" stroke="#F2825C" />
+            <text class="t-name" x="940" y="66" fill="#F2825C">Code</text>
+            <text class="t-sm"   x="940" y="84">drafted diffs</text>
+            <text class="t-art"  x="924" y="188">code_changes/</text>
+            <text class="t-sm"   x="924" y="252">/start-code</text>
+
+            <path d="M174 70 L198 70" stroke="#55677A" marker-end="url(#ar)" />
+            <path d="M354 70 L378 70" stroke="#55677A" marker-end="url(#ar)" />
+            <path d="M534 70 L558 70" stroke="#55677A" marker-end="url(#ar)" />
+            <path d="M714 70 L738 70" stroke="#55677A" marker-end="url(#ar)" />
+            <path d="M894 70 L918 70" stroke="#55677A" marker-end="url(#ar)" />
+
+            <text class="t-lbl" text-anchor="middle" x="186" y="128" fill="#E8B34A">G0</text>
+            <text class="t-lbl" text-anchor="middle" x="366" y="128" fill="#E8B34A">&#8212;</text>
+            <text class="t-lbl" text-anchor="middle" x="546" y="128" fill="#E8B34A">G1</text>
+            <text class="t-lbl" text-anchor="middle" x="726" y="128" fill="#E8B34A">G2</text>
+            <text class="t-lbl" text-anchor="middle" x="906" y="128" fill="#E8B34A">G3</text>
+            <text class="t-lbl" text-anchor="end"   x="1056" y="128" fill="#E8B34A">G4</text>
+
+            <text class="t-sm" x="726" y="146" text-anchor="middle" fill="#F2825C">write #1</text>
+            <text class="t-sm" x="1056" y="146" text-anchor="end" fill="#F2825C">write #2</text>
+
+            <line x1="24" y1="222" x2="1056" y2="222" stroke="#1E2A36" />
+            <text class="t-sm" x="24" y="286">Every artifact is a file on disk. Nothing of consequence lives in a conversation &#8212; a fresh session
+              re-reads the run directory and continues.</text>
+          </svg>
+        </div>
+        <figcaption><b>G1 and G2 are the load-bearing ones.</b> G1 freezes v1 while it is still
+          code-blind, which is what makes every later difference attributable; G2 accepts v2 and is
+          where the totality checks run. The two writes that leave the building &mdash; the Jira push
+          at G3 and the branch push at G4 &mdash; are the only mutations outside the run directory.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ══════════════════════════════════ 2 -->
+    <section>
+      <div class="head col">
+        <p class="num">02 &mdash; Layout</p>
+        <h2>Where everything lives</h2>
+      </div>
+      <div class="col stack">
+        <p class="note">Four trees, and the split between them is the whole extensibility story:
+          <code>core/</code> is generic and never varies; <code>core/profiles/&lt;domain&gt;/</code>
+          and <code>core/templates/&lt;domain&gt;/</code> are the domain seam; <code>overlays/</code>
+          is the runtime-tool seam; <code>runs/</code> is per-run state and is disposable.</p>
+      </div>
+      <pre><span class="c"># the generic core — a new domain changes none of this</span>
+core/
+  scripts/        <span class="c">~40 deterministic steps: clone, code_map_build, doc_index,</span>
+                  <span class="c">merge_manifest, apply_enrichment, jira_plan, jira_validator,</span>
+                  <span class="c">jira_push, code_push, tier_walk, ledger, gate, telemetry…</span>
+  skills/         <span class="c">12 instruction modules — the model's half of the work</span>
+  checks/         <span class="c">build-time guards (§10): disposition totality, index completeness</span>
+  extractors/     <span class="c">per-LANGUAGE, frozen, deterministic (c_extractor.py)</span>
+  code_profiles/  <span class="c">per-REPO reading rules (c_repo, mixed_repo)</span>
+  estate/         <span class="w">applications.yaml · interfaces.yaml</span>   <span class="c">← proposed, 003.2</span>
+
+<span class="c"># the domain seam — a new domain rewrites exactly this</span>
+core/profiles/payment_brand/
+  si_profile.payment_brand.yaml        <span class="c">the 18 SI sections + must_capture</span>
+  change_types/&lt;type&gt;/                 <span class="w">flow.yaml · probes.yaml · *.skill.md</span>
+core/templates/payment_brand/
+  jira_template.payment_brand.yaml     <span class="c">SI section → Jira field mapping</span>
+
+<span class="c"># the runtime-tool seam — claude and copilot, kept at parity by a build check</span>
+overlays/{claude,copilot}/             <span class="c">agents, prompt files, launch</span>
+
+<span class="c"># proof — every subsystem owns a fixture that must stay green</span>
+fixtures/&lt;subsystem&gt;/verify_*.py       <span class="c">31 of them; zero for Stage 5 (TASK-009)</span>
+
+<span class="c"># per-run, disposable</span>
+runs/&lt;run_id&gt;/  UI_INPUT.yaml · context_set/ · code_map/ · solution_intent/
+                enrichment.json · jira_plan.json · code_changes/ · ledger/</pre>
+
+      <div class="callout" style="--hue: var(--articles)">
+        <span class="t">Two seams only</span>
+        <p><strong>The domain seam</strong> (SI section profile + <code>jira_template</code>) and
+          <strong>the runtime-tool seam</strong> (instruction file, prompt files, launch). Two further
+          variation points are not domain concerns: the per-<em>language</em> extractor, behind an
+          onboarding gate, and the per-<em>repo</em> signal profile. <strong>Nothing else varies.</strong>
+          If a change needs a new place to vary, the declaration was not expressive enough &mdash;
+          that is the finding, not the workaround.</p>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════ 3 -->
+    <section>
+      <div class="head col">
+        <p class="num">03 &mdash; Stage detail</p>
+        <h2>What each stage reads and writes</h2>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:14%">Stage</th>
+              <th style="width:26%">Reads</th>
+              <th style="width:26%">Writes</th>
+              <th>What it is allowed to decide</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="k hue" style="--hue: var(--dim)">0 &middot; Config</td>
+              <td>operator input via the UI</td>
+              <td><code>UI_INPUT.yaml</code>, run scaffold</td>
+              <td>Repo, domain, uploaded artifacts and their <b>dispositions</b>, and a change-type <b>hypothesis</b>. The hypothesis is never authoritative.</td>
+            </tr>
+            <tr>
+              <td class="k hue" style="--hue: var(--codemap)">1 &middot; Ingest</td>
+              <td><code>extractor_manifest</code>, <code>code_profiles/*</code>, <code>retrieval_config</code></td>
+              <td><code>context_set/</code>, <code>code_map/</code></td>
+              <td>Nothing structural. The extractor is <b>frozen and deterministic</b>; the model contributes only <code>purpose</code> text. Modules and edges are derived.</td>
+            </tr>
+            <tr>
+              <td class="k hue" style="--hue: var(--history)">2 &middot; Intent v1</td>
+              <td><code>si_profile</code>, <code>probes.yaml</code>, the history KB</td>
+              <td><code>v1.md</code> &mdash; frozen at G1</td>
+              <td>What is being asked, <b>code-blind by choice</b>. Classifies every §8 assertion as <code>modify_existing</code> / <code>new_capability</code> / <code>unclear</code>, and answers the probes.</td>
+            </tr>
+            <tr>
+              <td class="k hue" style="--hue: var(--flows)">3 &middot; Enrichment</td>
+              <td><code>flow.yaml</code>, <code>applications.yaml</code>, <code>interfaces.yaml</code>, <code>networks.yaml</code>, v1 assertions, the code map, the source</td>
+              <td><code>enrichment.json</code>, <code>v2.md</code></td>
+              <td>Where the change lands, and where it does not. Files findings, non-events, boundaries. <b>Never edits v1.</b></td>
+            </tr>
+            <tr>
+              <td class="k hue" style="--hue: var(--articles)">4 &middot; Jira plan</td>
+              <td>v2 §16 + §7, <code>jira_template</code></td>
+              <td><code>jira_plan.json</code> &rarr; Jira</td>
+              <td>Epic and story shape, acceptance criteria. <b>Acceptance criteria are authored here</b> and exist nowhere upstream &mdash; that is what makes this a translation, not a copy.</td>
+            </tr>
+            <tr>
+              <td class="k hue" style="--hue: var(--code)">5 &middot; Code change</td>
+              <td>plan + §16 + repo</td>
+              <td><code>code_changes/</code> &rarr; branch</td>
+              <td>The diff itself, as reviewable copies. <b>EDIT stories only</b>; VERIFY and VALIDATE become notes. Every hunk cites its §16 entry.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout" style="--hue: var(--history)">
+        <span class="t">Why v1 is code-blind on purpose</span>
+        <p>The code map already exists by Stage 2 &mdash; ingest built it. v1 does not use it
+          <em>by choice</em>. That is what makes the audit story work: <strong>every difference
+          between v1 and v2 traces to a numbered, code-checked finding.</strong> If v1 peeked at the
+          code, that guarantee dissolves and nobody could say which claims were requirements and
+          which were observations.</p>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════ 4 -->
+    <section>
+      <div class="head col">
+        <p class="num">04 &mdash; Files in the flow</p>
+        <h2>Which declaration is read, and when</h2>
+      </div>
+      <p class="col note">Eleven declarations decide what a run does. None of them branch in code
+        &mdash; each is joined to the next by a <strong>named key</strong>, so the whole analysis is
+        the transitive closure of those joins. Note how little Stage 5 reads: by then every decision
+        has been made and written down.</p>
+
+      <figure>
+        <div class="figwrap">
+          <svg viewBox="0 0 1080 340" role="img"
+               aria-label="The six stages left to right, with the declaration files each one reads listed beneath it. Stage 0 reads UI_INPUT. Stage 1 reads the extractor manifest, code profiles and retrieval config. Stage 2 reads the SI profile and probes. Stage 3 reads flow, applications, interfaces and networks. Stage 4 reads the Jira template. Stage 5 reads no declarations at all.">
+            <text class="t-lbl" x="24" y="24">STAGE</text>
+
+            <rect x="24"  y="36" width="150" height="44" rx="2" fill="#18222D" stroke="#2C3D4E" />
+            <text class="t-name" x="40" y="64">Config</text>
+            <rect x="204" y="36" width="150" height="44" rx="2" fill="#18222D" stroke="#2C3D4E" />
+            <text class="t-name" x="220" y="64">Ingest</text>
+            <rect x="384" y="36" width="150" height="44" rx="2" fill="#18222D" stroke="#B98CE0" />
+            <text class="t-name" x="400" y="64" fill="#B98CE0">Intent v1</text>
+            <rect x="564" y="36" width="150" height="44" rx="2" fill="#18222D" stroke="#4FC3D9" stroke-width="1.4" />
+            <text class="t-name" x="580" y="64" fill="#4FC3D9">Enrichment</text>
+            <rect x="744" y="36" width="150" height="44" rx="2" fill="#18222D" stroke="#2C3D4E" />
+            <text class="t-name" x="760" y="64">Jira plan</text>
+            <rect x="924" y="36" width="132" height="44" rx="2" fill="#18222D" stroke="#F2825C" />
+            <text class="t-name" x="940" y="64" fill="#F2825C">Code</text>
+
+            <line x1="24" y1="106" x2="1056" y2="106" stroke="#1E2A36" stroke-dasharray="3 4" />
+            <text class="t-lbl" x="24" y="128">READS</text>
+
+            <text class="t-sm" x="24"  y="152" fill="#7C8FA3">UI_INPUT.yaml</text>
+
+            <text class="t-sm" x="204" y="152" fill="#7C8FA3">extractor_manifest</text>
+            <text class="t-sm" x="204" y="170" fill="#7C8FA3">code_profiles/*</text>
+            <text class="t-sm" x="204" y="188" fill="#7C8FA3">retrieval_config</text>
+
+            <text class="t-sm" x="384" y="152" fill="#B98CE0">si_profile</text>
+            <text class="t-sm" x="384" y="170" fill="#E8B34A">probes.yaml</text>
+            <text class="t-sm" x="384" y="188" fill="#55677A">history KB</text>
+
+            <text class="t-sm" x="564" y="152" fill="#E8B34A">flow.yaml</text>
+            <text class="t-sm" x="564" y="170" fill="#5BD6A0">applications.yaml</text>
+            <text class="t-sm" x="564" y="188" fill="#5BD6A0">interfaces.yaml</text>
+            <text class="t-sm" x="564" y="206" fill="#B98CE0">networks.yaml</text>
+
+            <text class="t-sm" x="744" y="152" fill="#B98CE0">jira_template</text>
+
+            <text class="t-sm" x="924" y="152" fill="#55677A">none &#8212; skills,</text>
+            <text class="t-sm" x="924" y="170" fill="#55677A">the plan, and &#167;16</text>
+
+            <line x1="24" y1="242" x2="1056" y2="242" stroke="#1E2A36" />
+            <text class="t-lbl" x="24" y="266">FAMILY</text>
+            <text class="t-sm" x="90"  y="266" fill="#5BD6A0">&#9632; estate &#8212; what exists</text>
+            <text class="t-sm" x="290" y="266" fill="#E8B34A">&#9632; change type &#8212; what runs</text>
+            <text class="t-sm" x="520" y="266" fill="#B98CE0">&#9632; document &#8212; what is produced</text>
+            <text class="t-sm" x="790" y="266" fill="#7C8FA3">&#9632; plumbing &#8212; per-run, per-tool</text>
+
+            <text class="t-sm" x="24" y="302">Stage 2 is where the change type is decided, so it is the last stage that reads no flow file and the first that reads a probe file.</text>
+            <text class="t-sm" x="24" y="320">Everything Stage 3 does was declared before Stage 3 started.</text>
+          </svg>
+        </div>
+        <figcaption><b>Declarations, not branches.</b> No stage contains an <code>if</code> about the
+          domain, the change type or the repo. It loads the declarations for the run it was given and
+          executes what they say &mdash; which is why adding a change type is a directory, not a
+          release.</figcaption>
+      </figure>
+
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:26%">File</th>
+              <th style="width:12%">Family</th>
+              <th style="width:16%">Read by</th>
+              <th>What it decides</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="k hue" style="--hue: var(--codemap)">core/estate/applications.yaml</td>
+              <td>estate</td><td>Stage 3</td>
+              <td>What applications exist and <b>what each is made of</b> &mdash; a list of substances per application. Also <code>in_estate</code> (do we analyse it?) versus <code>acquired</code> (can we read its code yet?), which are different questions.</td>
+            </tr>
+            <tr>
+              <td class="k hue" style="--hue: var(--codemap)">core/estate/interfaces.yaml</td>
+              <td>estate</td><td>Stage 3</td>
+              <td>The <b>file</b> interfaces &mdash; MPT, PTI Gen, submission. Each names its parties by role with a <code>writes_at</code>, <code>reads_at</code> and <code>layout_at</code> <em>per side</em>. It is what makes impact cross from one application to another; generic, never re-declared per change type.</td>
+            </tr>
+            <tr>
+              <td class="k hue" style="--hue: var(--articles)">change_types/&lt;type&gt;/flow.yaml</td>
+              <td>change type</td><td>Stage 3</td>
+              <td>The analysis for one change type: <code>floor</code>, <code>resolve</code>, <code>impact</code>, <code>release_shape</code>. Order is <b>derived</b> from <code>provides</code>/<code>needs</code>, never written.</td>
+            </tr>
+            <tr>
+              <td class="k hue" style="--hue: var(--articles)">change_types/&lt;type&gt;/probes.yaml</td>
+              <td>change type</td><td>Stage 2</td>
+              <td>The questions asked at Stage 2 that change what runs at Stage 3. Each probe carries <code>activates: [pass id]</code> &mdash; <b>one direction only</b>, so a pass never names its probes.</td>
+            </tr>
+            <tr>
+              <td class="k hue" style="--hue: var(--history)">si_profile.payment_brand.yaml</td>
+              <td>document</td><td>Stage 2</td>
+              <td>The 18 SI sections, each with its <code>must_capture</code>, its <code>authored</code> stage, what enrichment may <code>touch</code>, and the <code>classes</code> routing row that decides which uploads feed it. <code>must_capture</code> doubles as the semantic retrieval query.</td>
+            </tr>
+            <tr>
+              <td class="k hue" style="--hue: var(--history)">jira_template.payment_brand.yaml</td>
+              <td>document</td><td>Stage 4</td>
+              <td>Maps v2 sections onto the Jira hierarchy, one source per level. Type sections map when present and are skipped when absent &mdash; adding a change type cannot break the plan for runs without it.</td>
+            </tr>
+            <tr>
+              <td class="k hue" style="--hue: var(--history)">interchange_networks.yaml</td>
+              <td>document</td><td>Stage 3</td>
+              <td>The network vocabulary &mdash; the designator families each card network publishes. Reference data for resolution, not a rule about what runs.</td>
+            </tr>
+            <tr>
+              <td class="k hue" style="--hue: var(--dim)">code_profiles/*.profile.yaml</td>
+              <td>plumbing</td><td>Stage 1</td>
+              <td>Per-<b>repo</b> reading rules: module clustering, edge derivation. Frozen, deterministic, never model-rewritten at runtime. Referenced from an application's <code>code</code> substance, so each application declares how its own repo is read.</td>
+            </tr>
+            <tr>
+              <td class="k hue" style="--hue: var(--dim)">core/extractor_manifest.yaml</td>
+              <td>plumbing</td><td>Stage 1</td>
+              <td>The per-<b>language</b> extractor freeze: which extractor, under what tooling, with its coverage floor and the git blob sha of the frozen file. A human freezes it by committing; a post-freeze edit cannot pass silently.</td>
+            </tr>
+            <tr>
+              <td class="k hue" style="--hue: var(--dim)">core/retrieval_config.yaml</td>
+              <td>plumbing</td><td>Stages 1&ndash;2</td>
+              <td>The calibrated numbers behind the two-level retrieval funnel &mdash; whole-read versus index-guided, checked across the routed <b>set</b> rather than per document. Properties of the model and corpus, deliberately not per-run config.</td>
+            </tr>
+            <tr>
+              <td class="k hue" style="--hue: var(--dim)">runs/&lt;run&gt;/UI_INPUT.yaml</td>
+              <td>plumbing</td><td>Stage 0&rarr;1</td>
+              <td>Per-run operator configuration reviewed at G0 &mdash; repo, domain, uploaded artifacts and their dispositions, and the change-type <b>hypothesis</b> Stage 2 may overturn.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════ 5 -->
+    <section>
+      <div class="head col">
+        <p class="num">05 &mdash; Change types</p>
+        <h2>The unit of variation</h2>
+      </div>
+      <div class="col stack">
+        <p class="note">A <strong>change type</strong> is a kind of work the estate receives &mdash;
+          interchange, clearing, authorization, network fees. It is the answer to <em>"which passes
+          should run, and what must be assessed regardless?"</em> Everything a type varies lives in
+          one directory:</p>
+      </div>
+      <pre>core/profiles/payment_brand/change_types/interchange/
+  <span class="k">flow.yaml</span>                    <span class="c">floor · resolve · impact · release_shape</span>
+  <span class="k">probes.yaml</span>                  <span class="c">the questions, and which passes each answer activates</span>
+  resolve_mnemonic.skill.md    <span class="c">the reading — how to recognise a mapping in C</span>
+  assess_qualification.skill.md <span class="c">a specialised reader, activated by a probe</span></pre>
+
+      <div class="col stack">
+        <p class="note"><strong>Adding a type is a directory, not a release.</strong> No stage branches
+          on the type &mdash; the orchestrator loads whatever the confirmed types declare. A run may
+          confirm more than one, in which case the flows are unioned.</p>
+      </div>
+
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th style="width:22%"></th><th style="width:39%"><code>interchange</code></th><th><code>authorization</code> &mdash; the minimal second type</th></tr></thead>
+          <tbody>
+            <tr><td class="k">floor</td><td>stratus.code · resolve · interface: mpt</td><td>stratus.code</td></tr>
+            <tr><td class="k">resolve</td><td>designator &rarr; mnemonic, via Stratus</td><td><code>[]</code> &mdash; <b>no external vocabulary to translate</b></td></tr>
+            <tr><td class="k">impact</td><td>3 passes, 2 probe-activated</td><td>1 pass, unconditional</td></tr>
+            <tr><td class="k">release_shape</td><td>&sect;INT-4</td><td><code>[]</code> &mdash; no interface in play</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout" style="--hue: var(--articles)">
+        <span class="t">Why the minimal second type ships on day one</span>
+        <p><code>authorization</code> exists so the <strong>empty-<code>resolve</code></strong>,
+          <strong>empty-<code>release_shape</code></strong> and <strong>type-union</strong> paths all
+          execute from the first day &mdash; rather than being discovered as broken the first time a
+          second type is genuinely needed. A declared stub is cheaper than a latent branch.</p>
+      </div>
+
+      <div class="col stack">
+        <p class="note"><strong>A probe earns its place with one test:</strong> <em>does the answer
+          change what runs?</em> If nothing runs differently it is a note, not a probe. And there are
+          exactly two shapes worth building &mdash; gating a <b>specialised reader</b> on a substance
+          the generic arm already scans, or gating an <b>instrument</b> on a system nothing else
+          touches.</p>
+      </div>
+      <pre><span class="c"># change_types/interchange/probes.yaml</span>
+probes:
+  - id: <span class="w">INT-P1</span>
+    ask: Is this change specific to qualification criteria?
+    answer_from: corpus_first        <span class="c">operator asked only where the documents don't settle it</span>
+    <span class="v">activates</span>: [qualification_impact]   <span class="c">a SPECIALISED READER on stratus.code</span>
+
+  - id: <span class="w">INT-P2</span>
+    ask: Does this change pricing for existing programs?
+    answer_from: corpus_first
+    <span class="v">activates</span>: [pricing_impact]         <span class="c">a different INSTRUMENT — peoplesoft.rate_tables</span></pre>
+
+      <div class="callout" style="--hue: var(--history)">
+        <span class="t">A "no" is a finding too</span>
+        <p>A probe answered <em>no</em> records its <strong>non-activation with the citation behind
+          it</strong> &mdash; <em>"qualification pass not run: INT-P1 answered no, sourced from mandate
+          §4.2."</em> Otherwise <em>we determined this isn't qualification-related</em> is
+          indistinguishable from <em>nobody considered qualification</em>. And a probe answered
+          <code>unknown</code> must never silently leave its pass unactivated: treat it as activated,
+          the cautious direction, or escalate.</p>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════ 6 -->
+    <section>
+      <div class="head col">
+        <p class="num">06 &mdash; The estate</p>
+        <h2>What exists, and how impact crosses it</h2>
+      </div>
+      <div class="col stack">
+        <p class="note">There are <strong>no API interfaces</strong> in this estate. Coupling is
+          entirely file-based, and nothing in either side's source names the other &mdash;
+          <code>mpt_loader.c</code> contains no reference to PeopleSoft and never will. So interfaces
+          cannot be extracted; they must be <strong>declared</strong>. The flip side is that the set
+          is small, static and enumerable, which makes declaring it cheap.</p>
+      </div>
+      <pre><span class="c"># core/estate/applications.yaml — what exists, and what each is MADE OF</span>
+- id: stratus
+  in_estate: <span class="v">true</span>
+  acquired:  <span class="v">true</span>              <span class="c">← can we read its code yet?</span>
+  substances:
+    - { id: code,       kind: <span class="k">code</span>,        profile: c_repo.profile.yaml }
+    - { id: submission, kind: <span class="k">file_layout</span>, layout_at: include/submission_record.h }
+
+- id: peoplesoft
+  in_estate: <span class="v">true</span>
+  acquired:  <span class="w">false</span>             <span class="c">← declared now, repo later. NOT an error.</span>
+  substances:
+    - { id: code,        kind: <span class="k">code</span> }        <span class="c">no `profile:` — derived from acquired</span>
+    - { id: rate_tables, kind: <span class="k">tabular</span> }
+    - { id: mpt,         kind: <span class="k">file_layout</span> }</pre>
+
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th style="width:16%">Substance kind</th><th style="width:34%">Instrument</th><th>What only it can do</th></tr></thead>
+          <tbody>
+            <tr><td class="k">code</td><td><b>scan</b> &mdash; full repo, code map, dependency closure</td><td>everything the code arms do</td></tr>
+            <tr><td class="k">file_layout</td><td><b>field diff</b> between two declared definitions</td><td>field-level crossing, and layout-drift detection</td></tr>
+            <tr><td class="k">tabular</td><td><b>keyed lookup</b> by resolved identifier</td><td>originate an impact with <b>no code change anywhere</b> &mdash; a pure rate change</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="col note"><strong>Crossing is mechanical, not judged.</strong> An impact promotes to
+        an interface impact when its <code>file:line</code> falls <em>inside</em> a site declared in
+        <code>interfaces.yaml</code> &mdash; <code>reads_at</code>, <code>writes_at</code> or
+        <code>layout_at</code>. Then fields are derived by parsing each side's layout, and the impact
+        crosses to <em>every other party</em>, in <b>both directions</b>.</p>
+
+      <div class="callout" style="--hue: var(--flows)">
+        <span class="t">The direction people forget</span>
+        <p>Producer changes what it writes &rarr; consumers' read sites are impacted. <strong>Consumer
+          needs a field the interface does not carry &rarr; the producer's write site and layout are
+          impacted.</strong> Neither is the special case &mdash; and the second cannot be found by
+          promotion, because a field that does not exist yet has no read site to land on. Only a
+          <code>{ interface: mpt }</code> floor entry, assessed directly against both layouts with no
+          code hit required, reaches it.</p>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════ 5 -->
+    <section>
+      <div class="head col">
+        <p class="num">07 &mdash; The flow</p>
+        <h2>Inside enrichment</h2>
+      </div>
+      <p class="col note">Stage 3 is an <strong>interpreter of <code>flow.yaml</code></strong>, not a
+        fixed sequence. The order is computed, never reasoned: <code>flow_plan.py</code> takes the
+        flow plus the activated pass set and returns ordered waves, refusing to return a plan at all
+        if any declaration is malformed.</p>
+
+      <figure>
+        <div class="figwrap">
+          <svg viewBox="0 0 1060 300" role="img"
+               aria-label="Enrichment interior: scope opens at the floor unioned with knowledge base proposals, then resolve runs alone as a barrier, then all impact passes run in parallel, then cross walks the estate to a fixed point, then release shape returns a verdict, then consolidate produces enrichment.json.">
+            <defs>
+              <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M0 0 L10 5 L0 10 z" fill="#4FC3D9" /></marker>
+            </defs>
+
+            <rect x="24" y="60" width="150" height="76" rx="2" fill="#18222D" stroke="#2C3D4E" />
+            <text class="t-name" x="40" y="86">scope</text>
+            <text class="t-sm"   x="40" y="104">floor</text>
+            <text class="t-sm"   x="40" y="120">&#8746; KB proposals</text>
+
+            <rect x="212" y="60" width="150" height="76" rx="2" fill="#18222D" stroke="#B98CE0" stroke-width="1.4" />
+            <text class="t-name" x="228" y="86" fill="#B98CE0">resolve</text>
+            <text class="t-sm"   x="228" y="104">designator</text>
+            <text class="t-sm"   x="228" y="120">&#8594; mnemonic</text>
+            <text class="t-lbl"  x="228" y="156" fill="#B98CE0">BARRIER</text>
+
+            <rect x="400" y="30" width="180" height="46" rx="2" fill="#18222D" stroke="#2C3D4E" />
+            <text class="t-name" x="416" y="52">stratus_code</text>
+            <text class="t-sm"   x="416" y="68">floor &#183; full_repo</text>
+
+            <rect x="400" y="88" width="180" height="46" rx="2" fill="#18222D" stroke="#2C3D4E" />
+            <text class="t-name" x="416" y="110">pricing_impact</text>
+            <text class="t-sm"   x="416" y="126">via INT-P2</text>
+
+            <rect x="400" y="146" width="180" height="46" rx="2" fill="#18222D" stroke="#2C3D4E" />
+            <text class="t-name" x="416" y="168">qualification</text>
+            <text class="t-sm"   x="416" y="184">via INT-P1</text>
+
+            <text class="t-lbl" x="400" y="216" fill="#4FC3D9">ALL PARALLEL &#8212; RESOLVE SATISFIES EVERY needs AT ONCE</text>
+
+            <rect x="618" y="60" width="150" height="76" rx="2" fill="#18222D" stroke="#4FC3D9" />
+            <text class="t-name" x="634" y="86" fill="#4FC3D9">cross</text>
+            <text class="t-sm"   x="634" y="104">estate walk</text>
+            <text class="t-sm"   x="634" y="120">to fixed point</text>
+
+            <rect x="806" y="60" width="150" height="76" rx="2" fill="#18222D" stroke="#2C3D4E" />
+            <text class="t-name" x="822" y="86">release_shape</text>
+            <text class="t-sm"   x="822" y="104">separate |</text>
+            <text class="t-sm"   x="822" y="120">integrated</text>
+
+            <path d="M174 98 L206 98"  stroke="#4FC3D9" marker-end="url(#a2)" />
+            <path d="M362 98 L392 53"  stroke="#4FC3D9" marker-end="url(#a2)" />
+            <path d="M362 98 L392 111" stroke="#4FC3D9" marker-end="url(#a2)" />
+            <path d="M362 98 L392 169" stroke="#4FC3D9" marker-end="url(#a2)" />
+            <path d="M580 53  L604 92" stroke="#4FC3D9" marker-end="url(#a2)" />
+            <path d="M580 111 L604 98" stroke="#4FC3D9" marker-end="url(#a2)" />
+            <path d="M580 169 L604 104" stroke="#4FC3D9" marker-end="url(#a2)" />
+            <path d="M768 98 L800 98"  stroke="#4FC3D9" marker-end="url(#a2)" />
+
+            <line x1="24" y1="248" x2="1036" y2="248" stroke="#1E2A36" />
+            <text class="t-sm" x="24" y="272">Every activated pass files findings <tspan fill="#E8B34A">or an explicit non-event</tspan>. Every declared phase does too.
+              Silence fails G2.</text>
+          </svg>
+        </div>
+        <figcaption><b>Resolve is a barrier, and that is deliberate.</b> Not fine-grained topological
+          ordering across the phase boundary: with two resolve passes both providing
+          <code>mnemonic</code>, fine-grained ordering would let an impact pass start when the
+          <em>first</em> finished, scanning an incomplete key set and finding less &mdash; with
+          nothing in the output to say why.</figcaption>
+      </figure>
+
+      <pre><span class="c"># change_types/interchange/flow.yaml</span>
+<span class="k">floor</span>:                                   <span class="c">a MINIMUM, never a search scope</span>
+  - { application: stratus, substance: code }
+  - { phase: resolve,       application: stratus }
+  - { interface: mpt }
+
+<span class="k">resolve</span>:
+  - id: designator_to_mnemonic
+    application: stratus                 <span class="c">Stratus is the dictionary AND a target</span>
+    <span class="v">provides</span>: [mnemonic, program_code, interchange_level]
+    on_unresolved: escalate              <span class="c">never proceed on a partial key set</span>
+
+<span class="k">impact</span>:
+  - id: stratus_code
+    <span class="v">needs</span>: [mnemonic]                    <span class="c">identifiers, NEVER pass ids</span>
+    search:
+      keys:  [mnemonic, program_code, interchange_level]   <span class="c">closed set, each accounted for</span>
+      scope: full_repo                                     <span class="c">unbounded — keys never narrow this</span>
+    reads: [v1.assertions]               <span class="c">on EVERY pass, without exception</span></pre>
+
+      <div class="cards">
+        <div class="card" style="--hue: var(--flows)">
+          <span class="p">needs: sequences, never scopes</span>
+          <span class="d">It decides <em>when</em> a pass runs and nothing more. The pass still reads
+            every v1 assertion, searches every key, and scans the whole repo.</span>
+        </div>
+        <div class="card" style="--hue: var(--flows)">
+          <span class="p">two search obligations</span>
+          <span class="d"><code>keys</code> is a closed set, each accounted for as found-here or
+            not-found. <code>scope: full_repo</code> is unbounded. A pass that only searched its keys
+            has silently become a lookup.</span>
+        </div>
+        <div class="card" style="--hue: var(--flows)">
+          <span class="p">provides: identifiers only</span>
+          <span class="d">The schema rejects <code>provides: [mpt_is_impacted]</code> because that is
+            a conclusion, not an identifier. Otherwise a pass could manufacture the agreement
+            <code>release_shape</code> exists to discover.</span>
+        </div>
+        <div class="card" style="--hue: var(--history)">
+          <span class="p">activates: one direction only</span>
+          <span class="d">A probe names its passes; a pass never names its probes. Conditionality is
+            <em>derived</em> &mdash; union every <code>activates:</code>, and a pass no probe names is
+            unconditional.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════ 6 -->
+    <section>
+      <div class="head col">
+        <p class="num">08 &mdash; The spine of the output</p>
+        <h2>§16 is the only route to work</h2>
+      </div>
+      <div class="col stack">
+        <p class="note">Everything actionable reaches Jira through <strong>§16</strong>. It is what
+          <code>jira_validator</code> traces in both directions &mdash; every §16 entry yields a
+          story, every story traces back. A second home for impacts would mean a second spine,
+          rebuilt from scratch.</p>
+      </div>
+      <pre>§16.3   <span class="k">kind</span>: <span class="v">impact</span>          <span class="c">code exists — change it</span>
+        assertion: A-4  (modify_existing)
+        location:  src/routing/route_table.c:88-140    [found]
+        finding:   IRD 0301 rate entry — rate field set at line 112
+
+§16.7   <span class="k">kind</span>: <span class="w">gap</span>             <span class="c">code does NOT exist — build it</span>
+        assertion: A-9  (new_capability)
+        location:  src/routing/brand_registry.c:120-180    [prospective]
+        basis:     IRDs 0201, 0334, 0512 are registered here
+        finding:   IRD 0537 does not exist. A new registration would be added here.
+
+§16.9   <span class="k">kind</span>: <span class="v">verify</span>          <span class="c">deliberately NOT changed — confirm why</span>
+        assertion: A-6  (modify_existing)
+        location:  src/billing/fee_calc.c:210-240     [found]
+        finding:   fee calculation reads the rate at runtime; no code change needed
+        confirm:   that fee_calc reads rates dynamically and holds no cached copy</pre>
+
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th style="width:16%">kind</th><th style="width:26%">Story action</th><th>What <code>code_author</code> does</th></tr></thead>
+          <tbody>
+            <tr><td class="k">impact</td><td><b>EDIT</b></td><td>drafts a hunk, citing the §16 entry</td></tr>
+            <tr><td class="k">gap</td><td><b>EDIT</b> (new build)</td><td>drafts at the prospective location, or records why it cannot</td></tr>
+            <tr><td class="k">verify</td><td><b>VERIFY</b></td><td>note only &mdash; <b>never a hunk</b>. A story saying "we deliberately did not change this" arriving with an edit attached is a contradiction</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout" style="--hue: var(--codemap)">
+        <span class="t">The gap case is the one that goes missing</span>
+        <p>A gap is <strong>not location-<em>less</em>, it is location-<em>prospective</em></strong>.
+          When the scan finds no direct landing, an analogy search locates the nearest existing
+          instance of the same kind of thing and reports where a new one would go. <em>"Not found"</em>
+          is not a story anyone can pick up; <em>"comparable IRDs are registered here"</em> is. Without
+          it, <strong>the most greenfield work is the most likely to fall out of the plan entirely</strong>
+          &mdash; a new fee program produces more gaps than impacts.</p>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════ 7 -->
+    <section>
+      <div class="head col">
+        <p class="num">09 &mdash; The split</p>
+        <h2>What is computed, and what is judged</h2>
+      </div>
+      <p class="col note">The governing rule is <strong>mechanical recall, model precision</strong>:
+        compute the thing whose error is invisible; let the model judge the thing a reader can check.</p>
+
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th style="width:44%">Computed &mdash; a script</th><th>Judged &mdash; the model</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Structural extraction &mdash; modules, edges, symbols. <b>Frozen, never model-rewritten at runtime.</b></td>
+              <td><code>purpose</code> text on a code-map node</td>
+            </tr>
+            <tr>
+              <td>The run order &mdash; topological sort over <code>provides</code>/<code>needs</code>, and every load-time rejection (<code>flow_plan.py</code>)</td>
+              <td>Whether a retrieved precedent is genuinely comparable</td>
+            </tr>
+            <tr>
+              <td>Promotion to an interface impact &mdash; <code>file:line</code> containment in a declared site</td>
+              <td>How to read C source and recognise a program-name-to-mnemonic mapping</td>
+            </tr>
+            <tr>
+              <td>Field derivation &mdash; parsing each side's declared layout</td>
+              <td>Whether an absence means a gap or a contradicted premise <em>(given the committed assertion type)</em></td>
+            </tr>
+            <tr>
+              <td>The merge into <code>enrichment.json</code> &mdash; fixed-order and <b>model-free</b>, surfacing conflicts rather than resolving them</td>
+              <td>The change draft itself, reviewed at G4</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout" style="--hue: var(--code)">
+        <span class="t">Why the sort must not be reasoned</span>
+        <p>A wrong sort is <strong>invisible</strong>. A pass started before its identifiers exist
+          scans an empty key set, files fewer findings, and <em>every G2 check still passes</em> &mdash;
+          floor totality, findings-or-non-event, all green. The only symptom is fewer §16 entries,
+          which is indistinguishable from a change that genuinely touches less.</p>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════ 8 -->
+    <section>
+      <div class="head col">
+        <p class="num">10 &mdash; Invariants</p>
+        <h2>Rules that must not break</h2>
+      </div>
+      <div class="rules">
+        <div class="rule">
+          <div class="l">floor is a floor,<br>never a ceiling</div>
+          <div class="r">Declared coverage is a <strong>guaranteed minimum</strong>, never a search
+            scope. This is the one degradation somebody will later introduce as an optimisation, so it
+            is written as a rule rather than left as an assumption.</div>
+        </div>
+        <div class="rule">
+          <div class="l">history is a prior,<br>never a filter</div>
+          <div class="r">The KB <strong>unions into scope and never subtracts</strong>. Co-change
+            history records what people <em>did</em>, not what was correct &mdash; so more history
+            makes that blind spot more confident, and the scan is the only instrument that can see
+            what past practice missed.</div>
+        </div>
+        <div class="rule">
+          <div class="l">silence is never<br>permitted</div>
+          <div class="r">Findings, <strong>non-events</strong> ("ran, found nothing"),
+            <strong>non-activations</strong> ("probe answered no, sourced from mandate §4.2") and
+            <strong>boundaries</strong> ("reached PeopleSoft, repo not acquired") are all recorded.
+            <em>"We determined nothing is needed"</em> must never look like <em>"nobody looked."</em>
+            <code>floor:</code>, <code>activates:</code> and the declared phases supply the denominator.</div>
+        </div>
+        <div class="rule">
+          <div class="l">join keys forward,<br>never conclusions</div>
+          <div class="r">A pass may hand downstream <em>"mnemonic X, program code Y"</em>. It may never
+            hand down <em>"I think MPT changes"</em> &mdash; that would manufacture the agreement
+            <code>release_shape</code> exists to discover. Enforced by restricting
+            <code>provides</code> to an identifier vocabulary.</div>
+        </div>
+        <div class="rule">
+          <div class="l">never restate a<br>derivable fact</div>
+          <div class="r">A field whose value is reachable by following a declared id is a
+            <strong>schema violation, not a convenience</strong>. No <code>activated_by:</code> on a
+            pass; no <code>acquired:</code> on an interface party; no <code>profile:</code> on an
+            unacquired substance. Every echo is a place two files drift.</div>
+        </div>
+        <div class="rule">
+          <div class="l">absence means something<br>only against expectation</div>
+          <div class="r">Every §8 assertion is typed <strong>before the code is read</strong>, and
+            frozen in v1. Same absence, opposite verdicts: <code>new_capability</code> + not-found is
+            a <b>gap</b> (the work); <code>modify_existing</code> + not-found <b>escalates</b> and
+            blocks G2. Decide the type afterwards and the check rationalises every absence.</div>
+        </div>
+        <div class="rule">
+          <div class="l">v1 + enrichment<br>reconstructs v2 exactly</div>
+          <div class="r">The strongest guarantee in the system and the whole audit story &mdash; every
+            difference between the code-blind and code-checked documents traces to a numbered finding.
+            <strong>Parked: whether anything actually tests it.</strong> If untested it is an
+            aspiration, not a property.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════ 9 -->
+    <section>
+      <div class="head col">
+        <p class="num">11 &mdash; Build state</p>
+        <h2>What runs today, and what is proposed</h2>
+      </div>
+      <p class="col note">The pipeline works end to end &mdash; an article has been taken to code and
+        tested. What follows is the gap between that and the architecture above.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th style="width:20%">Item</th><th style="width:14%">State</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td class="k">si_profile · jira_template</td><td><b>on disk</b></td><td><code>jira_template</code> needs the skip-when-absent amendment for type sections</td></tr>
+            <tr><td class="k">code_profiles · extractor_manifest · retrieval_config</td><td><b>on disk</b></td><td>unchanged</td></tr>
+            <tr><td class="k">estate/applications.yaml<br>estate/interfaces.yaml</td><td>proposed</td><td><b>003.2</b>, Wave 1. No upstream dependency &mdash; write applications first; three of the other four resolve ids against it</td></tr>
+            <tr><td class="k">change_types/&lt;type&gt;/<br>flow.yaml · probes.yaml</td><td>proposed</td><td><b>003.2</b>, Wave 1. <code>authorization</code> ships alongside as the minimal second type, so the empty-<code>resolve</code> and empty-<code>release_shape</code> paths execute from day one</td></tr>
+            <tr><td class="k">flow_plan.py</td><td>proposed</td><td><b>003.5</b>. Ordered waves plus load-time rejections; the agent executes the plan and never reorders it</td></tr>
+            <tr><td class="k">code_validator.py<br>fixtures/code_author · code_push</td><td>proposed</td><td><b>009</b>. 31 fixtures exist; <b>zero are Stage 5</b> &mdash; of the two external mutations, only the Jira push is guarded</td></tr>
+            <tr><td class="k">Jira hierarchy</td><td><b>blocked</b></td><td><b>007</b>. Initiative and Deliverable are quarterly containers, <em>referenced not created</em>; one article = one epic. Reopens D-A15, so raised rather than applied</td></tr>
+            <tr><td class="k">validation.md</td><td>proposed</td><td><b>008</b>. Epic-level, positive cases from §16 and negative cases from the code &mdash; produced at Stage 5, because Stage 4 cannot read the repo</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout" style="--hue: var(--articles)">
+        <span class="t">Two capabilities with no executable case</span>
+        <p>Neither is broken; both need a <strong>synthetic</strong> fixture, and nobody should assume
+          the real declarations exercise them. <strong>The topological sort</strong> &mdash; no impact
+          pass declares <code>provides:</code>, so interchange has zero inter-pass dependencies and the
+          sort has nothing to sort. <strong>Layout drift detection</strong> &mdash; every declared
+          interface has exactly one <em>acquired</em> party, because Stratus is the only acquired repo
+          and sits on one side of all three.</p>
+      </div>
+    </section>
+
+
+    <!-- ══════════════════════════════════ 12 -->
+    <section>
+      <div class="head col">
+        <p class="num">12 &mdash; Worked example</p>
+        <h2>A network raises interchange on a fee program</h2>
+      </div>
+      <p class="col note">One change, end to end. The mandate introduces a new product designator and changes rates for two existing programs. Thirteen steps, each naming the file consulted and what it produced. Steps marked <span class="tag" style="display:inline-block">KB &middot; wave 4</span> depend on the historical corpus, which is proposed and gated on 003.7a &mdash; everything else runs without it.</p>
+
+      <div class="steps">
+
+        <div class="step" style="--hue: var(--dim)">
+          <div class="n">STEP 1</div>
+          <div class="body">
+            <h3>The run is configured &mdash; <span class="f">UI_INPUT.yaml</span></h3>
+            <p>Generate writes the run: the repo, the domain, the uploaded mandate and Tech Letter with
+              their dispositions, and a change-type <em>hypothesis</em> of <code>interchange</code>.
+              <strong>G0</strong> reviews it. The hypothesis is never authoritative &mdash; Stage 2 may
+              overturn it, and disagreement is the most valuable thing it can produce.</p>
+          </div>
+        </div>
+
+        <div class="step" style="--hue: var(--codemap)">
+          <div class="n">STEP 2</div>
+          <div class="body">
+            <h3>The repo becomes a map &mdash; <span class="f">extractor_manifest &middot; c_repo.profile</span></h3>
+            <p>The manifest says which frozen extractor handles C and asserts its recorded sha still
+              matches the file on disk. The signal profile says how <em>this</em> repo clusters into
+              modules and how edges are derived. Both deterministic; the model contributes only
+              <code>purpose</code> text. Cached on <code>(commit_sha, profile_sha)</code>, so a re-run
+              is instant. <strong>This map becomes a KB layer</strong> &mdash; everything downstream
+              queries it rather than re-deriving it.</p>
+          </div>
+        </div>
+
+        <div class="step" style="--hue: var(--history)">
+          <div class="n">STEP 3</div>
+          <div class="body">
+            <h3>v1 is authored code-blind &mdash; <span class="f">si_profile.payment_brand.yaml</span></h3>
+            <p>Each of the eighteen sections is authored against its <code>must_capture</code>, with the
+              routing row deciding which uploads feed it. &sect;8 carries the business requirements as
+              <strong>assertions</strong> &mdash; the population everything downstream is measured
+              against &mdash; and each is typed <code>modify_existing</code>, <code>new_capability</code>
+              or <code>unclear</code> <em>before any code is read</em>.</p>
+          </div>
+        </div>
+
+        <div class="step" style="--hue: var(--history)">
+          <div class="n">STEP 4</div>
+          <div class="body">
+            <span class="tag">KB &middot; wave 4</span>
+            <h3>The type is confirmed &mdash; <span class="f">article &rarr; Jira &rarr; diffs</span></h3>
+            <p>The KB matches v1 against past work and <em>recommends</em> <code>interchange</code>,
+              <strong>citing precedents by Jira key</strong> &mdash; <em>"PBI-4471 and PBI-4602 both
+              involved IRD changes and settlement-window shifts."</em> A recommendation the operator
+              cannot audit is a guess wearing a justification. The operator accepts or substitutes, and
+              <code>decisions.jsonl</code> records <strong>whether they differed</strong>, which is how
+              KB quality gets measured over time. Cold start &mdash; <em>"no similar precedent"</em>
+              &mdash; falls back cleanly to the Stage 0 declaration rather than blocking.</p>
+          </div>
+        </div>
+
+        <div class="step" style="--hue: var(--articles)">
+          <div class="n">STEP 5</div>
+          <div class="body">
+            <h3>Probes fire, and v1 freezes &mdash; <span class="f">probes.yaml</span></h3>
+            <pre>  <span class="w">INT-P1</span>  qualification criteria?   <span class="c">&#8594; NO,  sourced mandate &sect;4.2</span>
+  <span class="w">INT-P2</span>  pricing for existing?     <span class="c">&#8594; YES. pricing_impact turns on.</span></pre>
+            <p>INT-P1's negative answer is <strong>recorded as a non-activation, with its citation</strong>.
+              Then <strong>G1</strong>: v1 freezes, complete with its Change Classification section.</p>
+          </div>
+        </div>
+
+        <div class="step" style="--hue: var(--flows)">
+          <div class="n">STEP 6</div>
+          <div class="body">
+            <span class="tag">KB &middot; wave 4</span>
+            <h3>Scope opens at the floor &mdash; <span class="f">flow.yaml &cup; KB proposals</span></h3>
+            <p>The floor declares what will be assessed regardless of what the scan finds &mdash;
+              Stratus code, resolve, and the MPT interface. <strong>Then the KB unions in.</strong> The
+              diffs from comparable past changes say <em>which files</em> those changes touched, so
+              <code>brand_registry.c</code> enters scope even though nothing has pointed at it yet.</p>
+            <p><strong>The KB can only widen.</strong> It never says <em>"no comparable change touched
+              Settlement, skip it"</em> &mdash; history records what people <em>did</em>, not what was
+              correct, and the scan is the only instrument that sees what past practice missed. And the
+              floor is a floor, never a ceiling.</p>
+          </div>
+        </div>
+
+        <div class="step" style="--hue: var(--history)">
+          <div class="n">STEP 7</div>
+          <div class="body">
+            <h3>Resolution runs first &mdash; <span class="f">resolve_mnemonic.skill.md &middot; networks.yaml</span></h3>
+            <p>The networks publish <em>designators</em>; our systems key on <em>mnemonics</em>. Stratus
+              is the only dictionary, so nothing else can run until this does. <code>provides</code> is
+              a <strong>contract enforced before dependents start</strong>: if v1 names three
+              designators and resolve produces zero mnemonics, the orchestrator refuses to start the
+              passes that need them &mdash; rather than running three thin scans against an empty key
+              set, where the failure would be invisible because the scans simply find less.</p>
+          </div>
+        </div>
+
+        <div class="step" style="--hue: var(--flows)">
+          <div class="n">STEP 8</div>
+          <div class="body">
+            <h3>The impact passes run in derived order &mdash; <span class="f">flow_plan.py</span></h3>
+            <p>No run order is written anywhere. The plan is computed from
+              <code>provides</code>/<code>needs</code>, and because resolve provides everything all
+              three passes need, all three parallelise. Each carries two obligations doing different
+              jobs: <code>keys</code> is a closed set, each accounted for as found-here or not-found;
+              <code>scope: full_repo</code> is unbounded, anchored to v1's assertions.
+              <strong>Resolution creates a search obligation, not a search boundary</strong> &mdash; the
+              failure to design against is <em>"we resolved the mnemonics, so search for those,"</em>
+              which silently converts the scan into a lookup.</p>
+          </div>
+        </div>
+
+        <div class="step" style="--hue: var(--codemap)">
+          <div class="n">STEP 9</div>
+          <div class="body">
+            <h3>Impact crosses the estate &mdash; <span class="f">interfaces.yaml</span></h3>
+            <p>A Stratus impact lands on <code>src/config/mpt_loader.c</code> &mdash; a declared read
+              site. It promotes at <em>field</em> level and crosses to every other party. Here it goes
+              <strong>backward</strong>: Stratus needs an eligibility field MPT does not carry, so the
+              impact reaches for PeopleSoft's write site and layout. <strong>That is a PeopleSoft code
+              change originating from a Stratus requirement</strong> &mdash; the case nobody currently
+              discovers until implementation. PeopleSoft is <code>acquired: false</code>, so what lands
+              is a <strong>recorded boundary</strong>, not silence and not a located finding.</p>
+          </div>
+        </div>
+
+        <div class="step" style="--hue: var(--history)">
+          <div class="n">STEP 10</div>
+          <div class="body">
+            <span class="tag">KB &middot; wave 4</span>
+            <h3>The new designator has nowhere to land &mdash; <span class="f">the analogy search</span></h3>
+            <p>The mandate's <em>new</em> product designator resolves to no existing code. Its assertion
+              was typed <code>new_capability</code> back at step 3, so this absence is
+              <strong>expected</strong> &mdash; a <code>gap</code>, not an escalation. But <em>"not
+              found"</em> is not a story anyone can pick up.</p>
+            <p>So the pass asks where a new one would go. The code map offers the surrounding pattern;
+              <strong>the KB's diffs answer it outright</strong> &mdash; <em>"when IRD 0334 was
+              registered under PBI-4471, these three files changed."</em> That turns a prospective
+              location from an <strong>inference into a record</strong>, and it is where similarity is
+              easiest rather than hardest: <em>"the last time an IRD was registered"</em> is a narrow,
+              checkable class.</p>
+          </div>
+        </div>
+
+        <div class="step" style="--hue: var(--history)">
+          <div class="n">STEP 11</div>
+          <div class="body">
+            <span class="tag">KB &middot; wave 4</span>
+            <h3>The scan is challenged &mdash; <span class="f">reconciliation, four quadrants</span></h3>
+            <p>After enrichment, the engines the scan found impacted are compared against the engines
+              the KB says comparable changes touched. Only the <strong>two off-diagonal cells</strong>
+              reach the operator, which keeps the decision set small:</p>
+            <pre>                  <span class="c">KB EXPECTS IT      KB NEVER SAW IT</span>
+  scan found      agreed, proceed    <span class="w">NOVEL &#8212; determine</span>
+  scan found none <span class="w">GAP &#8212; determine</span>       not impacted</pre>
+            <p>Both directions catch opposite failures. <em>"Past interchange changes always touched
+              clearing; you have nothing there"</em> is <strong>under-detection</strong>. <em>"You have
+              stories against messaging; no comparable change ever touched it"</em> is
+              <strong>over-detection</strong> &mdash; and a better bloat signal than counting stories,
+              because it names <em>which</em> impacts to be suspicious of.</p>
+          </div>
+        </div>
+
+        <div class="step" style="--hue: var(--code)">
+          <div class="n">STEP 12</div>
+          <div class="body">
+            <h3>Findings become the document, then the plan &mdash; <span class="f">jira_template</span></h3>
+            <p><code>release_shape</code> determines the release: the MPT field and its Stratus consumer
+              must ship <strong>together</strong> &mdash; integrated, not separate &mdash; or the daily
+              file breaks. Every pass files findings or an explicit non-event into its own file; the
+              merge into <code>enrichment.json</code> is fixed-order and model-free, surfacing conflicts
+              rather than resolving them, so <code>v1 + enrichment</code> still reconstructs v2 exactly.
+              The apply pass writes &sect;16 and the type sections. <strong>G2</strong> accepts v2, and
+              the epic and its stories follow.</p>
+          </div>
+        </div>
+
+        <div class="step" style="--hue: var(--code)">
+          <div class="n">STEP 13</div>
+          <div class="body">
+            <span class="tag">KB &middot; wave 4</span>
+            <h3>The change is drafted &mdash; <span class="f">code_author &middot; the precedent diff</span></h3>
+            <p>Stage 5 reads the plan, &sect;16 and the repo &mdash; never v2. For the gap story it also
+              has the KB's diff for the <em>last</em> IRD registration, which is the strongest available
+              grounding for what a correct change looks like <strong>in this codebase</strong>: exactly
+              what a competent engineer does, find the last similar change and follow it.</p>
+            <p><strong>Cited, never absorbed.</strong> The hunk carries <em>"drafted following PBI-4471
+              (IRD 0334 registration)"</em> so the human at <strong>G4</strong> judges whether the
+              precedent was good &mdash; because history records what people did, not what was correct,
+              and a past diff can encode a bad pattern. Citing it makes the draft more reviewable, not
+              less.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="callout" style="--hue: var(--code)">
+        <span class="t">What the run produced</span>
+        <p>Three stories under one epic, each traceable to a &sect;16 entry and from there to a v1
+          assertion: <strong>a code change</strong> in Stratus with a <code>code_location</code>;
+          <strong>a rate-table update</strong> in PeopleSoft with <code>flag: non_code</code>, because
+          a pure rate change touches no code anywhere; and <strong>a recorded boundary</strong> where
+          the walk reached an unacquired system and said so. Plus one release-coordination finding: two
+          of those must ship together.</p>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    <span>PBI PDLC &middot; Neuro</span>
+    <span>Engineering reference</span>
+    <span>Proven end to end &mdash; article to tested code</span>
+  </footer>
+
+</div>

@@ -1,0 +1,580 @@
+<title>PBI PDLC &mdash; Neuro &mdash; Overview</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  /* Deliberately single-theme: an instrumentation panel, painted explicitly,
+     so it holds on any host ground. */
+  :root {
+    --void:      #0A0E13;
+    --panel:     #121A23;
+    --panel-2:   #18222D;
+    --ink:       #DFE7EF;
+    --muted:     #7C8FA3;
+    --dim:       #55677A;
+    --rule:      #1E2A36;
+    --rule-lit:  #2C3D4E;
+
+    --articles:  #E8B34A;
+    --flows:     #4FC3D9;
+    --history:   #B98CE0;
+    --codemap:   #5BD6A0;
+    --code:      #F2825C;
+
+    --display: "Chivo", "Helvetica Neue", Arial, sans-serif;
+    --body:    "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --mono:    "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  body {
+    background: var(--void);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    padding: 0 28px 96px;
+    background-image:
+      radial-gradient(ellipse 900px 500px at 18% 8%, rgba(79,195,217,0.07), transparent 70%),
+      radial-gradient(ellipse 700px 400px at 88% 4%, rgba(185,140,224,0.05), transparent 70%);
+  }
+
+  .frame { max-width: 1180px; margin: 0 auto; }
+
+  /* ── masthead ─────────────────────────────────────────────── */
+  header {
+    padding: 72px 0 44px;
+    display: flex; flex-direction: column; gap: 22px;
+  }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--flows); margin: 0;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .eyebrow::after {
+    content: ""; flex: 1; height: 1px; max-width: 260px;
+    background: linear-gradient(90deg, var(--rule-lit), transparent);
+  }
+  h1 {
+    font-family: var(--display); font-weight: 800;
+    font-size: clamp(2.1rem, 4.4vw, 3.4rem); line-height: 1.08;
+    letter-spacing: -0.03em; margin: 0; text-wrap: balance;
+  }
+  .lede {
+    font-size: clamp(1.05rem, 1.6vw, 1.3rem); color: var(--muted);
+    max-width: 62ch; margin: 0; line-height: 1.55;
+  }
+  .lede b { color: var(--ink); font-weight: 600; }
+
+  .scope {
+    font-family: var(--mono); font-size: 11.5px; color: var(--dim);
+    letter-spacing: 0.06em; display: flex; flex-wrap: wrap; gap: 8px 22px;
+    border-top: 1px solid var(--rule); padding-top: 16px; margin-top: 6px;
+  }
+  .scope b { color: var(--muted); font-weight: 500; }
+
+  /* ── figure ───────────────────────────────────────────────── */
+  figure { margin: 0; display: flex; flex-direction: column; gap: 18px; }
+  .figwrap {
+    overflow-x: auto; background: var(--panel);
+    border: 1px solid var(--rule); border-radius: 3px; padding: 26px 22px;
+  }
+  figure svg { display: block; max-width: 100%; height: auto; min-width: 900px; }
+  figcaption {
+    font-size: 0.95rem; color: var(--muted); max-width: 74ch; line-height: 1.6;
+  }
+  figcaption b { color: var(--ink); font-weight: 600; }
+
+  svg text { font-family: var(--mono); }
+  .t-band  { font-size: 14px; font-weight: 500; }
+  .t-sub   { font-size: 10.5px; fill: var(--dim); letter-spacing: 0.04em; }
+  .t-stage { font-family: var(--display); font-size: 15px; font-weight: 700; fill: var(--ink); }
+  .t-role  { font-size: 10px; fill: var(--muted); letter-spacing: 0.08em; }
+  .t-gate  { font-size: 10px; fill: var(--dim); letter-spacing: 0.1em; }
+  .t-hdr   { font-size: 10.5px; fill: var(--dim); letter-spacing: 0.2em; }
+  .t-arrow { font-size: 9.5px; letter-spacing: 0.04em; }
+
+  /* ── feed table ───────────────────────────────────────────── */
+  .tablewrap {
+    margin-top: 30px; overflow-x: auto;
+    border: 1px solid var(--rule); border-radius: 2px;
+  }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 560px; }
+  thead th {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--dim); font-weight: 500;
+    text-align: left; padding: 12px 18px; background: var(--panel);
+    border-bottom: 1px solid var(--rule);
+  }
+  tbody td { padding: 10px 18px; border-bottom: 1px solid var(--rule); color: var(--muted); }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.k {
+    font-family: var(--mono); font-size: 12px; color: var(--hue);
+    white-space: nowrap; border-left: 2px solid var(--hue);
+  }
+  td.k.dim { color: var(--dim); font-size: 14px; }
+
+  /* ── layer legend cards ───────────────────────────────────── */
+  .layers {
+    display: grid; gap: 12px; margin-top: 56px;
+    grid-template-columns: repeat(auto-fit, minmax(198px, 1fr));
+  }
+  .layer {
+    background: var(--panel); border: 1px solid var(--rule);
+    border-top: 2px solid var(--hue); border-radius: 2px;
+    padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 7px;
+  }
+  .layer .n {
+    font-family: var(--mono); font-size: 10px; color: var(--dim);
+    letter-spacing: 0.16em;
+  }
+  .layer .name {
+    font-family: var(--display); font-weight: 700; font-size: 1rem;
+    color: var(--hue); line-height: 1.2;
+  }
+  .layer .what { font-size: 0.85rem; color: var(--muted); line-height: 1.5; }
+
+  /* ── walkthrough ──────────────────────────────────────────── */
+  .wt { margin-top: 64px; border-top: 1px solid var(--rule); padding-top: 40px;
+        display: flex; flex-direction: column; gap: 26px; }
+  .wt-head { display: flex; flex-direction: column; gap: 10px; max-width: 70ch; }
+  .wt-head h2 {
+    font-family: var(--display); font-weight: 800;
+    font-size: clamp(1.5rem, 2.6vw, 2rem); letter-spacing: -0.02em; margin: 0;
+  }
+  .wt-head p { margin: 0; color: var(--muted); font-size: 0.98rem; }
+  .steps { display: flex; flex-direction: column; gap: 2px; }
+  .step {
+    display: grid; grid-template-columns: 54px 168px 1fr; gap: 20px;
+    padding: 18px 0; border-bottom: 1px solid var(--rule); align-items: start;
+  }
+  .step .n {
+    font-family: var(--mono); font-size: 11px; color: var(--dim); letter-spacing: 0.1em;
+    padding-top: 2px;
+  }
+  .step .chip {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--hue, var(--dim));
+    border-left: 2px solid var(--hue, var(--rule-lit)); padding: 2px 0 2px 10px;
+    line-height: 1.5;
+  }
+  .step .t { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .step .t b { color: var(--ink); font-weight: 600; font-size: 0.98rem; }
+  .step .t .ref {
+    font-family: var(--mono); font-size: 10px; color: var(--dim);
+    letter-spacing: 0.05em; line-height: 1.5;
+  }
+  .step .t .ref i { color: var(--rule-lit); font-style: normal; padding: 0 5px; }
+  .step .t span { color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
+  .step .t em { color: var(--ink); font-style: normal; font-weight: 500; }
+  @media (max-width: 820px) {
+    .step { grid-template-columns: 1fr; gap: 8px; }
+    .step .chip { border-left: 0; border-top: 2px solid var(--hue, var(--rule-lit));
+                  padding: 8px 0 0 0; align-self: start; }
+  }
+
+  /* ── closing claims ───────────────────────────────────────── */
+  .claims {
+    margin-top: 60px; border-top: 1px solid var(--rule); padding-top: 36px;
+    display: grid; gap: 34px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+  .claim { display: flex; flex-direction: column; gap: 10px; }
+  .claim .big {
+    font-family: var(--display); font-weight: 800;
+    font-size: clamp(1.7rem, 3vw, 2.3rem); letter-spacing: -0.02em; line-height: 1.1;
+  }
+  .claim .big.c1 { color: var(--flows); }
+  .claim .big.c2 { color: var(--codemap); }
+  .claim .big.c3 { color: var(--articles); }
+  .claim p { margin: 0; font-size: 0.92rem; color: var(--muted); line-height: 1.55; }
+
+  footer {
+    margin-top: 72px; border-top: 1px solid var(--rule); padding-top: 18px;
+    font-family: var(--mono); font-size: 10.5px; color: var(--dim);
+    letter-spacing: 0.08em; display: flex; gap: 24px; flex-wrap: wrap;
+  }
+
+  @media (max-width: 760px) {
+    body { padding: 0 18px 64px; }
+    header { padding: 48px 0 32px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="frame">
+
+  <header>
+    <p class="eyebrow">Merchant Services &middot; Payment Brand Interchange</p>
+    <h1>PBI PDLC &mdash; Neuro &mdash; Overview</h1>
+    <p class="lede">Every step of the pipeline is grounded in a layer of the knowledge base &mdash;
+      <b>what the networks published, how our estate works, what we did last time, and what the code
+      actually says.</b> Nothing is inferred from nothing.</p>
+    <div class="scope">
+      <span><b>Scope</b> &nbsp;one change type: interchange</span>
+      <span><b>Systems</b> &nbsp;Stratus code &middot; PeopleSoft rates</span>
+      <span><b>Human gates</b> &nbsp;five, one per stage</span>
+    </div>
+  </header>
+
+  <figure>
+    <div class="figwrap">
+      <svg viewBox="0 0 1060 500" role="img"
+           aria-label="A five-layer knowledge base drawn as a wide flat cylinder feeds an agent orchestration panel containing the five pipeline stages. Four of the five layers converge on the enrichment stage. Every stage ends at a human gate.">
+
+        <defs>
+          <marker id="m-articles" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#E8B34A" /></marker>
+          <marker id="m-flows" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#4FC3D9" /></marker>
+          <marker id="m-history" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#B98CE0" /></marker>
+          <marker id="m-codemap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5BD6A0" /></marker>
+          <marker id="m-code" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#F2825C" /></marker>
+          <marker id="m-step" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#55677A" /></marker>
+        </defs>
+
+        <text class="t-hdr" x="40" y="30">KNOWLEDGE BASE SERVICE</text>
+        <text class="t-sub" x="40" y="48">AN APPLICATION WITH AN API &#8212; NOT A FOLDER OF FILES</text>
+
+        <!-- ══ cylinder — flat ellipses so labels sit clear of the curves ══ -->
+        <ellipse cx="212" cy="84" rx="166" ry="22" fill="#1B2733" stroke="#E8B34A" stroke-width="1.2" />
+
+        <path d="M46 84 L46 152 A166 22 0 0 0 378 152 L378 84 A166 22 0 0 1 46 84 Z"
+              fill="#1B2733" stroke="#E8B34A" stroke-width="1.2" />
+        <text class="t-band" x="74" y="122" fill="#E8B34A">Payment brand articles</text>
+        <text class="t-sub"  x="74" y="140">MANDATES &#183; DESIGNATORS &#183; TARGET RATES</text>
+
+        <path d="M46 152 L46 220 A166 22 0 0 0 378 220 L378 152 A166 22 0 0 1 46 152 Z"
+              fill="#182430" stroke="#4FC3D9" stroke-width="1.2" />
+        <text class="t-band" x="74" y="190" fill="#4FC3D9">Payment system flows</text>
+        <text class="t-sub"  x="74" y="208">STRATUS &#183; MPT &#183; PTI GEN &#183; SUBMISSION</text>
+
+        <path d="M46 220 L46 288 A166 22 0 0 0 378 288 L378 220 A166 22 0 0 1 46 220 Z"
+              fill="#1B2130" stroke="#B98CE0" stroke-width="1.2" />
+        <text class="t-band" x="74" y="258" fill="#B98CE0">Article &#8594; Jira &#8594; diffs</text>
+        <text class="t-sub"  x="74" y="276">WHAT CHANGED LAST TIME, AND WHERE</text>
+
+        <path d="M46 288 L46 356 A166 22 0 0 0 378 356 L378 288 A166 22 0 0 1 46 288 Z"
+              fill="#17272A" stroke="#5BD6A0" stroke-width="1.2" />
+        <text class="t-band" x="74" y="326" fill="#5BD6A0">Code map</text>
+        <text class="t-sub"  x="74" y="344">MODULES &#183; DEPENDENCIES &#183; INTERFACES</text>
+
+        <path d="M46 356 L46 424 A166 22 0 0 0 378 424 L378 356 A166 22 0 0 1 46 356 Z"
+              fill="#241E1C" stroke="#F2825C" stroke-width="1.2" />
+        <text class="t-band" x="74" y="394" fill="#F2825C">System code &amp; data</text>
+        <text class="t-sub"  x="74" y="412">STRATUS CODE &#183; PEOPLESOFT RATE TABLES</text>
+
+        <text class="t-sub" x="46" y="470">ABSTRACT &#8595; CONCRETE</text>
+        <text class="t-sub" x="46" y="488">world &#183; estate &#183; memory &#183; structure &#183; source</text>
+
+        <!-- ══ MCP boundary — one connection, five layers behind it ══ -->
+        <rect x="490" y="70" width="38" height="350" rx="2" fill="#141F2B" stroke="#3A5163" stroke-width="1" />
+        <text class="t-hdr" text-anchor="middle" x="509" y="62">MCP</text>
+        <text class="t-sub" text-anchor="middle" x="509" y="440">TOOL</text>
+        <text class="t-sub" text-anchor="middle" x="509" y="454">CALLS</text>
+
+        <!-- ══ orchestration panel ══ -->
+        <rect x="616" y="44" width="428" height="384" rx="3" fill="#0E161F" stroke="#243444" stroke-width="1" />
+        <text class="t-hdr" x="636" y="30">AGENT ORCHESTRATION</text>
+        <text class="t-sub" x="636" y="66">THE AGENT RUNS THESE FIVE STAGES &#8212; RETRIEVE &#183; REASON &#183; CITE &#183; STOP AT EVERY GATE</text>
+
+        <rect x="646" y="80" width="368" height="50" rx="2" fill="#18222D" stroke="#2C3D4E" />
+        <text class="t-stage" x="668" y="103">Ingest</text>
+        <text class="t-role"  x="668" y="119">READ EVERYTHING, INDEX IT</text>
+        <text class="t-gate" text-anchor="end" x="996" y="103">G0</text>
+
+        <rect x="646" y="150" width="368" height="50" rx="2" fill="#18222D" stroke="#2C3D4E" />
+        <text class="t-stage" x="668" y="173">Solution Intent</text>
+        <text class="t-role"  x="668" y="189">WHAT IS BEING ASKED &#183; CODE-BLIND</text>
+        <text class="t-gate" text-anchor="end" x="996" y="173">G1</text>
+
+        <rect x="646" y="220" width="368" height="50" rx="2" fill="#18222D" stroke="#4FC3D9" stroke-width="1.4" />
+        <text class="t-stage" x="668" y="243" fill="#4FC3D9">Enrichment</text>
+        <text class="t-role"  x="668" y="259">WHAT IT TOUCHES, AND WHERE</text>
+        <text class="t-gate" text-anchor="end" x="996" y="243">G2</text>
+
+        <rect x="646" y="290" width="368" height="50" rx="2" fill="#18222D" stroke="#2C3D4E" />
+        <text class="t-stage" x="668" y="313">Jira plan</text>
+        <text class="t-role"  x="668" y="329">EPIC &#183; STORIES &#183; ACCEPTANCE</text>
+        <text class="t-gate" text-anchor="end" x="996" y="313">G3</text>
+
+        <rect x="646" y="360" width="368" height="50" rx="2" fill="#18222D" stroke="#2C3D4E" />
+        <text class="t-stage" x="668" y="383">Code change</text>
+        <text class="t-role"  x="668" y="399">DRAFTED DIFFS &#183; REVIEWED, NOT MERGED</text>
+        <text class="t-gate" text-anchor="end" x="996" y="383">G4</text>
+
+        <path d="M830 130 L830 146" stroke="#55677A" stroke-width="1" marker-end="url(#m-step)" />
+        <path d="M830 200 L830 216" stroke="#55677A" stroke-width="1" marker-end="url(#m-step)" />
+        <path d="M830 270 L830 286" stroke="#55677A" stroke-width="1" marker-end="url(#m-step)" />
+        <path d="M830 340 L830 356" stroke="#55677A" stroke-width="1" marker-end="url(#m-step)" />
+
+        <text class="t-sub" text-anchor="end" x="1044" y="470">FIVE STAGES &#183; FIVE HUMAN GATES</text>
+        <text class="t-sub" text-anchor="end" x="1044" y="488">the system proposes and evidences &#183; a person approves</text>
+        <line x1="406" y1="466" x2="438" y2="466" stroke="#7C8FA3" stroke-width="1.6" />
+        <text class="t-sub" x="448" y="470">PRIMARY SOURCE</text>
+        <line x1="406" y1="484" x2="438" y2="484" stroke="#7C8FA3" stroke-width="1.1" stroke-dasharray="5 4" />
+        <text class="t-sub" x="448" y="488">SECONDARY</text>
+
+        <!-- ══ knowledge base into the run — unlabelled; the table below names each ══ -->
+        <path d="M380 112 C 470 112 540 100 640 100" fill="none" stroke="#E8B34A" stroke-width="1.7" marker-end="url(#m-articles)" />
+        <path d="M380 128 C 480 128 540 168 640 168" fill="none" stroke="#E8B34A" stroke-width="1.1" stroke-dasharray="5 4" opacity="0.65" marker-end="url(#m-articles)" />
+
+        <path d="M380 188 C 490 188 545 232 640 232" fill="none" stroke="#4FC3D9" stroke-width="1.7" marker-end="url(#m-flows)" />
+
+        <path d="M380 250 C 480 250 540 182 640 182" fill="none" stroke="#B98CE0" stroke-width="1.7" marker-end="url(#m-history)" />
+        <path d="M380 258 C 500 258 550 244 640 244" fill="none" stroke="#B98CE0" stroke-width="1.7" marker-end="url(#m-history)" />
+        <path d="M380 268 C 545 268 560 378 640 378" fill="none" stroke="#B98CE0" stroke-width="1.1" stroke-dasharray="5 4" opacity="0.65" marker-end="url(#m-history)" />
+
+        <path d="M380 324 C 495 324 545 256 640 256" fill="none" stroke="#5BD6A0" stroke-width="1.7" marker-end="url(#m-codemap)" />
+
+        <path d="M380 390 C 570 390 575 266 640 266" fill="none" stroke="#F2825C" stroke-width="1.7" marker-end="url(#m-code)" />
+        <path d="M380 404 C 490 404 545 392 640 392" fill="none" stroke="#F2825C" stroke-width="1.1" stroke-dasharray="5 4" opacity="0.65" marker-end="url(#m-code)" />
+
+      </svg>
+    </div>
+    <figcaption><b>Four of the five layers converge on enrichment.</b> That is the shape of the
+      problem: working out what a change touches means holding the estate, the memory, the structure
+      and the source in view at once. Every other stage needs one or two layers; enrichment needs
+      nearly all of them. Solid lines are a primary source, dashed a secondary one &mdash; each is
+      named in the table below.
+      <br><br><b>One join worth seeing:</b> the mandate says where a rate is <em>going</em>; PeopleSoft
+      says where it is <em>now</em>. Neither side is complete, and putting the two together is the kind
+      of work this pipeline exists to do.
+      <br><br><b>The knowledge base is an application, not a folder.</b> It exposes its layers over
+      <b>MCP</b>, so the agent queries it the way it would any other tool &mdash; one connection, five
+      layers behind it. That is what lets a layer be improved, re-indexed or replaced without touching
+      the pipeline that consumes it.</figcaption>
+  </figure>
+
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr><th>Layer</th><th>Feeds</th><th>The question it answers</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="k" style="--hue:var(--articles)">Payment brand articles</td><td>Ingest</td><td>what was actually published?</td></tr>
+        <tr><td class="k dim" style="--hue:var(--articles)">&#8942;</td><td>Solution Intent</td><td>what is being asked for?</td></tr>
+        <tr><td class="k" style="--hue:var(--flows)">Payment system flows</td><td>Enrichment</td><td>how does impact cross between systems?</td></tr>
+        <tr><td class="k" style="--hue:var(--history)">Article &#8594; Jira &#8594; diffs</td><td>Solution Intent</td><td>what kind of change is this?</td></tr>
+        <tr><td class="k dim" style="--hue:var(--history)">&#8942;</td><td>Enrichment</td><td>which files did comparable changes touch?</td></tr>
+        <tr><td class="k dim" style="--hue:var(--history)">&#8942;</td><td>Code change</td><td>what did the last one actually look like?</td></tr>
+        <tr><td class="k" style="--hue:var(--codemap)">Code map</td><td>Enrichment</td><td>what depends on what?</td></tr>
+        <tr><td class="k" style="--hue:var(--code)">System code &amp; data</td><td>Enrichment</td><td>what is really there now &#8212; code, and current rates?</td></tr>
+        <tr><td class="k dim" style="--hue:var(--code)">&#8942;</td><td>Code change</td><td>the file being edited</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="layers">
+    <div class="layer" style="--hue: var(--articles)">
+      <span class="n">LAYER 01</span>
+      <span class="name">Payment brand articles</span>
+      <span class="what">Network mandates and technical letters &mdash; the external world, in the
+        networks' own vocabulary. They name the programs and the <b>target</b> rates; they know
+        nothing about our systems.</span>
+    </div>
+    <div class="layer" style="--hue: var(--flows)">
+      <span class="n">LAYER 02</span>
+      <span class="name">Payment system flows</span>
+      <span class="what">How our estate is wired: which system feeds which, over which file, on what
+        cadence. This is what lets impact cross from one system to another.</span>
+    </div>
+    <div class="layer" style="--hue: var(--history)">
+      <span class="n">LAYER 03</span>
+      <span class="name">Article &#8594; Jira &#8594; diffs</span>
+      <span class="what">Every past change, joined to the stories raised for it and the code that
+        actually shipped. The institutional memory, made queryable.</span>
+    </div>
+    <div class="layer" style="--hue: var(--codemap)">
+      <span class="n">LAYER 04</span>
+      <span class="name">Code map</span>
+      <span class="what">Modules, dependencies and interface points, derived mechanically from the
+        source &mdash; never guessed, never hand-maintained.</span>
+    </div>
+    <div class="layer" style="--hue: var(--code)">
+      <span class="n">LAYER 05</span>
+      <span class="name">System code &amp; data</span>
+      <span class="what">Stratus code, read in full on every run rather than sampled &mdash; and
+        PeopleSoft's rate tables, which hold the <b>current</b> rate for every mnemonic. A pure rate
+        change touches no code at all, and is visible only here.</span>
+    </div>
+  </div>
+
+  <div class="claims">
+    <div class="claim">
+      <span class="big c1">A service, not a folder</span>
+      <p>The knowledge base runs as its own application and is reached over <b>MCP</b> &mdash; the same
+        way the agent reaches any tool. Layers can be re-indexed, corrected or added without the
+        pipeline changing, and every query it answers is logged like any other call.</p>
+    </div>
+    <div class="claim">
+      <span class="big c1">Grounded, not guessed</span>
+      <p>Every claim the system makes traces to a source: a line in the mandate, a declared interface,
+        a past Jira key, or a file and line number in the code. Anything it cannot ground, it marks as
+        unsourced rather than inventing.</p>
+    </div>
+    <div class="claim">
+      <span class="big c2">Nothing goes quiet</span>
+      <p>A check that finds nothing says so. A step that did not run records why. &ldquo;We looked and
+        it is clean&rdquo; is never allowed to look like &ldquo;nobody looked.&rdquo;</p>
+    </div>
+    <div class="claim">
+      <span class="big c3">A person decides</span>
+      <p>Five gates, one per stage. The system proposes and evidences; approval is human at every step,
+        and both writes that leave the building sit behind one.</p>
+    </div>
+  </div>
+
+
+  <div class="wt">
+    <div class="wt-head">
+      <h2>One change, end to end</h2>
+      <p>A network raises interchange on a fee program: a new product designator, and rate changes for
+        two existing programs. Thirteen steps &mdash; and each one names <strong>which layer of the
+        knowledge base it draws on.</strong></p>
+    </div>
+
+    <div class="steps">
+
+      <div class="step" style="--hue: var(--dim)">
+        <div class="n">01</div><div class="chip">operator</div>
+        <div class="t"><b>The run is configured</b>
+          <span class="ref">STAGE 0 &middot; Generate <i>&rarr;</i> UI_INPUT.yaml <i>&rarr;</i> <b>G0</b></span>
+          <span>Repo, domain, the uploaded mandate and Tech Letter, and a first guess at the change
+            type. A person reviews it before anything starts. <em>The guess is never authoritative
+            &mdash; if the system later disagrees, that disagreement is the most valuable thing it can
+            produce.</em></span></div>
+      </div>
+
+      <div class="step" style="--hue: var(--codemap)">
+        <div class="n">02</div><div class="chip">code map</div>
+        <div class="t"><b>The repository becomes a map</b>
+          <span class="ref">STAGE 1 &middot; /start-ingest <i>&rarr;</i> code_map_build.py <i>&rarr;</i> code_map/</span>
+          <span>Modules, dependencies and interface points, derived mechanically. Nothing is guessed and
+            nothing is sampled. Cached, so a re-run is instant.</span></div>
+      </div>
+
+      <div class="step" style="--hue: var(--articles)">
+        <div class="n">03</div><div class="chip">articles</div>
+        <div class="t"><b>What is being asked, written down &mdash; without looking at the code</b>
+          <span class="ref">STAGE 2 &middot; /start-si <i>&rarr;</i> solution_intent_author <i>&rarr;</i> v1.md &sect;8 assertions</span>
+          <span>The mandate becomes a structured statement of requirements, each one typed as
+            <em>change something that exists</em> or <em>build something new</em>. <em>This happens
+            code-blind on purpose: it is what lets every later finding be attributed to evidence rather
+            than to hindsight.</em></span></div>
+      </div>
+
+      <div class="step" style="--hue: var(--history)">
+        <div class="n">04</div><div class="chip">article &rarr; jira &rarr; diffs</div>
+        <div class="t"><b>What kind of change is this?</b>
+          <span class="ref">STAGE 2 &middot; KB classification <i>&rarr;</i> decisions.jsonl <i>&mdash;</i> TASK 003.8</span>
+          <span>The history layer matches this article against past work and recommends
+            <em>interchange</em> &mdash; citing the past Jira issues it based that on. A person accepts
+            or overrules, and the system records which. <em>A recommendation nobody can audit is a guess
+            wearing a justification.</em></span></div>
+      </div>
+
+      <div class="step" style="--hue: var(--articles)">
+        <div class="n">05</div><div class="chip">articles</div>
+        <div class="t"><b>Targeted questions, answered from the documents</b>
+          <span class="ref">STAGE 2 &middot; probes.yaml <i>&rarr;</i> Change Classification <i>&rarr;</i> <b>G1</b> v1 freezes</span>
+          <span>Does this change pricing for existing programs? Yes &mdash; so the pricing analysis turns
+            on. Is it about qualification criteria? No, per mandate §4.2. <em>The "no" is recorded with
+            its citation, so "we checked" never looks like "nobody asked."</em> The requirements
+            document is then frozen.</span></div>
+      </div>
+
+      <div class="step" style="--hue: var(--history)">
+        <div class="n">06</div><div class="chip">article &rarr; jira &rarr; diffs</div>
+        <div class="t"><b>Where should we look?</b>
+          <span class="ref">STAGE 3 &middot; scope opens <i>=</i> flow.yaml floor <i>&cup;</i> KB proposals</span>
+          <span>A guaranteed minimum is assessed no matter what. Then history widens it: the actual code
+            changes from comparable past work say which files were touched last time, and those enter
+            scope too. <em>History can only ever widen &mdash; it never rules anything out, because it
+            records what people did, not what was correct.</em></span></div>
+      </div>
+
+      <div class="step" style="--hue: var(--flows)">
+        <div class="n">07</div><div class="chip">payment system flows</div>
+        <div class="t"><b>Translate the network's language into ours</b>
+          <span class="ref">STAGE 3 &middot; resolve <i>&rarr;</i> resolve_mnemonic.skill.md <i>&rarr;</i> provides: [mnemonic]</span>
+          <span>Card networks publish program <em>names</em>. Our systems key on internal
+            <em>mnemonics</em>. Stratus is the only place that mapping exists, so nothing else can run
+            until it is done &mdash; and if it comes back empty, the run stops rather than searching for
+            nothing.</span></div>
+      </div>
+
+      <div class="step" style="--hue: var(--code)">
+        <div class="n">08</div><div class="chip">system code &amp; data</div>
+        <div class="t"><b>Find everywhere it lands</b>
+          <span class="ref">STAGE 3 &middot; impact <i>&rarr;</i> stratus_code &middot; pricing_impact <i>&rarr;</i> &sect;16</span>
+          <span>The whole repository is read, not sampled, anchored to the frozen requirements. Rate
+            tables are checked separately &mdash; <em>a pure rate change touches no code anywhere and
+            would otherwise be invisible.</em></span></div>
+      </div>
+
+      <div class="step" style="--hue: var(--flows)">
+        <div class="n">09</div><div class="chip">payment system flows</div>
+        <div class="t"><b>The impact crosses into another system</b>
+          <span class="ref">STAGE 3 &middot; cross <i>&rarr;</i> interfaces.yaml <i>&rarr;</i> recorded boundary</span>
+          <span>Stratus needs an eligibility flag the daily merchant file does not carry &mdash; so the
+            impact reaches back to PeopleSoft, which produces that file. <em>A PeopleSoft change
+            originating from a Stratus requirement: the case nobody currently discovers until
+            implementation.</em> That repo is not yet available, so it is recorded as a known boundary
+            rather than passed over.</span></div>
+      </div>
+
+      <div class="step" style="--hue: var(--history)">
+        <div class="n">10</div><div class="chip">article &rarr; jira &rarr; diffs</div>
+        <div class="t"><b>The new designator has nowhere to land</b>
+          <span class="ref">STAGE 3 &middot; kind: gap <i>&rarr;</i> analogy search <i>&rarr;</i> location: prospective</span>
+          <span>It was declared as <em>new</em> back at step 3, so finding nothing is expected &mdash;
+            this is the work, not a failure. But "not found" is not something anyone can pick up. History
+            answers it: <em>"when the last designator was registered, these three files changed."</em>
+            A location by record rather than by inference.</span></div>
+      </div>
+
+      <div class="step" style="--hue: var(--history)">
+        <div class="n">11</div><div class="chip">article &rarr; jira &rarr; diffs</div>
+        <div class="t"><b>The result is challenged</b>
+          <span class="ref">STAGE 3 &middot; reconciliation <i>&rarr;</i> four quadrants <i>&mdash;</i> TASK 003.9</span>
+          <span>What the scan found is compared against what comparable past changes touched. Agreement
+            passes silently; only disagreements reach a person &mdash; <em>"past changes always touched
+            clearing and you have nothing there"</em>, or <em>"you have work against a system no
+            comparable change ever touched."</em> Both directions, both worth a human minute.</span></div>
+      </div>
+
+      <div class="step" style="--hue: var(--dim)">
+        <div class="n">12</div><div class="chip">&rarr; the plan</div>
+        <div class="t"><b>Findings become the plan</b>
+          <span class="ref">release_shape <i>&rarr;</i> enrichment.json <i>&rarr;</i> v2 <i>&rarr;</i> <b>G2</b> <i>&rarr;</i> STAGE 4 jira_author</span>
+          <span>One epic for the article, with a story per finding. The system also states what must ship
+            <em>together</em>: the merchant-file field and the Stratus code that reads it, or the nightly
+            batch breaks. <em>Today nobody learns that until implementation.</em> A person accepts before
+            anything reaches Jira.</span></div>
+      </div>
+
+      <div class="step" style="--hue: var(--code)">
+        <div class="n">13</div><div class="chip">system code &amp; data</div>
+        <div class="t"><b>The change is drafted</b>
+          <span class="ref">STAGE 5 &middot; /start-code <i>&rarr;</i> code_author <i>&rarr;</i> code_changes/ <i>&rarr;</i> <b>G4</b></span>
+          <span>Reviewable diffs, each citing the finding that justifies it &mdash; and for the new
+            designator, following the shape of the last comparable change, <em>cited by its Jira key so
+            a reviewer can judge whether that precedent was a good one.</em> A person approves before
+            anything reaches a branch.</span></div>
+      </div>
+
+    </div>
+
+    <div class="claim" style="max-width: 74ch">
+      <p style="color: var(--muted)"><b style="color: var(--ink)">What the run produced:</b> one epic,
+      three stories &mdash; a code change in Stratus, a rate-table update in PeopleSoft that touches no
+      code at all, and a recorded boundary where the analysis reached a system we cannot yet read and
+      said so. Plus one release constraint: two of those must ship together. <b style="color: var(--ink)">Every
+      one of them traces back to a line in the mandate.</b></p>
+    </div>
+  </div>
+
+  <footer>
+    <span>Agentic PDLC</span>
+    <span>Interchange &middot; Stratus</span>
+    <span>Proven end to end &mdash; article to tested code</span>
+  </footer>
+
+</div>
