@@ -3,9 +3,10 @@
 **Commit of 2026-08-23 — the VDI design review: Stages 4 and 5 closed, five new tasks, two
 stakeholder artifacts.**
 
-> **Filenames carry a version** — `neuro_architecture_v1.html`, `neuro_overview_v1.html` — so a pulled
-> copy is unambiguous about which revision it holds. Bump the suffix on the next substantive revision
-> rather than editing in place.
+> **Filenames carry a version** — `neuro_architecture_v1.html`, `neuro_overview_v2.html`. The number
+> tracks **that file's own revisions**, not a set generation: the architecture page has not changed
+> since v1, so calling it v2 would be a lie. Bump the suffix on the next substantive revision rather
+> than editing in place; the superseded file leaves the tree, and git history holds it.
 
 This commit carries **no application code**. It is review output: the task catalogue the VDI Copilot
 executes from, and two published documents that explain the system at two altitudes. Nothing in
@@ -20,7 +21,24 @@ registry.
 |---|---|---|
 | `VDI_TASK_V2.md` | edited | The deliverable. 11 task specs, 8 PARKED findings, 23 review-log rows |
 | `neuro_architecture_v1.html` | new | Engineering reference — 12 sections, what runs and what each step may decide |
-| `neuro_overview_v1.html` | new | Exec overview — the knowledge base, the flow, the gates, one worked example |
+| `neuro_overview_v2.html` | new | Exec overview — the knowledge base, the flow, the gates, one worked example. **v2** supersedes v1 |
+
+### Why the overview is at v2
+
+The two arrows that **feed** ingest now leave the cylinder on the left, run over the top, and drop
+into the Ingest box — a separate **intake** channel, visually distinct from the query channel every
+other stage uses. The distinction is real and the diagram was blurring it: **ingest is the only stage
+that builds layers; everything else reads them.** It also removes the long diagonal that crossed most
+of the other arrows.
+
+The history layer is relabelled **Change history KB** (`PAST ARTICLES · THEIR STORIES · THE ACTUAL
+DIFFS`), which reads as a knowledge base rather than a pipeline fragment.
+
+Worth keeping straight, because it is the first question the diagram invites: **the estate layer is
+declared, not ingested.** Nothing in source links two sides of a file interface — `mpt_loader.c`
+contains no reference to PeopleSoft and never will — so no tool can extract it and a person who knows
+the estate writes it down. That is why the intake channel carries only the articles and the source,
+and it is the property that makes the whole crossing mechanism necessary.
 | `CLAUDE.md` | edited | Three hard rules added, each earned by a mistake made during the review |
 
 ---

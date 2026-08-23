@@ -217,7 +217,7 @@
 
   <figure>
     <div class="figwrap">
-      <svg viewBox="0 0 1060 500" role="img"
+      <svg viewBox="0 -62 1060 562" role="img"
            aria-label="A five-layer knowledge base drawn as a wide flat cylinder feeds an agent orchestration panel containing the five pipeline stages. Four of the five layers converge on the enrichment stage. Every stage ends at a human gate.">
 
         <defs>
@@ -247,8 +247,8 @@
 
         <path d="M46 220 L46 288 A166 22 0 0 0 378 288 L378 220 A166 22 0 0 1 46 220 Z"
               fill="#1B2130" stroke="#B98CE0" stroke-width="1.2" />
-        <text class="t-band" x="74" y="258" fill="#B98CE0">Article &#8594; Jira &#8594; diffs</text>
-        <text class="t-sub"  x="74" y="276">WHAT CHANGED LAST TIME, AND WHERE</text>
+        <text class="t-band" x="74" y="258" fill="#B98CE0">Change history KB</text>
+        <text class="t-sub"  x="74" y="276">PAST ARTICLES &#183; THEIR STORIES &#183; THE ACTUAL DIFFS</text>
 
         <path d="M46 288 L46 356 A166 22 0 0 0 378 356 L378 288 A166 22 0 0 1 46 288 Z"
               fill="#17272A" stroke="#5BD6A0" stroke-width="1.2" />
@@ -311,8 +311,17 @@
         <line x1="406" y1="484" x2="438" y2="484" stroke="#7C8FA3" stroke-width="1.1" stroke-dasharray="5 4" />
         <text class="t-sub" x="448" y="488">SECONDARY</text>
 
-        <!-- ══ knowledge base into the run — unlabelled; the table below names each ══ -->
-        <path d="M380 112 C 470 112 540 100 640 100" fill="none" stroke="#E8B34A" stroke-width="1.7" marker-end="url(#m-articles)" />
+        <!-- ══ INTAKE channel — raw material IN. Left, over the top, down into Ingest. ══
+             Distinct from the query channel below: these two build the layers,
+             every other arrow reads them. ══ -->
+        <text class="t-sub" x="150" y="-46">INTAKE &#8212; RAW MATERIAL IN. EVERY OTHER ARROW READS WHAT THIS BUILDS.</text>
+
+        <path d="M46 116 L34 116 Q26 116 26 108 L26 -32 Q26 -40 34 -40 L822 -40 Q830 -40 830 -32 L830 68"
+              fill="none" stroke="#E8B34A" stroke-width="1.7" marker-end="url(#m-articles)" />
+        <path d="M46 392 L20 392 Q12 392 12 384 L12 -20 Q12 -28 20 -28 L860 -28 Q868 -28 868 -20 L868 68"
+              fill="none" stroke="#F2825C" stroke-width="1.7" marker-end="url(#m-code)" />
+
+        <!-- ══ QUERY channel — everything downstream reads what ingest built ══ -->
         <path d="M380 128 C 480 128 540 168 640 168" fill="none" stroke="#E8B34A" stroke-width="1.1" stroke-dasharray="5 4" opacity="0.65" marker-end="url(#m-articles)" />
 
         <path d="M380 188 C 490 188 545 232 640 232" fill="none" stroke="#4FC3D9" stroke-width="1.7" marker-end="url(#m-flows)" />
@@ -323,7 +332,6 @@
 
         <path d="M380 324 C 495 324 545 256 640 256" fill="none" stroke="#5BD6A0" stroke-width="1.7" marker-end="url(#m-codemap)" />
 
-        <path d="M380 384 C 432 384 440 128 636 112" fill="none" stroke="#F2825C" stroke-width="1.2" opacity="0.8" marker-end="url(#m-code)" />
         <path d="M380 390 C 570 390 575 266 640 266" fill="none" stroke="#F2825C" stroke-width="1.7" marker-end="url(#m-code)" />
         <path d="M380 404 C 490 404 545 392 640 392" fill="none" stroke="#F2825C" stroke-width="1.1" stroke-dasharray="5 4" opacity="0.65" marker-end="url(#m-code)" />
 
@@ -356,7 +364,7 @@
         <tr><td class="k" style="--hue:var(--articles)">Payment brand articles</td><td>Ingest</td><td>what was actually published?</td></tr>
         <tr><td class="k dim" style="--hue:var(--articles)">&#8942;</td><td>Solution Intent</td><td>what is being asked for?</td></tr>
         <tr><td class="k" style="--hue:var(--flows)">Payment system flows</td><td>Enrichment</td><td>how does impact cross between systems?</td></tr>
-        <tr><td class="k" style="--hue:var(--history)">Article &#8594; Jira &#8594; diffs</td><td>Solution Intent</td><td>what kind of change is this?</td></tr>
+        <tr><td class="k" style="--hue:var(--history)">Change history KB</td><td>Solution Intent</td><td>what kind of change is this?</td></tr>
         <tr><td class="k dim" style="--hue:var(--history)">&#8942;</td><td>Enrichment</td><td>which files did comparable changes touch?</td></tr>
         <tr><td class="k dim" style="--hue:var(--history)">&#8942;</td><td>Code change</td><td>what did the last one actually look like?</td></tr>
         <tr><td class="k" style="--hue:var(--codemap)">Code map</td><td>Enrichment</td><td>what depends on what?</td></tr>
@@ -383,7 +391,7 @@
     </div>
     <div class="layer" style="--hue: var(--history)">
       <span class="n">LAYER 03</span>
-      <span class="name">Article &#8594; Jira &#8594; diffs</span>
+      <span class="name">Change history KB</span>
       <span class="what">Every past change, joined to the stories raised for it and the code that
         actually shipped. The institutional memory, made queryable.</span>
     </div>
@@ -467,7 +475,7 @@
       </div>
 
       <div class="step" style="--hue: var(--history)">
-        <div class="n">04</div><div class="chip">article &rarr; jira &rarr; diffs</div>
+        <div class="n">04</div><div class="chip">change history kb</div>
         <div class="t"><b>What kind of change is this?</b>
           <span class="ref">STAGE 2 &middot; KB classification <i>&rarr;</i> decisions.jsonl <i>&mdash;</i> TASK 003.8</span>
           <span>The history layer matches this article against past work and recommends
@@ -487,7 +495,7 @@
       </div>
 
       <div class="step" style="--hue: var(--history)">
-        <div class="n">06</div><div class="chip">article &rarr; jira &rarr; diffs</div>
+        <div class="n">06</div><div class="chip">change history kb</div>
         <div class="t"><b>Where should we look?</b>
           <span class="ref">STAGE 3 &middot; scope opens <i>=</i> flow.yaml floor <i>&cup;</i> KB proposals</span>
           <span>A guaranteed minimum is assessed no matter what. Then history widens it: the actual code
@@ -527,7 +535,7 @@
       </div>
 
       <div class="step" style="--hue: var(--history)">
-        <div class="n">10</div><div class="chip">article &rarr; jira &rarr; diffs</div>
+        <div class="n">10</div><div class="chip">change history kb</div>
         <div class="t"><b>The new designator has nowhere to land</b>
           <span class="ref">STAGE 3 &middot; kind: gap <i>&rarr;</i> analogy search <i>&rarr;</i> location: prospective</span>
           <span>It was declared as <em>new</em> back at step 3, so finding nothing is expected &mdash;
@@ -537,7 +545,7 @@
       </div>
 
       <div class="step" style="--hue: var(--history)">
-        <div class="n">11</div><div class="chip">article &rarr; jira &rarr; diffs</div>
+        <div class="n">11</div><div class="chip">change history kb</div>
         <div class="t"><b>The result is challenged</b>
           <span class="ref">STAGE 3 &middot; reconciliation <i>&rarr;</i> four quadrants <i>&mdash;</i> TASK 003.9</span>
           <span>What the scan found is compared against what comparable past changes touched. Agreement
