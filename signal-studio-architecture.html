@@ -161,7 +161,7 @@
     position: absolute;
     top: 0; left: 0;
     width: 1240px;
-    height: 720px;
+    height: 764px;
     transform-origin: top left;
     background-image:
       linear-gradient(rgba(79, 216, 232, 0.035) 1px, transparent 1px),
@@ -605,7 +605,7 @@
       <div class="stage-wrap" id="stageWrap">
         <div class="stage-sizer" id="stageSizer">
           <div class="stage" id="stage">
-            <svg class="wires" viewBox="0 0 1240 720" aria-hidden="true">
+            <svg class="wires" viewBox="0 0 1240 764" aria-hidden="true">
               <defs>
                 <marker id="mA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
                   <path d="M0 0 L10 5 L0 10 z" fill="#2a3b5f"/>
@@ -615,7 +615,7 @@
                 </marker>
               </defs>
 
-              <rect class="aws-box" x="288" y="132" width="924" height="420" rx="16"/>
+              <rect class="aws-box" x="288" y="132" width="924" height="464" rx="16"/>
               <text class="zone-label" x="310" y="160">AWS Cloud · Firm-managed environment</text>
               <text class="zone-label" x="482" y="70" text-anchor="end">External · Public sources</text>
 
@@ -965,7 +965,7 @@
     else { k = Math.min(k, 1); wrap.classList.remove("scroll"); }
     stage.style.transform = "scale(" + k + ")";
     sizer.style.width = (1240 * k) + "px";
-    sizer.style.height = (720 * k) + "px";
+    sizer.style.height = (764 * k) + "px";
   }
   new ResizeObserver(fit).observe(wrap);
   fit();
