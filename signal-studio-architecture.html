@@ -25,6 +25,7 @@
     --magenta: #e879b9;
     --violet: #a78bfa;
     --green: #5fd49a;
+    --blue: #6aa6ff;
     --display: "Sora", "Avenir Next", "Segoe UI", sans-serif;
     --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
     --mono: "IBM Plex Mono", "SF Mono", Menlo, monospace;
@@ -160,7 +161,7 @@
     position: absolute;
     top: 0; left: 0;
     width: 1240px;
-    height: 640px;
+    height: 720px;
     transform-origin: top left;
     background-image:
       linear-gradient(rgba(79, 216, 232, 0.035) 1px, transparent 1px),
@@ -583,8 +584,8 @@
     <h1>Signal Studio <span class="thin">— how it works</span></h1>
     <p class="subtitle">
       An internal, AI-assisted market research workflow for sales teams. A rep types a merchant's name;
-      the platform gathers live market intelligence, shapes it into a <strong>presentation-ready brief</strong>,
-      and files everything for reuse and audit.
+      the platform gathers live market intelligence, grounds it in the firm's own value props and win
+      stories, and shapes it into a <strong>presentation-ready brief</strong> — filed for reuse and audit.
     </p>
     <span class="thesis">Controlled enablement — AI accelerates the research · people own the decision</span>
   </header>
@@ -604,7 +605,7 @@
       <div class="stage-wrap" id="stageWrap">
         <div class="stage-sizer" id="stageSizer">
           <div class="stage" id="stage">
-            <svg class="wires" viewBox="0 0 1240 640" aria-hidden="true">
+            <svg class="wires" viewBox="0 0 1240 720" aria-hidden="true">
               <defs>
                 <marker id="mA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
                   <path d="M0 0 L10 5 L0 10 z" fill="#2a3b5f"/>
@@ -614,7 +615,7 @@
                 </marker>
               </defs>
 
-              <rect class="aws-box" x="288" y="132" width="924" height="352" rx="16"/>
+              <rect class="aws-box" x="288" y="132" width="924" height="420" rx="16"/>
               <text class="zone-label" x="310" y="160">AWS Cloud · Firm-managed environment</text>
               <text class="zone-label" x="482" y="70" text-anchor="end">External · Public sources</text>
 
@@ -623,18 +624,21 @@
               <path id="c3" class="wire" d="M 690 294 C 686 212 606 204 604 124" marker-start="url(#mA)" marker-end="url(#mA)"/>
               <path id="c4" class="wire" d="M 764 294 C 804 256 842 250 890 244" marker-start="url(#mA)" marker-end="url(#mA)"/>
               <path id="c5" class="wire" d="M 802 372 C 862 384 914 394 976 404" marker-start="url(#mA)" marker-end="url(#mA)"/>
+              <path id="c6" class="wire" d="M 698 390 L 698 450" marker-start="url(#mA)" marker-end="url(#mA)"/>
 
               <path class="wire-dash" data-for="c1" d="M 242 342 L 308 342"/>
               <path class="wire-dash" data-for="c2" d="M 518 342 L 592 342"/>
               <path class="wire-dash" data-for="c3" d="M 690 294 C 686 212 606 204 604 124"/>
               <path class="wire-dash" data-for="c4" d="M 764 294 C 804 256 842 250 890 244"/>
               <path class="wire-dash" data-for="c5" d="M 802 372 C 862 384 914 394 976 404"/>
+              <path class="wire-dash" data-for="c6" d="M 698 390 L 698 450"/>
 
               <text class="wire-label" x="275" y="326" text-anchor="middle">request</text>
               <text class="wire-label" x="555" y="326" text-anchor="middle">route</text>
               <text class="wire-label" x="712" y="212">market intel</text>
               <text class="wire-label" x="826" y="240" text-anchor="middle">summarize</text>
               <text class="wire-label" x="884" y="418" text-anchor="middle">store &amp; recall</text>
+              <text class="wire-label" x="712" y="424">internal context</text>
 
               <g id="pulse" transform="translate(-40 -40)">
                 <circle class="pulse-halo" r="10"/>
@@ -725,6 +729,20 @@
               <span class="n-text">
                 <span class="n-name">Research Library</span>
                 <span class="n-tech">Amazon S3</span>
+              </span>
+              <span class="n-plus">+</span>
+            </button>
+
+            <button class="node" data-key="ik" style="left:596px; top:452px; --hue:var(--blue)">
+              <span class="n-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M12 5.5 C10.2 4.1 7.8 3.6 4.5 3.9 V18.3 C7.8 18 10.2 18.5 12 19.9 C13.8 18.5 16.2 18 19.5 18.3 V3.9 C16.2 3.6 13.8 4.1 12 5.5 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                  <path d="M12 5.5 V19.9" stroke="currentColor" stroke-width="1.6"/>
+                </svg>
+              </span>
+              <span class="n-text">
+                <span class="n-name">Internal Context</span>
+                <span class="n-tech">Value Props &amp; Win Stories</span>
               </span>
               <span class="n-plus">+</span>
             </button>
@@ -826,7 +844,7 @@
         "Results return as a presentation-ready flow: matched vertical, brand visuals, peer proof, pricing, competitors, and an onboarding plan."
       ],
       why: "Human decision ownership is preserved end to end. The platform accelerates the research; the rep makes the call.",
-      badge: "Starts Step 1 · Receives Step 6"
+      badge: "Starts Step 1 · Receives Step 7"
     },
     gw: {
       name: "Secure Entry",
@@ -841,7 +859,7 @@
         "Ingress is centralized: one controlled path in, which is easier to secure, monitor, and govern."
       ],
       why: "A single, governable entry point — dependable access for reps, and no side doors into the platform.",
-      badge: "Step 2 of 6 in the journey"
+      badge: "Step 2 of 7 in the journey"
     },
     ecs: {
       name: "Orchestration Engine",
@@ -852,11 +870,11 @@
       biz: "Like a project manager who never sleeps: it hands work to the right specialist, checks what comes back, and assembles the final package.",
       list: [
         "The core application runs as containers on Amazon ECS.",
-        "It coordinates every downstream call — external research, AI summarization, and storage.",
+        "It coordinates every downstream call — external research, internal context, AI summarization, and storage.",
         "It normalizes the responses and prepares the final output for sales consumption."
       ],
       why: "One pipeline, every time. Consistency isn't a policy here — it's the architecture.",
-      badge: "Active in Steps 2–6"
+      badge: "Active in Steps 2–7"
     },
     pplx: {
       name: "Market Intelligence",
@@ -871,7 +889,22 @@
         "It sits outside the AWS boundary — a deliberate, governed external call, clearly separated from firm-managed systems."
       ],
       why: "Fresh, broad market intelligence on demand — the slowest part of research, automated.",
-      badge: "Step 3 of 6 in the journey"
+      badge: "Step 3 of 7 in the journey"
+    },
+    ik: {
+      name: "Internal Context",
+      tech: "Value Props & Win Stories — internal repository",
+      role: "Internal · Merchant Services knowledge",
+      hue: "var(--blue)",
+      lead: "The firm's own voice. A curated repository of Merchant Services value propositions and win stories that grounds every brief in who we are.",
+      biz: "External research tells us what's happening in the market; this tells the model <em>what winning looks like for us</em> — how JPM Merchant Services positions itself, and where we've won before.",
+      list: [
+        "ECS retrieves relevant value props and win stories from the internal repository alongside the external research.",
+        "The internal context is married to the Perplexity findings before summarization, so the model reasons over both.",
+        "Proprietary knowledge stays inside the firm's environment — it never leaves the AWS boundary."
+      ],
+      why: "The output isn't a generic market summary — it's a proposal that makes sense for JPM Merchant Services: our language, our strengths, our proof points.",
+      badge: "Step 4 of 7 in the journey"
     },
     bed: {
       name: "AI Summarization",
@@ -879,14 +912,14 @@
       role: "AWS · Generative AI",
       hue: "var(--violet)",
       lead: "The editor. It turns raw research into a clean, consistent brief a sales rep can use immediately.",
-      biz: "A chief of staff who reads the forty-page dossier and hands you the one-pager that actually matters.",
+      biz: "A chief of staff who reads the forty-page dossier — plus our own playbook — and hands you the one-pager that actually matters.",
       list: [
-        "A second API call sends the raw findings to Amazon Bedrock.",
-        "Bedrock summarizes and transforms the research into a standardized format optimized for sales reps.",
+        "A second API call sends both the external findings and the internal context to Amazon Bedrock.",
+        "Bedrock summarizes and transforms the combined research into a standardized format optimized for sales reps.",
         "Output shaping ensures every brief follows the same structure, whoever asked and whatever the merchant."
       ],
-      why: "Consistency and usability at the point of action — reps read insights, not raw data.",
-      badge: "Step 4 of 6 in the journey"
+      why: "Consistency and usability at the point of action — reps read a proposal grounded in our strengths, not raw data.",
+      badge: "Step 5 of 7 in the journey"
     },
     s3: {
       name: "Research Library",
@@ -901,17 +934,18 @@
         "Supports continuity, reusability, and governance-oriented traceability."
       ],
       why: "Repeatability and auditability — the “controlled” in controlled enablement.",
-      badge: "Step 5 of 6 in the journey"
+      badge: "Step 6 of 7 in the journey"
     }
   };
 
-  const ORDER = ["rep", "gw", "ecs", "pplx", "bed", "s3"];
+  const ORDER = ["rep", "gw", "ecs", "pplx", "ik", "bed", "s3"];
 
   const STEPS = [
     { t: "The ask", c: "A sales rep types a merchant's name into <strong>Signal Studio</strong> — the same way they'd start any search.", segs: [["c1", 1]], nodes: ["rep", "gw"] },
     { t: "Secure routing", c: "Enterprise DNS and load balancing (<strong>Route 53 + ALB</strong>) carry the request to the application on a single, controlled path.", segs: [["c2", 1]], nodes: ["gw", "ecs"] },
     { t: "Research retrieval", c: "The orchestration engine calls the <strong>Perplexity API</strong> to scan public sources for live market intelligence.", segs: [["c3", 1]], nodes: ["ecs", "pplx"] },
-    { t: "AI summarization", c: "<strong>Amazon Bedrock</strong> condenses the raw findings into a standardized, sales-ready brief.", segs: [["c4", 1]], nodes: ["ecs", "bed"] },
+    { t: "Internal context", c: "The engine pulls <strong>value props &amp; win stories</strong> from the firm's own repository — the context that makes the research ours.", segs: [["c6", 1]], nodes: ["ecs", "ik"] },
+    { t: "AI summarization", c: "<strong>Amazon Bedrock</strong> marries the external findings with the internal context to draft a standardized, sales-ready proposal.", segs: [["c4", 1]], nodes: ["ecs", "bed"] },
     { t: "Save to the library", c: "The finished research package is stored in <strong>Amazon S3</strong> — history, reuse, and audit built in.", segs: [["c5", 1]], nodes: ["ecs", "s3"] },
     { t: "Insights delivered", c: "The rep gets a <strong>presentation-ready brief</strong> back in the browser — and makes the call.", segs: [["c2", -1], ["c1", -1]], nodes: ["ecs", "gw", "rep"] }
   ];
@@ -931,7 +965,7 @@
     else { k = Math.min(k, 1); wrap.classList.remove("scroll"); }
     stage.style.transform = "scale(" + k + ")";
     sizer.style.width = (1240 * k) + "px";
-    sizer.style.height = (640 * k) + "px";
+    sizer.style.height = (720 * k) + "px";
   }
   new ResizeObserver(fit).observe(wrap);
   fit();
@@ -974,7 +1008,7 @@
     clearHighlights();
     current = i;
     const s = STEPS[i];
-    capStep.textContent = "Step " + (i + 1) + " / 6";
+    capStep.textContent = "Step " + (i + 1) + " / " + STEPS.length;
     capText.innerHTML = s.c;
     chips[i].classList.add("on");
     s.nodes.forEach(k => document.querySelector('.node[data-key="' + k + '"]').classList.add("lit"));
