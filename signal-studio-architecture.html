@@ -695,7 +695,7 @@
               </span>
               <span class="n-text">
                 <span class="n-name">Market Intelligence</span>
-                <span class="n-tech">LLM Suite Perplexity</span>
+                <span class="n-tech">Perplexity API</span>
               </span>
               <span class="n-plus">+</span>
             </button>
@@ -860,13 +860,13 @@
     },
     pplx: {
       name: "Market Intelligence",
-      tech: "LLM Suite Perplexity — external AI service",
+      tech: "Perplexity API — external AI service",
       role: "External · Public sources",
       hue: "var(--magenta)",
       lead: "The researcher. It scans public sources and returns live market intelligence about the target merchant.",
       biz: "An analyst who can read the public internet in seconds — market position, competitors, pricing signals — instead of a rep spending hours searching tab by tab.",
       list: [
-        "ECS sends an API request to LLM Suite Perplexity to retrieve external market research.",
+        "ECS sends an API request to the Perplexity API to retrieve external market research.",
         "It returns the raw research context that feeds the business analysis.",
         "It sits outside the AWS boundary — a deliberate, governed external call, clearly separated from firm-managed systems."
       ],
@@ -910,7 +910,7 @@
   const STEPS = [
     { t: "The ask", c: "A sales rep types a merchant's name into <strong>Signal Studio</strong> — the same way they'd start any search.", segs: [["c1", 1]], nodes: ["rep", "gw"] },
     { t: "Secure routing", c: "Enterprise DNS and load balancing (<strong>Route 53 + ALB</strong>) carry the request to the application on a single, controlled path.", segs: [["c2", 1]], nodes: ["gw", "ecs"] },
-    { t: "Research retrieval", c: "The orchestration engine calls <strong>LLM Suite Perplexity</strong> to scan public sources for live market intelligence.", segs: [["c3", 1]], nodes: ["ecs", "pplx"] },
+    { t: "Research retrieval", c: "The orchestration engine calls the <strong>Perplexity API</strong> to scan public sources for live market intelligence.", segs: [["c3", 1]], nodes: ["ecs", "pplx"] },
     { t: "AI summarization", c: "<strong>Amazon Bedrock</strong> condenses the raw findings into a standardized, sales-ready brief.", segs: [["c4", 1]], nodes: ["ecs", "bed"] },
     { t: "Save to the library", c: "The finished research package is stored in <strong>Amazon S3</strong> — history, reuse, and audit built in.", segs: [["c5", 1]], nodes: ["ecs", "s3"] },
     { t: "Insights delivered", c: "The rep gets a <strong>presentation-ready brief</strong> back in the browser — and makes the call.", segs: [["c2", -1], ["c1", -1]], nodes: ["ecs", "gw", "rep"] }
