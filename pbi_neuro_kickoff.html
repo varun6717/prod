@@ -1,0 +1,896 @@
+<title>PBI Neuro Kickoff</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Single-theme by design: an instrumentation panel, painted explicitly so it holds on any host ground. */
+  :root {
+    --void: #070B12; --panel: #0E1622; --panel-2: #131E2C; --panel-3: #182535;
+    --ink: #E6EDF6; --muted: #8A9BB3; --dim: #5A6C82; --rule: #1B2736; --rule-lit: #2A3B4F;
+    --articles: #E8B34A; --flows: #4FC3D9; --history: #B98CE0; --codemap: #5BD6A0; --code: #F2825C;
+    --human: #F3E7C9; --mcp: #6E8BA6;
+    --display: "Chivo", "Helvetica Neue", Arial, sans-serif;
+    --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--void); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; margin: 0;
+    background-image: radial-gradient(ellipse 900px 520px at 14% 6%, rgba(79,195,217,0.08), transparent 68%), radial-gradient(ellipse 760px 420px at 90% 3%, rgba(185,140,224,0.06), transparent 70%); }
+  .frame { max-width: 1280px; margin: 0 auto; padding: 0 28px 72px; }
+
+  header.mast { padding: 52px 0 30px; display: flex; flex-direction: column; gap: 16px; }
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--flows); margin: 0; display: flex; align-items: center; gap: 12px; }
+  .eyebrow::after { content: ""; flex: 1; height: 1px; max-width: 260px; background: linear-gradient(90deg, var(--rule-lit), transparent); }
+  .pulse { color: var(--flows); opacity: 0.85; }
+  .pulse path { stroke-dasharray: 130; stroke-dashoffset: 130; animation: trace 2.8s linear infinite; }
+  @keyframes trace { 0% { stroke-dashoffset: 130; } 60% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 0; } }
+  h1 { font-family: var(--display); font-weight: 800; font-size: clamp(2rem, 4.2vw, 3.2rem); line-height: 1.04; letter-spacing: -0.03em; margin: 0; text-wrap: balance; }
+  h1 .thin { color: var(--dim); font-weight: 700; }
+  .lede { font-size: clamp(1.02rem, 1.5vw, 1.2rem); color: var(--muted); max-width: 66ch; margin: 0; line-height: 1.55; }
+  .lede b { color: var(--ink); font-weight: 600; }
+  .thesis { display: inline-flex; align-items: center; gap: 10px; align-self: flex-start; font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; color: var(--articles); border: 1px solid rgba(232,179,74,0.35); background: rgba(232,179,74,0.07); border-radius: 999px; padding: 7px 16px; }
+  .thesis::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--articles); box-shadow: 0 0 10px rgba(232,179,74,0.9); }
+
+  .fig { background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--rule); border-radius: 6px; padding: 22px; box-shadow: 0 24px 70px rgba(0,0,0,0.45); display: grid; grid-template-areas: "head" "stage"; gap: 14px; }
+  .fig-head { grid-area: head; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+  .fig-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); display: inline-flex; align-items: center; gap: 12px; }
+  .stage-outer { grid-area: stage; display: flex; align-items: center; justify-content: center; min-height: 0; }
+  .stage-wrap { width: 100%; }
+  .stage-wrap.scroll { overflow-x: auto; padding-bottom: 6px; }
+  .stage-sizer { position: relative; margin: 0 auto; }
+  .stage { position: absolute; top: 0; left: 0; width: 1240px; height: 600px; transform-origin: top left; border-radius: 10px;
+    background-image: linear-gradient(rgba(79,195,217,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(79,195,217,0.035) 1px, transparent 1px); background-size: 40px 40px; }
+  .wires { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  svg text { font-family: var(--mono); }
+  .t-sub { font-size: 10px; fill: var(--dim); letter-spacing: 0.05em; }
+  .zone-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; fill: var(--dim); }
+  .zone-label.big { font-family: var(--display); font-size: 15px; font-weight: 800; letter-spacing: 0.02em; text-transform: none; fill: var(--ink); }
+
+  .wire { fill: none; stroke: var(--hue, var(--rule-lit)); stroke-width: 1.5; opacity: 0.55; transition: opacity .4s, stroke-width .4s; }
+  .wire.draw { stroke-dasharray: 1; stroke-dashoffset: 0; animation: wire-in .9s ease both; animation-delay: var(--d, 0s); }
+  @keyframes wire-in { from { stroke-dashoffset: 1; opacity: 0; } 30% { opacity: .55; } to { stroke-dashoffset: 0; opacity: .55; } }
+  .wire.sec { stroke-dasharray: 5 4; opacity: 0.4; }
+  /* ambient flow: a faint current runs along every wire all the time */
+  .wire-dash { fill: none; stroke: var(--hue, var(--flows)); stroke-width: 1.5; stroke-dasharray: 3 11; opacity: 0.32; animation: dash-flow var(--spd, 2.8s) linear infinite; animation-delay: var(--ph, 0s); transition: opacity .4s; }
+  @keyframes dash-flow { to { stroke-dashoffset: -14; } }
+  .step-arrow { fill: none; stroke: var(--rule-lit); stroke-width: 1.2; marker-end: url(#mk-step); }
+  .zone { fill: rgba(79,195,217,0.02); stroke: var(--rule-lit); stroke-width: 1; }
+  .zone.mcp { fill: rgba(110,139,166,0.10); stroke: var(--mcp); stroke-dasharray: 6 5; animation: ants 30s linear infinite; }
+  @keyframes ants { to { stroke-dashoffset: -330; } }
+
+  .band { cursor: pointer; --hue: var(--muted); }
+  .band .fill { fill: var(--bg, #131E2C); stroke: var(--hue); stroke-width: 1.2; transition: filter .35s, stroke-width .35s; }
+  .band .nm { font-family: var(--display); font-size: 14px; font-weight: 700; fill: var(--hue); }
+  .band .sb { font-size: 9.5px; fill: var(--dim); letter-spacing: 0.06em; }
+  .band .plus { font-size: 12px; fill: var(--hue); opacity: .7; }
+  .band:hover .fill, .band:focus-visible .fill { filter: brightness(1.25); }
+  .band:focus-visible { outline: none; }
+  .band:focus-visible .fill { stroke-width: 2.4; }
+  .band.lit .fill { stroke-width: 2.2; filter: drop-shadow(0 0 10px var(--hue)) brightness(1.18); }
+
+  .node { position: absolute; width: 560px; height: 62px; display: flex; align-items: center; gap: 14px; padding: 0 16px; text-align: left; cursor: pointer; border-radius: 6px; font-family: var(--body); color: var(--ink); --hue: var(--flows);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--hue) 8%, var(--panel-2)), var(--panel));
+    border: 1px solid color-mix(in srgb, var(--hue) 36%, transparent);
+    box-shadow: 0 6px 22px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04);
+    transition: transform .18s, box-shadow .35s, border-color .35s; animation: node-in .55s cubic-bezier(.2,.9,.3,1.1) backwards; animation-delay: var(--d, 0s); }
+  @keyframes node-in { from { opacity: 0; transform: translateY(10px) scale(.96); } to { opacity: 1; transform: none; } }
+  .node:hover, .node:focus-visible { transform: translateY(-2px); border-color: var(--hue); box-shadow: 0 0 0 1px color-mix(in srgb, var(--hue) 45%, transparent), 0 14px 42px color-mix(in srgb, var(--hue) 20%, transparent); }
+  .node:focus-visible { outline: 2px solid var(--hue); outline-offset: 3px; }
+  .node.lit { border-color: var(--hue); box-shadow: 0 0 0 1px color-mix(in srgb, var(--hue) 55%, transparent), 0 0 34px color-mix(in srgb, var(--hue) 28%, transparent); }
+  .n-k { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; color: var(--dim); width: 54px; flex: 0 0 auto; }
+  .n-text { min-width: 0; flex: 1; }
+  .n-name { display: block; font-family: var(--display); font-weight: 700; font-size: 15px; line-height: 1.15; color: var(--hue); }
+  .n-role { display: block; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.08em; color: var(--muted); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .n-cmd { font-family: var(--mono); font-size: 10.5px; color: var(--dim); flex: 0 0 auto; }
+  .n-gate { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; color: var(--human); border: 1px solid rgba(243,231,201,0.35); border-radius: 4px; padding: 3px 8px; animation: gate-breathe 5s ease-in-out infinite; animation-delay: var(--g, 0s); }
+  .n-gate::before { content: "◇"; font-size: 11px; }
+  .n-gate.ext { color: var(--articles); border-color: rgba(232,179,74,0.4); }
+  .n-gate.ext::before { content: "⇥"; }
+  @keyframes gate-breathe { 0%,100% { box-shadow: 0 0 0 rgba(243,231,201,0); } 50% { box-shadow: 0 0 12px rgba(243,231,201,0.28); } }
+  .n-plus { position: absolute; top: 6px; right: 8px; font-family: var(--mono); font-size: 12px; color: var(--hue); opacity: .7; }
+
+  .cap { font-size: 0.95rem; color: var(--muted); max-width: 78ch; line-height: 1.6; margin: 18px 0 0; }
+  .cap b { color: var(--ink); font-weight: 600; }
+  .cap em { color: var(--ink); font-style: normal; font-weight: 500; }
+  footer { margin-top: 48px; border-top: 1px solid var(--rule); padding-top: 18px; font-family: var(--mono); font-size: 10.5px; color: var(--dim); letter-spacing: 0.08em; display: flex; gap: 24px; flex-wrap: wrap; justify-content: space-between; }
+
+  .overlay { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 24px; background: rgba(4,7,14,0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); opacity: 0; transition: opacity .22s; }
+  .overlay.open { opacity: 1; }
+  .modal { width: min(760px, 100%); max-height: min(88vh, 820px); overflow-y: auto; background: linear-gradient(180deg, var(--panel-2), var(--panel)); border-radius: 12px; padding: 30px 34px 24px; position: relative; --hue: var(--flows);
+    border: 1px solid color-mix(in srgb, var(--hue) 45%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--hue) 20%, transparent), 0 0 70px color-mix(in srgb, var(--hue) 16%, transparent), 0 30px 90px rgba(0,0,0,0.6);
+    transform: scale(.5); opacity: 0; transition: transform .26s cubic-bezier(.2,.9,.3,1.05), opacity .2s; }
+  .overlay.open .modal { transform: scale(1); opacity: 1; }
+  .m-close { position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; display: grid; place-items: center; background: var(--panel); color: var(--muted); border: 1px solid var(--rule); border-radius: 8px; cursor: pointer; font-size: 15px; }
+  .m-close:hover { color: var(--ink); border-color: var(--rule-lit); }
+  .m-close:focus-visible { outline: 2px solid var(--hue); outline-offset: 2px; }
+  .m-role { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--hue); margin-bottom: 6px; }
+  .m-name { font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1.1; margin: 0; letter-spacing: -0.015em; }
+  .m-file { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .m-lead { font-size: 17px; line-height: 1.55; color: var(--ink); margin: 18px 0 20px; }
+  .m-sec { margin-bottom: 18px; }
+  .m-lbl { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .m-lbl::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
+  .m-p { font-size: 15px; color: var(--muted); margin: 0; }
+  .m-p em { color: var(--ink); font-style: normal; font-weight: 500; }
+  .m-list { margin: 0; padding: 0; list-style: none; }
+  .m-list li { position: relative; padding-left: 20px; font-size: 14.5px; color: var(--muted); margin-bottom: 7px; }
+  .m-list li::before { content: "▸"; position: absolute; left: 2px; top: 2px; color: var(--hue); font-size: 12px; }
+  .m-list code, .m-p code { font-family: var(--mono); font-size: 12.5px; color: var(--flows); background: rgba(79,195,217,0.08); padding: 1px 6px; border-radius: 4px; }
+  .m-why { border: 1px solid color-mix(in srgb, var(--hue) 35%, transparent); background: color-mix(in srgb, var(--hue) 7%, transparent); border-radius: 8px; padding: 13px 16px; font-size: 14.5px; color: var(--ink); margin: 0; }
+  .m-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--rule); }
+  .m-badge { font-family: var(--mono); font-size: 11px; color: var(--dim); letter-spacing: 0.08em; }
+  .m-nav { display: flex; gap: 8px; }
+  .m-nav button { font-family: var(--mono); font-size: 11.5px; color: var(--muted); background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 7px 13px; cursor: pointer; }
+  .m-nav button:hover { color: var(--ink); border-color: var(--rule-lit); }
+  .m-nav button:focus-visible { outline: 2px solid var(--hue); outline-offset: 2px; }
+  .m-body.swap { animation: content-in .24s ease; }
+  @keyframes content-in { from { opacity: 0; transform: translateY(6px); } }
+
+  @media (max-width: 760px) { .frame { padding: 0 18px 56px; } header.mast { padding: 40px 0 24px; } }
+</style>
+<style>
+  /* ── story sections ─────────────────────────────────────────── */
+  .frame { max-width: 1280px; }
+  h1 .ai { color: var(--flows); }
+  .scope { font-family: var(--mono); font-size: 11.5px; color: var(--dim); letter-spacing: 0.06em; display: flex; flex-wrap: wrap; gap: 8px 22px; border-top: 1px solid var(--rule); padding-top: 16px; }
+  .scope b { color: var(--flows); font-weight: 500; }
+
+  section.ch { margin-top: 64px; border-top: 1px solid var(--rule); padding-top: 36px; }
+  .ch-head { display: grid; grid-template-columns: 110px 1fr; gap: 24px; align-items: start; margin-bottom: 22px; }
+  .ch-head .k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; color: var(--dim); padding-top: 10px; }
+  .ch-head .k b { display: block; color: var(--flows); font-weight: 500; font-size: 22px; letter-spacing: 0; line-height: 1; margin-bottom: 6px; font-family: var(--display); }
+  .ch-head h2 { font-family: var(--display); font-weight: 800; font-size: clamp(1.5rem, 2.8vw, 2.1rem); letter-spacing: -0.02em; margin: 0 0 8px; text-wrap: balance; }
+  .ch-head p { margin: 0; color: var(--muted); max-width: 72ch; font-size: 1rem; }
+  .ch-head p b { color: var(--ink); font-weight: 600; }
+  @media (max-width: 760px) { .ch-head { grid-template-columns: 1fr; gap: 8px; } }
+
+  /* KPI tiles — the numbers ARE the point of this row */
+  .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 26px; }
+  @media (max-width: 1000px) { .kpis { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 640px) { .kpis { grid-template-columns: 1fr 1fr; } }
+  .kpi { background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--rule); border-top: 2px solid var(--hue); border-radius: 4px; padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 6px; position: relative; overflow: hidden; }
+  .kpi::after { content: ""; position: absolute; inset: auto -30% -50% auto; width: 60%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--hue) 16%, transparent), transparent 70%); pointer-events: none; }
+  .kpi .v { font-family: var(--display); font-weight: 800; font-size: clamp(1.7rem, 3vw, 2.5rem); letter-spacing: -0.02em; line-height: 1; color: var(--hue); font-variant-numeric: tabular-nums; }
+  .kpi .v small { font-size: 0.55em; font-weight: 700; color: var(--hue); opacity: .8; letter-spacing: 0; }
+  .kpi .l { font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--dim); }
+  .kpi .d { font-size: 0.86rem; color: var(--muted); line-height: 1.45; }
+  .kpi .d b { color: var(--ink); font-weight: 500; }
+
+  /* the argument, as a rail */
+  .case { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 8px; position: relative; }
+  @media (max-width: 900px) { .case { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .case { grid-template-columns: 1fr; } }
+  .beat { position: relative; padding: 22px 26px 22px 22px; border: 1px solid var(--rule); background: var(--panel); margin-right: -1px; display: flex; flex-direction: column; gap: 10px; }
+  .beat:first-child { border-radius: 4px 0 0 4px; }
+  .beat:last-child { border-radius: 0 4px 4px 0; }
+  .beat.on { background: linear-gradient(180deg, color-mix(in srgb, var(--flows) 10%, var(--panel-2)), var(--panel)); border-color: rgba(79,195,217,0.45); box-shadow: 0 0 0 1px rgba(79,195,217,0.2), 0 0 40px rgba(79,195,217,0.12); z-index: 1; }
+  .beat .n { font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; color: var(--hue, var(--dim)); display: flex; align-items: center; gap: 8px; }
+  .beat .n::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--hue, var(--dim)); box-shadow: 0 0 10px var(--hue, transparent); }
+  .beat h3 { font-family: var(--display); font-weight: 800; font-size: 1.12rem; letter-spacing: -0.015em; margin: 0; line-height: 1.2; text-wrap: balance; }
+  .beat p { margin: 0; font-size: 0.9rem; color: var(--muted); line-height: 1.5; }
+  .beat p b { color: var(--ink); font-weight: 500; }
+  .beat .fig-n { font-family: var(--display); font-weight: 800; font-size: 1.5rem; color: var(--hue, var(--ink)); letter-spacing: -0.02em; line-height: 1; margin-top: 4px; }
+  .beat .fig-n small { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: var(--dim); font-weight: 400; margin-left: 8px; }
+  .beat::after { content: "→"; position: absolute; right: -11px; top: 50%; transform: translateY(-50%); z-index: 2; font-family: var(--mono); font-size: 14px; color: var(--flows); background: var(--void); border: 1px solid var(--rule-lit); border-radius: 50%; width: 22px; height: 22px; display: grid; place-items: center; }
+  .beat:last-child::after { display: none; }
+  @media (max-width: 900px) { .beat::after { display: none; } .beat { border-radius: 4px !important; margin: 0; } .case { gap: 10px; } }
+
+  /* chart panels */
+  .panels { display: grid; grid-template-columns: 1.55fr 1fr; gap: 14px; margin-top: 8px; }
+  .panels.three { grid-template-columns: 1.2fr 1fr 1fr; }
+  @media (max-width: 960px) { .panels, .panels.three { grid-template-columns: 1fr; } }
+  .panel { background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--rule); border-radius: 6px; padding: 20px 22px 18px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .panel .pt { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); }
+  .panel .pn { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.06em; color: var(--dim); line-height: 1.6; }
+  .panel .pn b { color: var(--muted); font-weight: 500; }
+  .panel svg { display: block; width: 100%; height: auto; }
+  .bar { animation: grow .9s cubic-bezier(.2,.8,.2,1) both; transform-box: fill-box; transform-origin: bottom; animation-delay: var(--d, 0s); }
+  @keyframes grow { from { transform: scaleY(.04); } }
+  .t-val { font-family: var(--mono); font-size: 11px; fill: var(--ink); text-anchor: middle; }
+  .t-ax { font-family: var(--mono); font-size: 10px; fill: var(--dim); text-anchor: middle; letter-spacing: 0.08em; }
+  .t-note { font-family: var(--mono); font-size: 10px; fill: var(--codemap); text-anchor: middle; letter-spacing: 0.06em; }
+  .proj { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; font-family: var(--display); font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+  .proj .a { font-size: 2rem; color: var(--muted); }
+  .proj .g { font-family: var(--mono); font-size: 12px; font-weight: 400; color: var(--codemap); letter-spacing: 0.06em; }
+  .proj .b { font-size: 2.6rem; color: var(--codemap); }
+  .proj + p { margin: 0; font-size: 0.9rem; color: var(--muted); }
+  .proj + p b { color: var(--ink); font-weight: 500; }
+
+  /* horizontal bar lists (HTML) */
+  .hbars { display: flex; flex-direction: column; gap: 9px; }
+  .hb { display: grid; grid-template-columns: 118px 1fr 80px; gap: 12px; align-items: center; font-size: 13.5px; color: var(--muted); }
+  .hb.hi { color: var(--ink); font-weight: 600; }
+  .hb .lbl { text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hb .trk { position: relative; height: 22px; background: rgba(255,255,255,0.03); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
+  .hb .fl { position: absolute; inset: 0 auto 0 0; width: var(--w); background: linear-gradient(90deg, color-mix(in srgb, var(--hue) 55%, transparent), var(--hue)); border-radius: 2px; transform-origin: left; animation: growx .9s cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--d, 0s); }
+  @keyframes growx { from { transform: scaleX(.04); } }
+  .hb .pv { position: absolute; top: 0; bottom: 0; left: var(--p); width: 2px; background: var(--ink); opacity: .55; }
+  .hb .pv::after { content: ""; position: absolute; top: -3px; left: -2px; border: 3px solid transparent; border-top: 4px solid var(--ink); }
+  .hb .val { font-family: var(--mono); font-size: 12px; color: var(--ink); font-variant-numeric: tabular-nums; text-align: right; }
+  .hb .val small { display: block; font-size: 9.5px; color: var(--dim); white-space: nowrap; }
+  .hb.hi .val { color: var(--hue); }
+  .hb.hi .lbl { color: var(--hue); }
+  .delta { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--codemap); border: 1px solid rgba(91,214,160,0.35); background: rgba(91,214,160,0.07); border-radius: 999px; padding: 5px 12px; align-self: flex-start; }
+  .delta.gold { color: var(--articles); border-color: rgba(232,179,74,0.35); background: rgba(232,179,74,0.07); }
+
+  /* donut */
+  .donut { display: grid; grid-template-columns: 132px 1fr; gap: 16px; align-items: center; }
+  @media (max-width: 480px) { .donut { grid-template-columns: 1fr; } }
+  .donut .ring { stroke-dasharray: var(--len) 339.3; stroke-dashoffset: 0; transform: rotate(-90deg); transform-origin: center; animation: ringin 1.2s cubic-bezier(.2,.8,.2,1) both; animation-delay: .2s; }
+  @keyframes ringin { from { stroke-dasharray: 0 339.3; } }
+  .donut .big { font-family: var(--display); font-weight: 800; font-size: 26px; fill: var(--flows); text-anchor: middle; letter-spacing: -0.02em; }
+  .donut .sm { font-family: var(--mono); font-size: 8px; fill: var(--dim); text-anchor: middle; letter-spacing: 0.14em; }
+  .legend-l { display: flex; flex-direction: column; gap: 8px; font-size: 13.5px; color: var(--muted); }
+  .legend-l > span { display: flex; align-items: center; gap: 9px; }
+  .legend-l > span > span { flex: 1; min-width: 0; line-height: 1.35; }
+  .legend-l i { width: 11px; height: 11px; border-radius: 2px; background: var(--hue, var(--rule-lit)); flex: 0 0 auto; }
+  .legend-l b { color: var(--ink); font-weight: 600; }
+  .legend-l em { font-style: normal; color: var(--flows); font-weight: 600; }
+
+  /* why interchange — reasons */
+  .reasons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
+  @media (max-width: 760px) { .reasons { grid-template-columns: 1fr; } }
+  .reason { border: 1px solid var(--rule); border-left: 3px solid var(--hue); background: var(--panel); border-radius: 3px; padding: 14px 16px; display: flex; flex-direction: column; gap: 5px; }
+  .reason .t { font-family: var(--display); font-weight: 700; font-size: 1rem; color: var(--hue); }
+  .reason .s { font-size: 0.88rem; color: var(--muted); line-height: 1.5; }
+  .reason .s b { color: var(--ink); font-weight: 500; }
+
+  /* the journey */
+  .phases { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 8px; }
+  @media (max-width: 960px) { .phases { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .phases { grid-template-columns: 1fr; } }
+  .phase { position: relative; background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--rule); border-top: 3px solid var(--hue); border-radius: 4px; padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 10px; min-height: 100%; }
+  .phase .ph { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--hue); }
+  .phase .ph span:last-child { color: var(--dim); }
+  .phase h3 { font-family: var(--display); font-weight: 800; font-size: 1.12rem; letter-spacing: -0.015em; margin: 0; line-height: 1.2; text-wrap: balance; }
+  .phase ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 7px; }
+  .phase li { position: relative; padding-left: 14px; font-size: 0.88rem; color: var(--muted); line-height: 1.45; }
+  .phase li::before { content: ""; position: absolute; left: 0; top: 9px; width: 5px; height: 5px; border-radius: 50%; background: var(--hue); }
+  .phase li b { color: var(--ink); font-weight: 500; }
+  .phase .tag { margin-top: auto; padding-top: 8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); }
+  .phase .proof { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.06em; color: var(--codemap); border: 1px solid rgba(91,214,160,0.35); background: rgba(91,214,160,0.07); border-radius: 4px; padding: 6px 9px; }
+  .phase.neuro { border-color: rgba(185,140,224,0.6); box-shadow: 0 0 0 1px rgba(185,140,224,0.25), 0 0 46px rgba(185,140,224,0.16); }
+  .phase.neuro::before { content: "◆ NEURO STARTS HERE"; position: absolute; top: -13px; left: 14px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.18em; color: var(--void); background: var(--history); border-radius: 999px; padding: 4px 10px; box-shadow: 0 0 18px rgba(185,140,224,0.6); animation: badge 3.4s ease-in-out infinite; }
+  @keyframes badge { 0%,100% { box-shadow: 0 0 10px rgba(185,140,224,0.35); } 50% { box-shadow: 0 0 22px rgba(185,140,224,0.8); } }
+  .rail { margin-top: 16px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, var(--articles), var(--flows), var(--history), var(--code)); background-size: 200% 100%; animation: shimmer 9s linear infinite; }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+  .rail-l { display: flex; justify-content: space-between; margin-top: 8px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); }
+  .rail-l span:nth-child(2) { color: var(--muted); }
+
+  .src-note { font-family: var(--mono); font-size: 10.5px; color: var(--dim); letter-spacing: 0.04em; margin: 14px 0 0; line-height: 1.6; }
+
+  /* ── bring-forward focus ────────────────────────────────────── */
+  .focusable { position: relative; cursor: zoom-in; }
+  .focusable .focus-btn { position: absolute; top: 34px; right: 0; z-index: 3; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); background: var(--panel); border: 1px solid var(--rule); border-radius: 999px; padding: 5px 11px; cursor: pointer; opacity: .6; transition: all .18s; }
+  .kpis.focusable .focus-btn { top: -30px; }
+  .focusable:hover .focus-btn { opacity: 1; color: var(--flows); border-color: rgba(79,195,217,0.45); }
+  .focus-btn:focus-visible { outline: 2px solid var(--flows); outline-offset: 2px; }
+  .focus-back { position: fixed; inset: 0; z-index: 55; background: rgba(4,7,14,0.58); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); opacity: 0; pointer-events: none; transition: opacity .32s; }
+  body.focused { overflow: hidden; }
+  body.focused .focus-back { opacity: 1; pointer-events: auto; }
+  .focusable.focus { position: fixed; inset: 3vh 3vw; z-index: 60; overflow: auto; margin: 0; cursor: default; border: 1px solid rgba(79,195,217,0.35); border-radius: 12px; padding: 30px 36px 36px;
+    background: linear-gradient(180deg, var(--panel-2), var(--panel)); box-shadow: 0 0 0 1px rgba(79,195,217,0.14), 0 0 100px rgba(79,195,217,0.14), 0 40px 120px rgba(0,0,0,0.7);
+    animation: bring .34s cubic-bezier(.2,.9,.3,1.05) both; }
+  .focusable.focus > :not(.focus-btn) { zoom: 1.1; }
+  .kpis.focusable.focus { display: grid; align-content: center; gap: 22px; padding: 60px 48px; }
+  .kpis.focusable.focus .kpi { padding: 30px 28px; }
+  .kpis.focusable.focus .kpi .v { font-size: 3.4rem; }
+  .kpis.focusable.focus { cursor: zoom-out; }
+  .kpis.focusable.focus .focus-btn { display: none; }
+  .focusable.focus .focus-btn { position: sticky; float: right; top: 0; right: 0; opacity: 1; color: var(--ink); border-color: var(--rule-lit); background: var(--panel-3); }
+  .focusable.focus .ch-head { padding-right: 90px; }
+  @keyframes bring { from { transform: scale(.93); opacity: .3; } }
+  .focus-ph { pointer-events: none; }
+
+  /* ── minor movement, everywhere it earns it ─────────────────── */
+  .kpi::after { animation: drift 9s ease-in-out infinite alternate; animation-delay: var(--d, 0s); }
+  @keyframes drift { to { transform: translate(-28%, -22%) scale(1.15); } }
+  .kpi:nth-child(2)::after { --d: -2s; } .kpi:nth-child(3)::after { --d: -4s; } .kpi:nth-child(4)::after { --d: -6s; } .kpi:nth-child(5)::after { --d: -8s; }
+  .beat::after { animation: arrow-breathe 3.6s ease-in-out infinite; animation-delay: var(--ad, 0s); }
+  .beat:nth-child(1)::after { --ad: 0s; } .beat:nth-child(2)::after { --ad: .6s; } .beat:nth-child(3)::after { --ad: 1.2s; }
+  @keyframes arrow-breathe { 0%,100% { color: var(--dim); box-shadow: none; transform: translate(0, -50%); } 35% { color: var(--flows); box-shadow: 0 0 12px rgba(79,195,217,0.6); transform: translate(3px, -50%); } }
+  .beat.on { animation: beat-glow 4.8s ease-in-out infinite; }
+  @keyframes beat-glow { 0%,100% { box-shadow: 0 0 0 1px rgba(79,195,217,0.2), 0 0 40px rgba(79,195,217,0.12); } 50% { box-shadow: 0 0 0 1px rgba(79,195,217,0.45), 0 0 56px rgba(79,195,217,0.26); } }
+  .ants { animation: ants 24s linear infinite; }
+  .rec { animation: grow .9s cubic-bezier(.2,.8,.2,1) both, recglow 2.8s ease-in-out 1s infinite; }
+  @keyframes recglow { 0%,100% { filter: drop-shadow(0 0 2px rgba(91,214,160,0.3)); } 50% { filter: drop-shadow(0 0 9px rgba(91,214,160,0.85)); } }
+  .t-note { animation: note-pulse 3s ease-in-out infinite; }
+  @keyframes note-pulse { 0%,100% { opacity: .75; } 50% { opacity: 1; } }
+  .hb.hi .fl { overflow: hidden; }
+  .hb.hi .fl::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.32) 50%, transparent 100%); transform: translateX(-110%); animation: sheen 3.4s ease-in-out 1.4s infinite; }
+  @keyframes sheen { 0% { transform: translateX(-110%); } 45%,100% { transform: translateX(110%); } }
+  .donut .orbit { transform-box: fill-box; transform-origin: center; animation: orbit 40s linear infinite; }
+  @keyframes orbit { to { transform: rotate(360deg); } }
+  .donut .big { animation: note-pulse 4s ease-in-out infinite; }
+  .rail { position: relative; overflow: visible; }
+  .rail .rider { position: absolute; top: -5px; left: 0; width: 13px; height: 13px; border-radius: 50%; background: #fff; box-shadow: 0 0 16px 3px rgba(79,195,217,0.7); animation: ride 8s cubic-bezier(.45,.05,.55,.95) infinite; }
+  @keyframes ride { 0% { left: 0; box-shadow: 0 0 16px 3px rgba(232,179,74,0.7); } 33% { box-shadow: 0 0 16px 3px rgba(79,195,217,0.7); } 66% { box-shadow: 0 0 16px 3px rgba(185,140,224,0.7); } 100% { left: calc(100% - 13px); box-shadow: 0 0 16px 3px rgba(242,130,92,0.7); } }
+  .phase { transition: transform .2s, box-shadow .2s; }
+  .phase:hover { transform: translateY(-3px); }
+  .phase .proof { animation: proof-glow 3.2s ease-in-out infinite; }
+  @keyframes proof-glow { 0%,100% { box-shadow: 0 0 0 rgba(91,214,160,0); } 50% { box-shadow: 0 0 14px rgba(91,214,160,0.35); } }
+  .reason { transition: transform .2s; }
+  .reason:hover { transform: translateY(-2px); }
+  .thesis { animation: thesis-glow 4s ease-in-out infinite; }
+  @keyframes thesis-glow { 0%,100% { box-shadow: 0 0 0 rgba(232,179,74,0); } 50% { box-shadow: 0 0 18px rgba(232,179,74,0.25); } }
+  .ch-head .k b { animation: note-pulse 5s ease-in-out infinite; }
+
+  .slice { transform-box: view-box; transform-origin: 95px 95px; animation: slicein .8s cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--d, 0s); }
+  .slice.ic { animation: slicein .8s cubic-bezier(.2,.8,.2,1) both, slice-glow 3.2s ease-in-out 1.4s infinite; }
+  @keyframes slicein { from { opacity: 0; transform: scale(.55); } }
+  @keyframes slice-glow { 0%,100% { fill: #4FC3D9; } 50% { fill: #7FDCEC; } }
+  .pie-big { font-family: var(--display); font-weight: 800; font-size: 15px; fill: #07111A; text-anchor: middle; letter-spacing: -0.02em; }
+  .pie-sm { font-family: var(--mono); font-size: 6.5px; fill: #07111A; text-anchor: middle; letter-spacing: 0.12em; }
+  .pie-big.rest { fill: var(--ink); } .pie-sm.rest { fill: var(--muted); }
+  .panels.three { grid-template-columns: 1fr 1fr 1fr; }
+
+  .panel { position: relative; }
+  .panel .step { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--flows); display: inline-flex; align-items: center; gap: 8px; margin-bottom: -6px; }
+  .panel .step b { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--flows); color: var(--void); font-size: 10.5px; font-weight: 500; }
+  .panels.funnel .panel:not(:last-child)::after { content: "→"; position: absolute; right: -14px; top: 34px; z-index: 2; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: var(--void); border: 1px solid var(--rule-lit); color: var(--flows); font-family: var(--mono); font-size: 14px; animation: arrow-breathe 3.6s ease-in-out infinite; }
+  .panels.funnel .panel:nth-child(2)::after { animation-delay: .9s; }
+  @media (max-width: 960px) { .panels.funnel .panel::after { display: none; } }
+</style>
+
+<div class="frame">
+  <header class="mast">
+    <p class="eyebrow">
+      <svg class="pulse" width="92" height="20" viewBox="0 0 92 20" fill="none" aria-hidden="true"><path d="M1 10 H20 L26 3 L34 17 L40 10 H56 L62 5 L68 15 L73 10 H91" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      Merchant Services &middot; Payment Brand Implementations &middot; Kickoff
+    </p>
+    <h1>Automating Payment Brand Implementations <span class="ai">with AI</span></h1>
+    <p class="lede">Every year the card networks publish <b>thousands of mandated changes</b> we must implement to stay compliant and keep
+      processing &mdash; and the intake is growing <b>~14% a year</b> against a technology capacity that is not. This is the case for
+      automating that book with AI, starting with <b>Interchange</b>: where we are, why here first, and what Neuro does.</p>
+    <span class="thesis">Free the capacity &middot; reinvest it in the backlog</span>
+    <div class="scope">
+      <span><b>Scope</b> &nbsp;Payment Brand Implementations (PBI)</span>
+      <span><b>Book of work</b> &nbsp;26 engines &middot; ~19 card brands</span>
+      <span><b>Horizon</b> &nbsp;Today &rarr; Q3 2027</span>
+      <span><b>Status</b> &nbsp;Phase 1 in production</span>
+    </div>
+
+    <div class="kpis focusable" id="numbers">
+      <div class="kpi" style="--hue:var(--history)"><span class="v">~<span class="num" data-n="19">19</span></span><span class="l">Card brands</span><span class="d">Visa + Mastercard the majority &mdash; <b>78.6%</b> of all articles</span></div>
+      <div class="kpi" style="--hue:var(--articles)"><span class="v">~<span class="num" data-n="4400">4,400</span></span><span class="l">Articles / year</span><span class="d">2026 projected &middot; <b>~1,000</b> non-negotiable mandates</span></div>
+      <div class="kpi" style="--hue:var(--code)"><span class="v">~<span class="num" data-n="14">14</span><small>%</small></span><span class="l">Projected growth &middot; 2025 &rarr; 2026</span><span class="d"><b>3,855</b> in 2025 &rarr; <b>~4,400</b> projected 2026 &middot; demand &gt; supply</span></div>
+      <div class="kpi" style="--hue:var(--flows)"><span class="v">$<span class="num" data-n="28">28</span><small>B</small></span><span class="l">Interchange processed / yr</span><span class="d"><b>Pass-through</b> Interchange processed in 2025</span></div>
+      <div class="kpi" style="--hue:var(--codemap)"><span class="v"><span class="num" data-n="20">20</span><small>%</small></span><span class="l">of Stratus PBI capacity</span><span class="d">is spent on Interchange &mdash; <b>one engine, one change type</b></span></div>
+    </div>
+  </header>
+
+  <!-- ══════════ 01 · THE CASE ══════════ -->
+  <section class="ch focusable" id="case">
+    <div class="ch-head">
+      <div class="k"><b>01</b>THE CASE</div>
+      <div>
+        <h2>The intake grows every year &mdash; faster than capacity can.</h2>
+        <p>Four beats, in order. Each one is a number, not an opinion &mdash; and the last one is the reason this is worth doing.</p>
+      </div>
+    </div>
+    <div class="case">
+      <div class="beat" style="--hue:var(--articles)"><span class="n">01 &middot; DEMAND</span><h3>Article intake is growing every year</h3><p>1,633 articles in 2020. 3,855 in 2025. <b>~4,400 projected for 2026</b>, with the highest quarter on record already booked.</p><span class="fig-n">+14% <small>YOY</small></span></div>
+      <div class="beat" style="--hue:var(--code)"><span class="n">02 &middot; THE GAP</span><h3>Demand for PBI work &gt; supply of technology</h3><p>A book of work spread across <b>26 engines</b> &mdash; and no team scales at 14% a year. The gap compounds into backlog; mandates do not wait.</p><span class="fig-n">Gap <small>COMPOUNDING</small></span></div>
+      <div class="beat on" style="--hue:var(--flows)"><span class="n">03 &middot; THE MOVE</span><h3>Automate PBI with AI &mdash; start with Interchange</h3><p><b>Complex</b> enough to prove the method, <b>impactful</b> enough to matter ($28B/yr), and the <b>majority of the impact on one engine</b> &mdash; Stratus.</p><span class="fig-n">Neuro <small>PBI PDLC</small></span></div>
+      <div class="beat" style="--hue:var(--codemap)"><span class="n">04 &middot; THE RETURN</span><h3>Free the capacity, reinvest it in the backlog</h3><p>Hours saved on Interchange go back into the book &mdash; next to <b>Auth &amp; Clearing</b>, the ~105K-hr path on Stratus + Tandem.</p><span class="fig-n">Reinvest <small>PHASE 4</small></span></div>
+    </div>
+  </section>
+
+  <!-- ══════════ 02 · THE GROWTH STORY ══════════ -->
+  <section class="ch focusable" id="growth">
+    <div class="ch-head">
+      <div class="k"><b>02</b>GROWTH</div>
+      <div>
+        <h2>The book keeps growing &mdash; and 2026 is on pace to set a record</h2>
+        <p>Article intake has <b>more than doubled since 2020</b>. 2025 closed at <b>3,855</b>; at the ~14% rate 2026 is tracking we project
+          <b>~4,400</b>, with a record <b>Q2 (1,267)</b> already booked.</p>
+      </div>
+    </div>
+    <div class="panels">
+      <div class="panel">
+        <span class="pt">Articles ingested per year &middot; 2020 &rarr; 2026</span>
+        <svg viewBox="0 0 720 320" role="img" aria-label="Bar chart of articles per year: 1,633 in 2020, 1,866 in 2021, 1,751 in 2022, 3,056 in 2023, 3,639 in 2024, 3,855 in 2025, and 2026 at 2,881 booked through August with a projected total of about 4,400.">
+          <defs>
+            <linearGradient id="gGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E8B34A"/><stop offset="1" stop-color="#8A6A2A"/></linearGradient>
+            <linearGradient id="gCyan" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4FC3D9"/><stop offset="1" stop-color="#2A6E7C"/></linearGradient>
+            <linearGradient id="gGrey" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2E4055"/><stop offset="1" stop-color="#182430"/></linearGradient>
+          </defs>
+          <line x1="30" y1="280" x2="700" y2="280" stroke="#2A3B4F"/>
+          <rect class="bar" x="40" y="191" width="64" height="89" rx="2" fill="url(#gGrey)" style="--d:.0s"/><text class="t-val" x="72" y="181">1,633</text><text class="t-ax" x="72" y="302">2020</text>
+          <rect class="bar" x="136" y="178" width="64" height="102" rx="2" fill="url(#gGrey)" style="--d:.08s"/><text class="t-val" x="168" y="168">1,866</text><text class="t-ax" x="168" y="302">2021</text>
+          <rect class="bar" x="232" y="184" width="64" height="96" rx="2" fill="url(#gGrey)" style="--d:.16s"/><text class="t-val" x="264" y="174">1,751</text><text class="t-ax" x="264" y="302">2022</text>
+          <rect class="bar" x="328" y="113" width="64" height="167" rx="2" fill="url(#gGrey)" style="--d:.24s"/><text class="t-val" x="360" y="103">3,056</text><text class="t-ax" x="360" y="302">2023</text>
+          <rect class="bar" x="424" y="82" width="64" height="198" rx="2" fill="url(#gGrey)" style="--d:.32s"/><text class="t-val" x="456" y="72">3,639</text><text class="t-ax" x="456" y="302">2024</text>
+          <rect class="bar" x="520" y="70" width="64" height="210" rx="2" fill="url(#gGold)" style="--d:.4s"/><text class="t-val" x="552" y="60">3,855</text><text class="t-ax" x="552" y="302" style="fill:#E8B34A">2025</text>
+          <rect class="ants" x="616" y="40" width="64" height="240" rx="2" fill="rgba(91,214,160,0.06)" stroke="#5BD6A0" stroke-dasharray="4 3"/>
+          <rect class="bar" x="616" y="123" width="64" height="157" rx="2" fill="url(#gCyan)" style="--d:.48s"/>
+          <text class="t-val" x="648" y="113" style="fill:#4FC3D9">2,881</text><text class="t-note" x="648" y="30">~4,400</text>
+          <text class="t-ax" x="648" y="302" style="fill:#5BD6A0">2026</text><text class="t-ax" x="648" y="315" style="fill:#5BD6A0">PROJECTED</text>
+          <path d="M586 62 C 600 52 606 46 612 42" fill="none" stroke="#5BD6A0" stroke-width="1.2"/><text class="t-note" x="598" y="38" style="text-anchor:end">+14%</text>
+          <path d="M72 168 L72 150 L552 150 L552 56" fill="none" stroke="#5A6C82" stroke-dasharray="3 4" opacity=".7"/><text class="t-ax" x="312" y="144" style="fill:#8A9BB3">&times;2.4 SINCE 2020</text>
+        </svg>
+        <span class="pn">SOLID = ACTUAL &middot; 2026 BAR = <b>2,881</b> BOOKED THROUGH AUG + DASHED EXTENSION TO <b>~4,400</b> PROJECTED (+14% ON 2025)</span>
+      </div>
+      <div class="panel">
+        <span class="pt">2025 &rarr; 2026 projection</span>
+        <div class="proj"><span class="a">3,855</span><span class="g">+14% &rarr;</span><span class="b">~4,400</span></div>
+        <p>2025 actual &rarr; 2026 projected. Corroborated by annualizing 2026 actuals through August.</p>
+        <span class="pt" style="margin-top:8px">Articles per quarter &middot; 2025 vs 2026</span>
+        <svg viewBox="0 0 360 170" role="img" aria-label="Quarterly articles: 847, 1,011, 898, 1,099 across 2025; 950 and a record 1,267 in Q1 and Q2 2026.">
+          <line x1="12" y1="140" x2="348" y2="140" stroke="#2A3B4F"/>
+          <rect class="bar" x="20" y="60" width="36" height="80" rx="2" fill="#1F2D3D" style="--d:.5s"/><text class="t-val" x="38" y="52">847</text><text class="t-ax" x="38" y="156">Q1 25</text>
+          <rect class="bar" x="76" y="44" width="36" height="96" rx="2" fill="#1F2D3D" style="--d:.56s"/><text class="t-val" x="94" y="36">1,011</text><text class="t-ax" x="94" y="156">Q2 25</text>
+          <rect class="bar" x="132" y="55" width="36" height="85" rx="2" fill="#1F2D3D" style="--d:.62s"/><text class="t-val" x="150" y="47">898</text><text class="t-ax" x="150" y="156">Q3 25</text>
+          <rect class="bar" x="188" y="36" width="36" height="104" rx="2" fill="#1F2D3D" style="--d:.68s"/><text class="t-val" x="206" y="28">1,099</text><text class="t-ax" x="206" y="156">Q4 25</text>
+          <rect class="bar" x="244" y="50" width="36" height="90" rx="2" fill="url(#gCyan)" style="--d:.74s"/><text class="t-val" x="262" y="42">950</text><text class="t-ax" x="262" y="156" style="fill:#4FC3D9">Q1 26</text>
+          <rect class="bar rec" x="300" y="20" width="36" height="120" rx="2" fill="#5BD6A0" style="--d:.8s"/><text class="t-val" x="318" y="12" style="fill:#5BD6A0">1,267</text><text class="t-ax" x="318" y="156" style="fill:#5BD6A0">Q2 26</text>
+        </svg>
+        <span class="delta">&#9650; 2026 Q2 = HIGHEST QUARTER ON RECORD</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 03 · WHY INTERCHANGE ══════════ -->
+  <section class="ch focusable" id="why">
+    <div class="ch-head">
+      <div class="k"><b>03</b>WHY HERE FIRST</div>
+      <div>
+        <h2>Why Interchange &mdash; and why Visa + Mastercard</h2>
+        <p>A funnel, left to right. Of <b>everything the networks send</b>, two brands carry the book. Of the articles <b>we actually
+          implement</b>, Interchange is ~18% and rising. And of <b>the Interchange articles</b>, 91.5% come from Visa + Mastercard &mdash;
+          more concentrated than the book as a whole. Two networks, primarily one engine, one change type: the tightest first target we have.</p>
+      </div>
+    </div>
+    <div class="panels three funnel">
+      <div class="panel">
+        <span class="step"><b>1</b> All articles &middot; ~19 brands</span>
+        <span class="pt">Who sends them &middot; share of all volume</span>
+        <div class="hbars">
+          <div class="hb hi" style="--hue:var(--code)"><span class="lbl">Mastercard</span><span class="trk"><span class="fl" style="--w:99.8%; --d:.1s"></span></span><span class="val">49.9%</span></div>
+          <div class="hb hi" style="--hue:#6AA6FF"><span class="lbl">Visa</span><span class="trk"><span class="fl" style="--w:57.4%; --d:.16s"></span></span><span class="val">28.7%</span></div>
+          <div class="hb" style="--hue:var(--flows)"><span class="lbl">Amex</span><span class="trk"><span class="fl" style="--w:8.4%; --d:.22s"></span></span><span class="val">4.2%</span></div>
+          <div class="hb" style="--hue:var(--articles)"><span class="lbl">Discover</span><span class="trk"><span class="fl" style="--w:6.4%; --d:.28s"></span></span><span class="val">3.2%</span></div>
+          <div class="hb" style="--hue:var(--dim)"><span class="lbl">~15 others</span><span class="trk"><span class="fl" style="--w:28%; --d:.34s"></span></span><span class="val">~14%</span></div>
+        </div>
+        <span class="delta gold">VISA + MC = 78.6% &middot; TOP FOUR = 86%</span>
+        <span class="pn">19,416 RECORDS &middot; 2017&ndash;2026 &middot; TWO BRANDS CARRY THE BOOK</span>
+      </div>
+      <div class="panel">
+        <span class="step"><b>2</b> Of the articles we implement</span>
+        <span class="pt">How much is Interchange &middot; 2026 YTD</span>
+        <div class="donut">
+          <svg viewBox="0 0 190 190" role="img" aria-label="Pie chart of implemented articles, 2026 year to date: Interchange 18.6%, all other types 81.4%.">
+            <defs><filter id="glow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+            <g class="pie">
+              <path class="slice" d="M95 95 L174.14 61.34 A86 86 0 1 1 95.00 9.00 Z" fill="#2A3B4F" stroke="#0E1622" stroke-width="1.2" style="--d:.25s"/>
+              <path class="slice ic" d="M95 95 L95.00 9.00 A86 86 0 0 1 174.14 61.34 Z" fill="#4FC3D9" stroke="#0E1622" stroke-width="1.2" style="--d:.1s" transform="translate(2.76,-4.17)" filter="url(#glow)"/>
+            </g>
+            <text class="pie-big" x="128" y="50">18.6%</text>
+            <text class="pie-sm" x="128" y="61">INTERCHANGE</text>
+            <text class="pie-big rest" x="69" y="139">81.4%</text>
+            <text class="pie-sm rest" x="69" y="150">ALL OTHER TYPES</text>
+          </svg>
+          <div class="legend-l">
+            <span><i style="--hue:var(--flows)"></i><span><b>Interchange</b> <em>18.6%</em><br>was 12.5% in 2025 &mdash; rising</span></span>
+            <span><i style="--hue:#2A3B4F"></i><span><b>All other types</b> 81.4%<br>primarily Auth, Clearing, Network fees, Acceptance &amp; brand rules</span></span>
+          </div>
+        </div>
+        <span class="delta">&#9650; INTERCHANGE 12.5% &rarr; 18.6% &middot; +6.1 PTS</span>
+        <span class="pn">IMPLEMENTED ARTICLES, TIGHTENED SCOPE &middot; 2026 YTD n=381 &middot; 2025 n=415</span>
+      </div>
+      <div class="panel">
+        <span class="step"><b>3</b> Of the Interchange articles</span>
+        <span class="pt">Who sends those &middot; Visa + MC share</span>
+        <div class="donut">
+          <svg viewBox="0 0 150 150" role="img" aria-label="Donut: Visa plus Mastercard are 91.5% of Interchange articles in 2026.">
+            <circle class="orbit" cx="75" cy="75" r="68" fill="none" stroke="#2A3B4F" stroke-width="1" stroke-dasharray="2 7"/>
+            <circle cx="75" cy="75" r="54" fill="none" stroke="#182430" stroke-width="16"/>
+            <circle class="ring" cx="75" cy="75" r="54" fill="none" stroke="#4FC3D9" stroke-width="16" stroke-linecap="butt" style="--len:310.5"/>
+            <text class="big" x="75" y="80">91.5%</text><text class="sm" x="75" y="98">VISA + MC &middot; 2026</text>
+          </svg>
+          <div class="legend-l">
+            <span><i style="--hue:var(--flows)"></i><span><b>Visa + MC</b> <em>91.5%</em><br>was 87.9% in 2025</span></span>
+            <span><i></i><span>All others <b>8.5%</b><br>was 12.1% in 2025</span></span>
+          </div>
+        </div>
+        <span class="pn"><b>78.6%</b> OF THE WHOLE BOOK &rarr; <b>91.5%</b> OF INTERCHANGE &mdash; MORE CONCENTRATED, AND TIGHTENING</span>
+      </div>
+    </div>
+    <div class="reasons">
+      <div class="reason" style="--hue:var(--flows)"><span class="t">Complex enough to prove the method</span><span class="s">Designators, mnemonics, rate tables and a file interface into PeopleSoft &mdash; if the pipeline holds here, it holds for <b>the harder engines behind it</b>.</span></div>
+      <div class="reason" style="--hue:var(--articles)"><span class="t">Impactful</span><span class="s"><b>$28B</b> of interchange processed a year rides on the rate table; <b>20%</b> of Stratus PBI capacity is spent keeping it current.</span></div>
+      <div class="reason" style="--hue:var(--codemap)"><span class="t">Primarily one engine</span><span class="s"><b>Stratus</b> carries most of the impact, with <b>PeopleSoft pricing config</b> alongside it &mdash; two networks (<b>Visa + MC, 91.5%</b>), one change type: the smallest scope that still exercises every stage, including a cross-system interface.</span></div>
+    </div>
+  </section>
+
+  <!-- ══════════ 04 · THE JOURNEY ══════════ -->
+  <section class="ch focusable" id="journey">
+    <div class="ch-head">
+      <div class="k"><b>04</b>THE JOURNEY</div>
+      <div>
+        <h2>Each phase climbs the complexity curve</h2>
+        <p>We started where automation is easiest &mdash; <b>config-based</b> work &mdash; and step deeper into the Core platform with every
+          phase. Each phase <b>de-risks and funds the next</b>. Neuro is Phase 3: the full PBI product-development lifecycle applied
+          to Published Interchange.</p>
+      </div>
+    </div>
+    <div class="phases">
+      <div class="phase" style="--hue:var(--articles)">
+        <div class="ph"><span>Phase 1</span><span>2026</span></div>
+        <h3>Article Intake + Commerce Interchange</h3>
+        <ul>
+          <li><b>Live in production:</b> Visa &amp; MC article ingestion (AI + automation)</li>
+          <li>In parallel: <b>Commerce Interchange by Q4 2026</b> &mdash; the simpler, config-based path</li>
+        </ul>
+        <span class="proof">MEASURED &middot; 70&ndash;80% FASTER DELIVERY &middot; ~5.9&times; INTAKE THROUGHPUT</span>
+        <span class="tag">Config-based &middot; simplest</span>
+      </div>
+      <div class="phase" style="--hue:var(--flows)">
+        <div class="ph"><span>Phase 2</span><span>Q4 2026 &rarr; 2027</span></div>
+        <h3>Custom Interchange on Core</h3>
+        <ul>
+          <li><b>Mastercard</b> Custom IC by <b>Q4 2026</b></li>
+          <li><b>Visa</b> Custom IC by <b>Q1 2027</b>; Debit possible 2027</li>
+          <li>Moves <b>off Commerce onto the more complex Core platform</b></li>
+        </ul>
+        <span class="tag">First complexity step-up</span>
+      </div>
+      <div class="phase neuro" style="--hue:var(--history)">
+        <div class="ph"><span>Phase 3</span><span>Q3&ndash;Q4 2027</span></div>
+        <h3>PBI PDLC &mdash; Published Interchange</h3>
+        <ul>
+          <li>Apply the <b>PBI product-development lifecycle</b> &mdash; Neuro &mdash; to Published Interchange</li>
+          <li>For <b>Visa &amp; Mastercard</b>, on <b>Stratus</b></li>
+          <li>Article &rarr; Solution Intent &rarr; enrichment &rarr; Jira &rarr; recommended, tested code &mdash; a person at every gate</li>
+        </ul>
+        <span class="tag">Deeper core logic</span>
+      </div>
+      <div class="phase" style="--hue:var(--code)">
+        <div class="ph"><span>Phase 4</span><span>Future</span></div>
+        <h3>Auth &amp; Clearing</h3>
+        <ul>
+          <li><b>Capture lessons learned</b>, then begin tackling Auth &amp; Clearing &mdash; the deepest engine logic</li>
+          <li>The <b>~105K-hr</b> next best path on Stratus + Tandem &mdash; where the freed capacity is reinvested</li>
+        </ul>
+        <span class="tag">Most complex &middot; core engines</span>
+      </div>
+    </div>
+    <div class="rail"><span class="rider"></span></div>
+    <div class="rail-l"><span>Simpler &middot; config-based</span><span>Complexity rises &rarr;</span><span>Most complex &middot; core engines</span></div>
+  </section>
+
+  <!-- ══════════ 05 · NEURO ══════════ -->
+  <section class="ch focusable" id="neuro">
+    <div class="ch-head">
+      <div class="k"><b>05</b>NEURO</div>
+      <div>
+        <h2>Neuro &mdash; the knowledge base, and the agentic process it feeds</h2>
+        <p>On the left, <b>Neuro</b>: five layers of knowledge behind one connection. On the right, the <b>agentic process</b>:
+          five stages that retrieve, reason and cite &mdash; and stop at a human gate every time.</p>
+      </div>
+    </div>
+  <div class="fig" id="fig">
+    <div class="fig-head">
+      <span class="fig-title">Neuro &rarr; agentic process</span>
+    </div>
+
+    <div class="stage-outer">
+      <div class="stage-wrap" id="stageWrap">
+        <div class="stage-sizer" id="stageSizer">
+          <div class="stage" id="stage">
+            <svg class="wires" id="wires" viewBox="0 0 1240 600" aria-hidden="true">
+              <defs>
+                <marker id="mk-step" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5A6C82"/></marker>
+              </defs>
+
+              <text class="zone-label" x="120" y="46">Intake &mdash; raw material in. Every other arrow reads what this builds.</text>
+              <path id="w-art-ing" class="wire draw" style="--hue:#E8B34A; --d:.2s" pathLength="1" d="M40 150 L26 150 Q18 150 18 142 L18 34 Q18 26 26 26 L742 26 Q750 26 750 34 L750 108"/>
+              <path id="w-code-ing" class="wire draw" style="--hue:#F2825C; --d:.3s" pathLength="1" d="M40 392 L12 392 Q4 392 4 384 L4 18 Q4 10 12 10 L782 10 Q790 10 790 18 L790 108"/>
+
+              <text class="zone-label big" x="40" y="80">NEURO &mdash; the knowledge base</text>
+              <text class="t-sub" x="40" y="96">A SERVICE WITH AN API &mdash; FIVE LAYERS BEHIND ONE CONNECTION</text>
+              <ellipse cx="220" cy="120" rx="180" ry="18" fill="#1B2733" stroke="#E8B34A" stroke-width="1.2"/>
+              <g class="band" data-key="art" tabindex="0" role="button" aria-label="Layer 01 Payment brand articles" style="--hue:#E8B34A; --bg:#1B2733">
+                <path class="fill" d="M40 120 L40 180 A180 18 0 0 0 400 180 L400 120 A180 18 0 0 1 40 120 Z"/>
+                <text class="nm" x="66" y="152">Payment brand articles</text><text class="sb" x="66" y="169">MANDATES &middot; DESIGNATORS &middot; TARGET RATES</text><text class="plus" x="376" y="150">+</text>
+              </g>
+              <g class="band" data-key="flows" tabindex="0" role="button" aria-label="Layer 02 Payment system flows" style="--hue:#4FC3D9; --bg:#182430">
+                <path class="fill" d="M40 180 L40 240 A180 18 0 0 0 400 240 L400 180 A180 18 0 0 1 40 180 Z"/>
+                <text class="nm" x="66" y="212">Payment system flows</text><text class="sb" x="66" y="229">SYSTEM SPECS &middot; STRATUS &middot; MPT &middot; PTI GEN &middot; SUBMISSION</text><text class="plus" x="376" y="210">+</text>
+              </g>
+              <g class="band" data-key="hist" tabindex="0" role="button" aria-label="Layer 03 Change history KB" style="--hue:#B98CE0; --bg:#1B2130">
+                <path class="fill" d="M40 240 L40 300 A180 18 0 0 0 400 300 L400 240 A180 18 0 0 1 40 240 Z"/>
+                <text class="nm" x="66" y="272">Change history KB</text><text class="sb" x="66" y="289">PAST ARTICLES &middot; THEIR STORIES &middot; THE ACTUAL DIFFS</text><text class="plus" x="376" y="270">+</text>
+              </g>
+              <g class="band" data-key="map" tabindex="0" role="button" aria-label="Layer 04 Code map" style="--hue:#5BD6A0; --bg:#17272A">
+                <path class="fill" d="M40 300 L40 360 A180 18 0 0 0 400 360 L400 300 A180 18 0 0 1 40 300 Z"/>
+                <text class="nm" x="66" y="332">Code map</text><text class="sb" x="66" y="349">MODULES &middot; DEPENDENCIES &middot; INTERFACE SITES</text><text class="plus" x="376" y="330">+</text>
+              </g>
+              <g class="band" data-key="code" tabindex="0" role="button" aria-label="Layer 05 System code and data" style="--hue:#F2825C; --bg:#241E1C">
+                <path class="fill" d="M40 360 L40 420 A180 18 0 0 0 400 420 L400 360 A180 18 0 0 1 40 360 Z"/>
+                <text class="nm" x="66" y="392">System code &amp; data</text><text class="sb" x="66" y="409">STRATUS CODE &middot; PEOPLESOFT RATE TABLES</text><text class="plus" x="376" y="390">+</text>
+              </g>
+              <text class="t-sub" x="40" y="470">ABSTRACT &darr; CONCRETE</text>
+              <text class="t-sub" x="40" y="486">world &middot; estate &middot; memory &middot; structure &middot; source</text>
+              <line x1="352" y1="466" x2="384" y2="466" stroke="#8A9BB3" stroke-width="1.6"/><text class="t-sub" x="392" y="470">PRIMARY SOURCE</text>
+              <line x1="352" y1="484" x2="384" y2="484" stroke="#8A9BB3" stroke-width="1.1" stroke-dasharray="5 4"/><text class="t-sub" x="392" y="488">SECONDARY</text>
+
+              <rect class="zone mcp" x="468" y="100" width="36" height="330" rx="3"/>
+              <text class="zone-label" text-anchor="middle" x="486" y="90">MCP</text>
+              <text class="t-sub" text-anchor="middle" x="486" y="450">TOOL</text>
+              <text class="t-sub" text-anchor="middle" x="486" y="464">CALLS</text>
+
+              <rect class="zone" x="580" y="64" width="650" height="488" rx="6"/>
+              <text class="zone-label big" x="600" y="86">The agentic process</text>
+              <text class="t-sub" x="600" y="102">RETRIEVE &middot; REASON &middot; CITE &middot; STOP AT EVERY GATE</text>
+              <text class="t-sub" text-anchor="end" x="1210" y="540">THE SYSTEM PROPOSES AND EVIDENCES &middot; A PERSON APPROVES</text>
+
+              <path id="w-art-si"   class="wire draw" style="--hue:#E8B34A; --d:.5s" pathLength="1" d="M400 142 C 500 142 540 230 620 230"/>
+              <path id="w-hist-si"  class="wire draw" style="--hue:#B98CE0; --d:.6s" pathLength="1" d="M400 262 C 500 262 540 252 620 252"/>
+              <path id="w-flows-en" class="wire draw" style="--hue:#4FC3D9; --d:.7s" pathLength="1" d="M400 210 C 500 210 540 310 620 310"/>
+              <path id="w-hist-en"  class="wire draw" style="--hue:#B98CE0; --d:.8s" pathLength="1" d="M400 278 C 500 278 540 322 620 322"/>
+              <path id="w-map-en"   class="wire draw" style="--hue:#5BD6A0; --d:.9s" pathLength="1" d="M400 330 C 500 330 540 334 620 334"/>
+              <path id="w-code-en"  class="wire draw" style="--hue:#F2825C; --d:1s"  pathLength="1" d="M400 382 C 500 382 540 346 620 346"/>
+              <path id="w-code-cc"  class="wire sec" style="--hue:#F2825C" d="M400 402 C 520 402 540 512 620 512"/>
+
+              <path class="wire-dash" data-for="w-art-ing" style="--hue:#E8B34A; --spd:3.4s; --ph:-.4s" d="M40 150 L26 150 Q18 150 18 142 L18 34 Q18 26 26 26 L742 26 Q750 26 750 34 L750 108"/>
+              <path class="wire-dash" data-for="w-code-ing" style="--hue:#F2825C; --spd:3.6s; --ph:-1.2s" d="M40 392 L12 392 Q4 392 4 384 L4 18 Q4 10 12 10 L782 10 Q790 10 790 18 L790 108"/>
+              <path class="wire-dash" data-for="w-art-si" style="--hue:#E8B34A; --spd:2.6s; --ph:-.2s" d="M400 142 C 500 142 540 230 620 230"/>
+              <path class="wire-dash" data-for="w-hist-si" style="--hue:#B98CE0; --spd:3s; --ph:-1.5s" d="M400 262 C 500 262 540 252 620 252"/>
+              <path class="wire-dash" data-for="w-flows-en" style="--hue:#4FC3D9; --spd:2.8s; --ph:-.9s" d="M400 210 C 500 210 540 310 620 310"/>
+              <path class="wire-dash" data-for="w-hist-en" style="--hue:#B98CE0; --spd:3.2s; --ph:-2s" d="M400 278 C 500 278 540 322 620 322"/>
+              <path class="wire-dash" data-for="w-map-en" style="--hue:#5BD6A0; --spd:2.7s; --ph:-.6s" d="M400 330 C 500 330 540 334 620 334"/>
+              <path class="wire-dash" data-for="w-code-en" style="--hue:#F2825C; --spd:2.9s; --ph:-1.1s" d="M400 382 C 500 382 540 346 620 346"/>
+              <path class="wire-dash" data-for="w-code-cc" style="--hue:#F2825C; --spd:3.8s; --ph:-.3s" d="M400 402 C 520 402 540 512 620 512"/>
+
+              <path class="step-arrow" d="M900 172 L900 194"/>
+              <path class="step-arrow" d="M900 260 L900 282"/>
+              <path class="step-arrow" d="M900 348 L900 370"/>
+              <path class="step-arrow" d="M900 436 L900 458"/>
+
+            </svg>
+
+            <button class="node" data-key="ingest" style="left:620px; top:110px; --hue:var(--codemap); --d:.5s">
+              <span class="n-k">STAGE 1</span>
+              <span class="n-text"><span class="n-name">Ingest</span><span class="n-role">READS ARTICLES + SOURCE &middot; BUILDS THE INDEX AND THE MAP &middot; THE ONLY STAGE THAT BUILDS LAYERS</span></span>
+              <span class="n-cmd">/start-ingest</span><span class="n-plus">+</span>
+            </button>
+            <button class="node" data-key="si" style="left:620px; top:198px; --hue:var(--history); --d:.65s">
+              <span class="n-k">STAGE 2</span>
+              <span class="n-text"><span class="n-name">Solution Intent v1</span><span class="n-role">WHAT IS BEING ASKED &middot; CODE-BLIND &middot; TYPE CONFIRMED &middot; PROBES FIRE</span></span>
+              <span class="n-cmd">/start-si</span><span class="n-gate" style="--g:0s">G1 &middot; v1 freezes</span><span class="n-plus">+</span>
+            </button>
+            <button class="node" data-key="enrich" style="left:620px; top:286px; --hue:var(--flows); --d:.8s">
+              <span class="n-k">STAGE 3</span>
+              <span class="n-text"><span class="n-name">Enrichment &rarr; v2</span><span class="n-role">WHAT IT TOUCHES, AND WHERE &middot; floor &rarr; resolve &rarr; impact &rarr; cross &rarr; reconcile</span></span>
+              <span class="n-cmd">/start-enrich</span><span class="n-gate" style="--g:1.2s">G2 &middot; v2 accepted</span><span class="n-plus">+</span>
+            </button>
+            <button class="node" data-key="jira" style="left:620px; top:374px; --hue:var(--articles); --d:.95s">
+              <span class="n-k">STAGE 4</span>
+              <span class="n-text"><span class="n-name">Jira plan</span><span class="n-role">EPIC &middot; STORIES &middot; ACCEPTANCE &middot; RELEASE SHAPE</span></span>
+              <span class="n-cmd">/start-jira</span><span class="n-gate ext" style="--g:2.4s">G3 &middot; push to Jira</span><span class="n-plus">+</span>
+            </button>
+            <button class="node" data-key="cc" style="left:620px; top:462px; --hue:var(--code); --d:1.1s">
+              <span class="n-k">STAGE 5</span>
+              <span class="n-text"><span class="n-name">Code Recommendation &amp; Testing</span><span class="n-role">DIFFS THAT CITE THEIR FINDING &middot; TESTS RUN &middot; REVIEWED, NOT MERGED</span></span>
+              <span class="n-gate ext" style="--g:3.6s">G4 &middot; push to branch</span><span class="n-plus">+</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="cap"><b>Four of the five layers converge on enrichment.</b> Working out what a change touches means holding the estate, the
+    memory, the structure and the source in view at once. <b>Ingest looks thin because it is the only stage that builds layers
+    rather than reading them</b> &mdash; the extraction cost is paid once. Solid lines are a primary source, dashed a secondary one.</p>
+
+  </section>
+
+  <footer>
+    <span>Automating PBI with AI &middot; Neuro &middot; Merchant Services</span>
+    <span>Interchange &middot; Stratus &middot; proven end to end &mdash; article to tested code</span>
+  </footer>
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mName">
+    <button class="m-close" id="mClose" aria-label="Close">&#10005;</button>
+    <div class="m-body" id="mBody">
+      <div class="m-role" id="mRole"></div>
+      <h2 class="m-name" id="mName"></h2>
+      <div class="m-file" id="mFile"></div>
+      <p class="m-lead" id="mLead"></p>
+      <div class="m-sec"><div class="m-lbl">In plain terms</div><p class="m-p" id="mBiz"></p></div>
+      <div class="m-sec"><div class="m-lbl">What it actually does</div><ul class="m-list" id="mList"></ul></div>
+      <div class="m-sec"><div class="m-lbl">Why it matters</div><p class="m-why" id="mWhy"></p></div>
+    </div>
+    <div class="m-foot"><span class="m-badge" id="mBadge"></span><div class="m-nav"><button id="mPrev">&larr; Prev</button><button id="mNext">Next &rarr;</button></div></div>
+  </div>
+</div>
+
+<script>
+  const H = { gold: "#E8B34A", cyan: "#4FC3D9", violet: "#B98CE0", green: "#5BD6A0", orange: "#F2825C", grey: "#8A9BB3" };
+
+  const C = {
+    art: { role: "Neuro · layer 01 · world", name: "Payment brand articles", file: "context_set/<doc>.md · <doc>.index.json", hue: H.gold,
+      lead: "Network mandates and technical letters, in the networks' own vocabulary — indexed once, then asked questions by section.",
+      biz: "This is <em>what was actually published</em>. It names programs, designators and <em>target</em> rates; it knows nothing about our systems.",
+      list: ["Uploaded from SharePoint with a disposition (<code>business_requirement</code>, <code>reference_table</code> …) that decides which stage reads it.", "A vision reader turns the PDF into structural Markdown; <code>doc_index</code> makes it line-addressable.", "The SI author retrieves by <code>must_capture</code> — each section's checklist doubles as its semantic query.", "Probes are answered from here first; the operator is asked only where the documents don't settle it."],
+      why: "Every requirement in v1 cites a line here. If it can't, it is marked unsourced rather than invented.", badge: "Feeds Ingest · Solution Intent" },
+    flows: { role: "Neuro · layer 02 · estate", name: "Payment system flows", file: "core/estate/applications.yaml · interfaces.yaml", hue: H.cyan,
+      lead: "How the estate is wired: which system feeds which, over which file, on what cadence. Declared, not discovered.",
+      biz: "This is what lets an impact found in Stratus <em>reach</em> PeopleSoft. Without it every finding would stop at the edge of one repository.",
+      list: ["<code>applications.yaml</code>: what exists and what it is made of — <code>code</code>, <code>file_layout</code>, <code>tabular</code> substances; <code>in_estate</code> vs <code>acquired</code>.", "<code>interfaces.yaml</code>: MPT, PTI Gen, submission — each with a producer, a consumer, and a <code>layout_at</code> per side.", "Promotion is mechanical: an impact whose <code>file:line</code> falls inside a declared <code>reads_at</code> becomes an interface impact.", "Fields are parsed from both layouts, so crossing is field-level and layout drift falls out of the same parse."],
+      why: "No APIs anywhere in this estate — coupling is file-based, so the interface set is small, static and checkable.", badge: "Feeds Enrichment" },
+    hist: { role: "Neuro · layer 03 · memory", name: "Change history KB", file: "history/ · joined on Jira key", hue: H.violet,
+      lead: "Every past change, joined to the stories raised for it and the code that actually shipped. Institutional memory, made queryable.",
+      biz: "It answers <em>what kind of change is this</em>, <em>which files did comparable changes touch</em>, and <em>what did the last one look like</em> — each cited by Jira key so a person can judge the precedent.",
+      list: ["Stage 2: matches v1 against past work and recommends a change type; the operator accepts or overrules, and the system records which.", "Stage 3: widens scope with files comparable changes touched. It can only widen — it records what people did, not what was correct.", "Stage 3: gives a <em>prospective</em> location for something new (\"when the last designator was registered, these three files changed\").", "Stage 3: reconciles the scan against precedent — only disagreements reach a person.", "Stage 5: a pattern for the recommendation, read and cited, never applied."],
+      why: "A recommendation nobody can audit is a guess wearing a justification. Every use of history carries its Jira keys.", badge: "Feeds Solution Intent · Enrichment · Code" },
+    map: { role: "Neuro · layer 04 · structure", name: "Code map", file: "context_set/code_map/{components,files}.json", hue: H.green,
+      lead: "Modules, dependencies and interface sites, derived mechanically from source. Never guessed, never hand-maintained.",
+      biz: "The structural picture of the repository — what depends on what — so an impact can be followed to a fixed point instead of stopping at the first hit.",
+      list: ["Built by a <em>frozen, deterministic</em> extractor per language; the manifest pins its git blob sha, so a post-freeze edit cannot pass silently.", "Module membership and edges follow the per-repo signal profile (<code>c_repo.profile.yaml</code>); the model contributes only <code>purpose</code> text.", "Cached on <code>(commit_sha, profile_sha)</code> — a re-run is instant.", "Interface sites in <code>interfaces.yaml</code> resolve against these <code>file:line</code> entries."],
+      why: "The map-build gate is model-free. If the structure were inferred, every downstream claim would inherit the inference.", badge: "Feeds Enrichment" },
+    code: { role: "Neuro · layer 05 · source", name: "System code & data", file: "repo/ @ ref · PeopleSoft rate tables", hue: H.orange,
+      lead: "Stratus code, read in full on every run rather than sampled — and PeopleSoft's rate tables, the current rate for every mnemonic.",
+      biz: "This is <em>what is really there now</em>. The mandate says where a rate is going; the rate table says where it is today. A pure rate change touches no code at all and is visible only here.",
+      list: ["Cloned at a ref by the code lane; every impact pass reads <code>scope: full_repo</code> anchored to v1's assertions — keys never narrow the scan.", "Rate tables are a <code>tabular</code> substance: a keyed lookup, never scanned as code.", "Stage 5 edits files from here in draft copies, runs the tests against them, and every diff cites the finding that justifies it."],
+      why: "Resolution creates a search obligation, not a search boundary. \"We resolved the mnemonics, so search for those\" would silently turn the scan into a lookup.", badge: "Feeds Ingest · Enrichment · Code" },
+
+    ingest: { role: "Stage 1 · orchestrator", name: "Ingest", file: "/start-ingest → context_set/ · code_map/", hue: H.green,
+      lead: "The only stage that builds layers rather than reading them. Articles become an index; the repository becomes a map.",
+      biz: "You pay the extraction cost once. Every stage after this queries what ingest produced — nothing re-reads a PDF or re-walks the repo.",
+      list: ["Fan-out: one <code>source_processor</code> per source, in parallel. The connector pulls and stages; it assigns no meaning.", "Doc lane: <code>pdf_extract</code> (vision, deterministic text fallback) → <code>doc_index</code>.", "Code lane: <code>clone.py</code> → <code>code_map_build</code> behind a four-branch onboarding gate.", "Fan-in: <code>merge_manifest.py</code> → <code>context_set/index.json</code>, the single catalog."],
+      why: "Ingestion never branches on domain. The same lanes serve a second domain unchanged.", badge: "Non-interactive · no gate of its own" },
+    si: { role: "Stage 2 · solution_intent_author", name: "Solution Intent v1", file: "/start-si → solution_intent/v1.md · G1", hue: H.violet,
+      lead: "What is being asked, written down without looking at the code — then the change type is confirmed and the probes fire.",
+      biz: "Code-blind on purpose: it is what lets every later finding be attributed to evidence rather than to hindsight.",
+      list: ["Eighteen sections from <code>si_profile.payment_brand.yaml</code>; §8 carries the requirements as typed assertions — <em>change something that exists</em> or <em>build something new</em>.", "The history KB recommends a type, cited by Jira key; the operator accepts or substitutes, and the choice is recorded.", "<code>probes.yaml</code> for the confirmed type is answered from the corpus first. A <em>no</em> is recorded with its citation as a non-activation.", "The validator scores coverage against <code>must_capture</code> and surfaces G1. v1 freezes."],
+      why: "\"We determined this isn't qualification-related\" must be distinguishable from \"nobody considered qualification.\"", badge: "Gate G1 · v1 freezes" },
+    enrich: { role: "Stage 3 · flow orchestrator", name: "Enrichment → v2", file: "/start-enrich → enrichment.json · v2.md · G2", hue: H.cyan,
+      lead: "Where v1's claims meet the real estate. Four of the five layers converge here.",
+      biz: "It answers <em>what does this touch, and where</em> — including the system nobody currently discovers until implementation.",
+      list: ["Scope opens at the <code>floor</code> declared in <code>flow.yaml</code>, then history widens it.", "<em>Resolve</em> runs first: designator → mnemonic, from the one system that knows the mapping. <code>provides</code> is enforced before dependents start.", "<em>Impact</em> passes run in derived order — exhaustive keys, unbounded scope, every pass reads v1's assertions.", "<em>Cross</em>: an impact at a declared interface site promotes and walks to every party, both directions, to a fixed point.", "<em>Reconcile</em>: the scan against precedent; only disagreements reach the operator, disposed of in one turn.", "Merge is fixed-order and model-free; the apply pass writes §16 and the §INT-n sections."],
+      why: "Every pass files findings or an explicit non-event. Nothing is allowed to go quiet.", badge: "Gate G2 · v2 accepted" },
+    jira: { role: "Stage 4 · jira_author", name: "Jira plan", file: "/start-jira → jira_plan.json · G3", hue: H.gold,
+      lead: "Findings become the plan: one epic for the article, a story per finding, and what must ship together.",
+      biz: "<code>jira_template.payment_brand.yaml</code> maps v2 sections onto the four Jira levels — maps when present, skips when absent, never fails on absence.",
+      list: ["Every story cites the §16 entry that justifies it.", "The release shape is stated: the MPT field and the Stratus code that reads it ship <em>integrated</em>, or the nightly batch breaks.", "<code>jira_validator</code> checks the plan before the gate; the push is the first of two external writes."],
+      why: "Today nobody learns the release constraint until implementation.", badge: "Gate G3 · push to Jira" },
+    cc: { role: "Stage 5 · code_author", name: "Code Recommendation & Testing", file: "/start-code → code_changes/ · test results → G4", hue: H.orange,
+      lead: "Recommended diffs in draft copies, each citing the finding that justifies it — with the tests run against them before anyone looks. Reviewed, not merged.",
+      biz: "The system does not commit code. It recommends a change, shows the evidence for it, runs the tests, and hands a person the result to approve or send back.",
+      list: ["Driven by §16 and the plan — history is read as a pattern for the shape of the change, cited by its Jira key so a reviewer can judge the precedent.", "Each diff names the §16 finding and the assertion it satisfies; a diff with no finding is not allowed to exist.", "The test suite runs against the draft; results land in the ledger next to the diff, pass or fail, so a red test is visible before the gate.", "The push to a branch is the second and last external write. Jira comments link the commit back to its stories."],
+      why: "Approval is human. The branch is a proposal until a person says otherwise — and the evidence for it is the tests, not the confidence.", badge: "Gate G4 · push to branch" }
+  };
+  const ORDER = ["art", "flows", "hist", "map", "code", "ingest", "si", "enrich", "jira", "cc"];
+
+</script>
+
+<script>
+  const W = 1240, HGT = 600, MIN_K = 0.55;
+  const $ = id => document.getElementById(id);
+  const q = sel => document.querySelectorAll(sel);
+
+  /* arrowheads that match each wire's hue */
+  const svg = $("wires"), defs = svg.querySelector("defs");
+  q("#wires path.wire").forEach(p => {
+    const hue = (getComputedStyle(p).getPropertyValue("--hue") || "").trim() || "#5A6C82";
+    const id = "mk-" + hue.replace(/[^a-z0-9]/gi, "");
+    if (!svg.querySelector("#" + id)) defs.insertAdjacentHTML("beforeend", '<marker id="' + id + '" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="' + hue + '"/></marker>');
+    p.style.markerEnd = "url(#" + id + ")";
+  });
+
+  /* stage scaling */
+  const wrap = $("stageWrap"), sizer = $("stageSizer"), stage = $("stage");
+  function fit() {
+    let k = wrap.clientWidth / W;
+    if (k < MIN_K) { k = MIN_K; wrap.classList.add("scroll"); } else { k = Math.min(k, 1); wrap.classList.remove("scroll"); }
+    stage.style.transform = "scale(" + k + ")";
+    sizer.style.width = (W * k) + "px"; sizer.style.height = (HGT * k) + "px";
+  }
+  new ResizeObserver(fit).observe(wrap);
+  fit();
+
+  /* zoom-in: any layer or stage opens its detail */
+  const overlay = $("overlay"), modal = $("modal"), mBody = $("mBody");
+  let openKey = null, lastFocus = null;
+  function fillModal(key) {
+    const c = C[key];
+    modal.style.setProperty("--hue", c.hue);
+    $("mRole").textContent = c.role; $("mName").textContent = c.name; $("mFile").textContent = c.file;
+    $("mLead").textContent = c.lead; $("mBiz").innerHTML = c.biz;
+    $("mList").innerHTML = c.list.map(li => "<li>" + li + "</li>").join("");
+    $("mWhy").innerHTML = c.why; $("mBadge").textContent = c.badge;
+    openKey = key;
+  }
+  function openModal(key, fromEl) {
+    fillModal(key); lastFocus = fromEl || document.activeElement;
+    overlay.hidden = false;
+    if (fromEl && fromEl.getBoundingClientRect) {
+      const r = fromEl.getBoundingClientRect(), mr = modal.getBoundingClientRect();
+      modal.style.transformOrigin = (r.left + r.width / 2 - mr.left) + "px " + (r.top + r.height / 2 - mr.top) + "px";
+    } else modal.style.transformOrigin = "50% 50%";
+    requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add("open")));
+    document.body.style.overflow = "hidden";
+    $("mClose").focus();
+  }
+  function closeModal() {
+    overlay.classList.remove("open"); document.body.style.overflow = "";
+    setTimeout(() => { overlay.hidden = true; }, 240);
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+    openKey = null;
+  }
+  function swapModal(key) { fillModal(key); mBody.classList.remove("swap"); void mBody.offsetWidth; mBody.classList.add("swap"); }
+  q(".node, .band").forEach(n => {
+    const open = () => openModal(n.dataset.key, n);
+    n.addEventListener("click", open);
+    if (n.tagName.toLowerCase() !== "button") n.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+  });
+  $("mClose").addEventListener("click", closeModal);
+  overlay.addEventListener("click", e => { if (e.target === overlay) closeModal(); });
+  $("mPrev").addEventListener("click", () => swapModal(ORDER[(ORDER.indexOf(openKey) - 1 + ORDER.length) % ORDER.length]));
+  $("mNext").addEventListener("click", () => swapModal(ORDER[(ORDER.indexOf(openKey) + 1) % ORDER.length]));
+  document.addEventListener("keydown", e => {
+    if (overlay.hidden) return;
+    if (e.key === "Escape") closeModal();
+    if (e.key === "ArrowLeft") $("mPrev").click();
+    if (e.key === "ArrowRight") $("mNext").click();
+  });
+</script>
+
+<script>
+  /* ── count-up on the KPI tiles ── */
+  (function () {
+    const fmt = n => Math.round(n).toLocaleString("en-US");
+    document.querySelectorAll(".kpi .num").forEach((el, i) => {
+      const n = Number(el.dataset.n), t0 = performance.now() + 250 + i * 120, DUR = 1400;
+      const eo = t => 1 - Math.pow(1 - t, 3);
+      function frame(now) {
+        const t = Math.max(0, Math.min(1, (now - t0) / DUR));
+        el.textContent = fmt(n * eo(t));
+        if (t < 1) requestAnimationFrame(frame); else el.textContent = fmt(n);
+      }
+      requestAnimationFrame(frame);
+    });
+  })();
+
+  /* ── bring a section forward ── */
+  (function () {
+    const back = document.createElement("div"); back.className = "focus-back"; document.body.appendChild(back);
+    let open = null, ph = null, lastFocus = null;
+    const btns = new Map();
+    document.querySelectorAll(".focusable").forEach(sec => {
+      const b = document.createElement("button"); b.className = "focus-btn"; b.type = "button"; b.textContent = "⤢ Bring forward"; b.setAttribute("aria-label", "Bring this section forward");
+      sec.prepend(b); btns.set(sec, b);
+      b.addEventListener("click", e => { e.stopPropagation(); open === sec ? close() : focus(sec, b); });
+      sec.addEventListener("click", e => {
+        if (open === sec) { if (sec.classList.contains("kpis")) close(); return; }
+        if (e.target.closest(".node, .band, button, a, input, .overlay")) return;
+        focus(sec, b);
+      });
+    });
+    function focus(sec, b) {
+      if (open) close(true);
+      lastFocus = document.activeElement;
+      ph = document.createElement("div"); ph.className = "focus-ph"; ph.style.height = sec.getBoundingClientRect().height + "px";
+      const cs = getComputedStyle(sec); ph.style.marginTop = cs.marginTop; ph.style.borderTop = "1px solid transparent";
+      sec.parentNode.insertBefore(ph, sec);
+      sec.classList.add("focus"); document.body.classList.add("focused");
+      b.textContent = "✕ Close"; open = sec; b.focus();
+      window.dispatchEvent(new Event("resize"));
+    }
+    function close(silent) {
+      if (!open) return;
+      const sec = open; open = null;
+      sec.classList.remove("focus"); btns.get(sec).textContent = "⤢ Bring forward";
+      if (ph) { ph.remove(); ph = null; }
+      if (!silent) document.body.classList.remove("focused");
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+      window.dispatchEvent(new Event("resize"));
+    }
+    back.addEventListener("click", () => close());
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && open && document.getElementById("overlay").hidden) close(); });
+  })();
+</script>

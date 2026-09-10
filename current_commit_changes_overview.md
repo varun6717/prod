@@ -1,17 +1,11 @@
 # current_commit_changes_overview.md
 
-**Commit of 2026-08-23 — the VDI design review: Stages 4 and 5 closed, five new tasks, two
-stakeholder artifacts.**
+**Commit of 2026-09-10 — `pbi_neuro_kickoff.html`, the kickoff presentation page.**
+Baseline: lands on top of `4b6acfe` (*Keep animations on under VDI; add Motion toggle and color-mix fallbacks* — the Signal Studio page series).
 
-> **Filenames carry a version** — `neuro_architecture_v1.html`, `neuro_overview_v2.html`. The number
-> tracks **that file's own revisions**, not a set generation: the architecture page has not changed
-> since v1, so calling it v2 would be a lie. Bump the suffix on the next substantive revision rather
-> than editing in place; the superseded file leaves the tree, and git history holds it.
-
-This commit carries **no application code**. It is review output: the task catalogue the VDI Copilot
-executes from, and two published documents that explain the system at two altitudes. Nothing in
-`core/`, `overlays/`, `fixtures/` or `runs/` is touched, so nothing needs re-publishing to the
-registry.
+This commit carries **no application code**. It adds one published stakeholder artifact and nothing
+else. Nothing in `core/`, `overlays/`, `fixtures/` or `runs/` is touched, so nothing needs
+re-publishing to the registry.
 
 ---
 
@@ -19,134 +13,65 @@ registry.
 
 | File | State | What it is |
 |---|---|---|
-| `VDI_TASK_V2.md` | edited | The deliverable. 11 task specs, 8 PARKED findings, 23 review-log rows |
-| `neuro_architecture_v1.html` | new | Engineering reference — 12 sections, what runs and what each step may decide |
-| `neuro_overview_v2.html` | new | Exec overview — the knowledge base, the flow, the gates, one worked example. **v2** supersedes v1 |
+| `pbi_neuro_kickoff.html` | new | Kickoff deck as a single page: the case for automating PBI with AI, and the Neuro KB → agentic-process stage |
+| `current_commit_changes_overview.md` | rewritten | this briefing |
 
-### Later refinements in this set
+### What the page is
 
-**Stage headers group the walkthrough.** The thirteen steps now sit under six headings — Configure,
-Ingest, Solution Intent, Enrichment, Jira plan, Code change — each in its stage colour with its gate
-on the right. Grouping rather than per-step labels, because six steps would otherwise all read
-"ENRICHMENT". The payoff is that the shape becomes visible: **six of the thirteen steps are
-enrichment**, and Stage 1 is a single step with no gate.
+A presentation page in the same instrumentation style as `neuro_overview_v2.html`, built for a
+kickoff audience rather than an engineering one. Six blocks, top to bottom:
 
-**The precedent-diff arrow into Code change was removed.** The diagram draws KB layers only, and at
-drafting time the primary inputs are the **plan** and **§16** — both pipeline artifacts, both
-deliberately not on this diagram. Drawing a *proposed, secondary* input as an arrow made it look like
-the main driver while the two things actually driving the draft were invisible. The usage stays
-documented in the feed table and in step 13's text, where it can carry what an arrow cannot: that the
-precedent is **read as a pattern, never applied**, and that drafting proceeds without it when no
-comparable change exists.
+- **Title + five KPI tiles** — ~19 card brands · ~4,400 articles/yr (2026 projected) · ~14% projected
+  growth 2025 → 2026 · $28B pass-through Interchange processed in 2025 · 20% of Stratus PBI capacity.
+  Numbers count up on load.
+- **01 The case** — four beats on a rail: intake grows ~14%/yr → no team scales at that rate across
+  26 engines → automate PBI with AI, starting with Interchange (complex, impactful, majority of the
+  impact on Stratus) → reinvest the freed capacity in the backlog (Auth & Clearing).
+- **02 Growth** — articles per year 2020 → 2026 (2,881 booked through Aug + dashed extension to
+  ~4,400), the 3,855 → ~4,400 projection, and the quarterly chart with Q2 2026 (1,267) as the record.
+- **03 Why Interchange, and why Visa + Mastercard** — a three-step funnel: all articles by network
+  (Visa + MC = 78.6%) → implemented articles as a two-slice pie (Interchange 18.6%, up from 12.5%, vs
+  everything else) → Interchange by network (91.5% Visa + MC). Then three reason cards.
+- **04 The journey** — the four phases on the complexity rail; Phase 3 carries the "Neuro starts
+  here" badge, Phase 1 carries the measured proof chip (70–80% faster, ~5.9× throughput).
+- **05 Neuro** — the knowledge-base → agentic-process stage from the overview, with Stage 0 removed
+  and Stage 5 renamed *Code Recommendation & Testing*. Layer 02's sub-label reads *System specs*.
 
-**Step 02 of the walkthrough now covers both halves of ingest.** It described only the repository
-becoming a map, which left the articles apparently reaching Solution Intent without ever being taken
-in — the same asymmetry the diagram had. It now reads *"Raw material becomes the knowledge base"*: the
-mandate and Tech Letter extracted and indexed so a later stage can question them **by section**, and
-the repository cloned and mapped.
+Every section can be brought forward (click, or its pill): the page behind blurs, the section lifts
+and enlarges; Esc or a click outside closes it. Layers and stages on the Neuro diagram still open
+their own detail panel. Ambient motion only — no player, no step chips.
 
-> Worth noting why this recurred in three places — the arrows, the Ingest box label, and the
-> walkthrough. **Ingest is the only stage that builds layers rather than reading them**, so it does
-> not fit the pattern the rest of the page uses, and it kept getting flattened into that pattern. The
-> step now states the exception outright rather than leaving it to be rediscovered.
+### Data provenance
 
-**`VDI_TASK_V2.md` — 003.7c gains the reason the KB union matters.** The code map covers 100% of
-files, so nothing is missing from it — but **closure follows structural edges**, and in a file-coupled
-estate two deeply related files can have no edge at all. Two programs that both touch MPT share no
-call, no import, no symbol; dependency traversal correctly reports them unrelated. **Co-change is the
-only signal that sees it.** That makes the union coverage of a class the scan is constitutionally
-unable to reach, rather than a nice-to-have ranking. A KB proposal still only *adds to scope* — the
-pass must file a finding or an explicit non-event, and 003.9 compares the two.
+Chart values are transcribed from the five source screenshots kept beside the file (`stats.png`,
+`trend_over_time.png`, `mop.png`, `type.png`, `journey.png`); those PNGs are **not** committed. The
+$28B and 20%-of-capacity figures are V-supplied and appear in no screenshot. The type pie uses the
+2026 YTD tightened-scope numbers (n=381; 2025 n=415).
 
-### Why the overview is at v2
+### Behaviour that is newly stricter
 
-The two arrows that **feed** ingest now leave the cylinder on the left, run over the top, and drop
-into the Ingest box — a separate **intake** channel, visually distinct from the query channel every
-other stage uses. The distinction is real and the diagram was blurring it: **ingest is the only stage
-that builds layers; everything else reads them.** It also removes the long diagonal that crossed most
-of the other arrows.
+None.
 
-The history layer is relabelled **Change history KB** (`PAST ARTICLES · THEIR STORIES · THE ACTUAL
-DIFFS`), which reads as a knowledge base rather than a pipeline fragment.
+### Signature / contract changes
 
-Worth keeping straight, because it is the first question the diagram invites: **the estate layer is
-declared, not ingested.** Nothing in source links two sides of a file interface — `mpt_loader.c`
-contains no reference to PeopleSoft and never will — so no tool can extract it and a person who knows
-the estate writes it down. That is why the intake channel carries only the articles and the source,
-and it is the property that makes the whole crossing mechanism necessary.
-| `CLAUDE.md` | edited | Three hard rules added, each earned by a mistake made during the review |
+None.
 
----
+### Conflict hot spots for a VDI wiring session
 
-## What changed in `VDI_TASK_V2.md`
+None. The five `[TBD — VDI]` placeholders and the connectors are untouched.
 
-**Stages 4 and 5 were reviewed for the first time.** The prior hand-off recorded both as *"not
-started"*, which was accurate until now. Four tasks came out of it:
+### Derived artifacts to regenerate rather than merge
 
-- **007a — amend D-A15.** *Front of the queue.* Two table rows and one retired consequence in
-  ADR-008, plus FR-JR-01 which restates the same mapping independently. Docs only, no code, and it
-  unblocks the three below.
-- **007 — the Jira hierarchy.** Initiative and Deliverable are **quarterly containers, referenced
-  not created**; one article is one epic with its requirements in the description. The template
-  currently authors two issues that already exist.
-- **008 — `validation.md`.** The post-install validation document, epic-level. Positive cases ground
-  in §16; **negative cases come from the code**, so it is produced at Stage 5 — `jira_author` cannot
-  read the repo.
-- **009 — Stage 5 validator and fixtures.** Of the two writes that leave the building, only the Jira
-  push is guarded. **31 fixtures exist; zero are Stage 5.** Delivers `code_validator.py`, both
-  fixture directories, and the multi-repo push design.
-- **010 — symbol-level code map.** §16 line ranges are model-produced while tree-sitter already
-  computes and discards them. Governing rule: **symbols locate, they never bound what is read** —
-  the scan still pulls the whole file.
+None.
 
-**Nine decisions landed during the Stage 3 re-review**, each in the revision log with its reasoning:
+### Green-bar commands
 
-- `compare` → **`release_shape`**. The name described `cross`'s job; the phase returns a release
-  verdict. Renamed while it is still a find-and-replace.
-- **§16 gains `kind: verify`** — the reasoned non-change, carrying a `confirm:` condition the way a
-  gap carries `basis:`. Makes the run's own assumptions trackable as Jira stories.
-- **`flow_plan.py`** — the run order and every load-time rejection are **computed, not reasoned**. A
-  wrong sort is invisible: it files fewer findings and every G2 check still passes.
-- **Phase totality** — a third G2 denominator. `resolve`/`cross`/`release_shape` were in neither
-  existing precondition, so a phase could run, produce nothing, and pass the gate in silence.
-- **The interchange floor** settled at `stratus.code` + `resolve` + `interface: mpt`. The MPT entry
-  was dropped and then restored: it is the sole invoker of the direct-layout assessment, without
-  which the backward-crossing case is structurally uncatchable.
-- **`INT-P3` deleted** — it activated a pass that never existed. MCCs need no resolution.
-- **Settlement declared** `in_estate: false` — it was a party to `submission` with no application
-  entry, an undefined third state.
-- **Eight schema rejections** consolidated into one numbered list, including *no derivable
-  duplication* and *every interface party resolves to an application*.
-- **Type sections gain `title` + `must_capture`**, declared on the pass.
-
-**Three PARKED entries restored.** The review log claimed topics 7 and 9 were parked; neither was
-written down, nor was *Stage 5 has no fixtures*. A fresh session read "closed" and moved on. PARKED
-went 5 → 8.
-
-**Four open questions closed** — three answered from the repo, one by V:
-`refuted` **does** fire (2 of 33 findings, so 004 is not theoretical) · `check_discovery_adequacy.py`
-measures the SI profile, **not** the corpus (so 002 does not shrink) · `pdf_extract` is
-domain-agnostic **by its own admission** · the scheduler is **Control-M**, a machine-readable second
-source of interface truth needing no history.
-
----
-
-## Why `CLAUDE.md` changed
-
-Three rules, each written because the review broke it:
-
-- **Cite-or-flag cuts both ways.** Two page claims were flagged "unsourced" after grepping only
-  `VDI_TASK_V2.md` and `vdi_design.md`. Both were documented in
-  `si_profile.payment_brand.yaml` itself. *A false "unsourced" flag is as damaging as an invention.*
-- **Never restate a derivable fact.** `activated_by:` on a pass, `acquired:` on an interface party,
-  `profile: "[TBD]"` on an unacquired substance — three instances in two days.
-- **Change a contract, then sweep its derived views.** The floor changed twice and the diagrams kept
-  rendering keys that no longer existed.
+Unchanged — `for f in $(find fixtures -name "verify_*.py"); do python3 "$f"; done` and
+`python3 core/scripts/build_checks.py`; neither is affected by this commit.
 
 ---
 
 ## Port note
 
-Nothing here ships to the VDI as code. `VDI_TASK_V2.md` is what the VDI Copilot reads; the two HTML
-files are published artifacts and are read in a browser, not executed. **Start at 007a** — it is
-hours of docs work and unblocks three tasks.
+Nothing here ships to the VDI as code. The page is a published artifact, read in a browser, not
+executed.
