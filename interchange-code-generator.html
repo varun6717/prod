@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Interchange Code Generator</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Single-theme by design: a white lab bench, painted explicitly so it holds on any host ground. */
+  :root {
+    --ground: #FFFFFF;
+    --panel: #F6F9FF;
+    --panel-2: #EEF3FC;
+    --ink: #0B1B33;
+    --muted: #4F6180;
+    --dim: #8494B0;
+    --rule: #DCE5F3;
+    --rule-lit: #C3D1E8;
+
+    --blue: #1D5CFF;      /* Custom Interchange automation */
+    --violet: #7A3BEA;    /* Product Owner / Published Interchange */
+    --cyan: #0EA5C9;      /* pool, PeopleSoft, engine */
+    --green: #0FA96F;     /* MOD file, Jira */
+    --amber: #E8930C;     /* manual today */
+    --magenta: #DB2F86;   /* generator accent */
+    --red: #E11D48;       /* collision */
+
+    --display: "Sora", "Avenir Next", "Segoe UI", sans-serif;
+    --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--ground); }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: var(--body); font-size: 16px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(ellipse 900px 520px at 10% -4%, rgba(29,92,255,0.10), transparent 65%),
+      radial-gradient(ellipse 760px 440px at 92% 2%, rgba(122,59,234,0.09), transparent 68%),
+      radial-gradient(ellipse 600px 360px at 55% 8%, rgba(14,165,201,0.07), transparent 70%);
+  }
+  .frame { max-width: 1280px; margin: 0 auto; padding: 0 28px 88px; }
+
+  /* ── masthead ─────────────────────────────────────────────── */
+  header.mast { padding: 56px 0 36px; display: flex; flex-direction: column; gap: 16px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--blue); margin: 0; display: flex; align-items: center; gap: 12px;
+  }
+  .eyebrow::after { content: ""; flex: 1; height: 1px; max-width: 260px; background: linear-gradient(90deg, var(--rule-lit), transparent); }
+  .pulse { color: var(--cyan); flex: 0 0 auto; }
+  .pulse path { stroke-dasharray: 130; stroke-dashoffset: 130; animation: trace 2.8s linear infinite; }
+  @keyframes trace { 0% { stroke-dashoffset: 130; } 60% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 0; } }
+  h1 {
+    font-family: var(--display); font-weight: 800; font-size: clamp(2rem, 4.2vw, 3.2rem);
+    line-height: 1.04; letter-spacing: -0.03em; margin: 0; text-wrap: balance; max-width: 20ch;
+  }
+  h1 .thin { color: var(--dim); font-weight: 700; }
+  .lede { font-size: clamp(1.02rem, 1.5vw, 1.2rem); color: var(--muted); max-width: 66ch; margin: 0; line-height: 1.55; }
+  .lede b { color: var(--ink); font-weight: 600; }
+  .thesis {
+    display: inline-flex; align-items: center; gap: 10px; align-self: flex-start;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--blue);
+    border: 1px solid rgba(29,92,255,0.35); background: rgba(29,92,255,0.06); border-radius: 999px; padding: 7px 16px;
+  }
+  .thesis::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 10px rgba(29,92,255,0.9); }
+  .scope {
+    font-family: var(--mono); font-size: 11.5px; color: var(--dim); letter-spacing: 0.05em;
+    display: flex; flex-wrap: wrap; gap: 8px 22px; border-top: 1px solid var(--rule); padding-top: 14px; margin-top: 4px;
+  }
+  .scope b { color: var(--muted); font-weight: 500; }
+
+  /* ── sections ─────────────────────────────────────────────── */
+  section { margin-top: 56px; }
+  .sec-head { display: flex; flex-direction: column; gap: 8px; max-width: 72ch; margin-bottom: 20px; }
+  .kicker { font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--hue, var(--dim)); margin: 0; }
+  h2 { font-family: var(--display); font-weight: 700; font-size: clamp(1.4rem, 2.4vw, 1.9rem); letter-spacing: -0.02em; line-height: 1.15; margin: 0; text-wrap: balance; }
+  .sec-head p { margin: 0; color: var(--muted); }
+  .sec-head p b { color: var(--ink); font-weight: 600; }
+
+  /* ── figure card ──────────────────────────────────────────── */
+  figure.fig { margin: 0; display: flex; flex-direction: column; gap: 14px; }
+  .figwrap {
+    background: linear-gradient(180deg, #FFFFFF, var(--panel)); border: 1px solid var(--rule);
+    border-radius: 16px; padding: 18px; box-shadow: 0 24px 60px rgba(29,92,255,0.10), 0 2px 6px rgba(11,27,51,0.05);
+    overflow-x: auto;
+  }
+  .fig-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+  .fig-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-family: var(--mono); font-size: 10.5px; color: var(--muted); letter-spacing: 0.04em; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 10px; height: 10px; border-radius: 3px; background: var(--hue); display: inline-block; }
+  .legend i.dash { background: none; border: 1.5px dashed var(--hue); }
+  figure svg { display: block; width: 100%; height: auto; min-width: 860px; border-radius: 10px;
+    background-image: linear-gradient(rgba(29,92,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(29,92,255,0.05) 1px, transparent 1px);
+    background-size: 40px 40px; }
+  figcaption { font-size: 0.95rem; color: var(--muted); max-width: 78ch; line-height: 1.6; }
+  figcaption b { color: var(--ink); font-weight: 600; }
+
+  /* svg type + marks */
+  svg text { font-family: var(--mono); fill: var(--ink); }
+  .t-lane { font-family: var(--display); font-size: 13px; font-weight: 700; letter-spacing: 0.02em; fill: var(--hue); }
+  .t-lane-sub { font-size: 10px; fill: var(--dim); letter-spacing: 0.08em; }
+  .t-name { font-family: var(--display); font-size: 13.5px; font-weight: 700; fill: var(--ink); }
+  .t-sub { font-size: 10px; fill: var(--muted); letter-spacing: 0.02em; }
+  .t-arrow { font-size: 9.5px; fill: var(--muted); letter-spacing: 0.04em; }
+  .t-hub { font-family: var(--display); font-size: 16px; font-weight: 800; letter-spacing: 0.01em; fill: var(--ink); }
+  .t-hub-sub { font-size: 10.5px; fill: var(--dim); letter-spacing: 0.14em; }
+  .t-tag { font-size: 9px; letter-spacing: 0.12em; fill: #fff; font-weight: 500; }
+  .t-warn { font-family: var(--display); font-size: 13px; font-weight: 800; fill: var(--red); letter-spacing: 0.06em; }
+  .t-warn-sub { font-size: 10.5px; fill: var(--ink); }
+
+  .lane { fill: var(--hue); fill-opacity: 0.04; stroke: var(--hue); stroke-opacity: 0.35; stroke-width: 1; }
+  .box { fill: #FFFFFF; stroke: var(--hue, var(--rule-lit)); stroke-width: 1.3; filter: drop-shadow(0 4px 10px rgba(11,27,51,0.07)); }
+  .box.soft { fill: var(--panel-2); stroke-dasharray: 5 4; filter: none; }
+  .box.hub { fill: url(#hub-fill); stroke: url(#hub-stroke); stroke-width: 1.6; }
+  .inner { fill: #FFFFFF; stroke: var(--hue, var(--rule-lit)); stroke-width: 1.2; }
+  .tag { fill: var(--hue); }
+  .wire { fill: none; stroke: var(--hue, var(--rule-lit)); stroke-width: 1.6; opacity: 0.9; marker-end: url(#mk); }
+  .wire.thin { stroke-width: 1.2; opacity: 0.7; }
+  .wire.danger { stroke: var(--red); marker-end: url(#mk-red); }
+  .flow { fill: none; stroke: var(--hue, var(--cyan)); stroke-width: 1.8; stroke-dasharray: 3 10; opacity: 0.55;
+    animation: dash var(--spd, 2.6s) linear infinite; animation-delay: var(--ph, 0s); }
+  @keyframes dash { to { stroke-dashoffset: -13; } }
+  .cell { fill: #FFFFFF; stroke: var(--rule-lit); stroke-width: 1; }
+  .cell.blue { fill: var(--blue); fill-opacity: 0.85; stroke: var(--blue); }
+  .cell.violet { fill: var(--violet); fill-opacity: 0.85; stroke: var(--violet); }
+  .cell.clash { fill: var(--red); stroke: var(--red); animation: throb 1.6s ease-in-out infinite; }
+  @keyframes throb { 0%,100% { fill-opacity: 0.55; } 50% { fill-opacity: 1; } }
+  .cell.leaving { fill: var(--violet); stroke: var(--violet); animation: leave 3.2s ease-in-out infinite; }
+  @keyframes leave { 0%,20% { fill-opacity: 0.85; } 60%,100% { fill-opacity: 0.12; } }
+  .warn { fill: rgba(225,29,72,0.06); stroke: var(--red); stroke-width: 1.2; }
+  .glow { fill: none; stroke: var(--magenta); stroke-opacity: 0.35; stroke-width: 6; filter: blur(6px); }
+
+  /* ── cards ────────────────────────────────────────────────── */
+  .cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 22px; }
+  .card {
+    background: #FFFFFF; border: 1px solid var(--rule); border-radius: 14px; padding: 18px 18px 20px;
+    display: flex; flex-direction: column; gap: 8px; position: relative; overflow: hidden;
+  }
+  .card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--hue); }
+  .card .n { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--hue); }
+  .card .name { font-family: var(--display); font-weight: 700; font-size: 1.05rem; line-height: 1.2; }
+  .card .what { font-size: 0.9rem; color: var(--muted); line-height: 1.55; margin: 0; }
+  .card .what b { color: var(--ink); font-weight: 600; }
+  .card ul { margin: 4px 0 0; padding-left: 18px; font-size: 0.88rem; color: var(--muted); }
+  .card li { margin: 2px 0; }
+  .card li b { color: var(--ink); font-weight: 600; }
+
+  .risk {
+    margin-top: 22px; display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start;
+    background: rgba(225,29,72,0.05); border: 1px solid rgba(225,29,72,0.35); border-radius: 14px; padding: 18px 20px;
+  }
+  .risk .sig { font-family: var(--display); font-weight: 800; font-size: 12px; letter-spacing: 0.1em; color: var(--red); padding-top: 3px; white-space: nowrap; }
+  .risk p { margin: 0; color: var(--ink); }
+  .risk p + p { margin-top: 6px; color: var(--muted); font-size: 0.94rem; }
+
+  /* ── modes ────────────────────────────────────────────────── */
+  .modes { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+  .mode { background: #FFFFFF; border: 1px solid var(--rule); border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 12px;
+    box-shadow: 0 10px 30px rgba(29,92,255,0.06); }
+  .mode-head { display: flex; align-items: center; gap: 12px; }
+  .mode-badge { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; color: #fff; background: var(--hue); border-radius: 8px; padding: 5px 9px; }
+  .mode h3 { font-family: var(--display); font-size: 1.15rem; margin: 0; letter-spacing: -0.01em; }
+  .io { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; }
+  .io .pill { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 12px; font-size: 0.88rem; }
+  .io .pill .k { display: block; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); margin-bottom: 3px; }
+  .io .arr { color: var(--hue); font-family: var(--mono); font-size: 16px; }
+  .mode p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+  .mode p b { color: var(--ink); font-weight: 600; }
+
+  /* ── walkthrough ──────────────────────────────────────────── */
+  .steps { display: grid; gap: 0; border: 1px solid var(--rule); border-radius: 16px; overflow: hidden; background: #FFFFFF; }
+  .step { display: grid; grid-template-columns: 64px 1fr; gap: 0; border-bottom: 1px solid var(--rule); }
+  .step:last-child { border-bottom: 0; }
+  .step .num { font-family: var(--display); font-weight: 800; font-size: 1.3rem; color: var(--hue); background: var(--panel);
+    display: flex; align-items: flex-start; justify-content: center; padding-top: 18px; border-right: 1px solid var(--rule); }
+  .step .body { padding: 16px 20px 18px; display: flex; flex-direction: column; gap: 4px; }
+  .step h3 { margin: 0; font-family: var(--display); font-size: 1.02rem; letter-spacing: -0.01em; }
+  .step h3 .who { font-family: var(--mono); font-weight: 500; font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--hue); margin-left: 10px; }
+  .step p { margin: 0; color: var(--muted); font-size: 0.93rem; }
+  .step p b { color: var(--ink); font-weight: 600; }
+  .side-note { margin-top: 14px; display: flex; gap: 12px; align-items: flex-start; background: rgba(29,92,255,0.05); border: 1px solid rgba(29,92,255,0.25);
+    border-radius: 12px; padding: 14px 16px; font-size: 0.93rem; color: var(--muted); }
+  .side-note b { color: var(--ink); font-weight: 600; }
+  .side-note .k { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; color: var(--blue); text-transform: uppercase; white-space: nowrap; padding-top: 4px; }
+
+  /* ── table ────────────────────────────────────────────────── */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 14px; background: #FFFFFF; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 720px; }
+  thead th { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); font-weight: 500;
+    text-align: left; padding: 12px 18px; background: var(--panel); border-bottom: 1px solid var(--rule); }
+  thead th.after { color: var(--blue); }
+  tbody td { padding: 11px 18px; border-bottom: 1px solid var(--rule); color: var(--muted); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.k { font-family: var(--mono); font-size: 12px; color: var(--ink); white-space: nowrap; }
+  td.after { color: var(--ink); }
+  .chip { display: inline-block; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; border-radius: 999px; padding: 2px 8px; margin-left: 6px; vertical-align: middle; }
+  .chip.same { color: var(--green); border: 1px solid rgba(15,169,111,0.4); background: rgba(15,169,111,0.06); }
+  .chip.new { color: var(--blue); border: 1px solid rgba(29,92,255,0.4); background: rgba(29,92,255,0.06); }
+  .chip.risk { color: var(--red); border: 1px solid rgba(225,29,72,0.4); background: rgba(225,29,72,0.06); }
+
+  /* ── why ──────────────────────────────────────────────────── */
+  .why { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+  .why .card::before { display: none; }
+  .why .card { border-top: 3px solid var(--hue); }
+
+  footer { margin-top: 64px; border-top: 1px solid var(--rule); padding-top: 18px; font-family: var(--mono); font-size: 11px; color: var(--dim); letter-spacing: 0.06em; display: flex; flex-wrap: wrap; gap: 8px 24px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pulse path, .flow, .cell.clash, .cell.leaving { animation: none; }
+  }
+  @media (max-width: 720px) {
+    .frame { padding: 0 18px 60px; }
+    .risk { grid-template-columns: 1fr; }
+    .io { grid-template-columns: 1fr; }
+    .io .arr { transform: rotate(90deg); justify-self: center; }
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+
+<header class="mast">
+  <p class="eyebrow">
+    <svg class="pulse" width="54" height="16" viewBox="0 0 54 16" aria-hidden="true"><path d="M1 8h9l4-6 5 12 5-9 4 5 4-3 4 3h17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Interchange level codes · management brief
+  </p>
+  <h1>Two processes are picking from one mnemonic pool. <span class="thin">Give them one generator.</span></h1>
+  <p class="lede">
+    Every interchange change, custom or published, needs new <b>mnemonics</b> (interchange level codes) and their <b>interchange level names</b>.
+    Custom Interchange picks them with automation. Published Interchange picks them by hand. Nothing stops both from picking the same one.
+  </p>
+  <span class="thesis">Proposal: one Interchange Code Generator, reached through an API by the automation and through a UI by Product Owners</span>
+  <div class="scope">
+    <span><b>Scope</b> Mastercard first, matching the current Custom Interchange automation</span>
+    <span><b>Source of truth</b> PeopleSoft boarding system</span>
+    <span><b>Unchanged</b> Mod1 / Mod2 downstream process</span>
+  </div>
+</header>
+
+<!-- ═══════════════════════ TODAY ═══════════════════════ -->
+<section id="today">
+  <div class="sec-head" style="--hue: var(--red)">
+    <p class="kicker">Today</p>
+    <h2>Two hands, one pool, no coordination</h2>
+    <p>Both paths read PeopleSoft to see which mnemonics are already in production. Neither path <b>reserves</b> what it chooses, and neither can see what the other is about to choose.</p>
+  </div>
+
+  <figure class="fig">
+    <div class="figwrap">
+      <div class="fig-head">
+        <span class="fig-title">Current state · mnemonic selection</span>
+        <div class="legend">
+          <span style="--hue: var(--blue)"><i></i>Custom Interchange (automated)</span>
+          <span style="--hue: var(--violet)"><i></i>Published Interchange (manual)</span>
+          <span style="--hue: var(--cyan)"><i></i>PeopleSoft / mnemonic space</span>
+          <span style="--hue: var(--red)"><i></i>Overlap</span>
+        </div>
+      </div>
+      <svg viewBox="0 0 1200 560" role="img" aria-label="Today: the automated Custom Interchange path and the manual Published Interchange path both read PeopleSoft and both pick mnemonics from the same unreserved space, so the same mnemonic can be chosen twice.">
+        <defs>
+          <marker id="mk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5 0 10z" fill="context-stroke"/></marker>
+          <marker id="mk-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5 0 10z" fill="#E11D48"/></marker>
+        </defs>
+
+        <!-- lanes -->
+        <g style="--hue: var(--blue)">
+          <rect class="lane" x="30" y="20" width="340" height="520" rx="14"/>
+          <text class="t-lane" x="50" y="50">CUSTOM INTERCHANGE</text>
+          <text class="t-lane-sub" x="50" y="66">AUTOMATED END TO END · MASTERCARD FIRST</text>
+        </g>
+        <g style="--hue: var(--violet)">
+          <rect class="lane" x="830" y="20" width="340" height="520" rx="14"/>
+          <text class="t-lane" x="850" y="50">PUBLISHED INTERCHANGE</text>
+          <text class="t-lane-sub" x="850" y="66">MANUAL · PRODUCT MANAGERS</text>
+        </g>
+
+        <!-- left lane boxes -->
+        <g style="--hue: var(--blue)">
+          <rect class="box" x="50" y="90" width="300" height="64" rx="10"/>
+          <text class="t-name" x="66" y="117">Interchange article</text>
+          <text class="t-sub" x="66" y="137">network change, parsed by the automation</text>
+
+          <rect class="box" x="50" y="190" width="300" height="64" rx="10"/>
+          <text class="t-name" x="66" y="217">AI + deterministic Python</text>
+          <text class="t-sub" x="66" y="237">reads PeopleSoft · picks codes · names them</text>
+          <rect class="tag" x="268" y="196" width="74" height="16" rx="8"/><text class="t-tag" x="305" y="207.5" text-anchor="middle">AUTOMATED</text>
+
+          <rect class="box" x="50" y="300" width="300" height="64" rx="10"/>
+          <text class="t-name" x="66" y="327">MOD1 / MOD2 file</text>
+          <text class="t-sub" x="66" y="347">interchange code + interchange name</text>
+
+          <rect class="box" x="50" y="400" width="300" height="64" rx="10"/>
+          <text class="t-name" x="66" y="427">Jira epic</text>
+          <text class="t-sub" x="66" y="447">file attached by the automation</text>
+
+          <path class="wire" d="M200 154V188"/><path class="wire" d="M200 254V298"/><path class="wire" d="M200 364V398"/>
+        </g>
+
+        <!-- right lane boxes -->
+        <g style="--hue: var(--violet)">
+          <rect class="box" x="850" y="90" width="300" height="64" rx="10"/>
+          <text class="t-name" x="866" y="117">Published interchange update</text>
+          <text class="t-sub" x="866" y="137">network bulletin, read by a product manager</text>
+
+          <rect class="box" x="850" y="190" width="300" height="64" rx="10"/>
+          <text class="t-name" x="866" y="217">Product manager, by hand</text>
+          <text class="t-sub" x="866" y="237">checks PeopleSoft · picks codes · names them</text>
+          <rect class="tag" x="1084" y="196" width="58" height="16" rx="8" style="--hue: var(--amber)"/><text class="t-tag" x="1113" y="207.5" text-anchor="middle">MANUAL</text>
+
+          <rect class="box" x="850" y="300" width="300" height="64" rx="10"/>
+          <text class="t-name" x="866" y="327">MOD1 / MOD2 file, by hand</text>
+          <text class="t-sub" x="866" y="347">same shape, typed manually</text>
+          <rect class="tag" x="1084" y="306" width="58" height="16" rx="8" style="--hue: var(--amber)"/><text class="t-tag" x="1113" y="317.5" text-anchor="middle">MANUAL</text>
+
+          <rect class="box" x="850" y="400" width="300" height="64" rx="10"/>
+          <text class="t-name" x="866" y="427">Jira epic</text>
+          <text class="t-sub" x="866" y="447">file attached by the product manager</text>
+
+          <path class="wire" d="M1000 154V188"/><path class="wire" d="M1000 254V298"/><path class="wire" d="M1000 364V398"/>
+        </g>
+
+        <!-- center: PeopleSoft -->
+        <g style="--hue: var(--cyan)">
+          <rect class="box" x="450" y="90" width="300" height="64" rx="10"/>
+          <text class="t-name" x="600" y="117" text-anchor="middle">PeopleSoft · boarding system</text>
+          <text class="t-sub" x="600" y="137" text-anchor="middle">which mnemonics are already in production</text>
+          <path class="wire thin" d="M350 206C400 206 405 122 448 122"/>
+          <path class="wire thin" d="M850 206C800 206 795 122 752 122"/>
+          <path class="flow" d="M350 206C400 206 405 122 448 122"/>
+          <path class="flow" d="M850 206C800 206 795 122 752 122" style="--ph: -1.2s"/>
+          <text class="t-arrow" x="395" y="150" text-anchor="middle">reads</text>
+          <text class="t-arrow" x="805" y="150" text-anchor="middle">reads</text>
+        </g>
+
+        <!-- center: mnemonic space -->
+        <g style="--hue: var(--cyan)">
+          <rect class="box soft" x="450" y="200" width="300" height="210" rx="12"/>
+          <text class="t-name" x="600" y="226" text-anchor="middle">Mnemonic space</text>
+          <text class="t-sub" x="600" y="244" text-anchor="middle">no owner · no reservation · no shared view</text>
+          <!-- grid: 6 x 4, cell 34x26, gap 8, origin 478,258 -->
+          <g>
+            <rect class="cell blue" x="478" y="258" width="34" height="26" rx="4"/>
+            <rect class="cell" x="520" y="258" width="34" height="26" rx="4"/>
+            <rect class="cell" x="562" y="258" width="34" height="26" rx="4"/>
+            <rect class="cell" x="604" y="258" width="34" height="26" rx="4"/>
+            <rect class="cell" x="646" y="258" width="34" height="26" rx="4"/>
+            <rect class="cell violet" x="688" y="258" width="34" height="26" rx="4"/>
+
+            <rect class="cell" x="478" y="292" width="34" height="26" rx="4"/>
+            <rect class="cell" x="520" y="292" width="34" height="26" rx="4"/>
+            <rect class="cell clash" x="562" y="292" width="34" height="26" rx="4"/>
+            <rect class="cell" x="604" y="292" width="34" height="26" rx="4"/>
+            <rect class="cell" x="646" y="292" width="34" height="26" rx="4"/>
+            <rect class="cell" x="688" y="292" width="34" height="26" rx="4"/>
+
+            <rect class="cell violet" x="478" y="326" width="34" height="26" rx="4"/>
+            <rect class="cell" x="520" y="326" width="34" height="26" rx="4"/>
+            <rect class="cell" x="562" y="326" width="34" height="26" rx="4"/>
+            <rect class="cell violet" x="604" y="326" width="34" height="26" rx="4"/>
+            <rect class="cell blue" x="646" y="326" width="34" height="26" rx="4"/>
+            <rect class="cell" x="688" y="326" width="34" height="26" rx="4"/>
+
+            <rect class="cell" x="478" y="360" width="34" height="26" rx="4"/>
+            <rect class="cell blue" x="520" y="360" width="34" height="26" rx="4"/>
+            <rect class="cell" x="562" y="360" width="34" height="26" rx="4"/>
+            <rect class="cell" x="604" y="360" width="34" height="26" rx="4"/>
+            <rect class="cell" x="646" y="360" width="34" height="26" rx="4"/>
+            <rect class="cell" x="688" y="360" width="34" height="26" rx="4"/>
+          </g>
+          <text class="t-sub" x="600" y="401" text-anchor="middle">each side picks; nothing records the pick</text>
+        </g>
+
+        <!-- the two picks landing on the same cell -->
+        <path class="wire danger" d="M350 238C440 238 470 305 560 305" style="--hue: var(--blue)"/>
+        <path class="wire danger" d="M850 238C760 238 730 305 598 305" style="--hue: var(--violet)"/>
+        <path class="flow" d="M350 238C440 238 470 305 560 305" style="--hue: var(--blue); --spd: 1.6s"/>
+        <path class="flow" d="M850 238C760 238 730 305 598 305" style="--hue: var(--violet); --spd: 1.6s; --ph: -0.8s"/>
+        <text class="t-arrow" x="400" y="276" text-anchor="middle" style="fill:#1D5CFF">picks</text>
+        <text class="t-arrow" x="800" y="276" text-anchor="middle" style="fill:#7A3BEA">picks</text>
+
+        <!-- callout -->
+        <rect class="warn" x="430" y="440" width="340" height="80" rx="12"/>
+        <text class="t-warn" x="600" y="468" text-anchor="middle">OVERLAP RISK</text>
+        <text class="t-warn-sub" x="600" y="488" text-anchor="middle">Same mnemonic, two epics, two MOD files.</text>
+        <text class="t-warn-sub" x="600" y="505" text-anchor="middle">Nobody finds out until boarding.</text>
+      </svg>
+    </div>
+    <figcaption>
+      Both paths do the same three things: check PeopleSoft, pick free mnemonics, write interchange level names.
+      The automation does it in code, product managers do it by hand. <b>The pick is never recorded anywhere the other side can see</b>, so the red cell is a matter of time, not chance.
+    </figcaption>
+  </figure>
+
+  <div class="cards">
+    <div class="card" style="--hue: var(--blue)">
+      <span class="n">Path A</span>
+      <span class="name">Custom Interchange, automated</span>
+      <p class="what">Built end to end, <b>Mastercard first</b>. Reads production mnemonics from PeopleSoft, selects available codes with an AI plus deterministic Python approach, generates the level names, and attaches the MOD1 / MOD2 file to the epic.</p>
+    </div>
+    <div class="card" style="--hue: var(--violet)">
+      <span class="n">Path B</span>
+      <span class="name">Published Interchange, manual</span>
+      <p class="what">Product managers run the same steps by hand: look up what is in production, choose mnemonics, write names, type the MOD file. Slow, and <b>invisible to Path A</b>.</p>
+    </div>
+    <div class="card" style="--hue: var(--red)">
+      <span class="n">The gap</span>
+      <span class="name">No reservation step</span>
+      <p class="what">PeopleSoft only shows what is <b>already in production</b>. A mnemonic chosen last week for an epic still in flight looks free to everyone else.</p>
+    </div>
+  </div>
+
+  <div class="risk">
+    <span class="sig">WHY IT MATTERS</span>
+    <div>
+      <p>Two epics can leave pre-discovery carrying the same interchange level code. Each side has already written a MOD1 / MOD2 file around it.</p>
+      <p>The collision surfaces late, at boarding, when it is most expensive to unwind: one epic re-codes, its MOD files are redone, and the downstream Mod1 / Mod2 work restarts.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ PROPOSED ═══════════════════════ -->
+<section id="proposed">
+  <div class="sec-head" style="--hue: var(--blue)">
+    <p class="kicker">Recommended</p>
+    <h2>One Interchange Code Generator, two doors</h2>
+    <p>A central engine owns the <b>official Available Pool</b>. The Custom Interchange automation reaches it through an API, exactly the way it calls the generator logic today, and uses Mode 1 only. Product Owners reach it through a UI during pre-discovery and can use Mode 1 or Mode 2. Every pick leaves the pool the moment it is made.</p>
+  </div>
+
+  <figure class="fig">
+    <div class="figwrap">
+      <div class="fig-head">
+        <span class="fig-title">Proposed state · Interchange Code Generator</span>
+        <div class="legend">
+          <span style="--hue: var(--blue)"><i></i>Automation via API · Mode 1 only</span>
+          <span style="--hue: var(--violet)"><i></i>Product Owner via UI · Mode 1 or 2</span>
+          <span style="--hue: var(--cyan)"><i></i>Engine + pool</span>
+          <span style="--hue: var(--green)"><i></i>Output to Jira</span>
+          <span style="--hue: var(--amber)"><i class="dash"></i>Manual today, unchanged</span>
+        </div>
+      </div>
+      <svg viewBox="0 0 1200 790" role="img" aria-label="Proposed: the Custom Interchange automation enters the Interchange Code Generator on the left through an API and can only use Mode 1, article to mnemonic. The Product Owner enters on the right through a UI and can use Mode 1 or Mode 2, count plus qualification criteria. Either way the engine checks availability against PeopleSoft and existing reservations, takes selected codes out of the official Available Pool, and produces interchange level codes and names that become a MOD1/MOD2 file attached to the Jira epic for the downstream Mod1/Mod2 process.">
+        <defs>
+          <marker id="mk2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5 0 10z" fill="context-stroke"/></marker>
+          <linearGradient id="hub-fill" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#F1F5FF"/>
+          </linearGradient>
+          <linearGradient id="hub-stroke" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#1D5CFF"/><stop offset="0.55" stop-color="#0EA5C9"/><stop offset="1" stop-color="#DB2F86"/>
+          </linearGradient>
+        </defs>
+
+        <!-- hub -->
+        <rect class="glow" x="350" y="50" width="500" height="590" rx="20"/>
+        <rect class="box hub" x="350" y="50" width="500" height="590" rx="20"/>
+        <text class="t-hub" x="600" y="86" text-anchor="middle">INTERCHANGE CODE GENERATOR</text>
+        <text class="t-hub-sub" x="600" y="106" text-anchor="middle">ONE UI · ONE API · ONE POOL</text>
+
+        <!-- modes group -->
+        <g style="--hue: var(--magenta)">
+          <rect class="box soft" x="365" y="118" width="470" height="176" rx="12" style="--hue: var(--rule-lit)"/>
+
+          <rect class="inner" x="375" y="130" width="450" height="60" rx="10"/>
+          <rect class="tag" x="391" y="152" width="58" height="16" rx="8"/><text class="t-tag" x="420" y="163.5" text-anchor="middle">MODE 1</text>
+          <text class="t-name" x="462" y="157">Article → Mnemonic</text>
+          <text class="t-sub" x="462" y="175">paste the article · suggested codes + level names</text>
+          <rect x="722" y="139" width="90" height="16" rx="8" fill="rgba(29,92,255,0.10)" stroke="#1D5CFF" stroke-width="1"/>
+          <text class="t-tag" x="767" y="150.5" text-anchor="middle" style="fill:#1D5CFF">BOTH DOORS</text>
+
+          <circle cx="600" cy="206" r="12" fill="#FFFFFF" stroke="#C3D1E8" stroke-width="1"/>
+          <text class="t-arrow" x="600" y="209.5" text-anchor="middle">or</text>
+
+          <rect class="inner" x="375" y="222" width="450" height="60" rx="10" style="--hue: var(--violet)"/>
+          <rect class="tag" x="391" y="244" width="58" height="16" rx="8" style="--hue: var(--violet)"/><text class="t-tag" x="420" y="255.5" text-anchor="middle">MODE 2</text>
+          <text class="t-name" x="462" y="249">Count + criteria</text>
+          <text class="t-sub" x="462" y="267">how many mnemonics · qualification criteria each</text>
+          <rect x="680" y="231" width="132" height="16" rx="8" fill="rgba(122,59,234,0.10)" stroke="#7A3BEA" stroke-width="1"/>
+          <text class="t-tag" x="746" y="242.5" text-anchor="middle" style="fill:#7A3BEA">PRODUCT OWNER ONLY</text>
+        </g>
+
+        <!-- engine -->
+        <g style="--hue: var(--cyan)">
+          <rect class="inner" x="375" y="325" width="450" height="80" rx="10"/>
+          <text class="t-name" x="391" y="352">Availability engine</text>
+          <text class="t-sub" x="391" y="372">backend API calls · in production? · reserved by another epic?</text>
+          <text class="t-sub" x="391" y="388">returns only codes that are genuinely free</text>
+          <path class="wire" d="M600 294V323"/><path class="flow" d="M600 294V323" style="--spd: 1.8s"/>
+        </g>
+
+        <!-- pool -->
+        <g style="--hue: var(--cyan)">
+          <rect class="inner" x="375" y="445" width="450" height="60" rx="10"/>
+          <text class="t-name" x="391" y="470">Official Available Pool</text>
+          <text class="t-sub" x="391" y="490">selected codes leave the pool at once</text>
+          <!-- mini grid, cell 22x16 gap 5, origin 650,459 -->
+          <rect class="cell blue" x="650" y="459" width="22" height="16" rx="3"/>
+          <rect class="cell" x="677" y="459" width="22" height="16" rx="3"/>
+          <rect class="cell violet" x="704" y="459" width="22" height="16" rx="3"/>
+          <rect class="cell" x="731" y="459" width="22" height="16" rx="3"/>
+          <rect class="cell blue" x="758" y="459" width="22" height="16" rx="3"/>
+          <rect class="cell" x="785" y="459" width="22" height="16" rx="3"/>
+          <rect class="cell" x="650" y="480" width="22" height="16" rx="3"/>
+          <rect class="cell leaving" x="677" y="480" width="22" height="16" rx="3"/>
+          <rect class="cell" x="704" y="480" width="22" height="16" rx="3"/>
+          <rect class="cell violet" x="731" y="480" width="22" height="16" rx="3"/>
+          <rect class="cell" x="758" y="480" width="22" height="16" rx="3"/>
+          <rect class="cell blue" x="785" y="480" width="22" height="16" rx="3"/>
+          <path class="wire" d="M600 405V443"/><path class="flow" d="M600 405V443" style="--spd: 1.8s"/>
+          <text class="t-arrow" x="612" y="428">check</text>
+        </g>
+
+        <!-- output -->
+        <g style="--hue: var(--green)">
+          <rect class="inner" x="375" y="545" width="450" height="70" rx="10"/>
+          <text class="t-name" x="391" y="572">Interchange level code + interchange level name</text>
+          <text class="t-sub" x="391" y="592">for every mnemonic selected, generated once, recorded once</text>
+          <path class="wire" d="M600 505V543" style="--hue: var(--cyan)"/><path class="flow" d="M600 505V543" style="--spd: 1.8s"/>
+          <text class="t-arrow" x="612" y="528">reserve + name</text>
+        </g>
+
+        <!-- left: Custom Interchange automation (API, Mode 1 only) -->
+        <g style="--hue: var(--blue)">
+          <rect class="box" x="30" y="114" width="260" height="92" rx="10"/>
+          <rect class="tag" x="46" y="126" width="62" height="16" rx="8"/><text class="t-tag" x="77" y="137.5" text-anchor="middle">VIA API</text>
+          <text class="t-name" x="46" y="161">Custom Interchange automation</text>
+          <text class="t-sub" x="46" y="179">Mastercard first · already built</text>
+          <text class="t-sub" x="46" y="194">calls the generator over API, as today</text>
+          <path class="wire" d="M290 160H373"/>
+          <path class="flow" d="M290 160H373" style="--spd: 2s"/>
+          <text class="t-arrow" x="331" y="151" text-anchor="middle" style="fill:#1D5CFF">Mode 1 only</text>
+        </g>
+        <g style="--hue: var(--cyan)">
+          <rect class="box soft" x="30" y="325" width="260" height="80" rx="10"/>
+          <text class="t-name" x="46" y="353">PeopleSoft · boarding system</text>
+          <text class="t-sub" x="46" y="373">mnemonics already in production</text>
+          <text class="t-sub" x="46" y="389">read by the engine, never by hand</text>
+          <path class="wire thin" d="M290 365H373"/>
+          <path class="flow" d="M290 365H373" style="--spd: 3s"/>
+          <text class="t-arrow" x="331" y="356" text-anchor="middle">reads</text>
+        </g>
+
+        <!-- right: Product Owner (UI, Mode 1 or Mode 2) -->
+        <g style="--hue: var(--violet)">
+          <rect class="box" x="900" y="114" width="270" height="92" rx="10"/>
+          <rect class="tag" x="916" y="126" width="58" height="16" rx="8"/><text class="t-tag" x="945" y="137.5" text-anchor="middle">VIA UI</text>
+          <text class="t-name" x="916" y="161">Product Owner</text>
+          <text class="t-sub" x="916" y="179">Published Interchange · pre-discovery</text>
+          <text class="t-sub" x="916" y="194">opens the UI, picks the epic and a mode</text>
+          <path class="wire" d="M900 160H827"/>
+          <path class="flow" d="M900 160H827" style="--spd: 2s"/>
+          <path class="wire" d="M900 190C865 190 870 252 827 252"/>
+          <path class="flow" d="M900 190C865 190 870 252 827 252" style="--spd: 2s; --ph: -1s"/>
+          <text class="t-arrow" x="863" y="151" text-anchor="middle" style="fill:#7A3BEA">Mode 1</text>
+          <text class="t-arrow" x="872" y="276" text-anchor="middle" style="fill:#7A3BEA">or Mode 2</text>
+        </g>
+
+        <!-- bottom row: outputs to Jira -->
+        <g style="--hue: var(--green)">
+          <path class="wire" d="M600 615V665H200V688"/>
+          <path class="flow" d="M600 615V665H200V688" style="--spd: 2.4s"/>
+          <text class="t-arrow" x="400" y="658" text-anchor="middle">generates, for either door</text>
+
+          <rect class="box" x="40" y="690" width="320" height="70" rx="10"/>
+          <text class="t-name" x="56" y="717">MOD1 / MOD2 file</text>
+          <text class="t-sub" x="56" y="737">interchange code + interchange name</text>
+
+          <path class="wire" d="M360 725H438"/><path class="flow" d="M360 725H438" style="--spd: 1.6s"/>
+          <text class="t-arrow" x="399" y="716" text-anchor="middle">attaches</text>
+
+          <rect class="box" x="440" y="690" width="320" height="70" rx="10"/>
+          <text class="t-name" x="456" y="717">Jira epic</text>
+          <text class="t-sub" x="456" y="737">file attached automatically, whichever door</text>
+        </g>
+        <g style="--hue: var(--amber)">
+          <path class="wire" d="M760 725H838"/>
+          <text class="t-arrow" x="799" y="716" text-anchor="middle">used later</text>
+          <rect class="box soft" x="840" y="690" width="320" height="70" rx="10"/>
+          <text class="t-name" x="856" y="717">Mod1 / Mod2 process</text>
+          <text class="t-sub" x="856" y="737">manual today · picks up the file · unchanged</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption>
+      Whichever door a request comes through, the same engine checks PeopleSoft and existing reservations, hands back only free codes, and <b>removes the chosen ones from the official Available Pool</b>.
+      The output is what both paths already produce today: interchange level codes and names in a MOD1 / MOD2 file, attached to the epic.
+    </figcaption>
+  </figure>
+</section>
+
+<!-- ═══════════════════════ MODES ═══════════════════════ -->
+<section id="modes">
+  <div class="sec-head" style="--hue: var(--magenta)">
+    <p class="kicker">The two modes</p>
+    <h2>Start from the article, or start from a number</h2>
+    <p>Both modes end in the same place: a list of free mnemonics and names, reserved to this epic.</p>
+  </div>
+  <div class="modes">
+    <div class="mode" style="--hue: var(--magenta)">
+      <div class="mode-head"><span class="mode-badge">MODE 1</span><h3>Article to Mnemonic Generator</h3><span class="chip new" style="margin-left:auto">Both doors</span></div>
+      <div class="io">
+        <div class="pill"><span class="k">Input</span>The interchange article for the epic</div>
+        <span class="arr">→</span>
+        <div class="pill"><span class="k">Output</span>Suggested mnemonics with interchange level names</div>
+      </div>
+      <p>The same AI plus deterministic Python approach the Custom Interchange automation already runs, now offered to Product Owners as a button. <b>Open to both doors.</b> The automation uses this mode, and only this mode, over the API.</p>
+    </div>
+    <div class="mode" style="--hue: var(--violet)">
+      <div class="mode-head"><span class="mode-badge">MODE 2</span><h3>Count and qualification criteria</h3><span class="chip" style="margin-left:auto;color:var(--violet);border:1px solid rgba(122,59,234,0.4);background:rgba(122,59,234,0.06)">Product Owner only</span></div>
+      <div class="io">
+        <div class="pill"><span class="k">Input</span>How many mnemonics are needed, and the qualification criteria for each</div>
+        <span class="arr">→</span>
+        <div class="pill"><span class="k">Output</span>That many free mnemonics, named from the criteria</div>
+      </div>
+      <p>For the Product Owner who already knows the shape of the change. <b>Product Owner only</b>, through the UI. No PeopleSoft lookup by hand: the engine does the availability check.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ WALKTHROUGH ═══════════════════════ -->
+<section id="walkthrough">
+  <div class="sec-head" style="--hue: var(--blue)">
+    <p class="kicker">One request, end to end</p>
+    <h2>What a Product Owner does in pre-discovery</h2>
+  </div>
+  <div class="steps">
+    <div class="step" style="--hue: var(--violet)">
+      <div class="num">1</div>
+      <div class="body"><h3>Open the generator and pick the epic <span class="who">Product Owner</span></h3><p>The request is tied to a Jira epic from the start, so every code reserved later has an owner.</p></div>
+    </div>
+    <div class="step" style="--hue: var(--magenta)">
+      <div class="num">2</div>
+      <div class="body"><h3>Choose a mode <span class="who">Product Owner</span></h3><p>Paste the article, or enter a count with qualification criteria per mnemonic.</p></div>
+    </div>
+    <div class="step" style="--hue: var(--cyan)">
+      <div class="num">3</div>
+      <div class="body"><h3>The engine checks availability <span class="who">Engine</span></h3><p>Backend API calls establish which candidates are <b>already in production</b> in PeopleSoft and which are <b>already reserved</b> by another epic. Only free codes come back.</p></div>
+    </div>
+    <div class="step" style="--hue: var(--cyan)">
+      <div class="num">4</div>
+      <div class="body"><h3>Select, and the codes leave the pool <span class="who">Product Owner · Engine</span></h3><p>The chosen mnemonics are removed from the official Available Pool with their generated interchange level names. Nobody else can pick them now.</p></div>
+    </div>
+    <div class="step" style="--hue: var(--green)">
+      <div class="num">5</div>
+      <div class="body"><h3>MOD1 / MOD2 file lands on the epic <span class="who">Engine</span></h3><p>A file with interchange code and interchange name is generated and attached to the Jira epic, the same artifact the automation produces today.</p></div>
+    </div>
+    <div class="step" style="--hue: var(--amber)">
+      <div class="num">6</div>
+      <div class="body"><h3>Downstream Mod1 / Mod2 process picks it up <span class="who">Unchanged</span></h3><p>Still manual today. It receives the same file it always has, now guaranteed not to collide with anything in flight.</p></div>
+    </div>
+  </div>
+  <div class="side-note">
+    <span class="k">Automation path</span>
+    <span><b>The Custom Interchange program enters at step 2 with Mode 1 only.</b> It calls the same Interchange Code Generator over API, as its current code already does, passes the article, receives the level codes and names, and attaches the MOD1 / MOD2 file to its epic. Its process does not change. Its picks now come out of the same pool as everyone else's.</span>
+  </div>
+</section>
+
+<!-- ═══════════════════════ BEFORE / AFTER ═══════════════════════ -->
+<section id="delta">
+  <div class="sec-head" style="--hue: var(--blue)">
+    <p class="kicker">What changes, what stays</p>
+    <h2>A small cut with a large effect</h2>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Concern</th><th>Today</th><th class="after">With the generator</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Where mnemonics are chosen</td><td>Two places: automation code, and a product manager's desk</td><td class="after">One engine, two doors. Automation uses Mode 1; Product Owners use Mode 1 or 2 <span class="chip new">new</span></td></tr>
+        <tr><td class="k">Availability check</td><td>PeopleSoft production only, checked separately by each side</td><td class="after">PeopleSoft production plus live reservations, checked by backend API <span class="chip new">new</span></td></tr>
+        <tr><td class="k">Reservation</td><td>None. A pick is invisible until boarding <span class="chip risk">overlap</span></td><td class="after">Selected codes leave the official Available Pool immediately <span class="chip new">new</span></td></tr>
+        <tr><td class="k">Interchange level names</td><td>Generated by the automation; written by hand for published</td><td class="after">Generated by the engine for both</td></tr>
+        <tr><td class="k">MOD1 / MOD2 file</td><td>Generated by the automation; typed by hand for published</td><td class="after">Generated and attached to the epic for both</td></tr>
+        <tr><td class="k">Custom Interchange code path</td><td>Calls the generator logic over API</td><td class="after">Calls the same generator over API <span class="chip same">unchanged</span></td></tr>
+        <tr><td class="k">Mod1 / Mod2 process</td><td>Manual, consumes the MOD file</td><td class="after">Manual, consumes the same MOD file <span class="chip same">unchanged</span></td></tr>
+        <tr><td class="k">Network scope</td><td>Mastercard first for automation</td><td class="after">Mastercard first, same as the automation <span class="chip same">unchanged</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════ WHY ═══════════════════════ -->
+<section id="why">
+  <div class="sec-head" style="--hue: var(--green)">
+    <p class="kicker">Why this is the right cut</p>
+    <h2>Removes the risk by construction, reuses what is built</h2>
+  </div>
+  <div class="why">
+    <div class="card" style="--hue: var(--red)">
+      <span class="n">Risk</span>
+      <span class="name">Overlap becomes impossible</span>
+      <p class="what">A code can only be handed out once, because there is only one pool and every pick leaves it. No process rule to remember, no second check at boarding.</p>
+    </div>
+    <div class="card" style="--hue: var(--blue)">
+      <span class="n">Reuse</span>
+      <span class="name">The engine already exists</span>
+      <p class="what">The article-to-mnemonic logic and the name generation are the Custom Interchange automation's, wrapped in a UI. The automation keeps calling it the same way.</p>
+    </div>
+    <div class="card" style="--hue: var(--violet)">
+      <span class="n">People</span>
+      <span class="name">Product Owners stop trawling PeopleSoft</span>
+      <p class="what">Pre-discovery gets a button instead of a lookup. Suggested names come with the codes, and the MOD file is written for them.</p>
+    </div>
+    <div class="card" style="--hue: var(--amber)">
+      <span class="n">Blast radius</span>
+      <span class="name">Downstream is untouched</span>
+      <p class="what">Mod1 / Mod2 stays manual and receives the same file. Nothing after the epic has to change to get the benefit.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>Interchange Code Generator · management brief</span>
+  <span>Custom Interchange automation · Mastercard first</span>
+  <span>Source of truth: PeopleSoft boarding system</span>
+</footer>
+
+</div>
+</body>
+</html>
