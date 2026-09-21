@@ -1,7 +1,7 @@
 # current_commit_changes_overview.md
 
-**Commit of 2026-09-10 — `pbi_neuro_kickoff.html`, the kickoff presentation page.**
-Baseline: lands on top of `4b6acfe` (*Keep animations on under VDI; add Motion toggle and color-mix fallbacks* — the Signal Studio page series).
+**Commit of 2026-09-21 — `neuro_phase1_1.html`, the Phase 1.1 one-view illustration.**
+Baseline: lands on top of `c0d12e7` (*Interchange Code Generator brief: interchange-code-generator.html*).
 
 This commit carries **no application code**. It adds one published stakeholder artifact and nothing
 else. Nothing in `core/`, `overlays/`, `fixtures/` or `runs/` is touched, so nothing needs
@@ -13,40 +13,38 @@ re-publishing to the registry.
 
 | File | State | What it is |
 |---|---|---|
-| `pbi_neuro_kickoff.html` | new | Kickoff deck as a single page: the case for automating PBI with AI, and the Neuro KB → agentic-process stage |
+| `neuro_phase1_1.html` | new | Phase 1.1 of the Neuro knowledge base in a single viewport: one slice of layer 01, loaded by an agent, reached from VS Code, measured |
 | `current_commit_changes_overview.md` | rewritten | this briefing |
 
 ### What the page is
 
-A presentation page in the same instrumentation style as `neuro_overview_v2.html`, built for a
-kickoff audience rather than an engineering one. Six blocks, top to bottom:
+One fit-to-viewport diagram in the instrumentation style of `neuro_kickoff.html` (same palette and
+type; that file is still untracked and is **not** in this commit). It takes the kickoff's
+knowledge-base cylinder and draws only the first build slice. Five numbered zones:
 
-- **Title + five KPI tiles** — ~19 card brands · ~4,400 articles/yr (2026 projected) · ~14% projected
-  growth 2025 → 2026 · $28B pass-through Interchange processed in 2025 · 20% of Stratus PBI capacity.
-  Numbers count up on load.
-- **01 The case** — four beats on a rail: intake grows ~14%/yr → no team scales at that rate across
-  26 engines → automate PBI with AI, starting with Interchange (complex, impactful, majority of the
-  impact on Stratus) → reinvest the freed capacity in the backlog (Auth & Clearing).
-- **02 Growth** — articles per year 2020 → 2026 (2,881 booked through Aug + dashed extension to
-  ~4,400), the 3,855 → ~4,400 projection, and the quarterly chart with Q2 2026 (1,267) as the record.
-- **03 Why Interchange, and why Visa + Mastercard** — a three-step funnel: all articles by network
-  (Visa + MC = 78.6%) → implemented articles as a two-slice pie (Interchange 18.6%, up from 12.5%, vs
-  everything else) → Interchange by network (91.5% Visa + MC). Then three reason cards.
-- **04 The journey** — the four phases on the complexity rail; Phase 3 carries the "Neuro starts
-  here" badge, Phase 1 carries the measured proof chip (70–80% faster, ~5.9× throughput).
-- **05 Neuro** — the knowledge-base → agentic-process stage from the overview, with Stage 0 removed
-  and Stage 5 renamed *Code Recommendation & Testing*. Layer 02's sub-label reads *System specs*.
+- **1 Expand** — the five-layer cylinder with only layer 01 lit (02–05 dashed, *LATER*). Layer 01
+  opens into four Visa document families: **01.1 Payment Brand Articles** (lit, *building now*),
+  01.2 Tech Letters, 01.3 Interchange Guides, 01.4 Auth & Clearing Guides (dashed, *next · same
+  pipeline*). Brand chips: Visa on; Mastercard, Amex, Discover parked.
+- **2 Ingestion agent** — source PDFs → Extract → Chunk (by section; keeps id, §, page, effective
+  date) → Load (embed + upsert, content-hashed, versioned), on a schedule, into 01.1 only.
+- **3 MCP server** — read-only, over the KB retrieval API: `search_articles(q, k)`,
+  `get_chunk(id)`, `list_articles(since)`. The board states why MCP rather than a bare API.
+- **4 VS Code** — a mock agent-mode pane (question → tool call → cited answer) above a golden
+  question set scored hit / ranked low / miss.
+- **5 Observability** — a trace per tool call and a verdict per question feed six signals (hit
+  rate @k, MRR, citation precision, no-answer rate, latency p95, freshness); an improve loop runs
+  back to the agent with a person reviewing the misses.
 
-Every section can be brought forward (click, or its pill): the page behind blurs, the section lifts
-and enlarges; Esc or a click outside closes it. Layers and stages on the Neuro diagram still open
-their own detail panel. Ambient motion only — no player, no step chips.
+A dock under the board walks the five steps (button, chips, arrow keys, or a click on any zone)
+and shows the Phase 1.1 exit criteria at rest. A small dashed box lists what comes after 1.1; the
+page draws none of it.
 
 ### Data provenance
 
-Chart values are transcribed from the five source screenshots kept beside the file (`stats.png`,
-`trend_over_time.png`, `mop.png`, `type.png`, `journey.png`); those PNGs are **not** committed. The
-$28B and 20%-of-capacity figures are V-supplied and appear in no screenshot. The type pie uses the
-2026 YTD tightened-scope numbers (n=381; 2025 n=415).
+Nothing on the page is measured. Article ids, the three sample questions, the golden-set dot
+pattern and the six metric curves are invented and labelled *illustrative* on the page. The MCP
+tool names are a proposed interface, not an existing one. No real Visa content appears.
 
 ### Behaviour that is newly stricter
 
@@ -58,7 +56,9 @@ None.
 
 ### Conflict hot spots for a VDI wiring session
 
-None. The five `[TBD — VDI]` placeholders and the connectors are untouched.
+None. The five `[TBD — VDI]` placeholders and the connectors are untouched. VDI-browser note: the
+page uses no `color-mix()` and its Motion control is a button, not the OS reduced-motion setting —
+the same two accommodations as `4b6acfe`.
 
 ### Derived artifacts to regenerate rather than merge
 

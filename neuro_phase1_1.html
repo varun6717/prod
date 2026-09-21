@@ -1,0 +1,548 @@
+<title>Neuro Phase 1.1</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Single-theme by design — same instrumentation panel as neuro_kickoff.html, painted explicitly so it holds on any host ground.
+     No color-mix() anywhere: the VDI browser does not have it. */
+  :root {
+    --void: #070B12; --panel: #0E1622; --panel-2: #131E2C; --panel-3: #182535;
+    --ink: #E6EDF6; --muted: #8A9BB3; --dim: #5A6C82; --rule: #1B2736; --rule-lit: #2A3B4F;
+    --articles: #E8B34A; --flows: #4FC3D9; --history: #B98CE0; --codemap: #5BD6A0; --code: #F2825C;
+    --human: #F3E7C9; --mcp: #6E8BA6;
+    --display: "Chivo", "Helvetica Neue", Arial, sans-serif;
+    --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: var(--void); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased; margin: 0;
+    background-image:
+      radial-gradient(ellipse 900px 520px at 12% 0%, rgba(232,179,74,0.07), transparent 68%),
+      radial-gradient(ellipse 760px 420px at 92% 100%, rgba(91,214,160,0.05), transparent 70%);
+  }
+  .app { height: 100%; display: flex; flex-direction: column; gap: 10px; padding-inline: 22px; padding-block: 14px 12px; max-width: 1920px; margin: 0 auto; }
+
+  /* ── top bar ──────────────────────────────────────────────── */
+  .top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 24px; }
+  .top-l { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .eyebrow { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--articles); margin: 0; display: flex; align-items: center; gap: 12px; }
+  .pulse { color: var(--articles); opacity: 0.85; flex: 0 0 auto; }
+  .pulse path { stroke-dasharray: 130; stroke-dashoffset: 130; animation: trace 2.8s linear infinite; }
+  @keyframes trace { 0% { stroke-dashoffset: 130; } 60% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 0; } }
+  h1 { font-family: var(--display); font-weight: 800; font-size: clamp(1.35rem, 2.3vw, 2rem); line-height: 1.08; letter-spacing: -0.025em; margin: 0; text-wrap: balance; }
+  h1 .thin { color: var(--dim); font-weight: 700; }
+  .top-r { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .thesis { display: inline-flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.06em; color: var(--articles); border: 1px solid rgba(232,179,74,0.35); background: rgba(232,179,74,0.07); border-radius: 999px; padding: 6px 14px; }
+  .thesis::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--articles); box-shadow: 0 0 10px rgba(232,179,74,0.9); }
+  .ghost { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); background: var(--panel); border: 1px solid var(--rule-lit); border-radius: 999px; padding: 7px 14px; cursor: pointer; transition: border-color .15s, color .15s; }
+  .ghost:hover { border-color: var(--flows); color: var(--flows); }
+  .ghost:focus-visible { outline: 2px solid var(--flows); outline-offset: 2px; }
+  .ghost.off { color: var(--dim); border-style: dashed; }
+
+  /* ── the board ────────────────────────────────────────────── */
+  .board { flex: 1 1 auto; min-height: 0; border: 1px solid var(--rule); border-radius: 6px; padding: 8px;
+    background-color: var(--panel);
+    background-image: linear-gradient(rgba(79,195,217,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(79,195,217,0.035) 1px, transparent 1px), linear-gradient(180deg, var(--panel-2), var(--panel));
+    background-size: 40px 40px, 40px 40px, 100% 100%;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.45); }
+  .fig-scroll { width: 100%; height: 100%; }
+  #board { display: block; width: 100%; height: 100%; }
+
+  svg text { font-family: var(--mono); }
+  .t-hdr { font-size: 11px; fill: var(--dim); letter-spacing: 0.2em; }
+  .t-hdr.on { fill: var(--ink); }
+  .t-sub { font-size: 10.5px; fill: var(--dim); letter-spacing: 0.05em; }
+  .t-sub.sm { font-size: 9.5px; }
+  .t-lbl { font-size: 12px; fill: var(--muted); }
+  .t-name { font-family: var(--display); font-size: 15px; font-weight: 700; fill: var(--ink); }
+  .t-code { font-size: 11.5px; fill: var(--flows); }
+  .t-gold { fill: var(--articles); } .t-cyan { fill: var(--flows); } .t-green { fill: var(--codemap); } .t-human { fill: var(--human); } .t-muted { fill: var(--muted); } .t-ink { fill: var(--ink); }
+
+  .badge circle { fill: var(--hue); }
+  .badge text { font-size: 11.5px; font-weight: 600; fill: #070B12; }
+
+  .box { fill: var(--panel-2); stroke: var(--hue, var(--rule-lit)); stroke-width: 1.1; }
+  .box.deep { fill: var(--panel); }
+  .zone { fill: rgba(79,195,217,0.02); stroke: var(--rule-lit); stroke-width: 1; }
+  .zone.ants { stroke: var(--hue, var(--mcp)); stroke-dasharray: 6 5; animation: ants 30s linear infinite; }
+  @keyframes ants { to { stroke-dashoffset: -330; } }
+
+  .w { fill: none; stroke: var(--hue, var(--rule-lit)); stroke-width: 1.5; opacity: 0.6; }
+  .w.dash { stroke-dasharray: 5 4; }
+  .flow { fill: none; stroke: var(--hue, var(--flows)); stroke-width: 2.2; stroke-dasharray: 3 11; opacity: 0.95; animation: dash-flow 1.2s linear infinite; }
+  .flow.slow { animation-duration: 2.2s; }
+  @keyframes dash-flow { to { stroke-dashoffset: -14; } }
+
+  /* cylinder bands + exploded discs */
+  .band .fill { fill: var(--bg, #131E2C); stroke: var(--hue); stroke-width: 1.2; }
+  .band .nm { font-family: var(--display); font-size: 14px; font-weight: 700; fill: var(--hue); }
+  .band.parked { opacity: 0.45; }
+  .band.parked.next { opacity: 0.68; }
+  .band.parked .fill { stroke-dasharray: 4 3; }
+  .band.lit .fill { stroke-width: 2.2; }
+  .band.lit { animation: breathe 3.4s ease-in-out infinite; }
+  @keyframes breathe { 0%,100% { filter: drop-shadow(0 0 5px rgba(232,179,74,0.45)); } 50% { filter: drop-shadow(0 0 14px rgba(232,179,74,0.9)); } }
+  .chipb rect { fill: var(--panel); stroke: var(--rule-lit); stroke-dasharray: 4 3; }
+  .chipb text { font-size: 10px; fill: var(--dim); letter-spacing: 0.12em; }
+  .chipb.on rect { fill: rgba(232,179,74,0.12); stroke: var(--articles); stroke-dasharray: none; }
+  .chipb.on text { fill: var(--articles); }
+
+  .spin { transform-box: fill-box; transform-origin: center; animation: spin 4s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .newdoc { animation: blink 1.6s ease-in-out infinite; }
+  @keyframes blink { 50% { opacity: 0.25; } }
+  .caret { fill: var(--flows); animation: blink 1s steps(2) infinite; }
+  .led { animation: blink 2.4s ease-in-out infinite; }
+
+  /* step focus */
+  .zg { transition: opacity .35s; }
+  .zg[data-go] { cursor: pointer; }
+  #board.focus .zg:not(.on) { opacity: 0.16; }
+
+  /* ── dock: steps + caption ────────────────────────────────── */
+  .dock { display: flex; flex-direction: column; gap: 8px; }
+  .steps-row { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+  .play { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--void); background: var(--articles); border: none; border-radius: 999px; padding: 8px 16px; cursor: pointer; font-weight: 500; transition: filter .15s; }
+  .play:hover { filter: brightness(1.12); }
+  .play:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .chip { font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; color: var(--muted); background: var(--panel-2); border: 1px solid var(--rule); border-radius: 999px; padding: 6px 12px; cursor: pointer; transition: border-color .15s, color .15s, background .15s; }
+  .chip b { color: var(--hue); font-weight: 500; margin-right: 6px; }
+  .chip:hover { border-color: var(--rule-lit); color: var(--ink); }
+  .chip:focus-visible { outline: 2px solid var(--flows); outline-offset: 2px; }
+  .chip.on { color: var(--ink); border-color: var(--hue); background: var(--panel-3); }
+  .keys { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; color: var(--dim); margin-left: auto; }
+  .keys kbd { font-family: inherit; color: var(--muted); border: 1px solid var(--rule-lit); border-radius: 4px; padding: 0 5px; margin: 0 2px; }
+  .caption { display: flex; align-items: baseline; gap: 12px; min-height: 44px; }
+  .cap-step { flex: 0 0 auto; font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; color: var(--hue, var(--articles)); text-transform: uppercase; }
+  .cap-text { margin: 0; font-size: 14.5px; color: var(--muted); line-height: 1.5; max-width: 170ch; }
+  .cap-text b { color: var(--ink); font-weight: 600; }
+
+  /* motion off — a user toggle, not the OS setting (the VDI reports reduced-motion unconditionally) */
+  body.no-motion .pulse path, body.no-motion .zone.ants, body.no-motion .flow, body.no-motion .band.lit,
+  body.no-motion .spin, body.no-motion .newdoc, body.no-motion .caret, body.no-motion .led { animation: none !important; }
+  body.no-motion .pulse path { stroke-dashoffset: 0; }
+  body.no-motion .pkt { display: none; }
+  body.no-motion .zg { transition: none; }
+
+  /* narrow or short windows: stop fitting to the viewport, let the diagram scroll in its own box */
+  @media (max-width: 1080px), (max-height: 600px) {
+    html, body, .app { height: auto; }
+    .app { padding-inline: 16px; }
+    .board { flex: none; }
+    .fig-scroll { overflow-x: auto; height: auto; }
+    #board { min-width: 1180px; height: auto; }
+    .keys { display: none; }
+    .caption { flex-direction: column; gap: 4px; }
+  }
+</style>
+
+<div class="app">
+
+  <header class="top">
+    <div class="top-l">
+      <p class="eyebrow">
+        <svg class="pulse" width="92" height="20" viewBox="0 0 92 20" fill="none" aria-hidden="true"><path d="M1 10 H20 L26 3 L34 17 L40 10 H56 L62 5 L68 15 L73 10 H91" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        Neuro &middot; Knowledge base &middot; Phase 1.1
+      </p>
+      <h1>One layer, loaded by an agent, wired to VS&nbsp;Code, measured</h1>
+    </div>
+    <div class="top-r">
+      <span class="thesis">Build one slice end to end before widening it</span>
+      <button class="ghost" id="motionBtn" aria-pressed="true" title="Toggle animations">&#10022; Motion on</button>
+    </div>
+  </header>
+
+  <main class="board">
+    <div class="fig-scroll">
+      <svg id="board" viewBox="0 0 1600 700" preserveAspectRatio="xMidYMid meet" role="img"
+           aria-label="Phase 1.1 in one view. The knowledge base cylinder on the left has five layers; only layer 01, payment brand articles, is lit. It expands into four Visa document families, of which the first, Payment Brand Articles, is being built. An ingestion agent extracts, chunks and loads article PDFs into it on a schedule. An MCP server exposes that slice to VS Code, where retrieval accuracy is tested against a golden question set. An observability framework records every retrieval and feeds an improve loop back to the agent.">
+        <defs>
+          <marker id="a-gold"  viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#E8B34A"/></marker>
+          <marker id="a-cyan"  viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#4FC3D9"/></marker>
+          <marker id="a-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5BD6A0"/></marker>
+          <marker id="a-human" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#F3E7C9"/></marker>
+          <linearGradient id="cone" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0" stop-color="#E8B34A" stop-opacity="0.26"/><stop offset="1" stop-color="#E8B34A" stop-opacity="0.03"/>
+          </linearGradient>
+        </defs>
+
+        <!-- ═════════ ① the cylinder, and layer 01 pulled apart ═════════ -->
+        <g class="zg" data-steps="1" data-go="1">
+          <text class="t-hdr" x="40" y="170">KNOWLEDGE BASE SERVICE</text>
+          <text class="t-sub" x="40" y="186">FIVE LAYERS &middot; PHASE 1.1 LIGHTS ONE SLICE OF ONE</text>
+
+          <ellipse cx="190" cy="218" rx="150" ry="14" fill="#1B2733" stroke="#E8B34A" stroke-width="2"/>
+          <g class="band lit" style="--hue:#E8B34A; --bg:#1B2733">
+            <path class="fill" d="M40 218 L40 270 A150 14 0 0 0 340 270 L340 218 A150 14 0 0 1 40 218 Z"/>
+            <text class="nm" x="64" y="249">01 &nbsp;Payment brand articles</text>
+            <text class="t-sub sm t-gold" x="64" y="264">EXPANDED &rarr;</text>
+          </g>
+          <g class="band parked" style="--hue:#4FC3D9; --bg:#182430">
+            <path class="fill" d="M40 270 L40 322 A150 14 0 0 0 340 322 L340 270 A150 14 0 0 1 40 270 Z"/>
+            <text class="nm" x="64" y="303">02 &nbsp;Payment system flows</text><text class="t-sub sm" x="318" y="303" text-anchor="end">LATER</text>
+          </g>
+          <g class="band parked" style="--hue:#B98CE0; --bg:#1B2130">
+            <path class="fill" d="M40 322 L40 374 A150 14 0 0 0 340 374 L340 322 A150 14 0 0 1 40 322 Z"/>
+            <text class="nm" x="64" y="355">03 &nbsp;Change history KB</text><text class="t-sub sm" x="318" y="355" text-anchor="end">LATER</text>
+          </g>
+          <g class="band parked" style="--hue:#5BD6A0; --bg:#17272A">
+            <path class="fill" d="M40 374 L40 426 A150 14 0 0 0 340 426 L340 374 A150 14 0 0 1 40 374 Z"/>
+            <text class="nm" x="64" y="407">04 &nbsp;Code map</text><text class="t-sub sm" x="318" y="407" text-anchor="end">LATER</text>
+          </g>
+          <g class="band parked" style="--hue:#F2825C; --bg:#241E1C">
+            <path class="fill" d="M40 426 L40 478 A150 14 0 0 0 340 478 L340 426 A150 14 0 0 1 40 426 Z"/>
+            <text class="nm" x="64" y="459">05 &nbsp;System code &amp; data</text><text class="t-sub sm" x="318" y="459" text-anchor="end">LATER</text>
+          </g>
+          <text class="t-sub" x="40" y="516">LAYERS 02&ndash;05 PARKED &middot; SAME SERVICE, LATER PHASES</text>
+
+          <!-- zoom cone: band 01 → the exploded stack -->
+          <path d="M340 218 L440 152 L440 518 L340 270 Z" fill="url(#cone)"/>
+          <path d="M340 218 L440 152 M340 270 L440 518" stroke="#E8B34A" stroke-width="1" stroke-dasharray="3 5" opacity="0.7" fill="none"/>
+        </g>
+
+        <g class="zg" data-steps="1 2 3" data-go="1">
+          <rect class="zone" x="440" y="150" width="350" height="370" rx="6"/>
+          <g class="badge" style="--hue:#E8B34A"><circle cx="462" cy="172" r="10"/><text x="462" y="176" text-anchor="middle">1</text></g>
+          <text class="t-hdr on" x="480" y="176">LAYER 01, EXPANDED</text>
+          <text class="t-sub" x="456" y="196">VISA FIRST &middot; FOUR DOCUMENT FAMILIES</text>
+
+          <!-- 01.1 — the one being built -->
+          <ellipse cx="615" cy="228" rx="150" ry="13" fill="#2A2416" stroke="#E8B34A" stroke-width="2"/>
+          <g class="band lit" style="--hue:#E8B34A; --bg:#231F15">
+            <path class="fill" d="M465 228 L465 272 A150 13 0 0 0 765 272 L765 228 A150 13 0 0 1 465 228 Z"/>
+            <text class="nm" x="492" y="258">01.1 &nbsp;Payment Brand Articles</text>
+            <circle class="led" cx="496" cy="270" r="3" fill="#E8B34A"/>
+            <text class="t-sub sm t-gold" x="505" y="273.500">PHASE 1.1 &mdash; BUILDING NOW</text>
+          </g>
+          <!-- 01.2 – 01.4 — same pipeline, later -->
+          <g class="band parked next" style="--hue:#E8B34A; --bg:#1B2733">
+            <ellipse class="fill" cx="615" cy="294" rx="150" ry="13"/>
+            <path class="fill" d="M465 294 L465 338 A150 13 0 0 0 765 338 L765 294 A150 13 0 0 1 465 294 Z"/>
+            <text class="nm" x="492" y="324">01.2 &nbsp;Tech Letters</text><text class="t-sub sm" x="492" y="339">NEXT &middot; SAME PIPELINE</text>
+          </g>
+          <g class="band parked next" style="--hue:#E8B34A; --bg:#1B2733">
+            <ellipse class="fill" cx="615" cy="360" rx="150" ry="13"/>
+            <path class="fill" d="M465 360 L465 404 A150 13 0 0 0 765 404 L765 360 A150 13 0 0 1 465 360 Z"/>
+            <text class="nm" x="492" y="390">01.3 &nbsp;Interchange Guides</text><text class="t-sub sm" x="492" y="405">NEXT &middot; SAME PIPELINE</text>
+          </g>
+          <g class="band parked next" style="--hue:#E8B34A; --bg:#1B2733">
+            <ellipse class="fill" cx="615" cy="426" rx="150" ry="13"/>
+            <path class="fill" d="M465 426 L465 470 A150 13 0 0 0 765 470 L765 426 A150 13 0 0 1 465 426 Z"/>
+            <text class="nm" x="492" y="456">01.4 &nbsp;Auth &amp; Clearing Guides</text><text class="t-sub sm" x="492" y="471">NEXT &middot; SAME PIPELINE</text>
+          </g>
+
+          <g class="chipb on"><rect x="456" y="492" width="56" height="20" rx="10"/><text x="484" y="506" text-anchor="middle">VISA</text></g>
+          <g class="chipb"><rect x="520" y="492" width="104" height="20" rx="10"/><text x="572" y="506" text-anchor="middle">MASTERCARD</text></g>
+          <g class="chipb"><rect x="632" y="492" width="54" height="20" rx="10"/><text x="659" y="506" text-anchor="middle">AMEX</text></g>
+          <g class="chipb"><rect x="694" y="492" width="84" height="20" rx="10"/><text x="736" y="506" text-anchor="middle">DISCOVER</text></g>
+        </g>
+
+        <!-- ═════════ ② the ingestion agent ═════════ -->
+        <g class="zg" data-steps="2" data-go="2">
+          <rect class="box" style="--hue:#E8B34A" x="40" y="14" width="300" height="110" rx="3"/>
+          <text class="t-hdr" x="56" y="36">SOURCE &middot; READ-ONLY</text>
+          <text class="t-name" x="56" y="60">Visa payment brand articles</text>
+          <text class="t-sub" x="56" y="78">PDF &middot; AS PUBLISHED BY THE NETWORK</text>
+          <g fill="#0E1622" stroke="#E8B34A" stroke-width="1">
+            <path d="M56 88 h12 l5 5 v17 h-17 z"/><path d="M84 88 h12 l5 5 v17 h-17 z"/><path d="M112 88 h12 l5 5 v17 h-17 z"/><path d="M140 88 h12 l5 5 v17 h-17 z"/>
+            <path class="newdoc" d="M168 88 h12 l5 5 v17 h-17 z" stroke-dasharray="3 2"/>
+          </g>
+          <text class="t-sub sm t-gold" x="196" y="104">+ NEW ONES ARRIVE</text>
+
+          <path id="p-pull" class="w" style="--hue:#E8B34A" d="M340 69 H440" marker-end="url(#a-gold)"/>
+          <path class="flow" style="--hue:#E8B34A" d="M340 69 H436"/>
+          <text class="t-sub sm" x="390" y="60" text-anchor="middle">PULL</text>
+
+          <rect class="box" style="--hue:#E8B34A" x="440" y="14" width="650" height="110" rx="3"/>
+          <g class="badge" style="--hue:#E8B34A"><circle cx="462" cy="33" r="10"/><text x="462" y="37" text-anchor="middle">2</text></g>
+          <text class="t-name" x="480" y="38.500">Ingestion agent</text>
+          <text class="t-sub" x="604" y="38">UNATTENDED &middot; OWNS THE SLICE'S FRESHNESS</text>
+          <rect x="880" y="22" width="194" height="22" rx="11" fill="rgba(232,179,74,0.10)" stroke="#E8B34A" stroke-width="1"/>
+          <g transform="translate(896 33)"><g class="spin"><circle r="8.500" fill="none"/><path d="M5.500 0 A5.500 5.500 0 1 1 1.500 -5.300" fill="none" stroke="#E8B34A" stroke-width="1.500"/><path d="M0.500 -8.600 L0.500 -2 L5.800 -5.300 z" fill="#E8B34A"/></g></g>
+          <text class="t-sub sm t-gold" x="910" y="36.500">RUNS PERIODICALLY &middot; CRON</text>
+
+          <rect class="box deep" x="456" y="50" width="196" height="64" rx="3"/>
+          <text class="t-hdr t-gold" x="470" y="68">EXTRACT</text>
+          <text class="t-lbl" x="470" y="86">text &middot; tables &middot; figures</text>
+          <text class="t-sub sm" x="470" y="102">VISION &middot; PAGE-ADDRESSED</text>
+          <path class="w" style="--hue:#E8B34A" d="M652 82 H666" marker-end="url(#a-gold)"/>
+          <rect class="box deep" x="666" y="50" width="196" height="64" rx="3"/>
+          <text class="t-hdr t-gold" x="680" y="68">CHUNK</text>
+          <text class="t-lbl" x="680" y="86">by section, not by size</text>
+          <text class="t-sub sm" x="680" y="102">ID &middot; &sect; &middot; PAGE &middot; EFF. DATE</text>
+          <path class="w" style="--hue:#E8B34A" d="M862 82 H876" marker-end="url(#a-gold)"/>
+          <rect class="box deep" x="876" y="50" width="196" height="64" rx="3"/>
+          <text class="t-hdr t-gold" x="890" y="68">LOAD</text>
+          <text class="t-lbl" x="890" y="86">embed + upsert &rarr; 01.1</text>
+          <text class="t-sub sm" x="890" y="102">CONTENT-HASHED &middot; VERSIONED</text>
+
+          <path id="p-load" class="w" style="--hue:#E8B34A" d="M974 124 V130 Q974 138 966 138 H738 Q730 138 730 146 V217" marker-end="url(#a-gold)"/>
+          <path class="flow" style="--hue:#E8B34A" d="M974 124 V130 Q974 138 966 138 H738 Q730 138 730 146 V212"/>
+          <text class="t-sub sm" x="800" y="156">CHUNKS + VECTORS + METADATA &rarr; 01.1 ONLY</text>
+          <g class="pkt" fill="#E8B34A">
+            <rect x="-5" y="-3" width="10" height="6" rx="1.500"><animateMotion dur="3.6s" begin="-0.2s" repeatCount="indefinite"><mpath href="#p-load"/></animateMotion></rect>
+            <rect x="-5" y="-3" width="10" height="6" rx="1.500"><animateMotion dur="3.6s" begin="-1.4s" repeatCount="indefinite"><mpath href="#p-load"/></animateMotion></rect>
+            <rect x="-5" y="-3" width="10" height="6" rx="1.500"><animateMotion dur="3.6s" begin="-2.6s" repeatCount="indefinite"><mpath href="#p-load"/></animateMotion></rect>
+          </g>
+        </g>
+
+        <!-- ═════════ ③ MCP ═════════ -->
+        <g class="zg" data-steps="3" data-go="3">
+          <path class="w" style="--hue:#4FC3D9" d="M850 250 H766" marker-start="url(#a-cyan)"/>
+          <path class="flow" style="--hue:#4FC3D9" d="M766 250 H846"/>
+          <text class="t-sub sm" x="820" y="241" text-anchor="middle">READ</text>
+
+          <rect class="zone ants" style="--hue:#4FC3D9" x="850" y="186" width="200" height="150" rx="4" fill="#0E1622"/>
+          <g class="badge" style="--hue:#4FC3D9"><circle cx="872" cy="208" r="10"/><text x="872" y="212" text-anchor="middle">3</text></g>
+          <text class="t-name" x="890" y="213.500">MCP server</text>
+          <text class="t-sub sm" x="866" y="234">READ-ONLY &middot; OVER THE KB API</text>
+          <text class="t-code" x="866" y="258">search_articles(q, k)</text>
+          <text class="t-code" x="866" y="278">get_chunk(id)</text>
+          <text class="t-code" x="866" y="298">list_articles(since)</text>
+          <text class="t-sub sm" x="866" y="322">&rarr; CHUNKS + SCORES + CITATIONS</text>
+
+          <path class="w" style="--hue:#4FC3D9" d="M1120 244 H1051" marker-end="url(#a-cyan)"/>
+          <path class="w" style="--hue:#4FC3D9" d="M1050 268 H1119" marker-end="url(#a-cyan)"/>
+          <path class="flow" style="--hue:#4FC3D9" d="M1120 244 H1056"/>
+          <path class="flow" style="--hue:#4FC3D9" d="M1050 268 H1114"/>
+          <text class="t-sub sm" x="1085" y="235" text-anchor="middle">TOOL CALL</text>
+          <text class="t-sub sm" x="1085" y="285" text-anchor="middle">CHUNKS</text>
+
+          <text class="t-sub t-muted" x="888" y="364">WHY MCP, NOT A BARE API:</text>
+          <text class="t-sub" x="888" y="380">VS CODE AGENT MODE SPEAKS IT</text>
+          <text class="t-sub" x="888" y="396">NATIVELY. THE SAME RETRIEVAL</text>
+          <text class="t-sub" x="888" y="412">API UNDERNEATH ALSO SERVES</text>
+          <text class="t-sub" x="888" y="428">BATCH EVALS &mdash; NO IDE NEEDED.</text>
+        </g>
+
+        <!-- ═════════ ④ VS Code ═════════ -->
+        <g class="zg" data-steps="4" data-go="4">
+          <g class="badge" style="--hue:#4FC3D9"><circle cx="1131" cy="147" r="10"/><text x="1131" y="151" text-anchor="middle">4</text></g>
+          <text class="t-hdr on" x="1150" y="151">VS CODE &mdash; TESTED WHERE ENGINEERS WORK</text>
+
+          <rect x="1120" y="164" width="440" height="356" rx="6" fill="#0A111C" stroke="#4FC3D9" stroke-opacity="0.55" stroke-width="1.1"/>
+          <path d="M1120 188 V170 Q1120 164 1126 164 H1554 Q1560 164 1560 170 V188 Z" fill="#131E2C"/>
+          <circle cx="1136" cy="176" r="3.500" fill="#F2825C"/><circle cx="1149" cy="176" r="3.500" fill="#E8B34A"/><circle cx="1162" cy="176" r="3.500" fill="#5BD6A0"/>
+          <text class="t-sub sm t-muted" x="1180" y="179.500">AGENT MODE &middot; kb-visa-articles (mcp)</text>
+          <text class="t-sub sm" x="1548" y="179.500" text-anchor="end">ILLUSTRATIVE</text>
+
+          <text class="t-sub sm" x="1138" y="208">YOU</text>
+          <text class="t-lbl t-ink" x="1138" y="226" style="font-size:11.5px"><tspan id="vq">What changes in the April interchange article?</tspan><tspan class="caret">&#9612;</tspan></text>
+          <g id="vtool">
+            <rect x="1138" y="238" width="404" height="22" rx="4" fill="rgba(79,195,217,0.08)" stroke="rgba(79,195,217,0.3)"/>
+            <text class="t-code" x="1148" y="253" style="font-size:10.5px">&#9881; mcp &middot; search_articles(q, k=5)</text>
+            <text class="t-sub sm t-muted" x="1532" y="253" text-anchor="end">&rarr; 5 chunks</text>
+          </g>
+          <text class="t-sub sm" x="1138" y="280">AGENT</text>
+          <text class="t-lbl" id="va1" x="1138" y="298" style="font-size:11px">Two program rates move and one designator is added.</text>
+          <text class="t-lbl" id="va2" x="1138" y="315" style="font-size:11px">Rates and effective date quoted from the chunks below.</text>
+          <g id="vcites">
+            <rect x="1138" y="326" width="130" height="20" rx="10" fill="rgba(232,179,74,0.10)" stroke="rgba(232,179,74,0.45)"/><text class="t-sub sm t-gold" id="vc0" x="1203" y="340" text-anchor="middle">ART-0412 &sect;2.1 p.3</text>
+            <rect x="1274" y="326" width="130" height="20" rx="10" fill="rgba(232,179,74,0.10)" stroke="rgba(232,179,74,0.45)"/><text class="t-sub sm t-gold" id="vc1" x="1339" y="340" text-anchor="middle">ART-0412 &sect;4.2 p.7</text>
+            <rect x="1410" y="326" width="130" height="20" rx="10" fill="rgba(232,179,74,0.10)" stroke="rgba(232,179,74,0.45)"/><text class="t-sub sm t-gold" id="vc2" x="1475" y="340" text-anchor="middle">ART-0398 &sect;1.3 p.2</text>
+          </g>
+
+          <line x1="1120" y1="358" x2="1560" y2="358" stroke="#1B2736"/>
+          <text class="t-hdr" x="1138" y="380">GOLDEN SET &middot; QUESTION &rarr; EXPECTED &sect;</text>
+          <g id="gold"></g>
+          <rect x="1138" y="449" width="10" height="10" rx="2" fill="#5BD6A0"/><text class="t-sub sm" x="1154" y="458">EXPECTED CHUNK IN TOP-K</text>
+          <rect x="1318" y="449" width="10" height="10" rx="2" fill="#E8B34A"/><text class="t-sub sm" x="1334" y="458">RANKED LOW</text>
+          <rect x="1424" y="449" width="10" height="10" rx="2" fill="#F2825C"/><text class="t-sub sm" x="1440" y="458">MISS &rarr; A FIX</text>
+          <text class="t-sub t-muted" x="1138" y="484">RE-RUN AFTER EVERY LOAD &middot; SAME QUESTIONS, COMPARABLE SCORES</text>
+          <text class="t-code" x="1138" y="505" style="font-size:10.5px">hit@k = questions answered from the expected &sect; / all</text>
+        </g>
+
+        <!-- ═════════ ⑤ observability + the improve loop ═════════ -->
+        <g class="zg" data-steps="5" data-go="5">
+          <path class="w dash" style="--hue:#5BD6A0" d="M868 336 V544" marker-end="url(#a-green)"/>
+          <path class="flow slow" style="--hue:#5BD6A0" d="M868 336 V540"/>
+          <text class="t-sub t-green" x="884" y="474">&darr; A TRACE PER TOOL CALL</text>
+          <text class="t-sub" x="884" y="490">QUERY &middot; CHUNK IDS &middot; SCORES &middot; MS</text>
+          <path class="w dash" style="--hue:#5BD6A0" d="M1340 520 V544" marker-end="url(#a-green)"/>
+          <text class="t-sub t-green" x="1352" y="537">&darr; VERDICT PER QUESTION</text>
+
+          <rect class="box" style="--hue:#5BD6A0" x="440" y="545" width="1120" height="145" rx="4"/>
+          <g class="badge" style="--hue:#5BD6A0"><circle cx="462" cy="562" r="10"/><text x="462" y="566" text-anchor="middle">5</text></g>
+          <text class="t-hdr on" x="480" y="566">OBSERVABILITY FRAMEWORK &mdash; EVERY RETRIEVAL LEAVES A TRACE</text>
+          <text class="t-sub" x="1544" y="566" text-anchor="end">LOGGED PER CALL &middot; TRENDED PER LOAD &middot; CURVES ILLUSTRATIVE</text>
+
+          <g id="tiles"></g>
+
+          <!-- improve loop: observability → back to the agent -->
+          <path class="w" style="--hue:#F3E7C9" d="M1560 617 H1576 Q1584 617 1584 609 V77 Q1584 69 1576 69 H1092" marker-end="url(#a-human)"/>
+          <path class="flow slow" style="--hue:#F3E7C9" d="M1560 617 H1576 Q1584 617 1584 609 V77 Q1584 69 1576 69 H1098"/>
+          <text class="t-hdr t-human" x="1112" y="58">IMPROVE LOOP &mdash; A PERSON REVIEWS THE MISSES</text>
+          <text class="t-sub" x="1112" y="88">RE-CHUNK &middot; RE-EMBED &middot; TUNE TOP-K &middot; GROW THE GOLDEN SET</text>
+        </g>
+
+        <!-- ═════════ after 1.1 — deliberately small ═════════ -->
+        <g class="zg" data-steps="0">
+          <rect x="40" y="545" width="360" height="145" rx="4" fill="none" stroke="#2A3B4F" stroke-dasharray="7 6"/>
+          <text class="t-hdr" x="56" y="566">AFTER 1.1 &mdash; NOT ON THIS PAGE</text>
+          <line x1="62" y1="590" x2="62" y2="668" stroke="#2A3B4F"/>
+          <circle cx="62" cy="590" r="4.500" fill="#E8B34A"/><text class="t-lbl t-gold" x="78" y="594">1.1 &nbsp;Payment Brand Articles &middot; Visa</text><text class="t-sub sm t-gold" x="384" y="594" text-anchor="end">NOW</text>
+          <circle cx="62" cy="616" r="4" fill="#0E1622" stroke="#5A6C82"/><text class="t-lbl" x="78" y="620" style="fill:#5A6C82">1.2&ndash;1.4 &nbsp;the other three Visa families</text>
+          <circle cx="62" cy="642" r="4" fill="#0E1622" stroke="#5A6C82"/><text class="t-lbl" x="78" y="646" style="fill:#5A6C82">then &nbsp;Mastercard &middot; Amex &middot; Discover</text>
+          <circle cx="62" cy="668" r="4" fill="#0E1622" stroke="#5A6C82"/><text class="t-lbl" x="78" y="672" style="fill:#5A6C82">then &nbsp;Layers 02 &rarr; 05</text>
+        </g>
+      </svg>
+    </div>
+  </main>
+
+  <footer class="dock">
+    <div class="steps-row" id="stepsRow">
+      <button class="play" id="playBtn" aria-label="Play the walkthrough">&#9654; Walk it</button>
+      <span class="keys"><kbd>Space</kbd> play <kbd>&larr;</kbd><kbd>&rarr;</kbd> steps <kbd>Esc</kbd> whole picture</span>
+    </div>
+    <div class="caption" aria-live="polite">
+      <span class="cap-step" id="capStep"></span>
+      <p class="cap-text" id="capText"></p>
+    </div>
+  </footer>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const NS = "http://www.w3.org/2000/svg";
+  const H = { gold: "#E8B34A", cyan: "#4FC3D9", green: "#5BD6A0", orange: "#F2825C", dim: "#1B2736" };
+  const board = $("board");
+
+  /* ── observability tiles ─────────────────────────────────── */
+  const TILES = [
+    { name: "Hit rate @k",        q: "RIGHT CHUNK IN TOP-K?",  pts: [34, 30, 26, 22, 24, 15, 12, 6], hue: H.green },
+    { name: "MRR",                q: "HOW HIGH DID IT RANK?",  pts: [35, 32, 30, 24, 20, 21, 13, 9], hue: H.green },
+    { name: "Citation precision", q: "EVERY CLAIM SOURCED?",   pts: [26, 20, 22, 14, 15, 10, 9, 5],  hue: H.gold },
+    { name: "No-answer rate",     q: "WHAT WENT UNSERVED?",    pts: [6, 8, 14, 18, 22, 27, 30, 33], hue: H.orange },
+    { name: "Latency p95",        q: "TOOL-CALL ROUND TRIP",   pts: [20, 18, 24, 16, 22, 17, 20, 18], hue: H.cyan },
+    { name: "Freshness",          q: "AGE OF THE LAST LOAD",   pts: [30, 30, 12, 20, 28, 10, 18, 26], hue: H.cyan },
+  ];
+  function el(tag, attrs, text) {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  TILES.forEach((t, i) => {
+    const x = 456 + i * 182, y = 578, g = el("g", {});
+    g.appendChild(el("rect", { x, y, width: 170, height: 102, rx: 3, fill: "#0E1622", stroke: "#1B2736" }));
+    g.appendChild(el("rect", { x, y, width: 170, height: 2, fill: t.hue }));
+    g.appendChild(el("text", { class: "t-name", x: x + 12, y: y + 23, style: "font-size:13.5px" }, t.name));
+    g.appendChild(el("text", { class: "t-sub sm", x: x + 12, y: y + 39 }, t.q));
+    const by = y + 50, dx = 146 / (t.pts.length - 1);
+    const line = t.pts.map((p, j) => `${(x + 12 + j * dx).toFixed(1)},${by + p}`);
+    g.appendChild(el("line", { x1: x + 12, y1: by + 42, x2: x + 158, y2: by + 42, stroke: "#1B2736" }));
+    g.appendChild(el("polyline", { points: line.join(" "), fill: "none", stroke: t.hue, "stroke-width": 1.6, "stroke-linejoin": "round", opacity: 0.9 }));
+    const last = line[line.length - 1].split(",");
+    g.appendChild(el("circle", { cx: last[0], cy: last[1], r: 3, fill: t.hue }));
+    $("tiles").appendChild(g);
+  });
+
+  /* ── golden-set dots ─────────────────────────────────────── */
+  const GOLD = "hhhhlhhhmhhhhhhhlhhhhhhmhhlh".split("");
+  const GCOL = { h: H.green, l: H.gold, m: H.orange };
+  const dots = GOLD.map((r, i) => {
+    const d = el("rect", { x: 1138 + (i % 14) * 29, y: 390 + Math.floor(i / 14) * 26, width: 20, height: 18, rx: 3, fill: GCOL[r], stroke: "#070B12" });
+    $("gold").appendChild(d);
+    return d;
+  });
+
+  /* ── the VS Code pane: ask → tool call → grounded answer → re-score ── */
+  const QA = [
+    { q: "What changes in the April interchange article?",
+      a: ["Two program rates move and one designator is added.", "Rates and effective date quoted from the chunks below."],
+      c: ["ART-0412 §2.1 p.3", "ART-0412 §4.2 p.7", "ART-0398 §1.3 p.2"] },
+    { q: "Which article introduces the new product designator?",
+      a: ["One article defines it, in §2.1.", "Two later articles only reference it — ranked below."],
+      c: ["ART-0412 §2.1 p.3", "ART-0420 §3.4 p.5", "ART-0431 §1.1 p.1"] },
+    { q: "Target rate for the fee program in §4.2 — effective when?",
+      a: ["Rate and effective date both quoted from §4.2.", "Single-source: no other chunk confirms it — flagged."],
+      c: ["ART-0412 §4.2 p.7", "ART-0412 §4.3 p.8", "ART-0405 §2.2 p.4"] },
+  ];
+  let motion = true, gen = 0;
+  const wait = (ms, g) => new Promise((ok) => setTimeout(() => ok(g === gen), ms));
+  function paint(i, stage) {           /* stage 0 = question only · 1 = + tool · 2 = + answer */
+    const x = QA[i];
+    $("vtool").style.opacity = stage >= 1 ? 1 : 0;
+    $("va1").textContent = stage >= 2 ? x.a[0] : ""; $("va2").textContent = stage >= 2 ? x.a[1] : "";
+    $("vcites").style.opacity = stage >= 2 ? 1 : 0;
+    x.c.forEach((t, j) => { $("vc" + j).textContent = t; });
+  }
+  async function loop(g) {
+    let i = 0;
+    if (!(await wait(2600, g))) return;
+    while (g === gen) {
+      i = (i + 1) % QA.length;
+      paint(i, 0); $("vq").textContent = "";
+      for (const ch of QA[i].q) { $("vq").textContent += ch; if (!(await wait(26, g))) return; }
+      if (!(await wait(350, g))) return; paint(i, 1);
+      if (!(await wait(650, g))) return; paint(i, 2);
+      dots.forEach((d) => d.setAttribute("fill", H.dim));
+      for (let k = 0; k < dots.length; k++) { dots[k].setAttribute("fill", GCOL[GOLD[k]]); if (!(await wait(55, g))) return; }
+      if (!(await wait(3200, g))) return;
+    }
+  }
+  function rest() { $("vq").textContent = QA[0].q; paint(0, 2); dots.forEach((d, k) => d.setAttribute("fill", GCOL[GOLD[k]])); }
+
+  /* ── motion toggle ───────────────────────────────────────── */
+  const motionBtn = $("motionBtn");
+  function applyMotion() {
+    document.body.classList.toggle("no-motion", !motion);
+    motionBtn.textContent = motion ? "✦ Motion on" : "✦ Motion off";
+    motionBtn.setAttribute("aria-pressed", String(motion));
+    motionBtn.classList.toggle("off", !motion);
+    gen++; rest();
+    try { motion ? board.unpauseAnimations() : board.pauseAnimations(); } catch (e) {}
+    if (motion) loop(gen);
+  }
+  motionBtn.addEventListener("click", () => { motion = !motion; applyMotion(); });
+
+  /* ── walkthrough ─────────────────────────────────────────── */
+  const STEPS = [
+    { k: "Expand",  hue: H.gold,  t: "<b>Layer 01 is not one thing.</b> For Visa alone it is four document families — Payment Brand Articles, Tech Letters, Interchange Guides, Auth &amp; Clearing Guides. Phase 1.1 takes the first and leaves the other three dashed: <b>same pipeline, later.</b>" },
+    { k: "Ingest",  hue: H.gold,  t: "<b>One agent owns the slice's freshness.</b> It pulls new article PDFs, extracts text, tables and figures, and chunks <b>by section</b> — so every chunk keeps its article id, §, page and effective date — then embeds and upserts. Content-hashed: a re-run changes only what changed." },
+    { k: "Connect", hue: H.cyan,  t: "<b>The knowledge base is a service, reached over MCP</b> — the protocol VS Code agent mode already speaks. Three read-only tools return chunks, scores and citations; the same retrieval API underneath serves batch evals with no IDE in the loop." },
+    { k: "Test",    hue: H.cyan,  t: "<b>Engineers ask real questions in VS Code and see exactly which chunks came back.</b> A golden set — question → expected article and section — turns “seems right” into a score, re-run after every load so the numbers stay comparable." },
+    { k: "Observe", hue: H.green, t: "<b>Every tool call leaves a trace:</b> query, chunk ids, scores, latency, verdict. Six signals trend per load; <b>a person reviews the misses</b> and sends fixes back to the agent — re-chunk, re-embed, tune top-k, grow the golden set." },
+  ];
+  const REST_TEXT = "<b>Phase 1.1 is done when:</b> the agent loads Visa Payment Brand Articles on a schedule, unattended &nbsp;·&nbsp; a VS Code agent answers from the knowledge base with citations &nbsp;·&nbsp; retrieval accuracy is a number on a dashboard, re-scored on every load. Click a step, or any part of the picture.";
+  const row = $("stepsRow"), playBtn = $("playBtn"), keys = row.querySelector(".keys");
+  const chips = STEPS.map((s, i) => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.style.setProperty("--hue", s.hue); b.id = "step" + (i + 1);
+    b.innerHTML = `<b>${i + 1}</b>${s.k}`;
+    b.addEventListener("click", () => { stop(); setStep(cur === i ? -1 : i); });
+    row.insertBefore(b, keys);
+    return b;
+  });
+  const zones = [...board.querySelectorAll("[data-steps]")];
+  let cur = -1, timer = null;
+  function setStep(i) {
+    cur = i;
+    board.classList.toggle("focus", i >= 0);
+    zones.forEach((z) => z.classList.toggle("on", i >= 0 && z.dataset.steps.split(" ").includes(String(i + 1))));
+    chips.forEach((c, j) => c.classList.toggle("on", j === i));
+    $("capStep").textContent = i >= 0 ? `Step ${i + 1} · ${STEPS[i].k}` : "Exit criteria";
+    $("capStep").style.setProperty("--hue", i >= 0 ? STEPS[i].hue : H.gold);
+    $("capText").innerHTML = i >= 0 ? STEPS[i].t : REST_TEXT;
+  }
+  function stop() { clearInterval(timer); timer = null; playBtn.innerHTML = "&#9654; Walk it"; }
+  function play() {
+    if (timer) { stop(); return; }
+    playBtn.innerHTML = "&#10073;&#10073; Pause";
+    setStep(cur >= STEPS.length - 1 ? 0 : cur + 1);
+    timer = setInterval(() => { if (cur >= STEPS.length - 1) { stop(); setStep(-1); } else setStep(cur + 1); }, 7000);
+  }
+  playBtn.addEventListener("click", play);
+  zones.forEach((z) => { if (z.dataset.go) z.addEventListener("click", () => { stop(); const i = +z.dataset.go - 1; setStep(cur === i ? -1 : i); }); });
+  document.addEventListener("keydown", (e) => {
+    if (e.target.closest && e.target.closest("button") && e.key === " ") return;
+    if (e.key === " ") { e.preventDefault(); play(); }
+    else if (e.key === "ArrowRight") { stop(); setStep(Math.min(cur + 1, STEPS.length - 1)); }
+    else if (e.key === "ArrowLeft") { stop(); setStep(Math.max(cur - 1, -1)); }
+    else if (e.key === "Escape") { stop(); setStep(-1); }
+  });
+
+  setStep(-1);
+  applyMotion();
+</script>
