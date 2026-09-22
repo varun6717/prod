@@ -1,7 +1,7 @@
 # current_commit_changes_overview.md
 
-**Commit of 2026-09-22 — `neuro_phase1_1_v2.html`, the quiet version of the Phase 1.1 one-view.**
-Baseline: lands on top of `fdc6b9c` (*Phase 1.1 one-view: neuro_phase1_1.html — layer 01 slice, ingestion agent, MCP to VS Code, observability loop*).
+**Commit of 2026-09-22 — `neuro_phase1_1_v3.html`, the light-ground version of the Phase 1.1 one-view.**
+Baseline: lands on top of `426c45b` (*Phase 1.1 one-view v2: neuro_phase1_1_v2.html — same drawing, no motion or controls*).
 
 This commit carries **no application code**. It adds one published stakeholder artifact and nothing
 else. Nothing in `core/`, `overlays/`, `fixtures/` or `runs/` is touched, so nothing needs
@@ -13,27 +13,25 @@ re-publishing to the registry.
 
 | File | State | What it is |
 |---|---|---|
-| `neuro_phase1_1_v2.html` | new | The Phase 1.1 drawing from `neuro_phase1_1.html` as a single still: same message, no motion, no controls |
+| `neuro_phase1_1_v3.html` | new | `neuro_phase1_1_v2.html` re-coloured: white ground, blue in place of gold; drawing and words unchanged |
 | `current_commit_changes_overview.md` | rewritten | this briefing |
 
 ### What the page is
 
-A second cut of the Phase 1.1 illustration for audiences who found the first busy. `neuro_phase1_1.html`
-(`fdc6b9c`) is unchanged and stays the animated version. The five zones and their content are the
-same — layer 01 expanded into four Visa families with 01.1 Payment Brand Articles lit; the ingestion
-agent (extract → chunk → load, on a schedule); the read-only MCP server; the VS Code agent-mode
-pane with the golden question set; observability with the improve loop back to the agent — and the
-footer states the same exit criteria.
+A palette-only derivative of v2 (`426c45b`), which stays as the dark version. Every layout
+coordinate, label and the exit-criteria footer are identical. Changes are confined to colour:
 
-What was removed to quiet it: all animation and all JavaScript (walkthrough, step chips, keyboard
-shortcuts, Motion toggle, flow lines, packets, spinner, typing loop, glow); per-band sub-labels and
-"LATER" tags (replaced by one line per group); the brand chips; the six sparkline tiles (now six
-labels in a row); the "after 1.1" box (now a footnote); the board's grid texture and shadow.
+- Ground: white page, pale-grey board, dark-navy ink; rules and dims lightened to match.
+- Accent: gold (`#E8B34A`) → blue (`#2563EB`) throughout — the lit layer 01, the 01.1 disc, the
+  ingestion pipeline, the 1/2 badges, the citation pills, the eyebrow and thesis pill.
+- Other layer hues darkened to hold on white (teal, violet, green, orange); the improve-loop line is
+  slate instead of cream.
+- Exception: the golden set's *ranked low* status stays amber (`#E0A020`) rather than turning
+  blue, so a warning status does not share the accent colour of the *expected* chip beside it.
 
 ### Data provenance
 
-Nothing on the page is measured. The article ids, sample question, golden-set pattern and MCP tool
-names are the same invented, *illustrative*-labelled content as `neuro_phase1_1.html`.
+Same invented, *illustrative*-labelled content as v1 and v2; nothing measured.
 
 ### Behaviour that is newly stricter
 
@@ -45,8 +43,8 @@ None.
 
 ### Conflict hot spots for a VDI wiring session
 
-None. The five `[TBD — VDI]` placeholders and the connectors are untouched. The page has no script
-and no `color-mix()`, so the VDI-browser accommodations from `4b6acfe` are moot for it.
+None. The five `[TBD — VDI]` placeholders and the connectors are untouched. No script, no
+`color-mix()`.
 
 ### Derived artifacts to regenerate rather than merge
 
