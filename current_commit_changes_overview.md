@@ -1,7 +1,7 @@
 # current_commit_changes_overview.md
 
-**Commit of 2026-09-21 — `neuro_phase1_1.html`, the Phase 1.1 one-view illustration.**
-Baseline: lands on top of `c0d12e7` (*Interchange Code Generator brief: interchange-code-generator.html*).
+**Commit of 2026-09-22 — `neuro_phase1_1_v2.html`, the quiet version of the Phase 1.1 one-view.**
+Baseline: lands on top of `fdc6b9c` (*Phase 1.1 one-view: neuro_phase1_1.html — layer 01 slice, ingestion agent, MCP to VS Code, observability loop*).
 
 This commit carries **no application code**. It adds one published stakeholder artifact and nothing
 else. Nothing in `core/`, `overlays/`, `fixtures/` or `runs/` is touched, so nothing needs
@@ -13,38 +13,27 @@ re-publishing to the registry.
 
 | File | State | What it is |
 |---|---|---|
-| `neuro_phase1_1.html` | new | Phase 1.1 of the Neuro knowledge base in a single viewport: one slice of layer 01, loaded by an agent, reached from VS Code, measured |
+| `neuro_phase1_1_v2.html` | new | The Phase 1.1 drawing from `neuro_phase1_1.html` as a single still: same message, no motion, no controls |
 | `current_commit_changes_overview.md` | rewritten | this briefing |
 
 ### What the page is
 
-One fit-to-viewport diagram in the instrumentation style of `neuro_kickoff.html` (same palette and
-type; that file is still untracked and is **not** in this commit). It takes the kickoff's
-knowledge-base cylinder and draws only the first build slice. Five numbered zones:
+A second cut of the Phase 1.1 illustration for audiences who found the first busy. `neuro_phase1_1.html`
+(`fdc6b9c`) is unchanged and stays the animated version. The five zones and their content are the
+same — layer 01 expanded into four Visa families with 01.1 Payment Brand Articles lit; the ingestion
+agent (extract → chunk → load, on a schedule); the read-only MCP server; the VS Code agent-mode
+pane with the golden question set; observability with the improve loop back to the agent — and the
+footer states the same exit criteria.
 
-- **1 Expand** — the five-layer cylinder with only layer 01 lit (02–05 dashed, *LATER*). Layer 01
-  opens into four Visa document families: **01.1 Payment Brand Articles** (lit, *building now*),
-  01.2 Tech Letters, 01.3 Interchange Guides, 01.4 Auth & Clearing Guides (dashed, *next · same
-  pipeline*). Brand chips: Visa on; Mastercard, Amex, Discover parked.
-- **2 Ingestion agent** — source PDFs → Extract → Chunk (by section; keeps id, §, page, effective
-  date) → Load (embed + upsert, content-hashed, versioned), on a schedule, into 01.1 only.
-- **3 MCP server** — read-only, over the KB retrieval API: `search_articles(q, k)`,
-  `get_chunk(id)`, `list_articles(since)`. The board states why MCP rather than a bare API.
-- **4 VS Code** — a mock agent-mode pane (question → tool call → cited answer) above a golden
-  question set scored hit / ranked low / miss.
-- **5 Observability** — a trace per tool call and a verdict per question feed six signals (hit
-  rate @k, MRR, citation precision, no-answer rate, latency p95, freshness); an improve loop runs
-  back to the agent with a person reviewing the misses.
-
-A dock under the board walks the five steps (button, chips, arrow keys, or a click on any zone)
-and shows the Phase 1.1 exit criteria at rest. A small dashed box lists what comes after 1.1; the
-page draws none of it.
+What was removed to quiet it: all animation and all JavaScript (walkthrough, step chips, keyboard
+shortcuts, Motion toggle, flow lines, packets, spinner, typing loop, glow); per-band sub-labels and
+"LATER" tags (replaced by one line per group); the brand chips; the six sparkline tiles (now six
+labels in a row); the "after 1.1" box (now a footnote); the board's grid texture and shadow.
 
 ### Data provenance
 
-Nothing on the page is measured. Article ids, the three sample questions, the golden-set dot
-pattern and the six metric curves are invented and labelled *illustrative* on the page. The MCP
-tool names are a proposed interface, not an existing one. No real Visa content appears.
+Nothing on the page is measured. The article ids, sample question, golden-set pattern and MCP tool
+names are the same invented, *illustrative*-labelled content as `neuro_phase1_1.html`.
 
 ### Behaviour that is newly stricter
 
@@ -56,9 +45,8 @@ None.
 
 ### Conflict hot spots for a VDI wiring session
 
-None. The five `[TBD — VDI]` placeholders and the connectors are untouched. VDI-browser note: the
-page uses no `color-mix()` and its Motion control is a button, not the OS reduced-motion setting —
-the same two accommodations as `4b6acfe`.
+None. The five `[TBD — VDI]` placeholders and the connectors are untouched. The page has no script
+and no `color-mix()`, so the VDI-browser accommodations from `4b6acfe` are moot for it.
 
 ### Derived artifacts to regenerate rather than merge
 
