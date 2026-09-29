@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PBI AI & Automation Pitch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Single theme by design: an instrument panel, painted explicitly. Tokens follow the PBI Neuro kickoff deck. */
+  :root{
+    --void:#070B12; --panel:#0E1622; --panel-2:#131E2C; --panel-3:#182535;
+    --ink:#E6EDF6; --muted:#9AAAC0; --dim:#64778F; --rule:#1B2736; --rule-lit:#2A3B4F;
+    --gold:#E8B34A; --cyan:#4FC3D9; --violet:#B98CE0; --mint:#5BD6A0; --coral:#F2825C;
+    --display:"Chivo","Helvetica Neue",Arial,sans-serif;
+    --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+    --nav-h:56px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--void);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;
+       -webkit-font-smoothing:antialiased;overflow-x:hidden}
+  ::selection{background:#1F4A5A;color:#EAF7FB}
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:3px}
+  a{color:inherit;text-decoration:none}
+  h1,h2,h3,p,ul{margin:0}
+  ul{padding:0;list-style:none}
+  svg text{font-family:var(--mono)}
+
+  /* ── navigation ─────────────────────────────────────────── */
+  .nav{position:fixed;inset:0 0 auto 0;height:var(--nav-h);z-index:40;display:flex;align-items:center;gap:24px;
+       padding:0 28px;background:rgba(7,11,18,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+       border-bottom:1px solid var(--rule)}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.14em;
+         text-transform:uppercase;color:var(--ink);white-space:nowrap}
+  .brand i{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan);
+           animation:breathe 2.4s ease-in-out infinite}
+  @keyframes breathe{0%,100%{opacity:.45}50%{opacity:1}}
+  .nav nav{margin-left:auto;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+  .nav nav::-webkit-scrollbar{display:none}
+  .nav nav a{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);
+             padding:7px 12px;border-radius:999px;border:1px solid transparent;white-space:nowrap;transition:color .2s,border-color .2s,background .2s}
+  .nav nav a:hover{color:var(--ink)}
+  .nav nav a.on{color:var(--cyan);border-color:rgba(79,195,217,.4);background:rgba(79,195,217,.07)}
+  .progress{position:absolute;left:0;bottom:-1px;height:2px;width:100%;transform-origin:left;transform:scaleX(0);
+            background:linear-gradient(90deg,var(--cyan),var(--violet))}
+  @media (max-width:760px){.brand span{display:none}.nav{padding:0 16px;gap:12px}}
+
+  /* ── section scaffold ───────────────────────────────────── */
+  .sec{position:relative;min-height:var(--sec-h,100vh);display:flex;flex-direction:column;justify-content:center;
+       padding-block:calc(var(--nav-h) + 28px) 40px;padding-inline:28px;scroll-margin-top:0}
+  .sec + .sec{border-top:1px solid var(--rule)}
+  .frame{width:100%;max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+  .head{display:flex;flex-direction:column;gap:10px}
+  .kick{font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--cyan);
+        display:flex;align-items:center;gap:12px}
+  .kick b{color:var(--ink);font-weight:500}
+  .kick::after{content:"";width:120px;height:1px;background:linear-gradient(90deg,var(--rule-lit),transparent)}
+  h2{font-family:var(--display);font-weight:800;font-size:clamp(1.8rem,3.4vw,2.7rem);line-height:1.08;
+     letter-spacing:-.025em;text-wrap:balance;max-width:34ch}
+  .head p{color:var(--muted);font-size:1.05rem;max-width:68ch}
+  .head p b{color:var(--ink);font-weight:600}
+  .grid-bg{background-image:linear-gradient(rgba(79,195,217,.035) 1px,transparent 1px),
+           linear-gradient(90deg,rgba(79,195,217,.035) 1px,transparent 1px);background-size:44px 44px}
+  @media (max-width:760px){.sec{padding-inline:16px}}
+
+  /* ── reveal (only when JS is running; page is fully visible without it) ── */
+  .js .rv{opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.2,.8,.2,1),transform .7s cubic-bezier(.2,.8,.2,1);
+          transition-delay:calc(var(--i,0) * 90ms)}
+  .js .rv.in{opacity:1;transform:none}
+
+  /* ── hero ───────────────────────────────────────────────── */
+  .hero{overflow:hidden;background:
+        radial-gradient(ellipse 900px 520px at 12% 8%,rgba(79,195,217,.10),transparent 68%),
+        radial-gradient(ellipse 760px 460px at 92% 12%,rgba(185,140,224,.08),transparent 70%)}
+  #mesh{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:.85}
+  .hero::after{content:"";position:absolute;inset:auto 0 0 0;height:180px;background:linear-gradient(transparent,var(--void));pointer-events:none}
+  .hero .frame{position:relative;z-index:1;gap:26px}
+  .term{font-family:var(--mono);font-size:12.5px;color:var(--dim);letter-spacing:.04em;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+  .term .p{color:var(--mint)} .term .s{color:var(--gold)}
+  .term .caret{width:8px;height:15px;background:var(--cyan);display:inline-block;animation:blink 1.1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  h1{font-family:var(--display);font-weight:800;font-size:clamp(2.3rem,5.6vw,4.6rem);line-height:1.0;letter-spacing:-.035em;
+     max-width:17ch;text-wrap:balance}
+  h1 .ai{background:linear-gradient(90deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{font-size:clamp(1.05rem,1.5vw,1.25rem);color:var(--muted);max-width:62ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+  .fns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:920px}
+  @media (max-width:720px){.fns{grid-template-columns:1fr}}
+  .fn{position:relative;padding:20px 22px;border:1px solid var(--rule-lit);border-radius:6px;
+      background:linear-gradient(180deg,rgba(19,30,44,.88),rgba(14,22,34,.88));display:flex;flex-direction:column;gap:6px;
+      backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+  .fn .t{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--hue)}
+  .fn h3{font-family:var(--display);font-weight:800;font-size:1.3rem;letter-spacing:-.015em;line-height:1.2}
+  .fn p{color:var(--muted);font-size:.95rem}
+  .fn::before{content:"";position:absolute;left:-1px;top:18px;bottom:18px;width:2px;background:var(--hue);box-shadow:0 0 14px var(--hue)}
+  .hint{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);display:flex;gap:10px;align-items:center}
+  kbd{font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--rule-lit);border-bottom-width:2px;border-radius:4px;padding:1px 7px;background:var(--panel)}
+
+  /* ── 01 what we do ──────────────────────────────────────── */
+  .wwd{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:48px;align-items:start}
+  @media (max-width:960px){.wwd{grid-template-columns:1fr;gap:30px}}
+  .wwd .story{display:flex;flex-direction:column;gap:20px}
+  .wwd .story p{font-size:1.12rem;line-height:1.65;color:var(--muted)}
+  .wwd .story p b{color:var(--ink);font-weight:600}
+  .wwd .story p em{font-style:normal;color:var(--mint);font-weight:600}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+        border:1px solid var(--rule-lit);border-radius:999px;padding:5px 12px;background:var(--panel)}
+  .pipe{position:relative;display:flex;flex-direction:column;gap:6px}
+  .pipe::before{content:"";position:absolute;left:21px;top:22px;bottom:22px;width:2px;
+                background:linear-gradient(180deg,var(--cyan),var(--violet));opacity:.5}
+  .pipe::after{content:"";position:absolute;left:18px;top:22px;width:8px;height:8px;border-radius:50%;background:var(--ink);
+               box-shadow:0 0 14px 3px var(--cyan);animation:travel 6s cubic-bezier(.5,0,.5,1) infinite}
+  @keyframes travel{0%{top:22px;opacity:0}8%{opacity:1}92%{opacity:1}100%{top:calc(100% - 30px);opacity:0}}
+  .stage{position:relative;display:grid;grid-template-columns:44px 1fr;gap:18px;padding:12px 16px 12px 0;border-radius:6px;transition:background .25s}
+  .stage:hover{background:rgba(79,195,217,.05)}
+  .stage .n{position:relative;z-index:1;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
+            font-family:var(--mono);font-size:15px;font-weight:500;color:var(--ink);background:var(--panel-2);
+            border:1.5px solid var(--cyan);box-shadow:0 0 0 5px var(--void),0 0 18px rgba(79,195,217,.25)}
+  .stage h3{font-family:var(--display);font-weight:700;font-size:1.08rem;letter-spacing:-.01em;color:var(--ink);line-height:1.3}
+  .stage p{color:var(--muted);font-size:.93rem;line-height:1.5;margin-top:3px}
+
+  /* ── 02 trajectory ──────────────────────────────────────── */
+  .curve{display:block;width:100%;height:auto;margin-bottom:-6px}
+  .curve .line{fill:none;stroke:#8FA3BC;stroke-width:4;stroke-linecap:round}
+  .js .curve .line{stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 2.2s cubic-bezier(.4,0,.2,1) .2s}
+  .js .curve.in .line{stroke-dashoffset:0}
+  .curve .yr circle{fill:var(--panel-2);stroke:var(--hue);stroke-width:2}
+  .curve .yr text{font-size:13px;fill:var(--ink);text-anchor:middle;font-weight:500}
+  .js .curve .yr{opacity:0;transition:opacity .5s;transition-delay:calc(.5s + var(--i) * .45s)}
+  .js .curve.in .yr{opacity:1}
+  .eras{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+  @media (max-width:960px){.eras{grid-template-columns:repeat(2,minmax(0,1fr))}.curve{display:none}}
+  @media (max-width:560px){.eras{grid-template-columns:1fr}}
+  .era{display:flex;flex-direction:column;gap:12px;padding:18px 18px 20px;border:1px solid var(--rule);border-radius:6px;
+       background:linear-gradient(180deg,var(--panel-2),var(--panel))}
+  .era .top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .era .y{font-family:var(--display);font-weight:800;font-size:1.7rem;letter-spacing:-.02em;line-height:1;color:var(--ink)}
+  .era .hc{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+  .era h3{font-family:var(--mono);font-weight:500;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--hue);line-height:1.5}
+  .era ul{display:flex;flex-direction:column;gap:8px}
+  .era li{position:relative;padding-left:15px;font-size:.92rem;line-height:1.45;color:var(--muted)}
+  .era li::before{content:"";position:absolute;left:0;top:9px;width:5px;height:5px;border-radius:50%;background:var(--hue)}
+  .era li b{color:var(--ink);font-weight:500}
+  .era.now{border-color:rgba(232,179,74,.5);box-shadow:0 0 0 1px rgba(232,179,74,.18),0 0 44px rgba(232,179,74,.10)}
+
+  /* ── 03 team ────────────────────────────────────────────── */
+  .pods{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:0;align-items:stretch}
+  @media (max-width:900px){.pods{grid-template-columns:1fr;gap:14px}.link{display:none !important}}
+  .pod{display:flex;flex-direction:column;gap:22px;padding:28px;border:1px solid var(--rule-lit);border-radius:14px;
+       background:linear-gradient(180deg,var(--panel-2),var(--panel));position:relative;overflow:hidden}
+  .pod::before{content:"";position:absolute;inset:-40% -20% auto auto;width:320px;height:320px;border-radius:50%;
+               background:radial-gradient(circle,var(--hue),transparent 65%);opacity:.10;pointer-events:none}
+  .pod .who{display:flex;flex-direction:column;gap:6px}
+  .pod .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--hue)}
+  .pod h3{font-family:var(--display);font-weight:800;font-size:clamp(1.25rem,2vw,1.6rem);letter-spacing:-.02em;line-height:1.15}
+  .fte{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .fte .c{font-family:var(--mono);font-size:1.05rem;color:var(--muted);letter-spacing:.06em}
+  .fte .c b{color:var(--ink);font-weight:500}
+  .people{display:flex;gap:8px}
+  .people svg{width:30px;height:30px;color:var(--hue);animation:pop .5s cubic-bezier(.2,.9,.3,1.3) both;animation-delay:calc(var(--i) * 90ms + .3s)}
+  @keyframes pop{from{transform:scale(.3);opacity:0}}
+  .caps{display:flex;flex-direction:column;border-top:1px solid var(--rule)}
+  .cap{display:flex;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid var(--rule);font-size:1rem;color:var(--ink)}
+  .cap:last-child{border-bottom:0;padding-bottom:0}
+  .cap svg{flex:none;width:22px;height:22px;color:var(--hue)}
+  .link{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:0 6px;width:150px}
+  .link .wire{width:100%;height:2px;background:repeating-linear-gradient(90deg,var(--rule-lit) 0 6px,transparent 6px 12px);
+              background-size:12px 2px;animation:slide 1s linear infinite}
+  @keyframes slide{to{background-position:12px 0}}
+  .link .sum{font-family:var(--display);font-weight:800;font-size:2.4rem;letter-spacing:-.03em;line-height:1;color:var(--ink)}
+  .link .sl{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);text-align:center}
+
+  /* ── 04 scale ───────────────────────────────────────────── */
+  .kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+  @media (max-width:1100px){.kpis{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}}
+  .kpi{position:relative;overflow:hidden;display:flex;flex-direction:column;gap:4px;padding:18px 18px 16px;
+       border:1px solid var(--rule);border-radius:6px;background:linear-gradient(180deg,var(--panel-2),var(--panel))}
+  .kpi::after{content:"";position:absolute;right:-50px;top:-50px;width:130px;height:130px;border-radius:50%;
+              background:radial-gradient(circle,var(--hue),transparent 65%);opacity:.16;pointer-events:none}
+  .kpi .v{font-family:var(--display);font-weight:800;font-size:clamp(2rem,3vw,2.7rem);letter-spacing:-.03em;line-height:1;
+          color:var(--ink);font-variant-numeric:tabular-nums}
+  .kpi .v small{font-size:.55em;color:var(--hue);margin-left:2px}
+  .kpi .l{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+  .kpi .l::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--hue);flex:none}
+  .kpi .d{font-size:.85rem;color:var(--dim);line-height:1.45}
+  .kpi .d b{color:var(--muted);font-weight:500}
+  .scale{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:14px}
+  @media (max-width:960px){.scale{grid-template-columns:1fr}}
+  .panel{position:relative;display:flex;flex-direction:column;gap:12px;padding:20px 22px 18px;border:1px solid var(--rule);
+         border-radius:6px;background:linear-gradient(180deg,var(--panel-2),var(--panel));min-width:0}
+  .pt{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+  .chart{display:block;width:100%;height:auto}
+  .chart .grid{stroke:var(--rule);stroke-width:1}
+  .chart .base{stroke:var(--rule-lit);stroke-width:1}
+  .chart .ax{font-size:11px;fill:var(--dim);text-anchor:middle;letter-spacing:.08em}
+  .chart .ay{font-size:10px;fill:var(--dim);text-anchor:end}
+  .chart .val{font-size:12.5px;fill:var(--ink);text-anchor:middle;font-weight:500}
+  .chart .val.q{fill:var(--muted)}
+  .chart .note{font-size:9.5px;fill:var(--muted);text-anchor:middle;letter-spacing:.14em}
+  .chart .bar{fill:var(--gold);transform-box:fill-box;transform-origin:bottom}
+  .chart .bar.past{opacity:.5}
+  .chart .proj{fill:rgba(232,179,74,.07);stroke:var(--gold);stroke-width:1.4;stroke-dasharray:5 4}
+  .chart .arrow{fill:none;stroke:var(--muted);stroke-width:1.3}
+  .chart .hit{fill:transparent;cursor:crosshair}
+  .chart g.col:hover .bar{opacity:1;filter:drop-shadow(0 0 8px rgba(232,179,74,.55))}
+  .js .chart .bar{transform:scaleY(.02);transition:transform 1s cubic-bezier(.2,.8,.2,1);transition-delay:calc(var(--i) * 80ms)}
+  .js .chart.in .bar{transform:none}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+  .legend span{display:inline-flex;align-items:center;gap:8px}
+  .legend i{width:12px;height:12px;border-radius:2px;background:var(--gold);flex:none}
+  .legend i.p{opacity:.42} .legend i.d{background:rgba(232,179,74,.07);border:1.4px dashed var(--gold)}
+  .tip{position:absolute;z-index:5;pointer-events:none;min-width:150px;padding:9px 12px;border:1px solid var(--rule-lit);border-radius:5px;
+       background:rgba(10,15,24,.96);box-shadow:0 12px 34px rgba(0,0,0,.55);font-size:12.5px;line-height:1.5;color:var(--muted);
+       opacity:0;transition:opacity .12s;transform:translate(-50%,-100%)}
+  .tip.show{opacity:1}
+  .tip b{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--ink);font-weight:500}
+  .tip span{color:var(--ink);font-variant-numeric:tabular-nums}
+  .calls{display:flex;flex-direction:column;gap:12px}
+  .call{flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px;padding:14px 20px;border:1px solid var(--rule);
+        border-radius:6px;background:linear-gradient(180deg,var(--panel-2),var(--panel))}
+  .call .big{font-family:var(--display);font-weight:800;font-size:clamp(1.8rem,2.6vw,2.3rem);letter-spacing:-.03em;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
+  .call .big small{font-family:var(--mono);font-weight:400;font-size:.6em;color:var(--muted);margin:0 10px;vertical-align:.12em}
+  .call p{font-size:.92rem;color:var(--muted);line-height:1.45}
+  .call p b{color:var(--ink);font-weight:500}
+
+  /* ── 05 journey ─────────────────────────────────────────── */
+  .phases{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;padding-top:14px}
+  @media (max-width:1000px){.phases{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:26px}}
+  @media (max-width:560px){.phases{grid-template-columns:1fr}}
+  .phase{position:relative;display:flex;flex-direction:column;gap:12px;padding:22px 18px 16px;border:1px solid var(--rule);
+         border-top:3px solid var(--hue);border-radius:6px;background:linear-gradient(180deg,var(--panel-2),var(--panel))}
+  .phase .ph{display:flex;justify-content:space-between;gap:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--hue)}
+  .phase .ph span:last-child{color:var(--muted)}
+  .phase h3{font-family:var(--display);font-weight:800;font-size:1.16rem;letter-spacing:-.015em;line-height:1.2;text-wrap:balance}
+  .phase ul{display:flex;flex-direction:column;gap:8px}
+  .phase li{position:relative;padding-left:15px;font-size:.91rem;color:var(--muted);line-height:1.45}
+  .phase li::before{content:"";position:absolute;left:0;top:9px;width:5px;height:5px;border-radius:50%;background:var(--hue)}
+  .phase li b{color:var(--ink);font-weight:500}
+  .phase .proof{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;line-height:1.6;color:var(--ink);
+                border:1px solid rgba(91,214,160,.4);background:rgba(91,214,160,.08);border-radius:4px;padding:7px 10px}
+  .phase .proof b{color:var(--mint);font-weight:500}
+  .phase .foot{margin-top:auto;padding-top:6px;font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+  .badge{position:absolute;top:-13px;left:14px;display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:9.5px;
+         letter-spacing:.18em;text-transform:uppercase;color:var(--void);background:var(--hue);border-radius:999px;padding:4px 11px;font-weight:500}
+  .badge.live i{width:6px;height:6px;border-radius:50%;background:var(--void);animation:breathe 1.4s ease-in-out infinite}
+  .phase.live{box-shadow:0 0 0 1px rgba(232,179,74,.2),0 0 44px rgba(232,179,74,.10)}
+  .phase.next{box-shadow:0 0 0 1px rgba(79,195,217,.3),0 0 50px rgba(79,195,217,.16)}
+  .rail{height:3px;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--cyan),var(--violet),var(--coral));
+        background-size:200% 100%;animation:shimmer 9s linear infinite}
+  @keyframes shimmer{to{background-position:-200% 0}}
+  .rail-l{display:flex;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-top:-18px}
+  .rail-l span:nth-child(2){color:var(--muted)}
+  @media (max-width:640px){.rail-l span:nth-child(2){display:none}}
+
+  /* ── 06 close ───────────────────────────────────────────── */
+  .close{background:radial-gradient(ellipse 900px 480px at 50% 100%,rgba(79,195,217,.10),transparent 70%)}
+  .close h2{font-size:clamp(2.1rem,4.6vw,3.6rem);max-width:18ch}
+  .whys{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border-top:1px solid var(--rule-lit)}
+  @media (max-width:860px){.whys{grid-template-columns:1fr}}
+  .why{display:flex;flex-direction:column;gap:8px;padding:24px 28px 8px 0}
+  .why + .why{padding-left:28px;border-left:1px solid var(--rule)}
+  @media (max-width:860px){.why,.why + .why{padding:20px 0;border-left:0;border-bottom:1px solid var(--rule)}}
+  .why .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--hue)}
+  .why h3{font-family:var(--display);font-weight:800;font-size:1.35rem;letter-spacing:-.02em;line-height:1.2}
+  .why p{color:var(--muted);font-size:.98rem}
+  .why p b{color:var(--ink);font-weight:500}
+  footer{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px;font-family:var(--mono);font-size:10px;
+         letter-spacing:.18em;text-transform:uppercase;color:var(--dim);padding-top:20px;border-top:1px solid var(--rule)}
+
+  /* ── presenter counter ──────────────────────────────────── */
+  .pager{position:fixed;right:22px;bottom:18px;z-index:40;display:flex;align-items:center;gap:10px;font-family:var(--mono);
+         font-size:11px;letter-spacing:.14em;color:var(--dim);background:rgba(7,11,18,.8);border:1px solid var(--rule);
+         border-radius:999px;padding:5px 6px 5px 14px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .pager b{color:var(--ink);font-weight:500}
+  .pager button{font:inherit;color:var(--muted);background:var(--panel-2);border:1px solid var(--rule-lit);border-radius:50%;
+                width:28px;height:28px;cursor:pointer;display:grid;place-items:center;padding:0}
+  .pager button:hover{color:var(--cyan);border-color:rgba(79,195,217,.5)}
+  @media (max-width:640px){.pager{display:none}}
+
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{animation:none !important;transition:none !important}
+    .js .rv{opacity:1;transform:none}
+    .js .curve .line{stroke-dashoffset:0} .js .curve .yr{opacity:1} .js .chart .bar{transform:none}
+    .pipe::after{display:none}
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="person" viewBox="0 0 32 32"><circle cx="16" cy="10" r="6" fill="currentColor"/><path d="M4 30c0-7.2 5.2-12 12-12s12 4.8 12 12z" fill="currentColor"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16.5 9"/></symbol>
+  <symbol id="i-data" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
+  <symbol id="i-ctrl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v6M6 14v7M12 3v10M12 18v3M18 3v3M18 11v10"/><circle cx="6" cy="11.5" r="2.3"/><circle cx="12" cy="15.5" r="2.3"/><circle cx="18" cy="8.5" r="2.3"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M2.8 12h2.6M18.6 12h2.6M5.5 5.5l1.8 1.8M16.7 16.7l1.8 1.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M7 21h10M4 7h16"/><path d="m4 7-2.5 6a3 3 0 0 0 5 0zM20 7l-2.5 6a3 3 0 0 0 5 0z"/></symbol>
+  <symbol id="i-chip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9.5 15v-4.2a1.5 1.5 0 0 1 3 0V15M9.5 13h3M15 9.3V15M9 2.5V6M15 2.5V6M9 18v3.5M15 18v3.5M2.5 9H6M2.5 15H6M18 9h3.5M18 15h3.5"/></symbol>
+</svg>
+
+<div class="nav">
+  <a class="brand" href="#top"><i></i><span>Product AI &amp; Automation &middot; PBI</span></a>
+  <nav aria-label="Sections">
+    <a href="#what">What we do</a>
+    <a href="#trajectory">Trajectory</a>
+    <a href="#team">Team</a>
+    <a href="#scale">Scale</a>
+    <a href="#journey">Journey</a>
+    <a href="#join">Why join</a>
+  </nav>
+  <span class="progress" id="progress"></span>
+</div>
+
+<!-- ══════════ HERO ══════════ -->
+<header class="sec hero grid-bg" id="top" data-sec="Intro">
+  <canvas id="mesh" aria-hidden="true"></canvas>
+  <div class="frame">
+    <p class="term rv"><span class="p">$</span> pitch <span>--audience</span> <span class="s">"Corporate Development Analyst Program"</span> <span class="caret"></span></p>
+    <h1 class="rv" style="--i:1">Automating Payment Brand Implementations <span class="ai">with AI</span></h1>
+    <p class="lede rv" style="--i:2">Every year the card networks publish <b>thousands of mandated changes</b> that Merchant Services must implement.
+      Our team validates those implementations once they go live, and builds the <b>AI and automation</b> that gets them delivered faster.</p>
+    <div class="fns">
+      <div class="fn rv" style="--hue:var(--cyan);--i:3">
+        <span class="t">Function 01</span>
+        <h3>Product Implementation Validations</h3>
+        <p>Post-install validation of Payment Brand Implementations (PBI) work.</p>
+      </div>
+      <div class="fn rv" style="--hue:var(--violet);--i:4">
+        <span class="t">Function 02</span>
+        <h3>AI &amp; Automation</h3>
+        <p>AI-driven automation and tooling for Payment Brand Implementations.</p>
+      </div>
+    </div>
+    <p class="hint rv" style="--i:5"><kbd>&rarr;</kbd><kbd>&larr;</kbd> step through sections</p>
+  </div>
+</header>
+
+<!-- ══════════ 01 · WHAT WE DO ══════════ -->
+<section class="sec" id="what" data-sec="What we do">
+  <div class="frame">
+    <div class="head rv">
+      <p class="kick"><b>01</b>What we do</p>
+      <h2>Five components, each one an opening for AI</h2>
+    </div>
+    <div class="wwd">
+      <div class="story rv" style="--i:1">
+        <p>In Merchant Services, our <b>Product</b>, <b>Payment Network Office</b> and <b>Technology</b> teams collaborate on the
+          <b>Payment Brand Implementations (PBI)</b> process to implement payment brand mandates across both
+          Core and Commerce platforms.</p>
+        <p>The process has several components, each offering
+          <em>opportunities for optimization and productivity enhancements through AI.</em></p>
+        <div class="chips"><span class="chip">Core platform</span><span class="chip">Commerce platform</span><span class="chip">Visa &middot; Mastercard &middot; ~19 brands</span></div>
+      </div>
+      <div class="pipe">
+        <div class="stage rv" style="--i:1"><span class="n">1</span><div><h3>Network Mandate Requirements Intake &amp; Communications</h3>
+          <p>Extract mandate requirements from the network online portals, publish them internally, and communicate changes to merchants and the field.</p></div></div>
+        <div class="stage rv" style="--i:2"><span class="n">2</span><div><h3>Product Requirements Discovery &amp; Prioritization</h3>
+          <p>Create epics, estimate merchant, financial and systemic impact, and prioritize commitments against strategic objectives.</p></div></div>
+        <div class="stage rv" style="--i:3"><span class="n">3</span><div><h3>Development Life Cycle</h3>
+          <p>Understand product requirements, create user stories, implement code changes, and test thoroughly.</p></div></div>
+        <div class="stage rv" style="--i:4"><span class="n">4</span><div><h3>Product Implementations &amp; Monitoring</h3>
+          <p>Technology change management, post-implementation validation to identify issues, and managing production challenges.</p></div></div>
+        <div class="stage rv" style="--i:5"><span class="n">5</span><div><h3>Custom Interchange Implementations</h3>
+          <p>Interchange pricing programs negotiated between networks and top-tier merchants to deliver cost savings.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 02 · TRAJECTORY ══════════ -->
+<section class="sec grid-bg" id="trajectory" data-sec="Trajectory">
+  <div class="frame">
+    <div class="head rv">
+      <p class="kick"><b>02</b>Trajectory</p>
+      <h2>From manual validations to scaled AI execution</h2>
+      <p>Four years of evolution, from <b>Product Implementation Validations</b> to <b>AI-driven PBI</b>. The team grew from 5 people to 9 along the way.</p>
+    </div>
+    <div>
+      <svg class="curve rv" viewBox="0 14 1200 240" role="img" aria-label="Rising curve through 2023, 2024, 2025 and 2026.">
+        <defs>
+          <clipPath id="under"><path d="M0 225 Q590 225 1180 30 V252 H0 Z"/></clipPath>
+          <linearGradient id="fc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4FC3D9" stop-opacity=".55"/><stop offset="1" stop-color="#4FC3D9" stop-opacity=".12"/></linearGradient>
+          <linearGradient id="fg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E8B34A" stop-opacity=".55"/><stop offset="1" stop-color="#E8B34A" stop-opacity=".12"/></linearGradient>
+          <marker id="arrowTip" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#8FA3BC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></marker>
+        </defs>
+        <g clip-path="url(#under)">
+          <rect x="0" y="0" width="297" height="252" fill="url(#fc)"/>
+          <rect x="301" y="0" width="297" height="252" fill="url(#fg)"/>
+          <rect x="602" y="0" width="297" height="252" fill="url(#fc)"/>
+          <rect x="903" y="0" width="277" height="252" fill="url(#fg)"/>
+        </g>
+        <path class="line" pathLength="1" d="M0 225 Q590 225 1180 30" marker-end="url(#arrowTip)"/>
+        <g class="yr" style="--hue:var(--cyan);--i:0"><circle cx="150" cy="222" r="24"/><text x="150" y="226.5">2023</text></g>
+        <g class="yr" style="--hue:var(--gold);--i:1"><circle cx="450" cy="197" r="24"/><text x="450" y="201.5">2024</text></g>
+        <g class="yr" style="--hue:var(--cyan);--i:2"><circle cx="750" cy="146" r="24"/><text x="750" y="150.5">2025</text></g>
+        <g class="yr" style="--hue:var(--gold);--i:3"><circle cx="1050" cy="71" r="24"/><text x="1050" y="75.5">2026</text></g>
+      </svg>
+      <div class="eras">
+        <article class="era rv" style="--hue:var(--cyan);--i:1">
+          <div class="top"><span class="y">2023</span><span class="hc">5 people</span></div>
+          <h3>Foundation: Product Implementation Validation</h3>
+          <ul>
+            <li>Established the <b>PIV team</b> to run post-install validations for PBI</li>
+            <li>Validation activities were <b>highly manual</b></li>
+            <li>Five dedicated team members</li>
+          </ul>
+        </article>
+        <article class="era rv" style="--hue:var(--gold);--i:2">
+          <div class="top"><span class="y">2024</span><span class="hc">Automation</span></div>
+          <h3>Early Automation &amp; Scope Expansion</h3>
+          <ul>
+            <li>Introduced <b>Python-based automation</b> and dashboard reporting to cut manual effort</li>
+            <li>Expanded scope beyond PBI into the wider book of work</li>
+            <li>Increased emphasis on <b>anomaly detection</b></li>
+          </ul>
+        </article>
+        <article class="era rv" style="--hue:var(--cyan);--i:3">
+          <div class="top"><span class="y">2025</span><span class="hc">AI / ML</span></div>
+          <h3>AI/ML Enablement</h3>
+          <ul>
+            <li><b>Productionized our first ML model</b>, supporting root-cause analysis of issues</li>
+            <li>Built multiple <b>Gen-AI proofs of concept</b> to streamline PBI</li>
+            <li>More focus on Commerce PBI validations and platform migrations</li>
+          </ul>
+        </article>
+        <article class="era now rv" style="--hue:var(--gold);--i:4">
+          <div class="top"><span class="y">2026</span><span class="hc">9 people</span></div>
+          <h3>Scaled AI Execution &amp; Enterprise Expansion</h3>
+          <ul>
+            <li>Team evolved from Product Implementation Validation to <b>Product AI-Automation</b></li>
+            <li>Productionizing <b>4 AI initiatives</b> for PBI</li>
+            <li>Started AI/ML proof-of-concept expansion <b>beyond PBI</b></li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 03 · TEAM ══════════ -->
+<section class="sec" id="team" data-sec="Team">
+  <div class="frame">
+    <div class="head rv">
+      <p class="kick"><b>03</b>Operating model</p>
+      <h2>One team, two functions</h2>
+      <p>Product Implementation Validations plus AI-driven automation and tooling, working side by side for Merchant Services.</p>
+    </div>
+    <div class="pods">
+      <div class="pod rv" style="--hue:var(--cyan);--i:1">
+        <div class="who"><span class="tag">Function 01</span><h3>Product Implementation Validations</h3></div>
+        <div class="fte">
+          <span class="c">{ <b>5</b> FTE }</span>
+          <span class="people" aria-hidden="true">
+            <svg style="--i:0"><use href="#person"/></svg><svg style="--i:1"><use href="#person"/></svg><svg style="--i:2"><use href="#person"/></svg><svg style="--i:3"><use href="#person"/></svg><svg style="--i:4"><use href="#person"/></svg>
+          </span>
+        </div>
+        <div class="caps">
+          <div class="cap"><svg><use href="#i-check"/></svg>Post Install Validations</div>
+          <div class="cap"><svg><use href="#i-data"/></svg>Data Insights Requests</div>
+          <div class="cap"><svg><use href="#i-ctrl"/></svg>Controls Execution</div>
+        </div>
+      </div>
+      <div class="link rv" style="--i:2" aria-label="Nine people in total">
+        <span class="wire"></span>
+        <span class="sum">9</span>
+        <span class="sl">people<br>one team</span>
+        <span class="wire"></span>
+      </div>
+      <div class="pod rv" style="--hue:var(--violet);--i:3">
+        <div class="who"><span class="tag">Function 02</span><h3>AI-Driven Automation &amp; Tooling</h3></div>
+        <div class="fte">
+          <span class="c">{ <b>4</b> FTE }</span>
+          <span class="people" aria-hidden="true">
+            <svg style="--i:0"><use href="#person"/></svg><svg style="--i:1"><use href="#person"/></svg><svg style="--i:2"><use href="#person"/></svg><svg style="--i:3"><use href="#person"/></svg>
+          </span>
+        </div>
+        <div class="caps">
+          <div class="cap"><svg><use href="#i-gear"/></svg>Scalable Process Automation</div>
+          <div class="cap"><svg><use href="#i-scale"/></svg>Applied AI &amp; ML Feasibility Assessment</div>
+          <div class="cap"><svg><use href="#i-chip"/></svg>AI &amp; ML Production Deployment</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 04 · SCALE ══════════ -->
+<section class="sec grid-bg" id="scale" data-sec="Scale">
+  <div class="frame">
+    <div class="head rv">
+      <p class="kick"><b>04</b>The scale of the work</p>
+      <h2>Demand is outgrowing capacity</h2>
+      <p>The networks publish their changes as <b>articles</b>. Intake has more than doubled since 2020, and 2026 is on pace to set a record.</p>
+    </div>
+    <div class="kpis">
+      <div class="kpi rv" style="--hue:var(--violet);--i:1"><span class="v">~<span class="num" data-n="19">19</span></span><span class="l">Card brands</span><span class="d">Visa + Mastercard are <b>78.6%</b> of all articles</span></div>
+      <div class="kpi rv" style="--hue:var(--gold);--i:2"><span class="v">~<span class="num" data-n="4400">4,400</span></span><span class="l">Articles / year</span><span class="d">2026 projected &middot; <b>~1,000</b> non-negotiable mandates</span></div>
+      <div class="kpi rv" style="--hue:var(--coral);--i:3"><span class="v">~<span class="num" data-n="14">14</span><small>%</small></span><span class="l">Projected growth</span><span class="d"><b>3,855</b> in 2025 to <b>~4,400</b> in 2026</span></div>
+      <div class="kpi rv" style="--hue:var(--cyan);--i:4"><span class="v">$<span class="num" data-n="28">28</span><small>B</small></span><span class="l">Interchange / year</span><span class="d"><b>Pass-through</b> interchange processed in 2025</span></div>
+      <div class="kpi rv" style="--hue:var(--mint);--i:5"><span class="v"><span class="num" data-n="26">26</span></span><span class="l">Engines</span><span class="d">The PBI book of work spans <b>26 engines</b></span></div>
+    </div>
+    <div class="scale">
+      <div class="panel rv" style="--i:1" id="chartPanel">
+        <span class="pt">Articles ingested per year &middot; 2020 to 2026</span>
+        <svg class="chart" id="chart" viewBox="0 0 760 332" role="img"
+             aria-label="Bar chart of articles per year: 1,633 in 2020; 1,866 in 2021; 1,751 in 2022; 3,056 in 2023; 3,639 in 2024; 3,855 in 2025; and 2026 at 2,881 booked through August with a projected total of about 4,400.">
+          <line class="grid" x1="44" y1="235.5" x2="744" y2="235.5"/><text class="ay" x="38" y="239">1k</text>
+          <line class="grid" x1="44" y1="180.9" x2="744" y2="180.9"/><text class="ay" x="38" y="184.5">2k</text>
+          <line class="grid" x1="44" y1="126.4" x2="744" y2="126.4"/><text class="ay" x="38" y="130">3k</text>
+          <line class="grid" x1="44" y1="71.8" x2="744" y2="71.8"/><text class="ay" x="38" y="75.5">4k</text>
+
+          <g class="col" data-y="2020" data-v="1633"><path class="bar past" style="--i:0" d="M82 290V205q0-4 4-4h38q4 0 4 4V290Z"/><text class="val q" x="105" y="191">1,633</text><text class="ax" x="105" y="311">2020</text><rect class="hit" x="56" y="20" width="98" height="300"/></g>
+          <g class="col" data-y="2021" data-v="1866"><path class="bar past" style="--i:1" d="M180 290V192q0-4 4-4h38q4 0 4 4V290Z"/><text class="val q" x="203" y="178">1,866</text><text class="ax" x="203" y="311">2021</text><rect class="hit" x="154" y="20" width="98" height="300"/></g>
+          <g class="col" data-y="2022" data-v="1751"><path class="bar past" style="--i:2" d="M277 290V198q0-4 4-4h38q4 0 4 4V290Z"/><text class="val q" x="300" y="184">1,751</text><text class="ax" x="300" y="311">2022</text><rect class="hit" x="252" y="20" width="97" height="300"/></g>
+          <g class="col" data-y="2023" data-v="3056"><path class="bar past" style="--i:3" d="M375 290V127q0-4 4-4h38q4 0 4 4V290Z"/><text class="val q" x="398" y="113">3,056</text><text class="ax" x="398" y="311">2023</text><rect class="hit" x="349" y="20" width="98" height="300"/></g>
+          <g class="col" data-y="2024" data-v="3639"><path class="bar past" style="--i:4" d="M473 290V96q0-4 4-4h38q4 0 4 4V290Z"/><text class="val q" x="496" y="82">3,639</text><text class="ax" x="496" y="311">2024</text><rect class="hit" x="447" y="20" width="98" height="300"/></g>
+          <g class="col" data-y="2025" data-v="3855"><path class="bar" style="--i:5" d="M570 290V84q0-4 4-4h38q4 0 4 4V290Z"/><text class="val" x="593" y="70">3,855</text><text class="ax" x="593" y="311" style="fill:var(--ink)">2025</text><rect class="hit" x="545" y="20" width="97" height="300"/></g>
+          <g class="col" data-y="2026" data-v="2881" data-p="4400">
+            <path class="proj" d="M668 290V54q0-4 4-4h38q4 0 4 4V290"/>
+            <path class="bar" style="--i:6" d="M668 290V137q0-4 4-4h38q4 0 4 4V290Z"/>
+            <text class="val" x="691" y="123">2,881</text>
+            <text class="val" x="691" y="40">~4,400</text><text class="note" x="691" y="24">PROJECTED</text>
+            <text class="ax" x="691" y="311" style="fill:var(--ink)">2026</text><text class="ax" x="691" y="325" style="font-size:9px">THRU AUG</text>
+            <rect class="hit" x="642" y="10" width="102" height="310"/>
+          </g>
+          <line class="base" x1="44" y1="290" x2="744" y2="290"/>
+          <path class="arrow" d="M622 76 C 634 66 646 60 660 56" marker-end="url(#arrowTip)"/>
+          <text class="val" x="632" y="50" style="font-size:11.5px">+14%</text>
+        </svg>
+        <div class="legend">
+          <span><i></i>Actual</span>
+          <span><i class="d"></i>Projected</span>
+          <span>Hover a bar for year-over-year change</span>
+        </div>
+        <div class="tip" id="tip" role="status"></div>
+      </div>
+      <div class="calls">
+        <div class="call rv" style="--i:2"><span class="big">&times;2.4</span><p>Article intake since 2020, from <b>1,633</b> to <b>3,855</b> in 2025.</p></div>
+        <div class="call rv" style="--i:3"><span class="big">3,855<small>&rarr;</small>~4,400</span><p>2025 actual to 2026 projected, a <b>14% increase</b>.</p></div>
+        <div class="call rv" style="--i:4"><span class="big">1,267</span><p>Articles in <b>Q2 2026</b>, the highest quarter on record.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 05 · JOURNEY ══════════ -->
+<section class="sec" id="journey" data-sec="Journey">
+  <div class="frame">
+    <div class="head rv">
+      <p class="kick"><b>05</b>The journey</p>
+      <h2>Each phase climbs the complexity curve</h2>
+      <p>We started where automation is easiest, with <b>config-based</b> work, and step deeper into the Core platform with every phase.
+        Each phase <b>de-risks and funds the next</b>.</p>
+    </div>
+    <div class="phases">
+      <div class="phase live rv" style="--hue:var(--gold);--i:1">
+        <span class="badge live"><i></i>Live in production</span>
+        <div class="ph"><span>Phase 1</span><span>2026</span></div>
+        <h3>Article Intake + Commerce Interchange</h3>
+        <ul>
+          <li><b>Live:</b> Visa and Mastercard article ingestion, using AI and automation</li>
+          <li>In parallel: <b>Commerce Interchange by Q4 2026</b>, the simpler config-based path</li>
+        </ul>
+        <span class="proof">Measured: <b>70&ndash;80% faster</b> delivery &middot; <b>~5.9&times;</b> intake throughput</span>
+        <span class="foot">Config-based &middot; simplest</span>
+      </div>
+      <div class="phase next rv" style="--hue:var(--cyan);--i:2">
+        <span class="badge">Next up</span>
+        <div class="ph"><span>Phase 2</span><span>Q4 2026 &rarr; 2027</span></div>
+        <h3>Custom Interchange on Core</h3>
+        <ul>
+          <li><b>Mastercard</b> Custom Interchange by <b>Q4 2026</b></li>
+          <li><b>Visa</b> Custom Interchange by <b>Q1 2027</b>; Debit possible in 2027</li>
+          <li>Moves off Commerce onto the <b>more complex Core platform</b></li>
+        </ul>
+        <span class="foot">First complexity step-up</span>
+      </div>
+      <div class="phase rv" style="--hue:var(--violet);--i:3">
+        <span class="badge">Neuro starts here</span>
+        <div class="ph"><span>Phase 3</span><span>Q3&ndash;Q4 2027</span></div>
+        <h3>Published Interchange, end to end</h3>
+        <ul>
+          <li><b>Neuro</b> applies the full PBI product-development lifecycle to Published Interchange</li>
+          <li>For <b>Visa and Mastercard</b></li>
+          <li>Article &rarr; solution intent &rarr; Jira &rarr; recommended, tested code, with <b>a person at every gate</b></li>
+        </ul>
+        <span class="foot">Deeper core logic</span>
+      </div>
+      <div class="phase rv" style="--hue:var(--coral);--i:4">
+        <span class="badge">Future</span>
+        <div class="ph"><span>Phase 4</span><span>Future</span></div>
+        <h3>Auth &amp; Clearing</h3>
+        <ul>
+          <li><b>Capture lessons learned</b>, then take on Auth and Clearing, the deepest engine logic</li>
+          <li>The next best path at <b>~105K hours</b>, where freed capacity is reinvested</li>
+        </ul>
+        <span class="foot">Most complex &middot; core engines</span>
+      </div>
+    </div>
+    <div class="rail rv"></div>
+    <div class="rail-l"><span>Simpler &middot; config-based</span><span>Complexity rises &rarr;</span><span>Most complex &middot; core engines</span></div>
+  </div>
+</section>
+
+<!-- ══════════ 06 · WHY JOIN ══════════ -->
+<section class="sec close grid-bg" id="join" data-sec="Why join">
+  <div class="frame">
+    <div class="head rv">
+      <p class="kick"><b>06</b>Why join us</p>
+      <h2>Come build it <span style="color:var(--cyan)">with us.</span></h2>
+    </div>
+    <div class="whys">
+      <div class="why rv" style="--hue:var(--mint);--i:1"><span class="k">AI that ships</span><h3>Production, not slideware</h3>
+        <p>Our first ML model went to production in 2025. <b>Four AI initiatives</b> for PBI are being productionized in 2026.</p></div>
+      <div class="why rv" style="--hue:var(--gold);--i:2"><span class="k">A growing problem</span><h3>Demand keeps climbing</h3>
+        <p>Article intake is up <b>2.4&times; since 2020</b> and projected to grow another 14% this year. The work matters more every quarter.</p></div>
+      <div class="why rv" style="--hue:var(--violet);--i:3"><span class="k">Both sides of the work</span><h3>Nine people, two functions</h3>
+        <p>You see the <b>validation work in production</b> and the <b>AI tooling</b> being built for it, on one small team.</p></div>
+    </div>
+    <footer>
+      <span>Merchant Services &middot; Payment Brand Implementations</span>
+      <span>JPMC internal use only &middot; Confidential</span>
+    </footer>
+  </div>
+</section>
+
+<div class="pager" aria-label="Section navigation">
+  <span><b id="pgN">01</b> / <span id="pgT">07</span></span>
+  <button id="prev" aria-label="Previous section">&larr;</button>
+  <button id="next" aria-label="Next section">&rarr;</button>
+</div>
+
+<script>
+(function(){
+  var qs=new URLSearchParams(location.search), STATIC=qs.has("static");
+  var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var root=document.documentElement;
+  var $$=function(s,c){return Array.prototype.slice.call((c||document).querySelectorAll(s))};
+  var canObserve="IntersectionObserver" in window;
+  if(!STATIC&&canObserve) root.classList.add("js");
+  if(STATIC){root.style.scrollBehavior="auto"; if(qs.get("h")) root.style.setProperty("--sec-h",(+qs.get("h"))+"px")}
+
+  /* ── counters ── */
+  function count(el){
+    if(el._done) return; el._done=true;
+    var n=+el.dataset.n; if(reduce||STATIC){el.textContent=n.toLocaleString("en-US");return}
+    var t0=performance.now(), dur=1300;
+    (function step(t){var p=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-p,3);
+      el.textContent=Math.round(n*e).toLocaleString("en-US"); if(p<1) requestAnimationFrame(step)})(t0);
+  }
+
+  /* ── reveal on scroll ── */
+  if(root.classList.contains("js")){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){
+      if(!e.isIntersecting) return;
+      e.target.classList.add("in"); $$(".num",e.target).forEach(count); io.unobserve(e.target);
+    })},{threshold:.18,rootMargin:"0px 0px -6% 0px"});
+    $$(".rv").forEach(function(el){io.observe(el)});
+    var chart=document.getElementById("chart");
+    var io2=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){chart.classList.add("in");io2.disconnect()}})},{threshold:.35});
+    io2.observe(chart);
+  }
+
+  /* ── section tracking, nav state, progress, keyboard ── */
+  var secs=$$("[data-sec]"), links=$$(".nav nav a"), cur=0;
+  var pgN=document.getElementById("pgN"), bar=document.getElementById("progress");
+  document.getElementById("pgT").textContent=("0"+secs.length).slice(-2);
+  function track(){
+    var mid=window.scrollY+window.innerHeight*.4, i=0;
+    secs.forEach(function(s,k){if(s.offsetTop<=mid) i=k});
+    cur=i; pgN.textContent=("0"+(i+1)).slice(-2);
+    links.forEach(function(a){a.classList.toggle("on",a.getAttribute("href")==="#"+secs[i].id)});
+    var max=document.documentElement.scrollHeight-window.innerHeight;
+    bar.style.transform="scaleX("+(max>0?Math.min(1,window.scrollY/max):0)+")";
+  }
+  function go(d){var i=Math.max(0,Math.min(secs.length-1,cur+d));
+    window.scrollTo({top:secs[i].offsetTop,behavior:reduce?"auto":"smooth"})}
+  window.addEventListener("scroll",track,{passive:true}); window.addEventListener("resize",track); track();
+  document.getElementById("next").onclick=function(){go(1)};
+  document.getElementById("prev").onclick=function(){go(-1)};
+  document.addEventListener("keydown",function(e){
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    if(e.key==="ArrowRight"||e.key==="PageDown"||e.key==="j"){e.preventDefault();go(1)}
+    else if(e.key==="ArrowLeft"||e.key==="PageUp"||e.key==="k"){e.preventDefault();go(-1)}
+    else if(e.key==="Home"){e.preventDefault();window.scrollTo({top:0,behavior:"smooth"})}
+  });
+
+  /* ── chart tooltip ── */
+  var panel=document.getElementById("chartPanel"), tip=document.getElementById("tip");
+  var cols=$$("#chart g.col"), data=cols.map(function(g){return {y:g.dataset.y,v:+g.dataset.v,p:g.dataset.p?+g.dataset.p:null}});
+  var fmt=function(n){return n.toLocaleString("en-US")};
+  cols.forEach(function(g,i){
+    var d=data[i], prev=i?data[i-1]:null, html="<b>"+d.y+"</b>";
+    if(d.p){ html+="Booked through Aug: <span>"+fmt(d.v)+"</span><br>Projected: <span>~"+fmt(d.p)+"</span><br>vs 2025: <span>+"+Math.round((d.p/prev.v-1)*100)+"%</span>"; }
+    else{ html+="Articles: <span>"+fmt(d.v)+"</span>";
+      if(prev){var c=(d.v/prev.v-1)*100; html+="<br>vs "+prev.y+": <span>"+(c>=0?"+":"")+c.toFixed(1)+"%</span>"} }
+    g.addEventListener("mousemove",function(e){
+      var r=panel.getBoundingClientRect(); tip.innerHTML=html;
+      var x=Math.max(90,Math.min(r.width-90,e.clientX-r.left));
+      tip.style.left=x+"px"; tip.style.top=(e.clientY-r.top-14)+"px"; tip.classList.add("show")});
+    g.addEventListener("mouseleave",function(){tip.classList.remove("show")});
+  });
+
+  /* ── hero neural mesh ── */
+  var cv=document.getElementById("mesh"), ctx=cv.getContext&&cv.getContext("2d");
+  if(!ctx) return;
+  var W,H,pts=[],raf=null,visible=true,mouse={x:-999,y:-999},dpr=Math.min(2,window.devicePixelRatio||1);
+  var HUES=["79,195,217","185,140,224","91,214,160"];
+  function size(){
+    var r=cv.getBoundingClientRect(); W=r.width; H=r.height; cv.width=W*dpr; cv.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+    var n=Math.round(Math.min(110,Math.max(36,W*H/15000))); pts=[];
+    for(var i=0;i<n;i++) pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.28,vy:(Math.random()-.5)*.28,
+      r:Math.random()*1.6+.8,h:HUES[i%7===0?1:i%11===0?2:0],ph:Math.random()*6.28});
+  }
+  function frame(t){
+    ctx.clearRect(0,0,W,H);
+    var L=150,i,j,a,b,dx,dy,d;
+    for(i=0;i<pts.length;i++){a=pts[i];
+      a.x+=a.vx; a.y+=a.vy;
+      if(a.x<-20)a.x=W+20; if(a.x>W+20)a.x=-20; if(a.y<-20)a.y=H+20; if(a.y>H+20)a.y=-20;
+      for(j=i+1;j<pts.length;j++){b=pts[j]; dx=a.x-b.x; dy=a.y-b.y; d=Math.sqrt(dx*dx+dy*dy);
+        if(d<L){ctx.strokeStyle="rgba("+a.h+","+(.22*(1-d/L)).toFixed(3)+")";ctx.lineWidth=1;
+          ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}}
+      dx=a.x-mouse.x; dy=a.y-mouse.y; d=Math.sqrt(dx*dx+dy*dy);
+      if(d<200){ctx.strokeStyle="rgba(230,237,246,"+(.28*(1-d/200)).toFixed(3)+")";
+        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(mouse.x,mouse.y);ctx.stroke()}
+      var g=.55+.45*Math.sin(t/900+a.ph);
+      ctx.fillStyle="rgba("+a.h+","+(.35+.5*g).toFixed(3)+")";
+      ctx.beginPath();ctx.arc(a.x,a.y,a.r,0,6.283);ctx.fill();
+    }
+    if(visible&&!reduce&&!STATIC) raf=requestAnimationFrame(frame); else raf=null;
+  }
+  function start(){if(!raf) raf=requestAnimationFrame(frame)}
+  size(); frame(0); start();
+  var rz; window.addEventListener("resize",function(){clearTimeout(rz);rz=setTimeout(function(){size();if(!raf)frame(0)},150)});
+  cv.parentElement.addEventListener("mousemove",function(e){var r=cv.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top});
+  cv.parentElement.addEventListener("mouseleave",function(){mouse.x=mouse.y=-999});
+  if(canObserve) new IntersectionObserver(function(es){visible=es[0].isIntersecting;if(visible)start()}).observe(cv);
+  document.addEventListener("visibilitychange",function(){visible=!document.hidden;if(visible)start()});
+})();
+</script>
+</body>
+</html>
