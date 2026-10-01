@@ -1,0 +1,1520 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neuro Squad Room · v5</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Fira+Code:wght@400;500;600&family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@400;500;600;700&family=Sora:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Red+Hat+Display:wght@500;600;700&family=Red+Hat+Text:wght@400;500;600&family=Red+Hat+Mono:wght@400;500&family=Syne:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0c0f; --bg2:#0f1216; --panel:#111418; --panel2:#151920;
+  --line:rgba(236,232,225,.09); --line2:rgba(236,232,225,.2);
+  --text:#ece8e1; --mut:#a09b91; --dim:#726e66; --soft:#d2cdc3;
+  --cy:#8fb8c9; --vi:#a79bd0; --mg:#c99ab0; --gr:#86c2a0; --am:#d8a94e; --rd:#d98274; --bl:#8fa9cf;
+  --ac:#c9a66b; --ac2:#e6d3ac;
+  --solid:#12151a; --bar:rgba(10,12,15,.84); --card2:#0e1114; --on-ac:#14110a;
+  --t-pl:#a9bfdf; --t-po:#9fd0b4; --t-eng:#bdb9b0; --t-am:#e2bd72; --t-vi:#c2b8e6;
+  --sans:"Inter",-apple-system,"Segoe UI",sans-serif;
+  --head:"Fraunces","Iowan Old Style",Georgia,serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+:root[data-theme=light]{
+  --bg:#f5f2ec; --bg2:#fff; --panel:#fffdf9; --panel2:#fff;
+  --line:rgba(30,28,22,.1); --line2:rgba(30,28,22,.24);
+  --text:#1a1c20; --mut:#5f5b53; --dim:#8a857b; --soft:#34363b;
+  --cy:#3a7a90; --vi:#5d4fa3; --mg:#9c4f70; --gr:#2f7d58; --am:#9a6a10; --rd:#b24a3c; --bl:#3d629c;
+  --solid:#fffdf9; --bar:rgba(250,248,243,.9); --card2:#fbf9f4; --on-ac:#fff;
+  --t-pl:#3d629c; --t-po:#2f7d58; --t-eng:#5f5b53; --t-am:#8a5d0c; --t-vi:#5d4fa3;
+}
+:root[data-theme=light] #modal{background:rgba(40,36,28,.35)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:13px/1.5 var(--sans);overflow:hidden;display:grid;grid-template-rows:auto auto 1fr;min-width:1180px;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;z-index:-2;transition:background .8s;
+  background:radial-gradient(1100px 420px at 50% -160px,color-mix(in srgb,var(--ac) 13%,transparent),transparent 70%),var(--bg)}
+body::after{content:"";position:fixed;inset:0;z-index:-1;opacity:.55;
+  background:repeating-linear-gradient(90deg,var(--line) 0 1px,transparent 1px 96px);
+  mask-image:linear-gradient(180deg,#000,transparent 55%)}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+input,textarea,select{font:inherit;color:var(--text);background:var(--card2);border:1px solid var(--line2);border-radius:3px;padding:8px 10px;outline:none;width:100%}
+input:focus,textarea:focus,select:focus{border-color:var(--ac)}
+input[type=checkbox],input[type=radio]{width:auto;accent-color:var(--ac)}
+code,.mono{font-family:var(--mono);font-size:.9em}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:var(--line2)}
+
+/* top bar */
+#top{display:flex;align-items:center;gap:9px;padding:11px 20px;border-bottom:1px solid var(--line);background:var(--bar);backdrop-filter:blur(16px);position:relative;z-index:30}
+.brand{white-space:nowrap;display:flex;align-items:center;gap:11px;font:500 17px var(--head);letter-spacing:.01em}
+.brand i{color:var(--ac);font-weight:400}
+.brand small{white-space:nowrap;display:block;font:500 9px var(--mono);color:var(--dim);letter-spacing:.16em;text-transform:uppercase;margin-top:1px}
+.logo{width:30px;height:30px;border:1px solid var(--ac);display:grid;place-items:center;position:relative}
+.logo::before{content:"";position:absolute;inset:3px;border:1px solid color-mix(in srgb,var(--ac) 35%,transparent)}
+.logo::after{content:"N";font:500 15px var(--head);color:var(--ac)}
+nav{display:flex;gap:16px;margin:0 6px 0 10px}
+nav button{white-space:nowrap;padding:6px 0;color:var(--mut);font-size:11px;letter-spacing:.07em;text-transform:uppercase;border-bottom:1px solid transparent}
+nav button.on{color:var(--text);border-color:var(--ac)}
+.domains{display:flex;gap:0;border:1px solid var(--line2);border-radius:3px}
+.dom{display:flex;align-items:center;gap:7px;padding:6px 11px;color:var(--mut);position:relative;font-size:12px}
+.dom+.dom{border-left:1px solid var(--line2)}
+.dom i{width:6px;height:6px;background:var(--c);transform:rotate(45deg)}
+.dom.on{color:var(--text);background:color-mix(in srgb,var(--c) 14%,transparent)}
+.dom .pend{position:absolute;top:-4px;right:-4px;width:8px;height:8px;border-radius:50%;background:var(--am);border:2px solid var(--bg)}
+.dom .pend.me{animation:pulse 1.4s infinite}
+.sp{flex:1}
+.psw{width:9px;height:9px;transform:rotate(45deg);display:inline-block;margin-right:3px}
+.sws{display:inline-flex;gap:3px;padding:7px 6px;border:1px solid var(--line2);border-radius:3px}.sws i{width:8px;height:8px;border-radius:50%}
+.tb{padding:6px 10px;border:1px solid var(--line2);border-radius:3px;color:var(--mut);display:inline-flex;align-items:center;gap:7px;position:relative;white-space:nowrap;font-size:12px}
+.tb:hover{color:var(--text);border-color:var(--ac)}
+.tb.go{background:var(--ac);color:var(--on-ac);border-color:var(--ac);font-weight:600}
+.tb.stop{background:var(--rd);color:#fff;border:0}
+.badge{position:absolute;top:-7px;right:-7px;min-width:16px;height:16px;border-radius:8px;background:var(--am);color:var(--on-ac);font:600 9.5px/16px var(--mono);text-align:center;padding:0 4px}
+.menu{position:absolute;top:calc(100% + 8px);right:0;width:310px;background:var(--solid);border:1px solid var(--line2);border-radius:4px;padding:6px;box-shadow:0 24px 70px rgba(0,0,0,.45);z-index:50;text-align:left;white-space:normal}
+.menu .mi{display:flex;gap:10px;align-items:center;padding:9px;width:100%;text-align:left;color:var(--text)}
+.menu .mi:hover{background:var(--line)}
+.menu .mi small{color:var(--mut);display:block}
+.menu h6{margin:8px 9px;font:500 9.5px var(--mono);color:var(--dim);letter-spacing:.16em;text-transform:uppercase}
+.av{width:28px;height:28px;border-radius:50%;display:inline-grid;place-items:center;font:500 10px var(--mono);color:var(--c,#888);border:1px solid var(--c,#888);background:color-mix(in srgb,var(--c,#888) 10%,transparent);flex:none;position:relative}
+.av.sm{width:20px;height:20px;font-size:8px}
+.av.on::after{content:"";position:absolute;right:-1px;bottom:-1px;width:7px;height:7px;border-radius:50%;background:var(--gr);border:2px solid var(--bg)}
+
+/* rail — a timeline */
+#rail{padding:16px 22px 10px;border-bottom:1px solid var(--line)}
+.railgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px 0}
+.st{position:relative;display:block;text-align:left;border-top:1px solid var(--line2);padding:12px 16px 6px 0;min-width:0;transition:.4s}
+.st::after{content:"";position:absolute;top:-4px;left:0;width:7px;height:7px;border-radius:50%;background:var(--bg);border:1px solid var(--line2)}
+.st .ph{font:500 9px var(--mono);letter-spacing:.18em;color:var(--dim);text-transform:uppercase}
+.st .hd{font:500 15px var(--head);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.st .hd .n{font-style:italic;color:var(--ac);margin-right:8px}
+.st .dots{display:flex;gap:3px;margin:8px 0 7px;align-items:center;font:500 9.5px var(--mono);color:var(--dim)}
+.st .dots i{width:14px;height:2px;background:var(--line2)}
+.st .dots i.d{background:var(--ac)}
+.st .dots i.n{background:var(--ac2);animation:pulse 1.2s infinite}
+.st .gs{display:flex;gap:4px;flex-wrap:wrap;min-height:19px}
+.st.opt{border-top-style:dashed}
+.st.done{border-top-color:var(--ac)}
+.st.done::after{background:var(--ac);border-color:var(--ac)}
+.st.active{border-top-color:var(--ac);background:linear-gradient(180deg,color-mix(in srgb,var(--ac) 11%,transparent),transparent 75%)}
+.st.active::after{background:var(--ac2);border-color:var(--ac);box-shadow:0 0 0 4px color-mix(in srgb,var(--ac) 24%,transparent);animation:breath 2.4s ease-in-out infinite}
+.st.active::before{content:"In session";position:absolute;top:13px;right:14px;font:500 8.5px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ac)}
+.st.skipped{opacity:.4}
+.st.sel{background:var(--panel)}
+.st.todo .hd{color:var(--mut)}
+#rail .gov{grid-column:3/-1;display:flex;align-items:center;gap:10px;padding:6px 12px;border:1px solid var(--line);border-left:2px solid var(--am);font-size:11px;color:var(--mut)}
+#rail .gov.off{opacity:.4}
+#rail .gov b{font:500 9.5px var(--mono);letter-spacing:.14em;color:var(--t-am)}
+.legend{grid-column:1/3;display:flex;gap:12px;align-items:center;font-size:10px;color:var(--dim);flex-wrap:wrap}
+.legend i{display:inline-block;width:6px;height:6px;margin-right:5px;transform:rotate(45deg)}
+
+/* chips */
+.chip{display:inline-flex;align-items:center;gap:4px;font:500 9px var(--mono);letter-spacing:.08em;padding:2px 6px;border-radius:2px;border:1px solid;white-space:nowrap;text-transform:uppercase}
+.chip.pl{color:var(--t-pl)}.chip.po{color:var(--t-po)}.chip.eng{color:var(--t-eng)}.chip.adv{color:var(--t-am);border-style:dashed}.chip.dual{color:var(--t-vi)}
+.chip.pending{background:color-mix(in srgb,currentColor 14%,transparent);animation:pulse 1.4s infinite}
+.chip.cleared{color:var(--gr);border-color:var(--gr);border-style:solid}
+.pill{display:inline-block;font:500 9.5px var(--mono);letter-spacing:.04em;padding-left:10px;position:relative;white-space:nowrap}
+.pill::before{content:"";position:absolute;left:0;top:50%;width:5px;height:5px;margin-top:-2.5px;background:currentColor;transform:rotate(45deg)}
+.pill.gov{color:var(--t-po)}.pill.ev{color:var(--t-pl)}.pill.local,.pill.draft,.pill.rec{color:var(--t-eng)}.pill.pub{color:var(--gr)}
+.stt{font:500 9px var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.stt.approved{color:var(--gr)}.stt.review{color:var(--am)}.stt.draft{color:var(--mut)}.stt.saved{color:var(--t-pl)}
+.role{font:500 8.5px var(--mono);letter-spacing:.08em;padding:0 4px;border:1px solid var(--line2);border-radius:2px;color:var(--mut)}
+
+/* main */
+#main{display:grid;grid-template-columns:250px 1fr 380px;min-height:0}
+.col{min-height:0;overflow:auto;padding:18px 18px 18px 22px}
+#left{border-right:1px solid var(--line)}#right{border-left:1px solid var(--line);padding:0;display:flex;flex-direction:column;overflow:hidden}
+h5{margin:20px 0 9px;font:500 9.5px var(--mono);letter-spacing:.18em;color:var(--dim);text-transform:uppercase;display:flex;justify-content:space-between}
+h5:first-child{margin-top:0}
+.card{border:1px solid var(--line);border-radius:4px;background:var(--panel);padding:12px}
+.person{display:flex;align-items:center;gap:10px;padding:7px 8px;width:100%;text-align:left;border-left:2px solid transparent}
+.person:hover{background:var(--line)}
+.person.me{border-left-color:var(--ac);background:color-mix(in srgb,var(--ac) 8%,transparent)}
+.person b{display:block;font-weight:500;font-size:13px}.person small{color:var(--mut);font-size:10.5px}
+.person .wait{white-space:nowrap;margin-left:auto;font:500 9px var(--mono);letter-spacing:.06em;color:var(--am);border:1px solid var(--am);padding:1px 5px;border-radius:2px;animation:pulse 1.4s infinite}
+.person .stw{margin-left:auto;color:var(--ac);font-size:11px}
+.agent{display:flex;gap:13px;align-items:center}
+.orb{width:44px;height:44px;border-radius:50%;flex:none;position:relative;border:1px solid color-mix(in srgb,var(--ac) 40%,transparent);background:radial-gradient(circle,color-mix(in srgb,var(--ac) 22%,transparent),transparent 64%)}
+.orb::before{content:"";position:absolute;inset:5px;border-radius:50%;border:1px solid transparent;border-top-color:var(--ac);border-right-color:color-mix(in srgb,var(--ac) 35%,transparent);animation:spin 6s linear infinite}
+.orb::after{content:"";position:absolute;inset:39%;border-radius:50%;background:var(--ac2);box-shadow:0 0 12px var(--ac);animation:breath 3s ease-in-out infinite}
+.orb.run::before{animation-duration:.9s}
+.orb.sm{width:28px;height:28px}.orb.sm::before{inset:3px}
+.agent b{font:500 16px var(--head)}.agent small{color:var(--mut);display:block;font-size:11px}
+.stats{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line);border-left:1px solid var(--line)}
+.stat{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:9px 11px}
+.stat b{font:400 26px/1.1 var(--head);display:block;color:var(--text)}.stat span{font:500 9px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.govrow{display:flex;justify-content:space-between;padding:4px 0;font-size:11.5px}.govrow span{color:var(--mut)}.govrow b{font-weight:500}
+
+/* conversation */
+#center{display:flex;flex-direction:column;min-height:0;min-width:0}
+.chd{padding:16px 26px 12px;border-bottom:1px solid var(--line)}
+.chd h2{margin:0;font:400 22px/1.2 var(--head);letter-spacing:-.005em}.chd small{color:var(--mut);font-size:11.5px}
+.banner{margin:10px 26px 0;padding:9px 14px;font-size:12px;display:flex;align-items:center;gap:10px;border:1px solid var(--line2)}
+.banner.me{border-left:2px solid var(--am);color:var(--t-am);background:color-mix(in srgb,var(--am) 8%,transparent)}
+.banner.other{color:var(--mut)}
+.banner button{margin-left:auto}
+#chat{flex:1;overflow:auto;padding:20px 26px;display:flex;flex-direction:column;gap:18px}
+.msg{display:flex;gap:13px;animation:rise .35s ease both;max-width:840px}
+.msg .body{min-width:0;flex:1}
+.msg .meta{font-size:11px;color:var(--dim);margin-bottom:4px}.msg .meta b{color:var(--text);font-weight:600;margin-right:6px;letter-spacing:.01em}
+.bub{font-size:13.5px;line-height:1.62;color:var(--soft);max-width:100%}
+.msg.agent .bub{border-left:1px solid var(--ac);padding-left:14px;color:var(--text)}
+.msg.sys{align-self:stretch;max-width:none;display:flex;align-items:center;gap:14px;font:500 9.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.msg.sys::before,.msg.sys::after{content:"";flex:1;height:1px;background:var(--line)}
+.msg.sys.win{color:var(--gr)}
+.runc,.gatec,.gapc,.ivc{border:1px solid var(--line2);border-radius:4px;background:var(--card2);padding:14px 16px;width:100%}
+.runc .rh{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.runc .rh b{font:500 13px var(--mono)}
+.spin{width:11px;height:11px;border:1px solid var(--line2);border-top-color:var(--ac);border-radius:50%;animation:spin .7s linear infinite}
+.tr{font:11px/1.8 var(--mono);color:var(--mut)}.tr div::before{content:"— ";color:var(--dim)}.tr div.cur::before{content:"› ";color:var(--ac)}.tr div.cur{color:var(--text)}
+.files{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.file{display:inline-flex;align-items:center;gap:10px;padding:6px 10px;border:1px solid var(--line2);border-left:2px solid var(--ac);border-radius:2px;font:500 11px var(--mono)}
+.file:hover{background:color-mix(in srgb,var(--ac) 10%,transparent)}
+.gatec{border-top:2px solid var(--am)}.gatec.cleared{border-top-color:var(--gr)}
+.gatec .rh b{font:500 15px var(--head)}
+.gatec .gq{font:italic 400 15px/1.5 var(--head);color:var(--soft);margin:8px 0 10px}
+.checks{margin:8px 0;padding:0;list-style:none;font-size:11.5px;color:var(--mut)}.checks li::before{content:"✓  ";color:var(--gr)}
+.gact{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap}
+.btn{padding:7px 14px;border-radius:3px;border:1px solid var(--line2);font-weight:500;font-size:12px;letter-spacing:.01em}
+.btn:hover{border-color:var(--ac)}
+.btn.pri{background:var(--text);color:var(--bg);border-color:var(--text)}
+.btn.ok{background:var(--ac);color:var(--on-ac);border-color:var(--ac)}.btn.warn{border-color:var(--am);color:var(--am)}.btn.dng{border-color:var(--rd);color:var(--rd)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.gapc{border-top:2px solid var(--rd)}.gapc.ok{border-top-color:var(--gr)}
+.ivc label{display:grid;grid-template-columns:160px 1fr;gap:10px;align-items:center;margin:6px 0;font-size:11.5px;color:var(--mut)}
+.cos{display:flex;gap:20px;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.gauge{width:78px;height:78px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--ac) calc(var(--v)*1%),var(--line) 0);position:relative;flex:none}
+.gauge::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--card2)}
+.gauge b{position:relative;z-index:1;font:400 28px var(--head)}
+.bars{flex:1;font-size:11px;color:var(--mut)}.bars div{display:grid;grid-template-columns:110px 1fr 26px;gap:10px;align-items:center;margin:4px 0}
+.bars i{height:2px;background:var(--line2);position:relative}.bars i::after{content:"";position:absolute;inset:0;width:var(--w);background:var(--ac)}
+.note{margin-top:10px;padding:8px 12px;border-left:2px solid var(--am);background:color-mix(in srgb,var(--am) 7%,transparent);font-size:11.5px}
+.note.ok{border-color:var(--gr);background:color-mix(in srgb,var(--gr) 7%,transparent)}
+.typing{font:italic 12px var(--head);color:var(--mut);padding:0 26px 4px;height:20px}
+#comp{border-top:1px solid var(--line);padding:12px 26px 16px;background:var(--bar)}
+.sugs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.sug{padding:5px 12px;border-radius:3px;border:1px solid var(--line2);font-size:11.5px;color:var(--mut)}
+.sug:hover{color:var(--text);border-color:var(--ac)}
+.sug.pri{background:var(--ac);color:var(--on-ac);border-color:var(--ac);font-weight:600}
+.sug.sw{border-color:var(--am);color:var(--t-am)}
+.inrow{display:flex;gap:10px;align-items:center}
+.inrow input{padding:11px 14px}
+.guide{margin:10px 26px 0;padding:12px 16px;border:1px solid var(--line2);border-left:2px solid var(--ac);background:var(--panel);display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}
+.guide .gk{font:500 9px var(--mono);letter-spacing:.18em;color:var(--ac);text-transform:uppercase}
+.guide h4{margin:3px 0 5px;font:500 17px var(--head)}
+.guide p{margin:3px 0;font-size:12px;color:var(--soft)}
+.guide p b.l{font:500 9px var(--mono);letter-spacing:.14em;color:var(--dim);text-transform:uppercase;margin-right:8px}
+.guide .gctl{display:flex;flex-direction:column;gap:6px;min-width:180px}
+.guide .gctl .btn{text-align:center}
+.guide .gctl div{display:flex;gap:6px}.guide .gctl div .btn{flex:1;padding:5px 6px;font-size:11px}
+
+/* right */
+.tabs{display:flex;border-bottom:1px solid var(--line);flex:none;padding:0 12px}
+.tabs button{flex:1;padding:13px 4px 11px;color:var(--mut);border-bottom:1px solid transparent;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase}
+.tabs button.on{color:var(--text);border-color:var(--ac)}
+.rp{flex:1;overflow:auto;padding:18px 22px}
+.rp h3{margin:2px 0 4px;font:400 21px var(--head)}
+.row{display:flex;align-items:center;gap:9px;padding:8px 2px;border-bottom:1px solid var(--line);width:100%;text-align:left}
+button.row:hover{background:var(--line)}
+.row .nm{font:500 11.5px var(--mono);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.row small{color:var(--mut)}
+.row.next{border-bottom-color:var(--ac);background:linear-gradient(90deg,color-mix(in srgb,var(--ac) 12%,transparent),transparent)}
+.row.ghost{opacity:.45}
+.muted{color:var(--mut);font-size:11.5px}
+.conn{display:flex;align-items:center;gap:9px;padding:8px 2px;border-bottom:1px solid var(--line)}
+.conn i{width:6px;height:6px;border-radius:50%;background:var(--gr)}
+.conn b{font-weight:500}
+.log{font:10.5px/1.55 var(--mono);color:var(--mut);padding:7px 0;border-bottom:1px solid var(--line)}.log b{color:var(--text);font-weight:500}.log span{color:var(--dim)}
+
+/* views */
+#view{grid-row:2/4;overflow:auto;padding:30px 40px;display:none}
+body.v-vault #rail,body.v-vault #main,body.v-studio #rail,body.v-studio #main{display:none}
+body.v-vault #view,body.v-studio #view{display:block}
+.vh{display:flex;align-items:center;gap:16px;margin-bottom:22px}
+.vh h1{margin:0;font:400 30px var(--head)}
+table.t{width:100%;border-collapse:collapse}
+table.t th{text-align:left;font:500 9px var(--mono);letter-spacing:.16em;color:var(--dim);text-transform:uppercase;padding:10px 12px;border-bottom:1px solid var(--line2)}
+table.t td{padding:10px 12px;border-bottom:1px solid var(--line)}
+table.t tr.cl:hover td{background:var(--line);cursor:pointer}
+.filters{display:flex;gap:6px;margin-bottom:14px;align-items:center}
+.filters input{width:260px}
+.sgrid{display:grid;grid-template-columns:repeat(7,minmax(170px,1fr));gap:0;align-items:start;overflow-x:auto;border-top:1px solid var(--line2)}
+.scol{padding:14px 12px 0 0}
+.scol h4{margin:0 0 10px;font:500 14px var(--head)}.scol h4 span{color:var(--ac);font-style:italic;margin-right:4px}
+.sk{display:block;width:100%;text-align:left;border:1px solid var(--line);border-radius:3px;padding:10px;background:var(--panel);margin-bottom:8px}
+.sk:hover{border-color:var(--ac)}
+.sk b{font:500 11.5px var(--mono);display:block;word-break:break-word}
+.sk p{margin:5px 0 7px;font-size:11px;color:var(--mut)}
+.sk.off{opacity:.45}
+.tag{font:500 8.5px var(--mono);padding:0 4px;border:1px solid;border-radius:2px;letter-spacing:.1em;text-transform:uppercase}
+.tag.core{color:var(--dim)}.tag.domain{color:var(--ac)}.tag.custom{color:var(--mg)}.tag.cz{color:var(--am)}
+.access{display:flex;align-items:center;gap:14px;padding:14px 18px;border:1px solid var(--line2);margin-bottom:22px;background:var(--panel)}
+.access.locked{border-left:2px solid var(--rd)}.access.open{border-left:2px solid var(--gr)}
+
+/* modal */
+#modal{position:fixed;inset:0;background:rgba(4,5,7,.7);backdrop-filter:blur(8px);display:none;place-items:center;z-index:100}
+#modal.on{display:grid}
+.mod{background:var(--solid);border:1px solid var(--line2);border-radius:4px;box-shadow:0 40px 120px rgba(0,0,0,.5);max-height:88vh;overflow:auto;animation:rise .3s ease}
+.mod .mh{display:flex;align-items:center;gap:10px;padding:16px 22px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--solid);z-index:2}
+.mod .mh h3{margin:0;font:500 17px var(--head);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.mod .mb{padding:18px 22px}
+.x{width:28px;height:28px;border:1px solid var(--line2);border-radius:2px;color:var(--mut)}
+.artv{display:grid;grid-template-columns:1fr 290px;width:min(1060px,94vw)}
+.doc{padding:22px 32px 30px;border-right:1px solid var(--line);min-width:0}
+.doc h1{font:400 26px/1.2 var(--head);margin:0 0 12px}.doc h2{font:500 10px var(--mono);letter-spacing:.16em;text-transform:uppercase;margin:22px 0 8px;color:var(--ac)}
+.doc p{margin:7px 0;color:var(--soft);font-size:13.5px;line-height:1.65}.doc ul{margin:7px 0;padding-left:20px;color:var(--soft);font-size:13.5px}
+.doc table{border-collapse:collapse;width:100%;margin:10px 0}.doc th,.doc td{border-bottom:1px solid var(--line2);padding:7px 10px 7px 0;text-align:left;font-size:12px}.doc th{font:500 9px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.doc blockquote{margin:10px 0;padding:4px 0 4px 16px;border-left:2px solid var(--ac);font:italic 400 15px/1.55 var(--head);color:var(--soft)}
+.doc code{font-size:.88em;border:1px solid var(--line2);padding:0 4px;border-radius:2px}
+.src{font:500 9px var(--mono);letter-spacing:.06em;border:1px solid var(--mg);color:var(--mg);padding:0 4px;border-radius:2px}
+.metaP{padding:20px;font-size:12px}
+.metaP dt{font:500 9px var(--mono);letter-spacing:.16em;color:var(--dim);text-transform:uppercase;margin-top:16px}.metaP dd{margin:4px 0 0}
+.lock{padding:10px 12px;border:1px solid var(--gr);border-left-width:2px;color:var(--t-po);font-size:11.5px}
+.form label{display:block;margin:14px 0 5px;font:500 9px var(--mono);letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.form .cks{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px}
+.form .cks label{display:flex;gap:6px;align-items:center;margin:0;font:inherit;letter-spacing:0;text-transform:none;color:var(--text)}
+.prog div{font:11.5px/1.9 var(--mono);color:var(--mut)}.prog div::before{content:"✓ ";color:var(--gr)}
+.glos{width:min(780px,92vw)}.glos td:first-child{font:500 11.5px var(--mono);color:var(--ac);white-space:nowrap}
+#toasts{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;z-index:200;align-items:center}
+.toast{background:var(--text);color:var(--bg);padding:9px 18px;border-radius:3px;font-size:12px;box-shadow:0 12px 40px rgba(0,0,0,.4);animation:rise .25s ease}
+.capbar{display:grid;grid-template-columns:150px 1fr 80px;gap:12px;align-items:center;margin:8px 0;font-size:12px}
+.capbar i{height:3px;background:var(--line2);position:relative}.capbar i::after{content:"";position:absolute;inset:0;width:var(--w);background:var(--k,var(--gr))}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{50%{opacity:.45}}
+@keyframes breath{50%{opacity:.55;transform:scale(.82)}}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+body.noleft #main{grid-template-columns:60px 1fr 380px}
+body.noleft #left{padding:12px 0;display:flex;flex-direction:column;align-items:center;gap:14px;overflow:hidden auto}
+#left .mini{flex-direction:column;margin:0;gap:12px;align-items:center}
+.lt{font:600 10px var(--mono);letter-spacing:0;text-transform:none;color:var(--mut);border:1px solid var(--line2);border-radius:5px;padding:2px 8px}
+.lt:hover{color:var(--text);border-color:var(--ac)}
+.lstat{font:600 10px/1.3 var(--mono);color:var(--mut);text-align:center;margin-top:auto}
+.chd{display:flex;align-items:center;gap:14px}
+.mini{display:flex;gap:8px;margin-left:auto}
+.mini button{position:relative;border-radius:50%;line-height:0}
+.mini .cur{outline:2px solid var(--ac);outline-offset:2px}
+.mini .wt::after{content:"";position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:var(--am);border:2px solid var(--bg);animation:pulse 1.2s infinite}
+.arted{min-height:52vh;font-size:12px;line-height:1.6;resize:vertical;margin:10px 0}
+.artv.ai{grid-template-columns:1fr 370px}
+.aic{display:flex;flex-direction:column;gap:10px;min-height:62vh}
+.aih{display:flex;gap:10px;align-items:center}
+.ail{flex:1;overflow:auto;display:flex;flex-direction:column;gap:8px;max-height:44vh}
+.aim{padding:8px 10px;border:1px solid var(--line2);border-radius:3px;font-size:12px;line-height:1.5}
+.aim.me{align-self:flex-end;background:color-mix(in srgb,var(--ac) 14%,transparent)}
+.aic .sug{font-size:10.5px;padding:4px 8px}
+.dif{margin-top:6px;font:10.5px/1.6 var(--mono)}.dif .ad{color:var(--gr)}.dif .dl{color:var(--rd);text-decoration:line-through}
+button.log{display:block;width:100%;text-align:left}button.log[data-act]:hover{color:var(--text)}
+.mh .role{margin-left:6px;vertical-align:middle}
+
+/* ===== light-mode contrast pass ===== */
+:root[data-theme=light] .card,:root[data-theme=light] .runc,:root[data-theme=light] .gatec,:root[data-theme=light] .gapc,:root[data-theme=light] .ivc,:root[data-theme=light] .sk,:root[data-theme=light] .access,:root[data-theme=light] .stat{box-shadow:0 1px 2px rgba(20,28,56,.08),0 4px 14px rgba(20,28,56,.05)}
+:root[data-theme=light] .row.ghost,:root[data-theme=light] .sk.off{opacity:.66}
+:root[data-theme=light] .st.skipped{opacity:.6}
+:root[data-theme=light] #rail .gov.off{opacity:.65}
+:root[data-theme=light] .chip{background:color-mix(in srgb,currentColor 10%,#fff)}
+:root[data-theme=light] .chip.cleared{background:color-mix(in srgb,var(--gr) 14%,#fff)}
+:root[data-theme=light] input,:root[data-theme=light] textarea,:root[data-theme=light] select{background:#fff;border-color:var(--line2)}
+:root[data-theme=light] ::placeholder{color:var(--dim);opacity:1}
+:root[data-theme=light] .note{background:color-mix(in srgb,var(--am) 14%,#fff)}
+:root[data-theme=light] .note.ok{background:color-mix(in srgb,var(--gr) 13%,#fff)}
+:root[data-theme=light] .banner.me{background:color-mix(in srgb,var(--am) 15%,#fff)}
+:root[data-theme=light] .st.todo .hd{color:var(--soft)}
+:root[data-theme=light] .dif .ad{color:var(--t-po)}
+:root[data-theme=light]{--gr:#236b49;--am:#855808;--rd:#a23f33}
+:root[data-theme=light] .av{color:color-mix(in srgb,var(--c) 45%,#000);border-color:color-mix(in srgb,var(--c) 60%,#000);background:color-mix(in srgb,var(--c) 16%,#fff)}
+:root[data-theme=light] .st{border-top-color:var(--line2)}
+:root[data-theme=light] .st.done,:root[data-theme=light] .st.active{border-top-color:var(--ac)}
+:root[data-theme=light] .st .dots i{background:rgba(30,28,22,.26)}
+:root[data-theme=light] .st .dots i.d{background:var(--ac)}
+:root[data-theme=light] .bub{color:var(--text)}
+:root[data-theme=light] .guide{box-shadow:0 1px 2px rgba(20,28,56,.08),0 4px 14px rgba(20,28,56,.05)}
+
+/* ===== v4 · the v2 look with the journey running down the left edge ===== */
+body{grid-template-columns:272px 1fr;grid-template-rows:auto 1fr}
+#top{grid-column:1/-1}
+#rail{grid-column:1;grid-row:2;overflow:auto;padding:22px 16px 22px 24px;border-right:1px solid var(--line);border-bottom:0}
+#main{grid-column:2;grid-row:2;grid-template-columns:250px 1fr 372px}
+body.noleft #main{grid-template-columns:60px 1fr 372px}
+#view{grid-column:1/-1;grid-row:2}
+.railgrid{display:flex;flex-direction:column;gap:0}
+.railgrid::before{content:"The journey";font:500 9.5px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-bottom:16px}
+.railgrid .st{width:100%;border-top:0;border-left:1px solid var(--line2);margin-left:4px;padding:0 8px 22px 22px;background:none}
+.railgrid .st::after{top:3px;left:-4px}
+.railgrid .st .ph{line-height:1.2}
+.railgrid .st .hd{white-space:normal;overflow:visible;font-size:16px;line-height:1.25;margin-top:3px}
+.railgrid .st.opt{border-left-style:dashed}
+.railgrid .st.done{border-left-color:var(--ac)}
+.railgrid .st.active{border-left-color:var(--ac);background:linear-gradient(90deg,color-mix(in srgb,var(--ac) 12%,transparent),transparent 80%)}
+.railgrid .st.active::before{top:0;right:8px}
+.railgrid .st.sel{background:var(--panel)}
+.legend{order:98;margin-top:14px;gap:6px 12px}
+#rail .gov{order:99;flex-wrap:wrap;gap:6px;margin-top:14px;padding:10px 12px;line-height:1.5}
+#rail .gov .sp{display:none}
+:root[data-theme=light] .railgrid .st{border-left-color:var(--line2)}
+:root[data-theme=light] .railgrid .st.done,:root[data-theme=light] .railgrid .st.active{border-left-color:var(--ac)}
+
+/* ===== section separation + minimizable side panels ===== */
+body{--gap:10px;--sr:4px;--lw:250px;--rw:372px}
+body.noleft{--lw:60px}body.noright{--rw:50px}
+body #main,body.noleft #main{grid-template-columns:var(--lw) minmax(0,1fr) var(--rw);gap:var(--gap);padding:var(--gap)}
+#rail,#left,#center,#right{border:1px solid var(--line2);border-radius:var(--sr)}
+#rail,#left,#right{background:var(--panel)}
+#center{background:var(--card2);overflow:hidden}
+#rail{margin:var(--gap) 0 var(--gap) var(--gap)}
+:root[data-theme=light] #rail,:root[data-theme=light] #left,:root[data-theme=light] #center,:root[data-theme=light] #right{box-shadow:0 1px 3px rgba(20,28,56,.09),0 6px 18px rgba(20,28,56,.05);background:#fff}
+:root[data-theme=light] #center{background:var(--card2)}
+.sech{display:flex;justify-content:space-between;align-items:center;font:600 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.railmin{display:flex;align-items:center;gap:14px}
+.rm-steps{display:flex;gap:7px;align-items:center}
+.rm{width:28px;height:28px;border-radius:50%;border:1px solid var(--line2);font:600 10px var(--mono);color:var(--mut);flex:none}
+.rm.done{background:var(--gr);border-color:var(--gr);color:var(--on-ac)}
+.rm.active{border-color:var(--ac);color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 26%,transparent)}
+.rm.skipped{opacity:.4}
+.rm-cur{font-size:12px;color:var(--mut)}.rm-cur b{color:var(--text)}
+body.noright #right{padding:0}
+.rmin{display:flex;flex-direction:column;align-items:center;gap:12px;padding:12px 0;width:100%}
+.vt{writing-mode:vertical-rl;font:600 10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mut);padding:10px 4px;border-radius:6px;white-space:nowrap}
+.vt:hover{color:var(--text)}.vt.on{color:var(--ac)}
+.menu{max-height:74vh;overflow:auto}
+body.norail{grid-template-columns:66px 1fr}
+body.norail #rail{padding:12px 0}
+body.norail .railmin,body.norail .rm-steps{flex-direction:column}
+body.norail .rm-cur,body.norail .railmin .chip,body.norail .xl{display:none}
+.railgrid::before{display:none}
+
+/* ===== v4 refinement: tight gutters, darker backdrop, darker side panels, boxed workflow stages ===== */
+body{--gap:6px;--backdrop:color-mix(in srgb,var(--bg) 45%,#000);--side:color-mix(in srgb,var(--panel) 62%,#000)}
+:root[data-theme=light] body{--backdrop:color-mix(in srgb,var(--bg) 86%,var(--text));--side:color-mix(in srgb,var(--bg) 78%,#fff)}
+body::before{background:radial-gradient(1100px 420px at 50% -160px,color-mix(in srgb,var(--ac) 10%,transparent),transparent 70%),var(--backdrop)}
+body::after{display:none}
+#rail,#left,#right{background:var(--side);border-color:var(--line)}
+#center{background:var(--panel);border-color:var(--line2)}
+:root[data-theme=light] #rail,:root[data-theme=light] #left,:root[data-theme=light] #right{background:var(--side);border-color:var(--line);box-shadow:none}
+:root[data-theme=light] #center{background:#fff;border-color:var(--line2);box-shadow:0 2px 10px rgba(20,28,56,.1)}
+.railgrid .st:nth-of-type(7){border-left-color:transparent!important;padding-bottom:8px}
+.railgrid .st .gs:empty{display:none}
+.legend{border-top:1px solid var(--line);padding-top:12px;margin-top:6px}
+/* code-style typography */
+body.codefont{font-size:12.5px;letter-spacing:-.01em}
+body.codefont .brand{font-size:15px;font-weight:600}body.codefont .brand i{font-style:normal}
+body.codefont nav{gap:12px}body.codefont nav button{font-size:10.5px;letter-spacing:.04em}
+body.codefont .tb,body.codefont .dom{font-size:11px;padding-left:8px;padding-right:8px}
+body.codefont .st .hd{font-size:13.5px;font-weight:600}body.codefont .st .hd .n{font-style:normal}
+body.codefont .chd h2{font-size:17px;font-weight:600}
+body.codefont .rp h3,body.codefont .guide h4{font-size:15px;font-weight:600}
+body.codefont .agent b,body.codefont .gatec .rh b{font-size:13.5px;font-weight:600}
+body.codefont .gatec .gq,body.codefont .doc blockquote,body.codefont .typing{font-style:normal;font-size:12.5px}
+body.codefont .stat b{font-size:21px}
+body.codefont .vh h1{font-size:22px;font-weight:600}body.codefont .doc h1{font-size:19px;font-weight:600}
+body.codefont .scol h4{font-size:12px}body.codefont .scol h4 span{font-style:normal}
+body.codefont .bub{font-size:12.5px}body.codefont .doc p,body.codefont .doc ul{font-size:12.5px}
+body.codefont .mod .mh h3{font-size:14px}
+body.codefont #top{gap:6px;padding-left:14px;padding-right:14px}
+@media (max-width:1420px){body.codefont nav{gap:9px;margin:0 2px 0 4px}body.codefont nav button{font-size:10px;letter-spacing:0}body.codefont .tb,body.codefont .dom{font-size:10.5px;padding-left:6px;padding-right:6px;gap:4px}body.codefont .brand{font-size:14px;gap:8px}}
+.rm.sel{outline:2px solid var(--ac);outline-offset:3px}
+
+/* ===== top bar: segmented views + agent dropdown ===== */
+body nav,body.codefont nav{gap:0;margin:0 4px 0 10px;border:1px solid var(--line2);border-radius:3px;overflow:hidden;background:var(--panel)}
+body nav button,body.codefont nav button{padding:7px 13px;border-bottom:0;border-left:1px solid var(--line2);color:var(--mut)}
+nav button:first-child{border-left:0}
+nav button:hover{color:var(--text);background:var(--line)}
+body nav button.on{background:color-mix(in srgb,var(--ac) 20%,var(--panel));color:var(--text);box-shadow:inset 0 -2px 0 var(--ac)}
+.vsep{width:1px;height:26px;background:var(--line2);margin:0 6px;flex:none}
+.agentdd{gap:8px;padding-top:7px;padding-bottom:7px}
+.agentdd .lbl{font:500 9px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.agentdd b{color:var(--text);font-weight:600}
+.dd{width:7px;height:7px;transform:rotate(45deg);display:inline-block;flex:none}
+.agentdd .pend{position:absolute;top:-4px;right:-4px;width:9px;height:9px;border-radius:50%;background:var(--am);border:2px solid var(--bg);animation:pulse 1.4s infinite}
+.menu.left{left:0;right:auto;width:300px}
+.menu .mi.cur{background:color-mix(in srgb,var(--ac) 12%,transparent)}
+.menu .mi small.wt{color:var(--am)}
+:root[data-theme=light] nav{background:#fff}
+
+/* minimized workflow dots: palette accent instead of green */
+.rm.done{background:color-mix(in srgb,var(--ac) 16%,transparent);border-color:color-mix(in srgb,var(--ac) 70%,transparent);color:var(--ac)}
+.rm.active{background:var(--ac);border-color:var(--ac);color:var(--on-ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 26%,transparent)}
+.rm.sel{outline:1px solid var(--text);outline-offset:4px}
+.rm.active.sel{outline:none}
+
+/* ===== v5: sans-serif heading treatment ===== */
+body.sanshead .brand{font-weight:600}body.sanshead .brand i{font-style:normal}
+body.sanshead .st .hd{font-size:14.5px;font-weight:600}body.sanshead .st .hd .n{font-style:normal}
+body.sanshead .chd h2{font-size:20px;font-weight:600;letter-spacing:-.015em}
+body.sanshead .rp h3{font-size:18px;font-weight:600;letter-spacing:-.01em}
+body.sanshead .guide h4{font-size:15.5px;font-weight:600}
+body.sanshead .agent b,body.sanshead .gatec .rh b{font-size:14px;font-weight:600}
+body.sanshead .gatec .gq,body.sanshead .doc blockquote,body.sanshead .typing{font-style:normal;font-size:13.5px}
+body.sanshead .stat b{font-weight:500}
+body.sanshead .vh h1{font-size:26px;font-weight:600;letter-spacing:-.02em}body.sanshead .doc h1{font-size:22px;font-weight:600}
+body.sanshead .scol h4{font-weight:600}body.sanshead .scol h4 span{font-style:normal}
+body.sanshead .mod .mh h3{font-weight:600;font-size:15px}
+
+/* ===== animated Neuro mark ===== */
+.nlogo{width:34px;height:34px;flex:none;overflow:visible}
+.nlogo *{transform-origin:20px 20px;transform-box:view-box}
+.nlogo .ring{fill:none;stroke:var(--ac);stroke-width:1;stroke-dasharray:3 5;opacity:.75;animation:spin 18s linear infinite}
+.nlogo .ring2{fill:color-mix(in srgb,var(--ac) 9%,transparent);stroke:color-mix(in srgb,var(--ac) 45%,transparent);stroke-width:.8}
+.nlogo .links path{fill:none;stroke:var(--ac2);stroke-width:1.1;stroke-linecap:round;stroke-dasharray:3 9;animation:nflow 1.8s linear infinite}
+.nlogo .links path:nth-child(2){animation-delay:-.6s}.nlogo .links path:nth-child(3){animation-delay:-1.2s}
+.nlogo .orbit{animation:spin 9s linear infinite reverse}
+.nlogo .links{animation:spin 9s linear infinite reverse}
+.nlogo .orbit circle{fill:var(--bg);stroke:var(--ac);stroke-width:1.2}
+.nlogo .core{fill:var(--ac);animation:ncore 2.6s ease-in-out infinite}
+.brand:hover .nlogo .orbit,.brand:hover .nlogo .links{animation-duration:2.5s}
+@keyframes nflow{to{stroke-dashoffset:-12}}
+@keyframes ncore{0%,100%{transform:scale(.8);opacity:.85}50%{transform:scale(1.15);opacity:1}}
+body nav,body.codefont nav{flex:none}
+body.sanshead #top{gap:6px;padding-left:14px;padding-right:14px}
+@media (max-width:1420px){body.sanshead nav button{padding:7px 9px;font-size:10.5px;letter-spacing:.03em}body.sanshead .tb{font-size:11.5px;padding-left:7px;padding-right:7px;gap:5px}body.sanshead .brand{font-size:15px;gap:8px}body.sanshead .vsep{margin:0 2px}}
+
+/* ===== room pet ===== */
+#center{position:relative}
+#pet{position:absolute;right:26px;z-index:6;width:46px;height:46px;padding:0;line-height:0}
+#pet svg{width:46px;height:46px;overflow:visible;animation:petbob 3.2s ease-in-out infinite;transform-origin:50% 100%}
+#pet .pb{fill:var(--panel);stroke:var(--ac);stroke-width:1.6;stroke-linejoin:round}
+#pet .pl{fill:none;stroke:var(--ac);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+#pet .pl.thin{stroke-width:.9;opacity:.7}
+#pet .eye{fill:var(--ac);transform-box:fill-box;transform-origin:center;animation:petblink 4.5s infinite}
+#pet .ant{fill:var(--ac2);stroke:none;transform-box:fill-box;transform-origin:center;animation:pulse 1.6s infinite}
+#pet .tail{transform-box:fill-box;transform-origin:0 100%;animation:petwag 1.8s ease-in-out infinite}
+#pet.work svg{animation:petbob .5s ease-in-out infinite}
+#pet.work .ant{animation:pulse .35s infinite}
+#pet.alert svg{animation:petalert .9s ease-in-out infinite}
+#pet.wait .eye{animation:petlook 3s ease-in-out infinite}
+#pet.party svg{animation:petparty .8s ease-in-out infinite}
+#pet.hop svg{animation:pethop .5s ease-out 2}
+.psay{position:absolute;right:54px;bottom:16px;white-space:nowrap;font:500 11px/1.3 var(--sans);color:var(--text);background:var(--solid);border:1px solid var(--ac);border-radius:10px 10px 2px 10px;padding:6px 10px;box-shadow:0 6px 20px rgba(0,0,0,.3);animation:rise .25s ease}
+.petmi svg{width:30px;height:30px;overflow:visible}
+.petmi .pb{fill:none;stroke:var(--ac);stroke-width:1.8}.petmi .pl{fill:none;stroke:var(--ac);stroke-width:1.6}.petmi .eye,.petmi .ant{fill:var(--ac)}
+@keyframes petbob{50%{transform:translateY(-3px)}}
+@keyframes petblink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+@keyframes petwag{50%{transform:rotate(-16deg)}}
+@keyframes petalert{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-7px) rotate(-5deg)}75%{transform:translateY(-7px) rotate(5deg)}}
+@keyframes petlook{0%,100%{transform:translateX(0)}30%{transform:translateX(-1.6px)}70%{transform:translateX(1.6px)}}
+@keyframes petparty{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-10px) rotate(8deg)}}
+@keyframes pethop{50%{transform:translateY(-12px)}}
+
+/* ===== slash command menu ===== */
+#slash{position:absolute;left:26px;z-index:8;width:360px;background:var(--solid);border:1px solid var(--line2);border-radius:4px;box-shadow:0 18px 50px rgba(0,0,0,.4);padding:4px;animation:rise .15s ease}
+#slash .sh{font:500 9.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);padding:7px 9px 5px;display:flex;gap:8px;align-items:center}
+#slash .sh button{color:var(--ac);font:inherit;letter-spacing:.06em}
+#slash .si{display:flex;gap:10px;align-items:baseline;width:100%;text-align:left;padding:7px 9px;border-radius:3px}
+#slash .si b{font:600 12px var(--mono);min-width:76px}
+#slash .si small{color:var(--mut);font-size:11.5px}
+#slash .si .r{margin-left:auto;color:var(--ac);font:500 10.5px var(--mono);white-space:nowrap}
+#slash .si.on,#slash button.si:hover{background:color-mix(in srgb,var(--ac) 14%,transparent)}
+#slash .sf{font:500 9.5px var(--mono);color:var(--dim);padding:6px 9px 5px;border-top:1px solid var(--line);margin-top:4px}
+.sug.slashb{margin-left:auto;font-family:var(--mono);font-size:10.5px}
+.skact{display:flex;gap:6px;margin:10px 0 2px;flex-wrap:wrap}
+button.row{cursor:pointer}
+.mb .note .btn{padding:4px 10px;font-size:11px}
+
+/* ===== output contract UI ===== */
+.outs{display:flex;flex-direction:column;gap:5px}
+.orow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:8px 10px;border:1px solid var(--line2);border-left:2px solid var(--ac);border-radius:3px;background:var(--card2)}
+.orow:hover{background:color-mix(in srgb,var(--ac) 10%,transparent)}
+.orow b{font-weight:500;font-size:12px}.orow small{color:var(--mut);font-size:11px}
+.orow .r{margin-left:auto;color:var(--ac);font:500 10.5px var(--mono);white-space:nowrap}
+.srow{display:grid;grid-template-columns:18px 1fr 1.5fr auto auto auto;gap:6px;align-items:center;margin:5px 0}
+.srow .mono{color:var(--dim);font-size:11px}
+.tprev{border:1px solid var(--line2);border-radius:3px;padding:14px 18px;max-height:300px;overflow:auto;background:var(--card2)}
+.tprev h1{font-size:18px!important}
+.contract{margin-top:9px;font:500 10.5px var(--mono);color:var(--gr)}.contract.bad{color:var(--am)}
+.ck{font-size:11.5px;color:var(--t-po);margin-top:3px}.ck.bad{color:var(--am)}
+</style>
+</head>
+<body>
+<header id="top"></header>
+<section id="rail"></section>
+<main id="main">
+  <aside class="col" id="left"></aside>
+  <section id="center">
+    <div id="chdr"></div>
+    <div id="chat"></div>
+    <div class="typing" id="typing"></div>
+    <div id="comp"></div>
+  </section>
+  <aside id="right"></aside>
+</main>
+<section id="view"></section>
+<div id="modal" data-act="bgClose"></div>
+<div id="toasts"></div>
+
+<script>
+/* ============================================================
+   Neuro Squad Room — interactive mock. Everything is simulated
+   in the browser; no network calls are made.
+   ============================================================ */
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmtT=t=>new Date(t).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+const hash=s=>{let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return (h>>>0).toString(16).padStart(8,'0')};
+
+/* ---------- people ---------- */
+const PEOPLE={
+  po:{name:'Priya Raman',abbr:'PO',role:'Product Owner',c:'#86c2a0',ini:'PR'},
+  pl:{name:'Marcus Chen',abbr:'PL',role:'Product Leader',c:'#8fa9cf',ini:'MC'},
+  ar:{name:'Elena Petrova',abbr:'AR',role:'Architect',c:'#a79bd0',ini:'EP'},
+  eng:{name:'Dev Okafor',abbr:'ENG-L',role:'Engineering Lead',c:'#b3aea3',ini:'DO'},
+  ux:{name:'Sofia Marin',abbr:'UX',role:'Design Lead',c:'#c99ab0',ini:'SM'}
+};
+
+/* ---------- stages (from the workflow screenshots) ---------- */
+const STAGES=[
+ {id:'s1',num:'1',title:'Intake & Ideation',phase:'Decide',adv:'COS ≥ 70',inputs:'A raw idea, stakeholder request, or external signal (unstructured is fine); optional sources/ material.'},
+ {id:'s2',num:'2',title:'Product Strategy',phase:'Decide',opt:true,adv:'V&M + pillars',inputs:'A scoped idea/proposal; optional prior strategy docs / market intel.'},
+ {id:'s3',num:'3',title:'Project Initiation',phase:'Define',inputs:'Idea/proposal · intake type classified (A/B/C/D) · relevant sources/ material · discovery interview answers · an existing Working Hub project + key (PO-created).'},
+ {id:'s4',num:'4',title:'Refine & Design',phase:'Refine',inputs:'GW-I1 + GW-I2 already cleared · deliverables-list.md · initiative-arch-assessment.md (L2 architecture) · the ACD registry, re-queried for drift.'},
+ {id:'s45',num:'4.5',title:'Construct',phase:'Build',inputs:'GW-RD1 + GW-RD2 already cleared · ENG-L role assigned.'},
+ {id:'s5',num:'5',title:'PI Planning',phase:'Build',inputs:'Epics from Stage 4 (post Working Hub→Jira sync) · PI milestone dates · team velocity baseline.'},
+ {id:'s6',num:'6',title:'Communication & Publication',phase:'Launch',inputs:'Whatever\'s actually cleared upstream — Stage 2 strategy, Stage 5 PI readiness report, or both.'}
+];
+const stageIdx=id=>STAGES.findIndex(s=>s.id===id);
+
+const GATES={
+ 'GW-I1':{stage:'s3',approvers:['pl'],cls:'pl',name:'Ideation Gate 1',q:'Is the intent defined well enough to start shaping deliverables?',files:['solution_intent','deliverables_list'],
+   checks:['NFRs captured (hard gate at GW-I1)','SRC-IDs cited inline in governance artifacts','Deliverables registered as Working Hub entities','Separation of duties: approver ≠ author']},
+ 'GW-I2':{stage:'s3',approvers:['po'],cls:'po',name:'Ideation Gate 2',q:'Has architecture assessed the intent before design work begins?',files:['arch_assessment','l1_arch'],
+   checks:['Initiative architecture assessment authored by AR','L1 architecture attached (condition — architecturally significant)','Impacted SEALs resolved against Knowledge Hub','Separation of duties: approver ≠ author']},
+ 'GW-RD1':{stage:'s4',approvers:['pl'],cls:'pl',name:'Refine-and-Design Gate 1',q:'Is the deliverable decomposed and described well enough to break into epics?',files:['functional_deliverable','epic_list'],
+   checks:['Business Acceptance Criteria present (Grade A eligible)','ACD registry re-queried — drift reconciled','Epic list registered as Working Hub entities','Separation of duties: approver ≠ author']},
+ 'GW-RD2':{stage:'s4',approvers:['pl'],cls:'pl',name:'Refine-and-Design Gate 2',q:'Is each epic specified well enough to build?',files:['epics'],
+   checks:['epic-quality: every epic graded B or above','Acceptance criteria traceable to BAC','SIF label applied for Jira publication','Separation of duties: approver ≠ author']},
+ 'GW-B1':{stage:'s45',approvers:['eng'],cls:'eng',commit:true,name:'Construct Gate 1',q:'Is there a plan for how the epic will actually be built?',files:['impl_plan'],
+   checks:['implementation-plan.md authored by ENG-L','Closes on commit — no separate approval']},
+ 'EXIT':{stage:'s6',approvers:['po','pl'],cls:'dual',name:'Pilot exit sign-off',q:'Are PO and PL both satisfied the pilot can exit?',files:['pilot_exit'],
+   checks:['Confluence pages published','Executive readout opens with a BLUF','Dual sign-off: PO + PL']}
+};
+const BASE_CHAIN=['intake-builder','ideation-flow','product-value-model','product-strategy','executive-communication','project-initiation','app-context-discovery','governance-readiness','@GW-I1','arch-assessment','l1-architecture','@GW-I2','functional-deliverable','experience-flow','@GW-RD1','epic-authoring','epic-quality','@GW-RD2','implementation-planner','@GW-B1','pi-planning','executive-readout','confluence-publisher','@EXIT'];
+
+/* ---------- domains & agents ---------- */
+const SP='https://sharepoint.example.com/sites/';
+const DOMAINS={
+ pbi:{name:'Payment Brand Implementations',short:'PBI',agent:'PBI Agent',c:'#c9a66b',c2:'#e6d3ac',cL:'#8a6a2f',c2L:'#b08d4f',steward:'pl',
+  initiative:'Brand Release 26.2 — Enhanced Merchant Data in Authorization',slug:'brand_release_26_2',key:'PBI-2026-112',intakeType:'B — external mandate',
+  idea:'The card brands published a technical bulletin: enhanced merchant descriptor and sub-merchant data become mandatory in authorization messages. We need this implemented across every acquiring platform before the enforcement date, or we start taking non-compliance assessments.',
+  problem:'Authorization messages do not carry the enhanced merchant data fields the brands will enforce.',who:'All acquiring merchants; payment facilitators most exposed.',
+  outcome:'100% of authorizations carry compliant merchant data ahead of brand enforcement.',urgency:'Brand-enforced date — immovable.',
+  apps:['Brand Gateway','Auth Switch','Clearing Engine','Merchant Profile Service'],seal:'Merchant Data Enrichment Service (new SEAL)',
+  nfr:'p99 auth latency +≤ 3 ms · 99.99% availability · no PAN in logs',risk:'Brand certification window is shared with two other releases.',
+  deliverables:['Authorization message field expansion','Merchant data enrichment service','Brand certification pack','Client comms & readiness'],
+  epics:['Extend ISO 8583 mapping for enhanced merchant data','Merchant data enrichment API','Clearing file format alignment','Brand certification test harness','Client readiness dashboard'],
+  cos:86,cosParts:[['Strategic fit',90],['Client value',78],['Feasibility',84],['Urgency',95]],pillars:['Compliance by default','Zero client disruption','Certify once, reuse everywhere'],
+  gap:{key:'intake',label:'Brand technical bulletin — Release 26.2',url:SP+'PBI/Shared%20Documents/Brand-Release-26.2-Technical-Bulletin.pdf',q:'“Release 26.2 enhanced merchant data”'},
+  inserts:[{after:'intake-builder',id:'brand-mandate-parser'},{after:'app-context-discovery',id:'compliance-impact-matrix'}],
+  extra:[
+   {id:'brand-mandate-parser',stage:'s1',role:'po',desc:'Parses brand bulletins into clause-level requirements with effective dates.',needs:[{via:'sp',label:'Brand bulletin'}],outs:['mandate_matrix'],trace:['Extracting 31 mandate clauses','Classifying: 9 required · 4 conditional · 18 informational']},
+   {id:'compliance-impact-matrix',stage:'s3',role:'po',desc:'Maps each mandate clause to the applications and message fields it touches.',needs:[{via:'kh',label:'Message specs & field dictionaries'}],outs:['compliance_impact'],trace:['Joining clauses × application registry','Scoring certification effort per brand']}]},
+ pricing:{name:'Pricing',short:'Pricing',agent:'Pricing Agent',c:'#cf9478',c2:'#e8c8b6',cL:'#9a5a3c',c2L:'#b9785a',steward:'pl',
+  initiative:'Dynamic Interchange-Plus Repricing Engine',slug:'ic_plus_repricing',key:'PRC-2026-087',intakeType:'A — strategic idea',
+  idea:'Interchange tables change twice a year and repricing merchants is a manual, multi-week exercise. Proposal: a rules-driven repricing engine that re-rates portfolios automatically when the tables move.',
+  problem:'Repricing after interchange changes is manual and takes weeks, leaking margin in between.',who:'Mid-market interchange-plus merchants; pricing analysts.',
+  outcome:'Portfolios are re-rated within 48 hours of a table change, with margin guardrails.',urgency:'Next interchange table update.',
+  apps:['Pricing Engine','Fee Schedule Store','Billing Ledger','Merchant Statement Service'],seal:'Pricing Rules Service (existing SEAL, new capability)',
+  nfr:'Re-rate 2M merchants in < 4 h · full audit trail per fee change · SOX controls',risk:'Statement changes need client notice periods.',
+  deliverables:['Rules-based repricing engine','Fee schedule versioning','Statement transparency update','Margin guardrail alerts'],
+  epics:['Repricing rules DSL & evaluator','Versioned fee schedule store','Bulk re-rate orchestration','Statement line-item transparency','Margin guardrail alerting'],
+  cos:78,cosParts:[['Strategic fit',82],['Client value',70],['Feasibility',74],['Urgency',85]],pillars:['Price with precision','Transparent to the merchant','Every change auditable'],
+  gap:{key:'intake',label:'Interchange rate tables — current cycle',url:SP+'Pricing/Shared%20Documents/Interchange-Rate-Tables.xlsx',q:'“current interchange rate tables”'},
+  inserts:[{after:'ideation-flow',id:'interchange-impact-model'},{after:'functional-deliverable',id:'fee-schedule-diff'}],
+  extra:[
+   {id:'interchange-impact-model',stage:'s1',role:'po',desc:'Models margin impact of interchange table changes across merchant segments.',needs:[{via:'sp',label:'Interchange rate tables'}],outs:['ic_impact'],trace:['Loading 412 interchange categories','Simulating margin delta across 6 segments']},
+   {id:'fee-schedule-diff',stage:'s4',role:'po',desc:'Diffs proposed fee schedules against the live schedule and flags notice-period triggers.',needs:[{via:'kh',label:'Live fee schedules'}],outs:['fee_diff'],trace:['Diffing 3 schedule versions','Flagging 2 changes that trigger client notice']}]},
+ vault:{name:'Vault',short:'Vault',agent:'Vault Agent',c:'#7fb9ad',c2:'#b9dcd3',cL:'#2f7568',c2L:'#4d9486',steward:'ar',
+  initiative:'Network Token Lifecycle Management for Vault',slug:'network_token_lifecycle',key:'VLT-2026-031',intakeType:'A — strategic idea',
+  idea:'Card-on-file merchants keep losing approvals when cards are reissued. If Vault provisions network tokens and listens to lifecycle events, stored credentials stay fresh without the merchant doing anything.',
+  problem:'Stored PANs go stale on reissue, causing declines and involuntary churn.',who:'Card-on-file and subscription merchants.',
+  outcome:'Stored credentials refresh automatically; approval rates rise on recurring payments.',urgency:'Competitive parity; client escalations.',
+  apps:['Token Vault','Key Management Service','Card-on-File API','Lifecycle Event Bus'],seal:'Token Lifecycle Service (new SEAL)',
+  nfr:'PCI DSS scope unchanged or reduced · HSM-backed keys · 99.995% availability',risk:'Migration touches every stored credential.',
+  deliverables:['Network token provisioning','Lifecycle event ingestion','PAN-to-token migration','Cryptogram service hardening'],
+  epics:['Token provisioning adapter','Lifecycle event consumer','Bulk PAN-to-token migration','Cryptogram request API','Token health observability'],
+  cos:91,cosParts:[['Strategic fit',94],['Client value',92],['Feasibility',80],['Urgency',88]],pillars:['Credentials that never go stale','Shrink PCI scope','Invisible to the merchant'],
+  gap:{key:'intake',label:'PCI scope attestation — current year',url:SP+'Vault/Shared%20Documents/PCI-Scope-Attestation.pdf',q:'“Vault PCI scope attestation”'},
+  inserts:[{after:'arch-assessment',id:'pci-scope-analyzer'},{after:'implementation-planner',id:'token-migration-planner'}],
+  extra:[
+   {id:'pci-scope-analyzer',stage:'s3',role:'ar',desc:'Evaluates how the proposed design changes PCI DSS scope, component by component.',needs:[{via:'sp',label:'PCI scope attestation'},{via:'kh',label:'Data-flow diagrams'}],outs:['pci_scope'],trace:['Tracing cardholder-data flows across 4 applications','Scope delta: 2 components leave scope']},
+   {id:'token-migration-planner',stage:'s45',role:'eng',desc:'Plans phased PAN-to-token migration waves with rollback points.',needs:[{via:'kh',label:'Vault capacity & runbooks'}],outs:['token_migration'],trace:['Sizing 5 migration waves','Placing rollback checkpoints per wave']}]}
+};
+const VELOCITY_GAP=d=>({key:'velocity',label:'Team velocity baseline — last 3 PIs',url:SP+d.short+'/Shared%20Documents/PI-Velocity-Baseline.xlsx',q:'“team velocity baseline”'});
+
+function coreSkills(d){return [
+ {id:'intake-builder',stage:'s1',role:'po',desc:'Turns an unstructured idea or signal into a structured intake and session brief.',needs:[{via:'kh',label:'Prior intakes & domain context'},{via:'sp',label:d.gap.label,gap:d.gap}],outs:['intake','session_brief'],trace:['Classifying intake type → '+d.intakeType]},
+ {id:'ideation-flow',stage:'s1',role:'po',desc:'Explores signals, maps the opportunity and screens options into a proposal.',needs:[{via:'kh',label:'Market & client signals'}],outs:['proposal','signals','opportunity_map','screening'],trace:['Clustering 14 signals into 3 opportunity areas','Screening 5 options → 1 recommended']},
+ {id:'product-value-model',stage:'s1',role:'po',desc:'Computes the Composite Opportunity Score and runs the Sanity Suite.',needs:[{via:'kh',label:'Value benchmarks'}],outs:['opportunity_score'],trace:['Scoring 4 COS dimensions','Running Sanity Suite (6 checks)'],card:'cos'},
+ {id:'product-strategy',stage:'s2',role:'po',desc:'Drafts vision & mission, strategy pillars and a roadmap.',needs:[{via:'kh',label:'Prior strategy docs / market intel'}],outs:['vision','strategy','roadmap'],trace:['Deriving 3 strategy pillars','Sequencing roadmap horizons']},
+ {id:'executive-communication',stage:'s2',role:'po',desc:'Produces a BLUF-first executive brief and review log.',needs:[],outs:['exec_brief','review_log'],trace:['Leading with the BLUF','Compressing to one page']},
+ {id:'project-initiation',stage:'s3',role:'po',interview:true,desc:'Runs the discovery interview (A–G + supplement) and authors solution intent and the deliverables list.',needs:[{via:'wh',label:'Working Hub project + key'},{via:'kh',label:'Stage 1–2 artifacts'}],outs:['solution_intent','deliverables_list','sources_md','project_identifiers'],trace:['Folding interview answers A–G into solution intent','Registering '+d.deliverables.length+' deliverables as Working Hub entities','Citing SRC-IDs inline']},
+ {id:'app-context-discovery',stage:'s3',role:'po',desc:'ACD — auto-queries Knowledge Hub for every application named at D.3.',needs:[{via:'kh',label:'Application registry'}],outs:['app_context'],trace:['Resolving '+d.apps.length+' named applications','Pulling owners, SEAL IDs and interfaces']},
+ {id:'governance-readiness',stage:'s3',role:'po',desc:'Stage 3f — assesses Risk Materiality / NPA / BAR readiness alongside Working Hub.',needs:[{via:'kh',label:'Change-governance policies'}],outs:['governance_readiness'],trace:['Checking RMC, NPA and BAR triggers']},
+ {id:'arch-assessment',stage:'s3',role:'ar',desc:'Authors the initiative architecture assessment from solution intent and ACD.',needs:[{via:'kh',label:'Architecture knowledge base'},{via:'wh',label:'solution-intent.md (approved)'}],outs:['arch_assessment'],trace:['Evaluating architectural significance','Identifying impacted SEALs']},
+ {id:'l1-architecture',stage:'s3',role:'ar',desc:'Drafts L1 architecture when the initiative is architecturally significant.',needs:[{via:'kh',label:'Reference architectures'}],outs:['l1_arch'],trace:['Composing L1 context & container views']},
+ {id:'functional-deliverable',stage:'s4',role:'po',desc:'Decomposes a deliverable into functional scope with BAC, and proposes the epic list.',needs:[{via:'wh',label:'deliverables-list.md'},{via:'kh',label:'ACD registry (re-query for drift)'}],outs:['functional_deliverable','epic_list'],trace:['Re-querying ACD registry for drift','Writing Business Acceptance Criteria','Proposing '+d.epics.length+' epics'],card:'drift'},
+ {id:'experience-flow',stage:'s4',role:'ux',desc:'Maps user journeys and experience principles for the deliverable.',needs:[{via:'kh',label:'Design system & research'}],outs:['experience_flow'],trace:['Mapping 3 primary journeys','Flagging 2 moments that need research']},
+ {id:'epic-authoring',stage:'s4',role:'po',desc:'Authors one epic.md per epic plus the authoring package; writes spec.md for new interfaces.',needs:[{via:'wh',label:'epic-list.md (approved)'}],outs:['epics','spec','epic_package'],trace:['Authoring '+d.epics.length+' epics with acceptance criteria','New interface detected → drafting spec.md']},
+ {id:'epic-quality',stage:'s4',role:'po',desc:'Grades each epic; missing BAC locks the grade at C max.',needs:[],outs:['epic_quality'],trace:['Grading '+d.epics.length+' epics','Verifying BAC traceability'],card:'grades'},
+ {id:'implementation-planner',stage:'s45',role:'eng',desc:'Helps ENG-L author implementation-plan.md for the approved epics.',needs:[{via:'jira',label:'Epics (Working Hub→Jira sync)'},{via:'kh',label:'Codebase & runbooks'}],outs:['impl_plan'],trace:['Sequencing work across '+d.apps.length+' applications','Identifying test & rollout strategy']},
+ {id:'pi-planning',stage:'s5',role:'po',desc:'Analyses capacity, coverage and confidence for the Program Increment.',needs:[{via:'jira',label:'Epics & PI milestone dates'},{via:'sp',label:'Team velocity baseline',gap:VELOCITY_GAP(d)}],outs:['pi_analytics','pi_capacity','pi_coverage','pi_confidence'],trace:['Loading velocity for 3 teams','Fitting epics to PI capacity','Computing confidence']},
+ {id:'executive-readout',name:'executive-communication',stage:'s6',role:'po',desc:'Executive readout / strategic brief, BLUF first.',needs:[{via:'wh',label:'Cleared upstream artifacts'}],outs:['exec_readout'],trace:['Drafting BLUF','Summarising PI readiness']},
+ {id:'confluence-publisher',stage:'s6',role:'po',desc:'Publishes strategy, PI readiness and initiative status pages.',needs:[{via:'conf',label:'Confluence space'}],outs:['confluence_pages'],trace:['Publishing 3 pages','Cross-linking Working Hub artifacts']}
+];}
+
+/* ---------- artifact definitions ---------- */
+const src=r=>r.sources[0]?` [${r.sources[0].id}]`:'';
+const tbl=(h,rows)=>['| '+h.join(' | ')+' |','|'+h.map(()=>'---').join('|')+'|',...rows.map(x=>'| '+x.join(' | ')+' |')].join('\n');
+const FILES={
+ intake:{name:d=>`intake_${d.slug}.md`,dest:'ev',note:'Stage 3g, once reached',body:(d,r)=>`# Intake — ${d.initiative}\n**Intake type:** ${d.intakeType} · **Project key:** \`${d.key}\`\n## Raw signal\n> ${d.idea}\n## Structured intake\n${tbl(['Field','Value'],[['Problem',d.problem],['Who is affected',d.who],['Desired outcome',d.outcome],['Urgency',d.urgency],['Evidence',d.gap.label+src(r)]])}\n## Open questions\n- Which applications are touched first?\n- What is the certification / rollout window?`},
+ session_brief:{name:()=>'session_brief.md',dest:'ev',note:'Stage 3g',body:(d,r)=>`# Session brief\n- **Initiative:** ${d.initiative}\n- **Squad:** ${Object.values(PEOPLE).map(p=>p.name+' ('+p.abbr+')').join(', ')}\n- **Agent:** ${d.agent}\n- **Sources loaded:** ${r.sources.map(s=>s.id).join(', ')||'none'}\n## Decisions so far\n- Intake classified as ${d.intakeType}\n- Proceed to ideation`},
+ mandate_matrix:{name:()=>'mandate-clause-matrix.md',dest:'local',body:(d,r)=>`# Mandate clause matrix\nParsed from the brand bulletin${src(r)}.\n${tbl(['Clause','Requirement','Type','Applies to'],[['4.1','Enhanced merchant descriptor in authorization','Required','All merchants'],['4.2','Sub-merchant identifier for payment facilitators','Required','PayFacs'],['4.5','Merchant street address field','Conditional','Card-not-present'],['6.3','Clearing record alignment','Required','All merchants'],['7.1','Brand certification before enforcement','Required','Acquirer']])}`},
+ proposal:{name:d=>`proposal_${d.slug}.md`,dest:'local',body:d=>`# Proposal — ${d.initiative}\n## Recommendation\n${d.outcome}\n## Why now\n- ${d.urgency}\n- ${d.problem}\n## Shape of the solution\n${d.deliverables.map(x=>'- '+x).join('\n')}\n## Key risk\n- ${d.risk}`},
+ signals:{name:()=>'signals.md',dest:'local',body:(d,r)=>`# Signals\n- External: ${d.gap.label}${src(r)}\n- Client: escalations referencing “${d.problem.toLowerCase()}”\n- Internal: operations effort trending up quarter over quarter\n- Competitive: peers have announced comparable capability`},
+ opportunity_map:{name:()=>'opportunity_map.md',dest:'local',body:d=>`# Opportunity map\n${tbl(['Opportunity area','Fit','Effort'],[[d.deliverables[0],'High','Medium'],[d.deliverables[1],'High','High'],[d.deliverables[3],'Medium','Low']])}`},
+ screening:{name:()=>'screening.md',dest:'local',body:d=>`# Screening\n${tbl(['Option','Verdict','Reason'],[['Do nothing','Rejected',d.urgency],['Tactical patch per platform','Rejected','Duplicates effort across '+d.apps.length+' applications'],['Platform capability (recommended)','Selected',d.outcome]])}`},
+ ic_impact:{name:()=>'interchange-impact-model.md',dest:'local',body:(d,r)=>`# Interchange impact model\nRate tables${src(r)} applied to the current portfolio mix.\n${tbl(['Segment','Margin today','After table change','Delta'],[['Retail mid-market','42 bps','37 bps','−5 bps'],['Restaurant','51 bps','48 bps','−3 bps'],['E-commerce','38 bps','30 bps','−8 bps'],['B2B','64 bps','66 bps','+2 bps']])}\n> Illustrative figures generated for this mock.`},
+ opportunity_score:{name:d=>`opportunity_score_${d.slug}.md`,dest:'local',body:d=>`# Opportunity score — COS ${d.cos}\n${tbl(['Dimension','Score'],d.cosParts.map(([a,b])=>[a,String(b)]))}\n## Sanity Suite\n- Problem is evidenced by a cited source ✓\n- Outcome is measurable ✓\n- No duplicate initiative in Working Hub ✓\n- Affected applications identified ✓\n- Regulatory exposure considered ✓\n- Value model assumptions stated ✓\n> COS ≥ 70 — clear to advance to Stage 2/3 (advisory).`},
+ vision:{name:()=>'vision-mission.md',dest:'local',body:d=>`# Vision & mission\n## Vision\n${d.outcome}\n## Mission\nGive every ${d.who.split(';')[0].toLowerCase()} this outcome without asking them to change how they integrate.\n## Pillars\n${d.pillars.map(x=>'- '+x).join('\n')}`},
+ strategy:{name:()=>'strategy-2026-10.md',dest:'local',body:d=>`# Strategy — 2026-10\n${d.pillars.map((p,i)=>`## Pillar ${i+1}: ${p}\n- Bet: ${d.deliverables[i]}\n- Measure: adoption and defect rate after release`).join('\n')}`},
+ roadmap:{name:()=>'roadmap-2026-10.md',dest:'local',body:d=>`# Roadmap — 2026-10\n## Horizons\n${tbl(['Horizon','Focus'],[['Now',d.deliverables[0]],['Next',d.deliverables[1]+' · '+d.deliverables[2]],['Later',d.deliverables[3]]])}`},
+ exec_brief:{name:()=>'executive-brief-2026-10.md',dest:'local',body:d=>`# Executive brief\n> **BLUF:** Approve ${d.initiative} to proceed to Project Initiation. COS ${d.cos}.\n## Why\n- ${d.problem}\n- ${d.urgency}\n## Ask\n- Confirm squad allocation for the next Program Increment`},
+ review_log:{name:()=>'review-log.md',dest:'local',body:()=>`# Review log\n${tbl(['Reviewer','Comment','Status'],[['Marcus Chen (PL)','Sharpen pillar 2 measure','Addressed'],['Elena Petrova (AR)','Call out new SEAL early','Addressed']])}`},
+ solution_intent:{name:()=>'solution-intent.md',dest:'gov',gate:'GW-I1',body:(d,r)=>{const a=r.interview?.answers||ivDefaults(d);return `# Solution intent — ${d.initiative}\n**Project key:** \`${d.key}\` · legacy term: BRD\n## A. Problem & outcome\n${a.A}${src(r)}\n## B. Users & clients\n${a.B}\n## C. Scope\n${a.C}\n## D. Applications\n${a.D}\n## E. Non-functional requirements\n${a.E}\n## F. Risks & governance\n${a.F}\n## G. Timeline\n${a.G}`}},
+ deliverables_list:{name:()=>'deliverables-list.md',dest:'gov',gate:'GW-I1',note:'registered entity',body:d=>`# Deliverables list\nLegacy term: FRD. Each row is a registered Working Hub entity.\n${tbl(['ID','Deliverable','Owner'],d.deliverables.map((x,i)=>[d.key+'-D'+(i+1),x,'PO']))}`},
+ sources_md:{name:()=>'SOURCES.md',dest:'ev',note:'Stage 3g',body:(d,r)=>`# SOURCES\n${tbl(['SRC-ID','Source','Ingested by','Scope'],r.sources.map(s=>[s.id,s.name,PEOPLE[s.by].name,s.scope]))}\n> SRC-IDs must be cited inline in governance artifacts.`},
+ project_identifiers:{name:()=>'project-identifiers.md',dest:'local',body:d=>`# Project identifiers\n- Working Hub key: \`${d.key}\`\n- Jira SIF label: \`SIF SI-2026-0${d.key.slice(-2)}\`\n- Domain: ${d.name}`},
+ app_context:{name:()=>'app-context-registry.md',dest:'ev',note:'Stage 3g',body:d=>`# Application context registry (ACD)\nAuto-queried from Knowledge Hub after D.3.\n${tbl(['Application','SEAL','Owner','Interfaces'],d.apps.map((a,i)=>[a,'SEAL-'+(88100+i*37),['Platform A','Platform B','Core Services','Data'][i%4],String(3+i)]))}`},
+ compliance_impact:{name:()=>'compliance-impact-matrix.md',dest:'ev',body:d=>`# Compliance impact matrix\n${tbl(['Clause',...d.apps],[['4.1','●','●','○','●'],['4.2','●','○','○','●'],['6.3','○','○','●','○'],['7.1','●','●','●','○']])}\n● change required · ○ no change`},
+ governance_readiness:{name:()=>'governance-readiness.md',dest:'local',body:d=>`# Governance readiness (Stage 3f)\nRuns alongside Working Hub — not a Working Hub gate, but go-live timing depends on it.\n${tbl(['Track','Trigger','Status'],[['Risk Materiality (RMC)','Change to production payment flow','Assessment opened'],['NPA','New product/capability?','Screening'],['BAR','Business architecture review','Not started']])}\n- Re-check at Stage 4 and Stage 5`},
+ arch_assessment:{name:()=>'initiative-arch-assessment.md',dest:'gov',gate:'GW-I2',body:d=>`# Initiative architecture assessment\n**Author:** ${PEOPLE.ar.name} (AR)\n## Significance\nArchitecturally significant — ${d.seal}.\n## Impacted applications\n${d.apps.map(a=>'- '+a).join('\n')}\n## Constraints (NFR)\n- ${d.nfr.split(' · ').join('\n- ')}\n## Recommendation\nProceed to design with L1 architecture attached.`},
+ pci_scope:{name:()=>'pci-scope-analysis.md',dest:'ev',body:(d,r)=>`# PCI scope analysis\nBaseline: attestation${src(r)}.\n${tbl(['Component','In scope today','After'],[['Card-on-File API','Yes','No — tokens only'],['Token Vault','Yes','Yes'],['Lifecycle Event Bus','No','No'],['Merchant batch store','Yes','No']])}\n> Net: 2 components leave PCI scope.`},
+ l1_arch:{name:()=>'L1-architecture.md',dest:'gov',gate:'GW-I2',note:'condition only',body:d=>`# L1 architecture\n## Context\n${d.apps[0]} → **${d.seal.split(' (')[0]}** → ${d.apps[1]} → ${d.apps[2]}\n## Containers\n${tbl(['Container','Responsibility'],[[d.seal.split(' (')[0],d.deliverables[1]],[d.apps[0],'Entry point, validation'],[d.apps[3],'System of record']])}\n## Key decisions\n- Event-driven integration between ${d.apps[1]} and ${d.apps[2]}\n- No new data store holding sensitive data`},
+ functional_deliverable:{name:()=>'functional-deliverable.md',dest:'gov',gate:'GW-RD1',body:d=>`# Functional deliverable — ${d.deliverables[0]}\n## Functional scope\n- ${d.problem}\n- Applies across: ${d.apps.join(', ')}\n## Business Acceptance Criteria (BAC)\n- BAC-1: ${d.outcome}\n- BAC-2: No regression in existing flows\n- BAC-3: ${d.nfr.split(' · ')[0]}\n## Out of scope\n- ${d.deliverables[3]} (separate deliverable)`},
+ epic_list:{name:()=>'epic-list.md',dest:'gov',gate:'GW-RD1',note:'registered entity',body:d=>`# Epic list\n${tbl(['Epic','Title','Application'],d.epics.map((e,i)=>[d.key+'-E'+(i+1),e,d.apps[i%d.apps.length]]))}`},
+ fee_diff:{name:()=>'fee-schedule-diff.md',dest:'local',body:()=>`# Fee schedule diff\n${tbl(['Line item','Live','Proposed','Notice required'],[['Assessment pass-through','0.13%','0.14%','No'],['Authorization fee','$0.05','$0.05','No'],['Markup — tier 2','0.30%','0.34%','Yes'],['Statement fee','$7.50','$5.00','Yes']])}`},
+ experience_flow:{name:()=>'experience-flow.md',dest:'local',body:d=>`# Experience flow\n**Author:** ${PEOPLE.ux.name} (UX)\n## Journeys\n- Merchant sees the change in reporting without a support call\n- Operations analyst resolves an exception in one screen\n- Client manager answers “what changed?” from the readiness dashboard\n## Principles\n${d.pillars.map(x=>'- '+x).join('\n')}`},
+ epics:{name:d=>`epic.md × ${d.epics.length}`,dest:'gov',gate:'GW-RD2',note:'registered entity',body:d=>`# Epics\n${d.epics.map((e,i)=>`## ${d.key}-E${i+1} — ${e}\n- **As** the ${d.apps[i%d.apps.length]} team **we need** ${e.toLowerCase()}\n- AC: traceable to BAC-${(i%3)+1}; automated regression passes\n- NFR: ${d.nfr.split(' · ')[i%3]}`).join('\n')}`},
+ spec:{name:()=>'spec.md',dest:'gov',note:'new interface — not a gate',body:d=>`# Interface spec\n## New contract surface\n\`POST /v1/${d.slug.replace(/_/g,'-')}/requests\`\n${tbl(['Field','Type','Required'],[['merchantId','string','yes'],['payload','object','yes'],['idempotencyKey','string','yes']])}\n- Errors follow the platform problem+json convention`},
+ epic_package:{name:()=>'EPIC_AUTHORING_PACKAGE.md',dest:'local',body:d=>`# Epic authoring package\n- ${d.epics.length} epics authored\n- Template: PDLC epic v3\n- SIF label applied for Jira publication`},
+ epic_quality:{name:()=>'epic-quality-report.md',dest:'local',body:d=>`# Epic quality report\n${tbl(['Epic','BAC','Grade'],d.epics.map((e,i)=>[e,'✓',i===2?'B':'A']))}\n> Missing BAC would lock a grade at C max — none missing.`},
+ impl_plan:{name:()=>'implementation-plan.md',dest:'gov',gate:'GW-B1',body:d=>`# Implementation plan\n**Author:** ${PEOPLE.eng.name} (ENG-L)\n## Sequence\n${d.epics.map((e,i)=>`- Sprint ${i+1}–${i+2}: ${e}`).join('\n')}\n## Test strategy\n- Contract tests on every changed interface\n- Shadow traffic before cut-over\n## Rollout\n- Feature-flagged, application by application: ${d.apps.join(' → ')}`},
+ token_migration:{name:()=>'token-migration-waves.md',dest:'local',body:()=>`# Token migration waves\n${tbl(['Wave','Cohort','Rollback point'],[['1','Internal test merchants','Full'],['2','1% of stored credentials','Full'],['3','10%','Per merchant'],['4','50%','Per merchant'],['5','Remainder','Per merchant']])}`},
+ pi_analytics:{name:()=>'PI-27.1-analytics.html',dest:'local',body:d=>`# PI 27.1 analytics\n- Epics in scope: ${d.epics.length}\n- Teams: 3\n- Point-in-time analysis — not a governance artifact`},
+ pi_capacity:{name:()=>'PI-27.1-capacity.html',dest:'local',body:(d,r)=>'<!raw><h1>PI 27.1 capacity</h1><p>Velocity baseline'+esc(src(r))+' against planned load.</p>'+[['Team Atlas',82],['Team Borealis',96],['Team Cygnus',68]].map(([t,p])=>`<div class="capbar"><span>${t}</span><i style="--w:${p}%;--k:${p>90?'var(--am)':'var(--gr)'}"></i><b>${p}% load</b></div>`).join('')+'<blockquote>Team Borealis is above 90% — consider moving one epic.</blockquote>'},
+ pi_coverage:{name:()=>'PI-27.1-coverage.html',dest:'local',body:d=>`# PI 27.1 coverage\n${tbl(['Deliverable','Epics planned','Coverage'],d.deliverables.map((x,i)=>[x,String(i===3?0:1+i%2),i===3?'Gap':'Covered']))}\n> Coverage gap on “${d.deliverables[3]}” routes back to Stage 4a/4b.`},
+ pi_confidence:{name:()=>'PI-27.1-confidence.html',dest:'local',body:()=>`# PI 27.1 confidence\n- Overall confidence: **4 / 5**\n- Largest risk: shared certification / release window\n- Dependency count: 6 (2 external)`},
+ exec_readout:{name:()=>'executive-readout.md',dest:'draft',body:d=>`# Executive readout\n> **BLUF:** ${d.initiative} is planned into PI 27.1 with confidence 4/5. One coverage gap is routed back to refinement; no decision needed today.\n## Status\n- Gates cleared: GW-I1, GW-I2, GW-RD1, GW-RD2, GW-B1\n- Governance track (3f): on plan\n## Next\n- Pilot exit sign-off (PO + PL)`},
+ confluence_pages:{name:()=>'Confluence: strategy · PI readiness · initiative status',dest:'pub',body:d=>`# Published Confluence pages\n- ${d.short} / Strategy 2026-10\n- ${d.short} / PI 27.1 readiness\n- ${d.short} / ${d.initiative} — status\n> Published via the Confluence MCP connection.`},
+ pilot_exit:{name:()=>'pilot-exit-signoff.md',dest:'rec',gate:'EXIT',body:d=>`# Pilot exit sign-off\n- Initiative: ${d.initiative}\n- Requires: PO + PL\n- Evidence: published Confluence pages, executive readout`}
+};
+const DEST={gov:'WH governed',ev:'WH evidence',local:'Local only',pub:'Published',draft:'Local draft',rec:'Local record'};
+const VIA={kh:'Knowledge Hub',wh:'Working Hub',jira:'Jira',conf:'Confluence',sp:'SharePoint'};
+const ivDefaults=d=>({A:`${d.problem} Outcome: ${d.outcome}`,B:d.who,C:d.deliverables.join('; ')+'.',D:d.apps.join(', ')+'.',E:d.nfr,F:d.risk+' Governance track 3f applies.',G:d.urgency+' Target: PI 27.1.'});
+const IV_LABELS={A:'A · Problem & outcome',B:'B · Users & clients',C:'C · Scope',D:'D · Applications (D.3)',E:'E · NFRs',F:'F · Risks & governance',G:'G · Timeline'};
+
+const GLOSSARY=[['PO','Product Owner','Drives ideation → delivery. Authors Working Hub artifacts.'],['PL','Product Leader','Gate approver role. Separation of duties applies — the approver must differ from the author.'],['AR','Architect','Architecture role at initiative level — authors the initiative architecture assessment.'],['DA','Domain Architect','Domain-level architecture role for architecturally significant initiatives.'],['L-AR','Lead Architect','Senior architecture approver role at deliverable level.'],['L-DA','Lead Domain Architect','Senior architecture approver role for epic-level domain design.'],['ENG-L','Engineering Lead','Authors the implementation plan during Construct.'],['WH','Working Hub','Governance platform. All initiative artifacts land here; also owns downstream Jira publication.'],['KH','Knowledge Hub','Architecture knowledge base, reached via kh-cli / kh-grounded-query during ACD.'],['GW','Gateway','A phase gate in Working Hub — a checkpoint that must be satisfied before the initiative progresses.'],['GW-I1','Ideation Gate 1','Is the intent defined well enough to start shaping deliverables?'],['GW-I2','Ideation Gate 2','Has architecture assessed the intent before design work begins?'],['GW-RD1','Refine-and-Design Gate 1','Is the deliverable decomposed and described well enough to break into epics?'],['GW-RD2','Refine-and-Design Gate 2','Is each epic specified well enough to build?'],['GW-B1','Construct Gate 1','Is there a plan for how the epic will actually be built?'],['COS','Composite Opportunity Score','Ideation scoring metric (0–100). COS ≥ 70 required to advance to Stage 2/3.'],['ACD','Application Context Discovery','Auto-query of Knowledge Hub for named applications after D.3 in the discovery interview.'],['BAC','Business Acceptance Criteria','Deliverable-level AC. Missing BAC locks the quality grade at C max.'],['PI','Program Increment','Quarterly delivery cycle (approx. 10 weeks). Epics are assigned a PI fix version.'],['PBR','Portfolio Backlog Review','3-phase deliverable-level ceremony to get deliverables to “Ready”. PBR3 required before PI commit.'],['PDLC','Product Development Lifecycle','5-phase delivery framework: Decide → Define → Refine → Build → Launch.'],['SID','SID','User identifier used in Working Hub role assignments.'],['NFR','Non-Functional Requirement','Performance, availability, security, compliance constraints. Hard gate at Stage 3 GW-I1.'],['BRD','Business Requirements Document','Legacy term. In PDLC this is solution-intent.md.'],['FRD','Functional Requirements Document','Legacy term. In PDLC this is deliverables-list.md.'],['SEAL','Standard Enterprise Application Layer','Application classification. A new SEAL makes an initiative architecturally significant.'],['SRC-ID','Source Identifier','ID assigned in sources/SOURCES.md. Must be cited inline in governance artifacts.'],['SIF','Strategic Initiative Flag','Jira label linking an epic to a named strategic initiative.'],['BLUF','Bottom Line Up Front','The key message is stated first. Every executive communication opens with a BLUF.']];
+
+/* ---------- palettes ---------- */
+const L=(bg,text,mut,dim,soft,rgb,dom)=>({bg,panel:'#ffffff',panel2:'#ffffff',solid:'#ffffff',card2:'color-mix(in srgb,'+bg+' 55%,#fff)',bar:'rgba(255,255,255,.88)',text,mut,dim,soft,line:`rgba(${rgb},.17)`,line2:`rgba(${rgb},.36)`,onac:'#ffffff',dom});
+const K=(bg,panel,panel2,solid,card2,text,mut,dim,soft,rgb,onac,dom)=>({bg,panel,panel2,solid,card2,bar:'color-mix(in srgb,'+bg+' 86%,transparent)',text,mut,dim,soft,line:`rgba(${rgb},.09)`,line2:`rgba(${rgb},.2)`,onac,dom});
+const PALETTES={
+ aurora:{name:'Aurora',note:'Ink navy with a mint signal',
+  dark:K('#070b12','#0d131d','#111926','#0e1520','#0a0f18','#e8f0f4','#93a4b3','#62727f','#cbd8e0','200,225,240','#04130f',{pbi:['#5eead4','#b5f5ea'],pricing:['#fbbf77','#fde0bb'],vault:['#a5b4fc','#d5dcfe']}),
+  light:L('#eef3f5','#0d1820','#48606b','#74888f','#263840','10,40,55',{pbi:['#0b7d70','#2f9d90'],pricing:['#a8650f','#c4852f'],vault:['#4a57c8','#6f7be0']})},
+ cobalt:{name:'Cobalt',note:'Saturated blue with a gold signal',
+  dark:K('#070d26','#0c1436','#101a42','#0d163a','#09102d','#eef1ff','#9aa6d6','#6672a6','#d0d7f5','190,205,255','#171003',{pbi:['#ffcf5c','#ffe7a8'],pricing:['#7dd3fc','#c2ebfe'],vault:['#f0a6ff','#f8d5ff']}),
+  light:L('#eef1fb','#0c1438','#4a5588','#7a84b0','#262f5c','20,35,120',{pbi:['#8f6a00','#b08a20'],pricing:['#0b79a8','#3597c2'],vault:['#9a3fb5','#b866d0']})},
+ nordic:{name:'Nordic',note:'Muted polar blues and frost',
+  dark:K('#1b1f27','#232832','#2a303b','#252a35','#1f232c','#e5e9f0','#a4adbd','#7b8496','#d0d6e0','216,222,233','#16202a',{pbi:['#88c0d0','#c5e0e8'],pricing:['#ebcb8b','#f5e3c0'],vault:['#a3be8c','#cfdec3']}),
+  light:L('#eceff4','#2e3440','#4c566a','#7b8496','#3b4252','46,52,64',{pbi:['#3b7c8f','#5e9aab'],pricing:['#946f1e','#b08c3c'],vault:['#587a3e','#76985c']})},
+ forest:{name:'Forest & Brass',note:'Deep green with brass accents',
+  dark:K('#080f0b','#0d1711','#111d16','#0e1913','#0a120e','#eaf0e8','#9aa99c','#69786b','#cfd9cd','215,235,215','#141003',{pbi:['#c8b273','#e6d9b0'],pricing:['#e39b6c','#f2cdb5'],vault:['#7fc8a9','#bfe4d4']}),
+  light:L('#f0f3ee','#14201a','#4f5f53','#7c8a7f','#2c3a31','20,50,30',{pbi:['#7d6820','#9c8740'],pricing:['#a3542a','#c2744a'],vault:['#1f7a58','#439a78']})},
+ oxblood:{name:'Oxblood & Cream',note:'Dark red-brown with warm cream',
+  dark:K('#120909','#1b0e0e','#221212','#1d0f0f','#150b0b','#f5ece4','#b7a297','#836e65','#e0d0c4','250,225,210','#1c0c08',{pbi:['#f0c9a0','#f8e3cb'],pricing:['#e88a7a','#f4c4bb'],vault:['#c9a3d6','#e4d0ea']}),
+  light:L('#f7f1ec','#26120f','#6b5148','#93796f','#422822','80,25,15',{pbi:['#96601e','#b47f3e'],pricing:['#b03a2a','#cc5c4c'],vault:['#7c4a90','#9a6aae']})},
+ plum:{name:'Plum & Peach',note:'Aubergine with soft peach',
+  dark:K('#110b16','#191021','#1f1529','#1b1224','#140d1a','#f5edf7','#b3a2bb','#7f6f88','#ddd0e3','240,220,250','#1d0d0a',{pbi:['#ffb59e','#ffd9cc'],pricing:['#ffd479','#ffe8b5'],vault:['#9ad0ff','#cbe6ff']}),
+  light:L('#f5f0f7','#22142b','#62506c','#8a7894','#3b2a46','60,20,80',{pbi:['#c2502e','#da7050'],pricing:['#9a7000','#b88e20'],vault:['#1f6fb8','#4a8fd0']})},
+ terminal:{name:'Terminal',note:'Black with phosphor green',
+  dark:K('#050705','#0b0f0b','#0f150f','#0c110c','#080b08','#d8f5dc','#86a68b','#577059','#bfe0c4','150,255,170','#031006',{pbi:['#5dfc8b','#b0ffc6'],pricing:['#ffc857','#ffe3a6'],vault:['#5cd9ff','#b3edff']}),
+  light:L('#eff4ef','#0b1a0e','#476050','#73887a','#22352a','10,60,25',{pbi:['#0c7a32','#2f9a52'],pricing:['#946a00','#b28820'],vault:['#0b7396','#3593b4']})},
+ termblue:{name:'Terminal Blue',note:'Black with phosphor blue text',
+  dark:K('#04060a','#090d14','#0d121b','#0a0e16','#06090e','#cfe6ff','#7fa3c8','#4f6e8f','#b3d4f5','130,190,255','#020a14',{pbi:['#4db8ff','#a8dcff'],pricing:['#ffc857','#ffe3a6'],vault:['#5df0c0','#b0f8e0']}),
+  light:L('#eef3f8','#08182a','#42607c','#6f8aa3','#1e3650','10,50,100',{pbi:['#0a6fc2','#3a8fd8'],pricing:['#946a00','#b28820'],vault:['#0b8a66','#30a886']})},
+ synth:{name:'Synthwave',note:'Violet night with neon pink',
+  dark:K('#0d0a1a','#141027','#1a1531','#16122a','#100c20','#f2ecff','#a79cc8','#726894','#d6cdee','225,210,255','#1d0716',{pbi:['#ff7edb','#ffc0ee'],pricing:['#fede5d','#fff0ad'],vault:['#72f1b8','#bbf8dc']}),
+  light:L('#f3f0fa','#1a1238','#584d80','#8377a8','#30265a','50,25,120',{pbi:['#c02a94','#d955b0'],pricing:['#927200','#b09020'],vault:['#0b8a5c','#30a87c']})},
+ sandstone:{name:'Sandstone',note:'Warm stone with burnt orange',
+  dark:K('#12100d','#1a1713','#201d18','#1c1915','#15130f','#f2ede4','#aca396','#7a7166','#d8d0c2','245,235,215','#170d03',{pbi:['#e6a15c','#f3d0aa'],pricing:['#d9c27a','#ece0b8'],vault:['#8fb8a8','#c6dcd2']}),
+  light:L('#f4f0e8','#221c14','#62584a','#8c8274','#3a3226','60,45,20',{pbi:['#a85c12','#c47c32'],pricing:['#857010','#a38e30'],vault:['#2f7362','#4f9382']})},
+ steel:{name:'Steel',note:'Cool grey with electric blue',
+  dark:K('#0c0e11','#13161a','#181c21','#14181c','#0f1215','#edf0f3','#9ba3ad','#69717b','#d0d6dc','220,228,238','#03101f',{pbi:['#4da3ff','#a8d1ff'],pricing:['#ff9f5a','#ffcfad'],vault:['#6ee0c0','#b8f0e0']}),
+  light:L('#eff1f4','#12161b','#4c5560','#78818c','#2a313a','15,25,40',{pbi:['#1466d0','#3c86e8'],pricing:['#c2570c','#de772c'],vault:['#0b8a6e','#2faa8e']})},
+ midnightgold:{name:'Midnight Gold',note:'Near-black with rich gold',
+  dark:K('#08080a','#101013','#151519','#111115','#0b0b0e','#f3efe6','#a8a296','#767064','#d9d3c6','245,235,210','#161003',{pbi:['#e0b84c','#f2dc9c'],pricing:['#e88f5a','#f5c9ae'],vault:['#8ec5d6','#c6e2ea']}),
+  light:L('#f4f2ec','#16140f','#5c5648','#888274','#343026','50,40,15',{pbi:['#8a6a08','#a98828'],pricing:['#b0541e','#cc743e'],vault:['#22748c','#4494ac']})},
+ ocean:{name:'Ocean',note:'Deep sea blue with aqua',
+  dark:K('#04101a','#081a28','#0c2132','#091c2b','#061420','#e6f3fa','#8eaabb','#5d7889','#c6dce8','190,225,245','#03141a',{pbi:['#38d6e8','#a3eef6'],pricing:['#ffb86b','#ffdcb5'],vault:['#8fa8ff','#c9d5ff']}),
+  light:L('#edf4f8','#0a1e2c','#456070','#728c9c','#223a4a','10,50,80',{pbi:['#087f94','#2c9fb4'],pricing:['#b3640c','#cf842c'],vault:['#3d55c8','#6277e0']})},
+ rosegold:{name:'Rose Gold',note:'Charcoal with blush metallic',
+  dark:K('#100d0e','#181415','#1e191b','#1a1617','#131011','#f6eeee','#b3a4a6','#807173','#dfd2d3','250,225,228','#1d0d0f',{pbi:['#e8a9a0','#f5d5d0'],pricing:['#e3c27a','#f1e0b8'],vault:['#a9b8e8','#d4dcf5']}),
+  light:L('#f7f2f2','#221618','#665456','#8f7c7e','#3c2c2e','70,30,35',{pbi:['#b0554a','#cc756a'],pricing:['#8f6e14','#ad8c34'],vault:['#4a5eb8','#6c7ed0']})},
+ lavender:{name:'Lavender',note:'Soft violet-grey, calm',
+  dark:K('#0e0d14','#15141e','#1a1926','#161520','#100f18','#eeecf7','#a5a2ba','#737089','#d3d0e3','225,220,250','#0f0c1d',{pbi:['#b4a7ff','#dcd6ff'],pricing:['#ffc38a','#ffe1c4'],vault:['#8ad8c8','#c4ece4']}),
+  light:L('#f2f1f8','#18162a','#56536e','#827f98','#2e2c46','40,35,90',{pbi:['#5a48d0','#7c6ce4'],pricing:['#b86814','#d48834'],vault:['#17806c','#3aa08c']})},
+ ember:{name:'Ember',note:'Charcoal with red-orange heat',
+  dark:K('#0f0b0a','#171110','#1d1614','#191311','#120d0c','#f7eeea','#b5a59f','#82726c','#e0d2cc','255,225,210','#1c0a04',{pbi:['#ff7a45','#ffc0a3'],pricing:['#ffc145','#ffe2a3'],vault:['#ff6b8b','#ffb8c8']}),
+  light:L('#f7f1ee','#231410','#69544c','#927c74','#3e2a24','80,30,15',{pbi:['#cc4a16','#e46c3a'],pricing:['#96700a','#b48e2a'],vault:['#c42e52','#dc5474']})},
+ citrus:{name:'Citrus',note:'Graphite with lime and lemon',
+  dark:K('#0b0d09','#12150f','#171b13','#131710','#0e100b','#f1f5ea','#a3ab97','#717966','#d5dbc9','235,250,210','#0d1403',{pbi:['#c5f04a','#e4f9a8'],pricing:['#ffe14a','#fff1a8'],vault:['#5ce0b0','#b0f1da']}),
+  light:L('#f2f4ed','#161a10','#535b46','#7f8772','#2e3426','35,50,10',{pbi:['#5a7d08','#7a9d28'],pricing:['#8f7800','#ad9620'],vault:['#0b8660','#2fa680']})},
+ mono:{name:'Mono',note:'Greyscale, a single white accent',
+  dark:K('#0a0a0b','#121214','#18181b','#141416','#0e0e10','#f4f4f5','#a1a1aa','#71717a','#d4d4d8','255,255,255','#0a0a0b',{pbi:['#f4f4f5','#a1a1aa'],pricing:['#e4e4e7','#a1a1aa'],vault:['#fafafa','#b4b4bd']}),
+  light:L('#f2f2f3','#111113','#52525b','#7c7c86','#27272a','10,10,20',{pbi:['#18181b','#52525b'],pricing:['#27272a','#52525b'],vault:['#18181b','#3f3f46']})},
+ paper:{name:'Paper & Ink',note:'Warm off-white with ink blue; best in light',
+  dark:K('#0c0d12','#13151c','#181b24','#14171e','#0f1016','#f0ede6','#a39f96','#726e66','#d6d2c8','240,235,220','#0a0f1d',{pbi:['#8fb0ff','#c8d8ff'],pricing:['#f0a878','#f8d4bc'],vault:['#8fd0b8','#c8e8dc']}),
+  light:L('#f6f3ea','#151a2c','#535665','#82858f','#2c3044','25,30,60',{pbi:['#1f3fa8','#4666c8'],pricing:['#a8501e','#c4703e'],vault:['#1c7458','#3c9478']})}
+};
+const domAc=k=>PALETTES[S.palette][S.theme].dom[k];
+function applyPalette(){const lt=S.theme==='light',v=PALETTES[S.palette][S.theme],st=document.documentElement.style,[ac,ac2]=domAc(S.domain),dk=c=>lt?`color-mix(in srgb,${c} 84%,#000)`:c;
+  const vars={bg:v.bg,panel:v.panel,panel2:v.panel2,solid:v.solid,card2:v.card2,bar:v.bar,text:v.text,mut:lt?`color-mix(in srgb,${v.mut} 60%,${v.text})`:v.mut,dim:lt?`color-mix(in srgb,${v.dim} 50%,${v.text})`:v.dim,soft:v.soft,line:v.line,line2:v.line2,'on-ac':v.onac};
+  for(const k in vars)st.setProperty('--'+k,vars[k]);
+  document.body.style.setProperty('--ac',dk(ac));document.body.style.setProperty('--ac2',dk(ac2))}
+
+/* ---------- typefaces ---------- */
+const FONTS={
+ grotesk:{name:'Space Grotesk',note:'Geometric, technical (default)',f:'"Space Grotesk"',head:'"Space Grotesk",system-ui,sans-serif',sans:'"Space Grotesk",system-ui,sans-serif',mono:'"JetBrains Mono",ui-monospace,Menlo,monospace',code:false},
+ sora:{name:'Sora + Inter',note:'Wide futuristic headings',f:'"Sora"',head:'"Sora",system-ui,sans-serif',sans:'"Inter",system-ui,sans-serif',mono:'"JetBrains Mono",ui-monospace,Menlo,monospace',code:false},
+ manrope:{name:'Manrope',note:'Soft, modern, very readable',f:'"Manrope"',head:'"Manrope",system-ui,sans-serif',sans:'"Manrope",system-ui,sans-serif',mono:'"DM Mono",ui-monospace,Menlo,monospace',code:false},
+ plex:{name:'IBM Plex Sans',note:'Corporate-engineered',f:'"IBM Plex Sans"',head:'"IBM Plex Sans",system-ui,sans-serif',sans:'"IBM Plex Sans",system-ui,sans-serif',mono:'"IBM Plex Mono",ui-monospace,Menlo,monospace',code:false},
+ dm:{name:'DM Sans',note:'Clean and friendly',f:'"DM Sans"',head:'"DM Sans",system-ui,sans-serif',sans:'"DM Sans",system-ui,sans-serif',mono:'"DM Mono",ui-monospace,Menlo,monospace',code:false},
+ redhat:{name:'Red Hat',note:'Distinctive, slightly quirky',f:'"Red Hat Display"',head:'"Red Hat Display",system-ui,sans-serif',sans:'"Red Hat Text",system-ui,sans-serif',mono:'"Red Hat Mono",ui-monospace,Menlo,monospace',code:false},
+ syne:{name:'Syne + Inter',note:'Bold, design-forward headings',f:'"Syne"',head:'"Syne",system-ui,sans-serif',sans:'"Inter",system-ui,sans-serif',mono:'"JetBrains Mono",ui-monospace,Menlo,monospace',code:false},
+ mono:{name:'JetBrains Mono',note:'Full code-editor look',f:'"JetBrains Mono"',head:'"JetBrains Mono",system-ui,sans-serif',sans:'"JetBrains Mono",system-ui,sans-serif',mono:'"JetBrains Mono",ui-monospace,Menlo,monospace',code:true}};
+function applyFont(){const F=FONTS[S.font],st=document.documentElement.style;
+  st.setProperty('--sans',F.sans);st.setProperty('--head',F.head);st.setProperty('--mono',F.mono);
+  document.body.classList.toggle('codefont',F.code);document.body.classList.add('sanshead')}
+
+/* ---------- state ---------- */
+const S={domain:'pbi',persona:'po',view:'room',tab:'stage',selStage:null,menu:null,auto:false,guide:true,theme:'dark',palette:'aurora',font:'grotesk',speed:1,rooms:{},skills:{},elev:{},edit:null,vf:'all',vq:''};
+function newRoom(id){const d=DOMAINS[id];let chain=[...BASE_CHAIN];for(const x of d.inserts)chain.splice(chain.indexOf(x.after)+1,0,x.id);
+  return {id,chain,ptr:0,msgs:[],arts:[],gates:{},sources:[],audit:[],notifs:[],gov:null,busy:false,runs:0,clock:Date.now(),skipped:false,interview:null,gapPosted:{},done:false,n:0}}
+function initSkills(id){const d=DOMAINS[id];S.skills[id]=[...coreSkills(d).map(s=>({...s,tag:'core'})),...d.extra.map(s=>({...s,tag:'domain'}))].map(s=>({name:s.id,ver:'1.0',enabled:true,history:[{ver:'1.0',by:'Platform team',note:'Initial release'}],prompt:`You are the ${d.agent}. ${s.desc}\nGround every claim in a cited source (SRC-ID). Never invent application names — resolve them through Knowledge Hub.`,guards:['cite','pii'],...s}))}
+const R=()=>S.rooms[S.domain], D=()=>DOMAINS[S.domain];
+const skill=(dom,id)=>S.skills[dom].find(s=>s.id===id);
+const stepStage=(room,i)=>{const st=room.chain[i];return st[0]==='@'?GATES[st.slice(1)].stage:skill(room.id,st).stage};
+const curStage=room=>room.done?'s6':stepStage(room,room.ptr);
+const sleep=(ms,instant)=>instant?Promise.resolve():new Promise(r=>setTimeout(r,ms/S.speed));
+const tick=(room,instant)=>room.clock=instant?room.clock+(4+Math.random()*30)*60000:Date.now();
+const live=room=>room.id===S.domain&&S.view==='room';
+
+/* ---------- messaging ---------- */
+function post(room,m,instant){m.id=room.id+'-'+(++room.n);m.t=tick(room,instant);room.msgs.push(m);
+  if(live(room)&&!instant){$('#chat').insertAdjacentHTML('beforeend',msgHTML(room,m));scrollChat()}return m}
+function rerender(room,m){if(!live(room))return;const el=document.getElementById('m'+m.id);if(el){el.outerHTML=msgHTML(room,m);scrollChat()}}
+const scrollChat=()=>{const c=$('#chat');c.scrollTop=c.scrollHeight};
+const say=(room,html,instant)=>post(room,{who:'agent',kind:'text',html},instant);
+const sys=(room,html,instant,win)=>post(room,{who:'sys',kind:'sys',html,win},instant);
+function audit(room,who,what){room.audit.unshift({t:room.clock,who,what,h:hash(who+what+room.clock)})}
+function notify(room,to,text){room.notifs.unshift({to,text,t:room.clock,read:false,dom:room.id})}
+function toast(t){const el=document.createElement('div');el.className='toast';el.textContent=t;$('#toasts').append(el);setTimeout(()=>el.remove(),2800)}
+
+/* ---------- artifacts ---------- */
+function addArt(room,key,sk,by,instant){const d=DOMAINS[room.id],def=FILES[key];tick(room,instant);
+  let a=room.arts.find(x=>x.key===key);
+  const xs=!def&&S.tpl?.[room.id]?.[key];
+  const base=xs?{name:xs.name,dest:xs.dest,gate:null,note:'custom output',body:'# '+xs.name.replace(/\.\w+$/,'')+'\nGenerated by `'+sk.name+'` for '+d.initiative+'.'}:def?{name:def.name(d),dest:def.dest,gate:def.gate||null,note:def.note||'',body:def.body(d,room)}
+     :{name:sk.outName||sk.name+'-output.md',dest:'local',gate:null,note:'custom skill',body:`# ${sk.name} — output\nGenerated by the custom skill \`${sk.name}\` v${sk.ver} for ${d.initiative}.\n## Instructions used\n> ${sk.prompt.split('\n')[0]}\n## Result\n- Skill executed against ${sk.needs.map(n=>VIA[n.via]).join(', ')||'session context'}\n- Output stored in the room and available to the squad`};
+  applyContract(room,key,base,d);
+  if(a){a.checks=base.checks;a.tplEdited=base.tplEdited;a.name=base.name;a.dest=base.dest;a.ver++;a.body=base.body;a.t=room.clock;a.history.unshift({body:a.body,ver:a.ver,t:room.clock,by,note:'Regenerated'})}
+  else{a={key,...base,stage:sk.stage,status:'draft',ver:1,author:by,skill:sk.name,skillVer:sk.ver,t:room.clock,cites:room.sources.map(s=>s.id),via:sk.needs.map(n=>n.via),history:[{body:base.body,ver:1,t:room.clock,by,note:'Generated by '+sk.name}],approval:null};
+    if(!a.gate)a.status='saved';room.arts.push(a)}
+  return a}
+const art=(room,key)=>room.arts.find(a=>a.key===key);
+
+/* ---------- workflow engine ---------- */
+function unsatGap(room,sk){const n=sk.needs.find(n=>n.gap);return n&&!room.sources.some(s=>s.key===n.gap.key)?n.gap:null}
+function nextAction(room){if(room.done)return null;const st=room.chain[room.ptr];
+  if(st[0]==='@'){const gid=st.slice(1),g=room.gates[gid],G=GATES[gid];const who=G.approvers.find(p=>!g.approvals[p]);return {type:G.commit?'commit':'approve',gate:gid,actor:who}}
+  const sk=skill(room.id,st),gap=unsatGap(room,sk);
+  if(gap&&room.gapPosted[gap.key])return {type:'ingest',gap,skill:sk,actor:sk.role};
+  if(sk.interview&&room.interview&&!room.interview.submitted)return {type:'answer',skill:sk,actor:sk.role};
+  return {type:'skill',skill:sk,actor:sk.role}}
+function actionLabel(a){return a.type==='skill'?'Run '+a.skill.name:a.type==='ingest'?'Attach SharePoint source':a.type==='answer'?'Submit interview answers':a.type==='approve'?(a.gate==='EXIT'?'Sign pilot exit':'Approve '+a.gate):'Commit plan · close GW-B1'}
+
+async function perform(room,a,o={}){
+  if(a.type==='skill')return startSkill(room,a.skill,a.actor,o);
+  if(a.type==='ingest'){if(o.auto||o.instant)return ingest(room,{...a.gap,name:fileName(a.gap.url),scope:'Whole initiative'},a.actor,o.instant);return openIngest(a.gap)}
+  if(a.type==='answer')return submitInterview(room,a.actor,o);
+  return approveGate(room,a.gate,a.actor,o.instant)}
+
+async function startSkill(room,sk,by,o={}){
+  const d=DOMAINS[room.id],gap=unsatGap(room,sk);
+  if(gap){if(o.instant)ingest(room,{...gap,name:fileName(gap.url),scope:'Whole initiative'},by,true);
+    else{room.gapPosted[gap.key]=true;post(room,{who:'agent',kind:'gap',gap,skill:sk.id});audit(room,d.agent,`Data gap on ${sk.name}: ${gap.label}`);refresh();return}}
+  if(sk.interview&&!room.interview?.submitted){
+    if(o.instant)room.interview={answers:ivDefaults(d),submitted:true};
+    else{room.interview={answers:ivDefaults(d),submitted:false};post(room,{who:'agent',kind:'interview'});refresh();return}}
+  await runSkill(room,sk,by,o)}
+
+async function runSkill(room,sk,by,o={}){
+  const d=DOMAINS[room.id],I=o.instant;room.busy=true;room.runs++;
+  const m=post(room,{who:'agent',kind:'run',run:{skill:sk.id,name:sk.name,ver:sk.ver,steps:[],done:false,arts:[],by}},I);if(!I)refresh();
+  const steps=[`Loaded skill ${sk.name} v${sk.ver}${sk.cz?' (customized for '+d.short+')':''}`];
+  for(const n of sk.needs){
+    if(n.via==='kh')steps.push(`MCP · kh-grounded-query → Knowledge Hub · ${n.label} · ${8+sk.id.length%9} grounded passages`);
+    else if(n.via==='wh')steps.push(`MCP · wh-get-config-snapshot → Working Hub · ${n.label}`);
+    else if(n.via==='jira')steps.push(`MCP · jira-search → Jira · ${n.label}`);
+    else if(n.via==='conf')steps.push(`MCP · confluence-publish → ${n.label}`);
+    else{const s=room.sources.find(x=>n.gap?x.key===n.gap.key:true);steps.push(`SharePoint source · ${s?s.id+' · '+s.name:n.label+' (none attached — using session context)'}`)}}
+  steps.push(...(sk.trace||['Reasoning over inputs']),'Writing outputs to the room');
+  for(const s of steps){m.run.steps.push(s);rerender(room,m);await sleep(650,I)}
+  const outs=sk.outs&&sk.outs.length?sk.outs:['custom:'+sk.id];
+  m.run.arts=outs.map(k=>addArt(room,k,sk,by,I).key);m.run.done=true;m.run.card=sk.card;
+  audit(room,d.agent,`Ran ${sk.name} v${sk.ver} for ${PEOPLE[by].name} → ${outs.length} artifact(s)`);
+  room.busy=false;rerender(room,m);
+  if(room.chain[room.ptr]===sk.id)advance(room,I);
+  if(!I)refresh()}
+
+function submitInterview(room,by,o={}){room.interview.submitted=true;
+  post(room,{who:by,kind:'text',html:'Submitted the discovery interview answers (A–G).'},o.instant);
+  return runSkill(room,skill(room.id,'project-initiation'),by,o)}
+
+function advance(room,I){const prev=stepStage(room,room.ptr);room.ptr++;
+  if(room.ptr>=room.chain.length){room.done=true;room.gov={rmc:'Closed',npa:'Not required',bar:'Approved'};
+    sys(room,'✦ Workflow complete — pilot exit signed. Every artifact remains reviewable in the Artifact Vault.',I,true);audit(room,'System','Workflow complete');return}
+  const ns=stepStage(room,room.ptr);if(ns!==prev)enterStage(room,ns,I);
+  const st=room.chain[room.ptr];if(st[0]==='@')requestGate(room,st.slice(1),I)}
+function enterStage(room,sid,I){const s=STAGES[stageIdx(sid)];S.selStage=room.id===S.domain?null:S.selStage;
+  sys(room,`Stage ${s.num} · ${s.title} is now live`,I);
+  if(sid==='s3')room.gov={rmc:'In assessment',npa:'Screening',bar:'Not started'};
+  if(sid==='s4')room.gov={rmc:'Rated: Medium',npa:'Not required',bar:'Drafted'};
+  if(sid==='s5')room.gov={rmc:'Re-checked ✓',npa:'Not required',bar:'Submitted'};
+  if(room.gov&&['s4','s5'].includes(sid))sys(room,'Governance track 3f re-checked at Stage '+s.num,I)}
+function skipStage2(room){if(room.busy||curStage(room)!=='s2')return;room.skipped=true;
+  post(room,{who:S.persona,kind:'text',html:'Let\'s skip Product Strategy for this one — it\'s optional.'});
+  room.ptr=room.chain.findIndex((x,i)=>stepStage(room,i)==='s3');audit(room,PEOPLE[S.persona].name,'Skipped Stage 2 (optional)');
+  enterStage(room,'s3');say(room,'Understood — Stage 2 skipped. Moving to <b>Project Initiation</b>. I\'ll start with the discovery interview when you\'re ready.');refresh()}
+
+function requestGate(room,gid,I){const G=GATES[gid],d=DOMAINS[room.id];
+  for(const k of G.files){let a=art(room,k);if(!a)a=addArt(room,k,{name:d.agent,ver:'1.0',stage:G.stage,needs:[]},'po',I);a.status='review'}
+  room.gates[gid]={status:'pending',round:1,approvals:{},draft:''};
+  post(room,{who:'agent',kind:'gate',gate:gid},I);
+  for(const p of G.approvers)notify(room,p,`${gid} is waiting on you — ${d.short}`);
+  audit(room,d.agent,`Requested ${gid} from ${G.approvers.map(p=>PEOPLE[p].name).join(' + ')}`);
+  if(!I&&!S.auto){const p=G.approvers[0];if(p!==S.persona&&!G.commit)setTimeout(()=>{if(room.gates[gid].status==='pending'){post(room,{who:p,kind:'text',html:'Saw the ping — reviewing now.'});}},1500)}}
+
+function approveGate(room,gid,by,I){const G=GATES[gid],g=room.gates[gid],d=DOMAINS[room.id];if(!g||g.status!=='pending')return;
+  const authors=G.files.map(k=>art(room,k)?.author);
+  if(!G.commit&&gid!=='EXIT'&&authors.includes(by)){toast('Separation of duties: the approver must differ from the author.');return}
+  tick(room,I);g.approvals[by]={t:room.clock,sig:hash(gid+by+room.clock),note:g.draft};g.draft='';
+  room.notifs.forEach(n=>{if(n.to===by&&n.text.startsWith(gid))n.read=true});
+  audit(room,PEOPLE[by].name,`${G.commit?'Committed · closed':'Approved'} ${gid}`);
+  if(G.approvers.every(p=>g.approvals[p])){g.status='cleared';
+    for(const k of G.files){const a=art(room,k);a.status='approved';a.approval={gate:gid,by:G.approvers.map(p=>PEOPLE[p].name).join(' + '),t:room.clock,sig:g.approvals[by].sig};a.history.unshift({body:a.body,ver:a.ver,t:room.clock,by,note:'Approved at '+gid+' — locked'})}
+    if(gid==='GW-I1')room.arts.forEach(a=>{if(a.dest==='ev')a.status='approved'});
+    sys(room,`${gid} cleared by ${G.approvers.map(p=>PEOPLE[p].name).join(' + ')} · artifacts locked & committed to Working Hub`,I,true);
+    if(gid==='GW-RD2'){sys(room,`Working Hub → Jira sync · ${d.epics.length} epics published with SIF label`,I);audit(room,'Working Hub','Jira sync: '+d.epics.length+' epics')}
+    const m=room.msgs.find(x=>x.kind==='gate'&&x.gate===gid);if(m)rerender(room,m);
+    advance(room,I)}
+  else sys(room,`${PEOPLE[by].name} signed ${gid} · waiting on ${PEOPLE[G.approvers.find(p=>!g.approvals[p])].name}`,I);
+  if(!I)refresh()}
+
+async function requestChanges(room,gid){const g=room.gates[gid],G=GATES[gid],d=DOMAINS[room.id];if(room.busy)return;
+  const c=g.draft.trim()||'Please tighten the NFR wording and cite the source for the timeline.';g.draft='';
+  post(room,{who:S.persona,kind:'text',html:`<b>Requesting changes on ${gid}:</b> ${esc(c)}`});
+  g.status='changes';room.busy=true;audit(room,PEOPLE[S.persona].name,`Requested changes on ${gid}: ${c}`);refresh();
+  const m=post(room,{who:'agent',kind:'run',run:{skill:'revise',name:'revise-for-gate',ver:'1.0',steps:[],done:false,arts:[]}});
+  for(const s of ['Reading reviewer feedback','Revising affected sections','Re-validating gate conditions']){m.run.steps.push(s);rerender(room,m);await sleep(500)}
+  for(const k of G.files){const a=art(room,k);a.ver++;a.t=tick(room);a.body+=`\n## Revision v${a.ver}\n- Addressed reviewer feedback: “${c}”`;a.history.unshift({body:a.body,ver:a.ver,t:room.clock,by:'agent',note:'Revised after feedback at '+gid})}
+  m.run.arts=[...G.files];m.run.done=true;rerender(room,m);
+  g.round++;g.status='pending';room.busy=false;
+  for(const p of G.approvers)notify(room,p,`${gid} resubmitted (round ${g.round}) — ${d.short}`);
+  say(room,`Revised and resubmitted <b>${gid}</b> (round ${g.round}). The gate card above is live again.`);refresh()}
+
+/* ---------- sources ---------- */
+const fileName=u=>decodeURIComponent(u.split('/').pop()||u);
+function ingest(room,g,by,I){tick(room,I);const id='SRC-'+String(room.sources.length+1).padStart(3,'0');
+  room.sources.push({id,key:g.key||null,name:g.name||fileName(g.url),url:g.url,scope:g.scope||'Whole initiative',by,t:room.clock});
+  audit(room,PEOPLE[by].name,`Ingested ${fileName(g.url)} as ${id}`);
+  post(room,{who:by,kind:'text',html:`Attached <span class="mono">${esc(fileName(g.url))}</span> from SharePoint.`},I);
+  say(room,`Ingested and indexed as <span class="src">${id}</span> (${esc(g.scope||'Whole initiative')}). I\'ll cite it inline wherever I use it.`,I);
+  const m=room.msgs.find(x=>x.kind==='gap'&&x.gap.key===g.key);if(m)rerender(room,m);
+  if(!I)refresh();return id}
+
+/* ---------- autopilot ---------- */
+async function autopilot(){const room=R();
+  while(S.auto&&!room.done&&S.domain===room.id&&S.view==='room'){
+    if(room.busy){await sleep(300);continue}
+    const a=nextAction(room);if(!a)break;
+    if(a.actor!==S.persona){S.persona=a.actor;refresh();toast('Now acting as '+PEOPLE[a.actor].name+' · '+PEOPLE[a.actor].abbr);await sleep(1300)}
+    await perform(room,a,{auto:true});await sleep(2600)}
+  S.auto=false;refresh()}
+async function fastForward(room,stop){while(!room.done&&room.chain[room.ptr]!==stop){await perform(room,nextAction(room),{instant:true})}}
+
+/* ---------- rendering ---------- */
+const av=(p,cls='')=>`<span class="av ${cls}" style="--c:${PEOPLE[p].c}">${PEOPLE[p].ini}</span>`;
+function pendingGate(room){const st=room.chain[room.ptr];if(room.done||st[0]!=='@')return null;const a=nextAction(room);return {gid:st.slice(1),who:a.actor}}
+
+function renderTop(){
+  const unread=Object.values(S.rooms).flatMap(r=>r.notifs).filter(n=>n.to===S.persona&&!n.read);
+  const me=PEOPLE[S.persona];
+  $('#top').innerHTML=`
+  <div class="brand"><svg class="nlogo" viewBox="0 0 40 40" aria-hidden="true"><circle class="ring" cx="20" cy="20" r="17.5"/><circle class="ring2" cx="20" cy="20" r="13"/><g class="links"><path d="M20 20 L20 8.5"/><path d="M20 20 L30 26"/><path d="M20 20 L10 26"/></g><g class="orbit"><circle cx="20" cy="8.5" r="2.1"/><circle cx="30" cy="26" r="2.1"/><circle cx="10" cy="26" r="2.1"/></g><circle class="core" cx="20" cy="20" r="3.6"/></svg><div>Neuro <i>Squad Room</i><small>PDLC · simulated data</small></div></div>
+  <nav>${[['room','Squad Room'],['vault','Artifact Vault'],['studio','Skill Studio']].map(([v,l])=>`<button class="${S.view===v?'on':''}" data-act="view" data-arg="${v}">${l}</button>`).join('')}</nav>
+  <span class="vsep"></span><button class="tb agentdd" data-act="menu" data-arg="agent" title="Switch domain agent"><span class="lbl">Agent</span><i class="dd" style="background:${domAc(S.domain)[0]}"></i><b>${D().agent}</b> ▾${Object.entries(DOMAINS).some(([k])=>k!==S.domain&&pendingGate(S.rooms[k]))?'<span class="pend"></span>':''}
+    ${S.menu==='agent'?`<div class="menu left"><h6>Domain agents</h6>${Object.entries(DOMAINS).map(([k,d])=>{const pg=pendingGate(S.rooms[k]),r=S.rooms[k];return `<span class="mi ${k===S.domain?'cur':''}" data-act="domain" data-arg="${k}"><i class="dd" style="background:${domAc(k)[0]}"></i><span><b>${d.agent}</b>${k===S.domain?' · current':''}<small>${d.name} · ${r.done?'complete':'Stage '+STAGES[stageIdx(curStage(r))].num}</small>${pg?`<small class="${pg.who===S.persona?'wt':''}">${pg.gid} waiting on ${pg.who===S.persona?'you':PEOPLE[pg.who].name}</small>`:''}</span></span>`}).join('')}</div>`:''}</button>
+  <div class="sp"></div>
+  <button class="tb" data-act="menu" data-arg="notif">Alerts${unread.length?`<span class="badge">${unread.length}</span>`:''}
+    ${S.menu==='notif'?`<div class="menu"><h6>Alerts for ${me.name}</h6>${Object.values(S.rooms).flatMap(r=>r.notifs).filter(n=>n.to===S.persona).sort((a,b)=>b.t-a.t).slice(0,8).map(n=>`<span class="mi" data-act="domain" data-arg="${n.dom}"><span>${n.read?'○':'●'}</span><span>${esc(n.text)}<small>${fmtT(n.t)}</small></span></span>`).join('')||'<div class="mi muted">Nothing waiting on you.</div>'}</div>`:''}</button>
+  <button class="tb" data-act="menu" data-arg="persona">${av(S.persona,'sm')} ${me.name} · ${me.abbr} ▾
+    ${S.menu==='persona'?`<div class="menu"><h6>View the room as…</h6>${Object.entries(PEOPLE).map(([k,p])=>`<span class="mi" data-act="persona" data-arg="${k}">${av(k)}<span>${p.name}<small>${p.role} · ${p.abbr}${Object.values(DOMAINS).some(d=>d.steward===k)?' · ◈ skill steward':''}</small></span></span>`).join('')}</div>`:''}</button>
+  <button class="tb" data-act="menu" data-arg="palette" title="Colour palette"><span class="psw" style="background:${domAc(S.domain)[0]}"></span>${PALETTES[S.palette].name} ▾
+    ${S.menu==='palette'?`<div class="menu" style="width:250px"><h6>Palette</h6>${Object.entries(PALETTES).map(([k,p])=>{const v=p[S.theme];return `<span class="mi" data-act="palette" data-arg="${k}"><span class="sws" style="background:${v.bg}">${Object.values(v.dom).map(c=>`<i style="background:${c[0]}"></i>`).join('')}</span><span>${p.name}${k===S.palette?' ·  current':''}<small>${p.note}</small></span></span>`}).join('')}</div>`:''}</button>
+  <button class="tb" data-act="theme" title="Switch to ${S.theme==='light'?'dark':'light'} mode">${S.theme==='light'?'☾':'☀'}</button>
+  <button class="tb" data-act="reset" title="Reset the simulation">↺</button>`}
+
+function renderRail(){const room=R(),cs=stageIdx(curStage(room));
+  if(S.norail){const pg=pendingGate(room);$('#rail').innerHTML=`<div class="railmin"><button class="lt" data-act="rail" title="Expand the workflow">»<span class="xl"> Workflow</span></button><div class="rm-steps">${STAGES.map((s,i)=>{let c=room.done||i<cs?'done':i===cs?'active':'todo';if(s.id==='s2'&&room.skipped)c='skipped';return `<button class="rm ${c}${(S.selStage||curStage(room))===s.id?' sel':''}" data-act="selStage" data-arg="${s.id}" title="Stage ${s.num} · ${s.title} — click to view its skills">${s.num}</button>`}).join('')}</div><span class="rm-cur">${room.done?'<b>Workflow complete</b>':`Stage ${STAGES[cs].num} · <b>${STAGES[cs].title}</b>`}</span>${pg?`<span class="chip ${GATES[pg.gid].cls} pending">${pg.gid} · waiting on ${PEOPLE[pg.who].abbr}</span>`:''}</div>`;return}
+  const cells=STAGES.map((s,i)=>{
+    const idxs=room.chain.map((x,j)=>j).filter(j=>stepStage(room,j)===s.id);
+    const skillsIdx=idxs.filter(j=>room.chain[j][0]!=='@'),gatesIdx=idxs.filter(j=>room.chain[j][0]==='@');
+    let cls=room.done||i<cs?'done':i===cs?'active':'todo';if(s.id==='s2'&&room.skipped)cls='skipped';
+    const sel=(S.selStage||curStage(room))===s.id&&S.selStage?' sel':'';
+    const dots=skillsIdx.map(j=>`<i class="${j<room.ptr&&cls!=='skipped'?'d':j===room.ptr&&!room.done?'n':''}"></i>`).join('');
+    const nd=skillsIdx.filter(j=>j<room.ptr).length;
+    const gs=gatesIdx.map(j=>{const gid=room.chain[j].slice(1),G=GATES[gid],g=room.gates[gid];const stt=g?.status==='cleared'?'cleared':g?'pending':'';
+      return `<span class="chip ${G.cls} ${stt}">${stt==='cleared'?'✓ ':''}${gid==='EXIT'?'EXIT · PO+PL':gid+' · '+PEOPLE[G.approvers[0]].abbr}</span>`}).join('')
+      +(s.adv?`<span class="chip adv ${cls==='done'?'cleared':''}">${s.adv}</span>`:'');
+    return `<button class="st ${cls}${s.opt?' opt':''}${sel}" data-act="selStage" data-arg="${s.id}">
+      <div class="ph">${s.phase}${s.opt?' · optional':''}</div><div class="hd"><span class="n">${s.num}</span>${s.title}</div>
+      <div class="dots">${dots}<span style="margin-left:4px">${cls==='skipped'?'skipped':nd+'/'+skillsIdx.length+' skills'}</span></div><div class="gs">${gs}</div></button>`}).join('');
+  const g=room.gov;
+  $('#rail').innerHTML=`<div class="sech"><span>Workflow</span><button class="lt" data-act="rail" title="Minimize the workflow">Minimize</button></div><div class="railgrid">${cells}
+   <div class="legend"><span><i style="background:var(--bl)"></i>PL approval</span><span><i style="background:var(--gr)"></i>PO approval</span><span><i style="background:var(--t-eng)"></i>ENG-L commit</span><span><i style="background:var(--am)"></i>Advisory</span></div>
+   <div class="gov ${g?'':'off'}"><b>GOVERNANCE TRACK · 3f</b> runs alongside Working Hub from Stage 3 — not a gate, but go-live depends on it.
+     <span class="sp"></span>${g?`<span class="chip adv">RMC · ${g.rmc}</span><span class="chip adv">NPA · ${g.npa}</span><span class="chip adv">BAR · ${g.bar}</span>`:'<span class="mono">starts at Stage 3</span>'}</div></div>`}
+
+function renderLeft(){const room=R(),d=D(),pg=pendingGate(room);
+  const cleared=Object.values(room.gates).filter(g=>g.status==='cleared').length;
+  if(S.noleft){$('#left').innerHTML=`<button class="lt" data-act="left" title="Expand the squad panel">»</button><div class="orb sm ${room.busy?'run':''}" title="${d.agent}${room.busy?' — running a skill':''}"></div><div class="mini">${Object.entries(PEOPLE).map(([k,p])=>`<button class="${k===S.persona?'cur':''} ${pg&&pg.who===k?'wt':''}" data-act="persona" data-arg="${k}" title="${p.name} · ${p.role}${pg&&pg.who===k?' — '+pg.gid+' waiting':''}">${av(k)}</button>`).join('')}</div><div class="lstat" title="Gates cleared">${cleared}/6<br>gates</div>`;return}
+  $('#left').innerHTML=`<h5>Domain agent <button class="lt" data-act="left" title="Minimize the squad panel">« Minimize</button></h5>
+   <div class="card agent"><div class="orb ${room.busy?'run':''}"></div><div><b>${d.agent}</b><small>${room.busy?'Running a skill…':room.done?'Workflow complete':'Listening · Stage '+STAGES[stageIdx(curStage(room))].num}</small><small class="mono">${S.skills[S.domain].length} skills · MCP ×4</small></div></div>
+   <h5>Squad <span>${Object.keys(PEOPLE).length} online</span></h5>
+   ${Object.entries(PEOPLE).map(([k,p])=>`<button class="person ${k===S.persona?'me':''}" data-act="persona" data-arg="${k}" title="Act as ${p.name}">${av(k,'on')}<span><b>${p.name}${k===S.persona?' (you)':''}</b><small>${p.role}</small></span>
+     ${pg&&pg.who===k?`<span class="wait">${pg.gid}</span>`:d.steward===k?'<span class="stw" title="Domain skill steward">◈</span>':''}</button>`).join('')}
+   <div class="muted" style="margin-top:6px">Click a squad member to act as them.</div>
+   <h5>Room pulse</h5>
+   <div class="stats"><div class="stat"><b>${room.arts.length}</b><span>artifacts</span></div><div class="stat"><b>${cleared}/6</b><span>gates cleared</span></div>
+     <div class="stat"><b>${room.runs}</b><span>agent runs</span></div><div class="stat"><b>${room.sources.length}</b><span>sources cited</span></div></div>
+   <h5>Governance · 3f</h5>
+   <div class="card">${room.gov?Object.entries({'Risk Materiality':room.gov.rmc,'NPA':room.gov.npa,'BAR':room.gov.bar}).map(([a,b])=>`<div class="govrow"><span>${a}</span><b>${b}</b></div>`).join(''):'<span class="muted">Starts when Stage 3 opens.</span>'}</div>`}
+
+function msgHTML(room,m){
+  if(m.kind==='sys')return `<div class="msg sys ${m.win?'win':''}" id="m${m.id}">${m.html}</div>`;
+  const d=DOMAINS[room.id],ag=m.who==='agent',p=PEOPLE[m.who];
+  let b='';
+  if(m.kind==='text')b=`<div class="bub">${m.html}</div>`;
+  else if(m.kind==='run'){const r=m.run;
+    b=`<div class="runc"><div class="rh">${r.done?'<span style="color:var(--gr)">✓</span>':'<span class="spin"></span>'}<b>${esc(r.name)}</b><span class="role">v${r.ver}</span><span class="muted">${r.done?'completed':'running…'}</span></div>
+      <div class="tr">${r.steps.map((s,i)=>`<div class="${!r.done&&i===r.steps.length-1?'cur':''}">${esc(s)}</div>`).join('')}</div>
+      ${r.done?runCard(room,r)+`<div class="files">${r.arts.map(k=>fileChip(room,k)).join('')}</div>`+(()=>{const cs=r.arts.flatMap(k=>art(room,k)?.checks||[]),bad=cs.filter(c=>!c.ok).length;return cs.length?`<div class="contract ${bad?'bad':''}">Output contract · ${r.arts.length} output${r.arts.length>1?'s':''} · ${cs.length-bad}/${cs.length} acceptance checks passed${bad?' — review before the gate':''}</div>`:''})():''}</div>`}
+  else if(m.kind==='gate')b=gateCard(room,m.gate);
+  else if(m.kind==='gap'){const ok=room.sources.some(s=>s.key===m.gap.key);
+    b=`<div class="gapc ${ok?'ok':''}"><b>${ok?'✓ Data gap resolved':'Data gap — I can\'t ground this skill yet'}</b>
+      <div class="muted" style="margin:5px 0">Knowledge Hub (MCP) returned <b>0 grounded passages</b> for ${esc(m.gap.q)}. <span class="mono">${esc(m.skill)}</span> needs: <b>${esc(m.gap.label)}</b>.</div>
+      ${ok?`<span class="src">${room.sources.find(s=>s.key===m.gap.key).id}</span> <span class="muted">ingested from SharePoint</span>`:`<div class="gact"><button class="btn pri" data-act="openIngest" data-arg="${m.gap.key}">Attach SharePoint link</button><span class="muted">I won\'t guess — attach the file and I\'ll ingest, index and cite it.</span></div>`}</div>`}
+  else if(m.kind==='interview'){const iv=room.interview,mine=S.persona==='po';
+    b=`<div class="ivc"><b>Discovery interview · sections A–G</b><div class="muted">Pre-filled from your Stage 1${room.skipped?'':'–2'} artifacts. Edit anything before I write solution intent.</div>
+      ${Object.entries(IV_LABELS).map(([k,l])=>`<label>${l}<input data-iv="${k}" value="${esc(iv.answers[k])}" ${iv.submitted?'disabled':''}></label>`).join('')}
+      ${iv.submitted?'<span class="stt approved">Submitted</span>':`<div class="gact"><button class="btn pri" data-act="next" ${mine?'':'disabled'}>Submit answers</button>${mine?'':'<span class="muted">Owned by the PO.</span>'}</div>`}</div>`}
+  return `<div class="msg ${ag?'agent':''}" id="m${m.id}">${ag?'<div class="orb sm"></div>':av(m.who)}<div class="body"><div class="meta"><b>${ag?d.agent:p.name}</b>${ag?'<span class="role">AGENT</span>':`<span class="role">${p.abbr}</span>`} · ${fmtT(m.t)}</div>${b}</div></div>`}
+function fileChip(room,k){const a=art(room,k);return a?`<button class="file" data-act="art" data-arg="${k}">${esc(a.name)} <span class="pill ${a.dest}">${DEST[a.dest]}</span></button>`:''}
+function runCard(room,r){const d=DOMAINS[room.id];
+  if(r.card==='cos')return `<div class="cos"><div class="gauge" style="--v:${d.cos}"><b>${d.cos}</b></div><div class="bars">${d.cosParts.map(([a,v])=>`<div>${a}<i style="--w:${v}%"></i><b>${v}</b></div>`).join('')}</div></div>
+    <div class="note ok"><b>COS ${d.cos} ≥ 70</b> — advisory threshold met. Sanity Suite 6/6 passed. Clear to advance.</div>`;
+  if(r.card==='drift')return `<div class="note"><b>ACD drift detected.</b> ${d.apps[2]} changed owning team since Stage 3. I updated <span class="mono">app-context-registry.md</span> and flagged it in the deliverable.</div>`;
+  if(r.card==='grades')return `<div class="note ok">Epic grades: ${d.epics.map((e,i)=>i===2?'B':'A').join(' · ')} — BAC present on all ${d.epics.length}. Eligible for GW-RD2.</div>`;
+  return ''}
+function gateCard(room,gid){const G=GATES[gid],g=room.gates[gid],cl=g.status==='cleared';
+  const who=G.approvers.find(p=>!g.approvals[p]),mine=who===S.persona;
+  const signed=Object.entries(g.approvals).map(([p,x])=>`<div class="muted">✓ ${PEOPLE[p].name} · ${fmtT(x.t)} · sig <span class="mono">${x.sig}</span>${x.note?' · “'+esc(x.note)+'”':''}</div>`).join('');
+  return `<div class="gatec ${cl?'cleared':''}"><div class="rh" style="display:flex;gap:8px;align-items:center"><span class="chip ${G.cls} ${cl?'cleared':'pending'}">${gid}</span><b>${G.name}</b>
+     <span class="stt ${cl?'approved':'review'}" style="margin-left:auto">${cl?'CLEARED':g.status==='changes'?'CHANGES REQUESTED':'AWAITING '+(G.commit?'COMMIT':'APPROVAL')+(g.round>1?' · ROUND '+g.round:'')}</span></div>
+   <div class="gq">“${G.q}”</div><div class="files" style="margin:0">${G.files.map(k=>fileChip(room,k)).join('')}</div>
+   <ul class="checks">${G.checks.map(c=>`<li>${c}</li>`).join('')}</ul>${signed}
+   ${cl?'':g.status==='changes'?'<div class="muted">Agent is revising…</div>':mine?`
+     ${G.commit?'':`<textarea rows="2" placeholder="Optional comment for the record…" data-gc="${gid}">${esc(g.draft)}</textarea>`}
+     <div class="gact"><button class="btn ok" data-act="approve" data-arg="${gid}">${G.commit?'Commit to Working Hub · closes gate':gid==='EXIT'?'Sign off':'Approve & lock artifacts'}</button>
+     ${G.commit||gid==='EXIT'?'':`<button class="btn warn" data-act="changes" data-arg="${gid}">Request changes</button>`}</div>`
+   :`<div class="gact">${av(who,'sm')}<span>Waiting on <b>${PEOPLE[who].name}</b> (${PEOPLE[who].abbr})</span><button class="btn" data-act="nudge" data-arg="${gid}">Nudge</button><button class="btn" data-act="persona" data-arg="${who}">Switch to ${PEOPLE[who].name.split(' ')[0]}</button></div>`}</div>`}
+
+function renderChatHead(){const room=R(),d=D(),pg=pendingGate(room);
+  let ban='';
+  if(pg)ban=pg.who===S.persona?`<div class="banner me"><b>You\'re up.</b> ${pg.gid} is waiting on your ${GATES[pg.gid].commit?'commit':'decision'}.<button class="btn" data-act="toGate">Review</button></div>`
+    :`<div class="banner other">${pg.gid} is waiting on ${av(pg.who,'sm')} <b>${PEOPLE[pg.who].name}</b> — the workflow is paused until they decide.</div>`;
+  $('#chdr').innerHTML=`<div class="chd"><div><h2>${d.initiative}</h2><small><span class="mono">${d.key}</span> · ${d.name} · facilitated by ${d.agent}</small></div></div>${ban}${guideHTML(room)}`}
+const SPEEDS=[[.5,'Slow'],[1,'Normal'],[3,'Fast']];
+function guideHTML(room){if(!S.guide)return '';const a=nextAction(room);let t,why,what;
+  if(!a){t='Workflow complete';why='All six gates are cleared and every artifact is stored with its lineage and approval record.';what='Open the Artifact Vault to review any artifact, or open Skill Studio and switch to the steward to edit a skill. Use ↺ to start again.'}
+  else{const p=PEOPLE[a.actor],mine=a.actor===S.persona,sw=`Click <b>${p.name}</b> in the Squad list to act as the ${p.role}, then `;
+    if(a.type==='skill'){const sk=a.skill;t='Run '+sk.name;
+      why=esc(sk.desc)+(sk.needs.length?' Draws on: '+[...new Set(sk.needs.map(n=>VIA[n.via]))].join(', ')+'.':'')+(unsatGap(room,sk)?' Watch for a data gap — Knowledge Hub doesn\'t hold everything this skill needs.':'')+(sk.interview&&!room.interview?' The agent will open the discovery interview first.':'');
+      what=(mine?'Click':sw+'click')+` <b>▶ Run ${esc(sk.name)}</b> under the chat (or type “run it”).`+(sk.stage==='s2'?' Stage 2 is optional — the PO can also choose <b>Skip Stage 2</b>.':'')}
+    else if(a.type==='ingest'){t='Resolve the data gap';why=`The agent won\'t guess. Knowledge Hub returned nothing for ${esc(a.gap.label)}, so the skill is paused until a file is supplied.`;
+      what=(mine?'On':sw+'on')+' the red card click <b>Attach SharePoint link</b>, choose <b>Use demo link</b>, then <b>Ingest</b>. The file gets a SRC-ID the agent must cite.'}
+    else if(a.type==='answer'){t='Review the discovery interview';why='Sections A–G are pre-filled from earlier artifacts. Whatever is submitted is written into solution-intent.md.';
+      what=(mine?'Edit':sw+'edit')+' any answer in the interview card, then click <b>Submit answers</b>.'}
+    else if(a.type==='commit'){t='Commit the implementation plan';why='GW-B1 has no separate approver — it closes when the Engineering Lead commits the plan to Working Hub.';
+      what=(mine?'Open':sw+'open')+' implementation-plan.md from the gate card if you want to read it, then click <b>Commit to Working Hub</b>.'}
+    else{const G=GATES[a.gate];t=(a.gate==='EXIT'?'Sign ':'Decide ')+a.gate+' · '+G.name;
+      why=`Gate question: “${G.q}” The workflow is paused until ${p.name} (${p.abbr}) decides${a.gate==='EXIT'?'':'; the approver must differ from the author'}.`;
+      what=mine?'Open the files on the gate card to review them — you can edit one yourself or revise it with the agent first — then approve'+(a.gate==='EXIT'?'.':' — or try <b>Request changes</b> to watch the agent revise and resubmit.')
+        :`Notice the alert tag on ${p.name} in the Squad list — that is who everyone is waiting on. Click their name to act as them, then decide on the gate card.`}}
+  const sp=SPEEDS.find(x=>x[0]===S.speed)||[S.speed,S.speed+'×'];
+  return `<div class="guide"><div><div class="gk">Guide · ${a?`step ${room.ptr+1} of ${room.chain.length} · Stage ${STAGES[stageIdx(curStage(room))].num}`:'finished'}</div><h4>${t}</h4>
+    <p><b class="l">Why</b>${why}</p><p><b class="l">Try it</b>${what}</p></div>
+    <div class="gctl">${a?`<button class="btn pri" data-act="step" ${S.auto?'disabled':''} title="Performs just this one step, then stops">Do this step for me ▸</button>
+      <div><button class="btn ${S.auto?'warn':''}" data-act="auto">${S.auto?'⏸ Pause':'▶ Auto-play'}</button><button class="btn" data-act="speed" title="Pace of agent runs and auto-play">${sp[1]}</button></div>`:''}</div></div>`}
+function renderChat(){const room=R();$('#chat').innerHTML=room.msgs.map(m=>msgHTML(room,m)).join('');scrollChat()}
+function refreshDyn(){const room=R();room.msgs.forEach(m=>{if(['gate','gap','interview'].includes(m.kind)){const el=document.getElementById('m'+m.id);if(el&&!el.contains(document.activeElement))el.outerHTML=msgHTML(room,m)}})}
+
+function renderComp(){const room=R(),a=nextAction(room);let s='';
+  if(a){const p=PEOPLE[a.actor];
+    s+=a.actor===S.persona?`<button class="sug pri" data-act="next">▶ ${actionLabel(a)}</button>`:`<button class="sug sw" data-act="persona" data-arg="${a.actor}">Switch to ${p.name} (${p.abbr}) → ${actionLabel(a)}</button>`;
+    if(curStage(room)==='s2'&&a.type==='skill'&&S.persona==='po')s+=`<button class="sug" data-act="skip2">Skip Stage 2 (optional)</button>`}
+  s+=`<button class="sug" data-act="ask" data-arg="Where are we?">Where are we?</button><button class="sug" data-act="openIngest" data-arg="">＋ SharePoint source</button><button class="sug" data-act="ask" data-arg="What is COS?">What is COS?</button><button class="sug slashb" data-act="slashOpen" title="Guide, glossary, pet and font">/ Commands</button>`;
+  const keep=$('#msgin')?.value||'';
+  $('#comp').innerHTML=`<div class="sugs">${s}</div><div class="inrow">${av(S.persona)}<input id="msgin" placeholder="Message the squad or ask ${D().agent}…  Type / for commands" autocomplete="off"><button class="btn pri" data-act="send">Send</button></div>`;
+  $('#msgin').value=keep}
+
+function renderRight(){const room=R(),d=D();
+  const tabs=[['stage','Stage'],['arts','Artifacts'],['src','Sources'],['log','Activity']];
+  if(S.noright){$('#right').innerHTML=`<div class="rmin"><button class="lt" data-act="right" title="Expand this panel">«</button>${tabs.map(([k,l])=>`<button class="vt ${S.tab===k?'on':''}" data-act="tabOpen" data-arg="${k}" title="Open ${l}">${l}${k==='arts'?' · '+room.arts.length:''}</button>`).join('')}</div>`;return}
+  let h=`<div class="tabs">${tabs.map(([k,l])=>`<button class="${S.tab===k?'on':''}" data-act="tab" data-arg="${k}">${l}</button>`).join('')}<button class="lt" data-act="right" title="Minimize this panel" style="flex:none;align-self:center;margin:0 8px;padding:2px 8px">»</button></div><div class="rp">`;
+  if(S.tab==='stage'){const sid=S.selStage||curStage(room),s=STAGES[stageIdx(sid)];
+    const idxs=room.chain.map((x,j)=>j).filter(j=>stepStage(room,j)===sid);
+    h+=`<div class="muted mono">STAGE ${s.num} · ${s.phase.toUpperCase()}${sid===curStage(room)&&!room.done?' · LIVE':''}</div><h3>${s.title}</h3>${sid!==curStage(room)&&!room.done?`<button class="lt" data-act="selStage" data-arg="${curStage(room)}" style="margin:4px 0 2px">← Back to live stage</button>`:''}
+     <h5>Inputs</h5><div class="muted">${s.inputs}</div><h5>Skills <span>${d.agent}</span></h5>`;
+    for(const j of idxs){const st=room.chain[j];if(st[0]==='@')continue;const sk=skill(room.id,st);const stt=j<room.ptr&&!(sid==='s2'&&room.skipped)?'done':j===room.ptr&&!room.done?'next':'queued';
+      h+=`<button class="row ${stt==='next'?'next':''}" data-act="editSkill" data-arg="${sk.id}"><span>${stt==='done'?'<span style="color:var(--gr)">✓</span>':stt==='next'?'<span style="color:var(--ac)">▶</span>':'○'}</span>
+        <span class="nm" title="${esc(sk.desc)} — click to view or edit">${esc(sk.name)}</span>${sk.tag!=='core'?`<span class="tag ${sk.tag}">${sk.tag}</span>`:''}${sk.cz?'<span class="tag cz">edited</span>':''}<span class="role">${PEOPLE[sk.role].abbr}</span><small class="mono">v${sk.ver}</small></button>`}
+    for(const sk of S.skills[room.id].filter(x=>x.tag==='custom'&&x.stage===sid))
+      h+=`<div class="row ${sk.enabled?'':'ghost'}"><span>✦</span><span class="nm" title="${esc(sk.desc)}">${esc(sk.name)}</span><span class="tag custom">custom</span><span class="role">${PEOPLE[sk.role].abbr}</span>${sk.enabled?`<button class="btn" data-act="runCustom" data-arg="${sk.id}">Run</button>`:'<small>disabled</small>'}</div>`;
+    h+=`<div class="skact"><button class="lt" data-act="newSkillHere">+ New skill</button><button class="lt" data-act="view" data-arg="studio">All skills in Skill Studio →</button></div><h5>Outputs</h5>`;
+    const outs=idxs.filter(j=>room.chain[j][0]!=='@').flatMap(j=>skill(room.id,room.chain[j]).outs);
+    for(const k of [...outs,...(sid==='s6'?['pilot_exit']:[])]){const def=tplOf(room.id,k),a=art(room,k);if(!def)continue;
+      h+=`<button class="row ${a?'':'ghost'}" ${a?`data-act="art" data-arg="${k}"`:'disabled'}><span class="nm">${esc(def.name)}</span><span class="pill ${def.dest}">${DEST[def.dest]}</span>${def.gate?`<span class="role">${def.gate}</span>`:''}${a?`<span class="stt ${a.status}">${a.status}</span>`:''}</button>`}
+    const gs=idxs.filter(j=>room.chain[j][0]==='@').map(j=>room.chain[j].slice(1));
+    if(gs.length||s.adv){h+=`<h5>Gates</h5>`;
+      for(const gid of gs){const G=GATES[gid],g=room.gates[gid];h+=`<div class="row"><span class="chip ${G.cls} ${g?.status==='cleared'?'cleared':g?'pending':''}">${gid}</span><span class="nm" style="font-family:var(--sans);white-space:normal">${G.q}</span><small>${g?.status==='cleared'?'cleared':g?'pending':'locked'}</small></div>`}
+      if(s.adv)h+=`<div class="row"><span class="chip adv">${s.adv}</span><span class="nm" style="font-family:var(--sans)">Advisory — no platform safety net</span></div>`}
+  }
+  else if(S.tab==='arts'){h+=`<h3>Room artifacts</h3><div class="muted" style="margin-bottom:10px">Everything the agent has produced. Approved artifacts are locked and always reviewable.</div>`;
+    h+=[...room.arts].reverse().map(a=>`<button class="row" data-act="art" data-arg="${a.key}"><span class="nm">${a.status==='approved'?'◆ ':''}${esc(a.name)}</span><small class="mono">v${a.ver}</small><span class="stt ${a.status}">${a.status}</span></button>`).join('')||'<div class="muted">Nothing yet — run the first skill.</div>';
+    h+=`<div style="margin-top:10px"><button class="btn" data-act="view" data-arg="vault">Open Artifact Vault →</button></div>`}
+  else if(S.tab==='src'){h+=`<h3>Knowledge & sources</h3><h5>MCP connections</h5>
+     ${[['Knowledge Hub','kh-grounded-query · kh-cli'],['Working Hub','wh-* capabilities'],['Jira','search · publish'],['Confluence','publish']].map(([a,b])=>`<div class="conn"><i></i><b>${a}</b><small class="muted mono" style="margin-left:auto">${b}</small></div>`).join('')}
+     <h5>SharePoint sources <span>${room.sources.length}</span></h5>
+     ${room.sources.map(s=>`<div class="row"><span class="src">${s.id}</span><span class="nm" title="${esc(s.url)}">${esc(s.name)}</span><small>${s.scope==='Whole initiative'?'initiative':'skill'}</small></div>`).join('')||'<div class="muted">No files ingested yet. When Knowledge Hub can\'t ground a skill, attach a SharePoint link.</div>'}
+     <div style="margin-top:10px"><button class="btn pri" data-act="openIngest" data-arg="">＋ Attach SharePoint link</button></div>`}
+  else{h+=`<h3>Activity log</h3><div class="muted" style="margin-bottom:8px">Append-only record of every agent run, ingestion and decision.</div>`+room.audit.map(l=>`<div class="log"><span>${fmtT(l.t)} · ${l.h}</span><br><b>${esc(l.who)}</b> — ${esc(l.what)}</div>`).join('')}
+  $('#right').innerHTML=h+'</div>'}
+
+/* ---------- full-page views ---------- */
+function renderView(){document.body.className='v-'+S.view+(S.noleft?' noleft':'')+(S.norail?' norail':'')+(S.noright?' noright':'');document.documentElement.dataset.theme=S.theme;applyPalette();applyFont();
+  if(S.view==='vault')renderVault();else if(S.view==='studio')renderStudio()}
+function renderVault(){const room=R(),d=D();
+  const rows=room.arts.filter(a=>(S.vf==='all'||a.status===S.vf)&&a.name.toLowerCase().includes(S.vq.toLowerCase()));
+  $('#view').innerHTML=`<div class="vh"><div class="orb"></div><div><h1>Artifact Vault</h1><div class="muted">${d.initiative} · every output, its lineage and its approval record</div></div></div>
+   <div class="filters">${[['all','All'],['approved','Approved'],['review','In review'],['saved','Saved'],['draft','Draft']].map(([k,l])=>`<button class="sug ${S.vf===k?'pri':''}" data-act="vf" data-arg="${k}">${l}</button>`).join('')}<span class="sp"></span><input id="vq" placeholder="Search artifacts…" value="${esc(S.vq)}"></div>
+   <div class="card" style="padding:0"><table class="t"><tr><th>Artifact</th><th>Stage</th><th>Destination</th><th>Gate</th><th>Status</th><th>Ver</th><th>Produced by</th><th>Updated</th></tr>
+   ${rows.map(a=>`<tr class="cl" data-act="art" data-arg="${a.key}"><td class="mono">${a.status==='approved'?'◆ ':''}${esc(a.name)}</td><td>${STAGES[stageIdx(a.stage)].num}</td><td><span class="pill ${a.dest}">${DEST[a.dest]}</span></td><td class="mono">${a.gate||'—'}</td><td><span class="stt ${a.status}">${a.status}</span></td><td class="mono">v${a.ver}</td><td>${esc(a.skill)} · ${PEOPLE[a.author]?.abbr||''}</td><td class="muted">${fmtT(a.t)}</td></tr>`).join('')||'<tr><td colspan="8" class="muted">No artifacts match.</td></tr>'}</table></div>`}
+
+const isSteward=()=>D().steward===S.persona;
+const isElev=()=>isSteward()&&(S.elev[S.domain]||0)>Date.now();
+function renderStudio(){const d=D(),sk=S.skills[S.domain],st=PEOPLE[d.steward],el=isElev();
+  const left=el?Math.max(0,Math.round((S.elev[S.domain]-Date.now())/1000)):0;
+  $('#view').innerHTML=`<div class="vh"><div class="orb"></div><div><h1>Skill Studio · ${d.agent}</h1><div class="muted">Each domain agent runs the shared PDLC workflow with its own skills. Changes here apply to the ${d.name} domain only.</div></div></div>
+   <div class="access ${el?'open':'locked'}"><span style="font-size:20px">${el?'◇':'◈'}</span>
+     <div><b>${el?'Elevated session active':'Read-only'}</b> · Domain skill steward: ${av(d.steward,'sm')} <b>${st.name}</b>
+       <div class="muted">${el?`You can add, edit and disable skills. Session ends in <b class="mono" id="elevT">${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}</b>. Every change is versioned and logged.`:isSteward()?'You hold the high-security steward entitlement for this domain. Step-up verification is required before editing.':'Modifying skills requires the high-security steward entitlement for this domain.'}</div></div>
+     <span class="sp"></span>
+     ${el?`<button class="btn pri" data-act="newSkill">＋ New skill</button><button class="btn" data-act="endElev">End session</button>`
+       :isSteward()?`<button class="btn pri" data-act="elevate">Start elevated session</button>`
+       :`<button class="btn" data-act="reqAccess">Request access</button><button class="btn" data-act="persona" data-arg="${d.steward}">Switch to ${st.name.split(' ')[0]}</button>`}</div>
+   <div class="sgrid">${STAGES.map(s=>`<div class="scol"><h4><span>${s.num}</span> ${s.title}</h4>${sk.filter(x=>x.stage===s.id).map(x=>`<button class="sk ${x.enabled?'':'off'}" data-act="editSkill" data-arg="${x.id}">
+       <b>${esc(x.name)}</b><p>${esc(x.desc)}</p><span class="tag ${x.tag}">${x.tag}</span> ${x.cz?'<span class="tag cz">customized</span>':''} <span class="role">${PEOPLE[x.role].abbr}</span> <span class="mono muted">v${x.ver}</span>
+       <div class="muted mono" style="margin-top:5px;font-size:9.5px">${[...new Set(x.needs.map(n=>VIA[n.via]))].join(' · ')||'session context'}</div></button>`).join('')||'<div class="muted">No skills.</div>'}</div>`).join('')}</div>`}
+
+/* ---------- modals ---------- */
+function modal(html){$('#modal').innerHTML=html;$('#modal').classList.add('on')}
+function closeModal(){AV=null;S.tplEdit=null;$('#modal').classList.remove('on');$('#modal').innerHTML='';S.edit=null}
+function md(srcTxt){if(srcTxt.startsWith('<!raw>'))return srcTxt.slice(6);
+  const inl=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/`(.+?)`/g,'<code>$1</code>').replace(/\[(SRC-\d+)\]/g,'<span class="src">$1</span>');
+  let h='',ul=false,tb=false;const close=()=>{if(ul){h+='</ul>';ul=false}if(tb){h+='</table>';tb=false}};
+  for(const l of srcTxt.split('\n')){
+    if(l.startsWith('# ')){close();h+=`<h1>${inl(l.slice(2))}</h1>`}
+    else if(l.startsWith('## ')){close();h+=`<h2>${inl(l.slice(3))}</h2>`}
+    else if(l.startsWith('- ')){if(tb)close();if(!ul){h+='<ul>';ul=true}h+=`<li>${inl(l.slice(2))}</li>`}
+    else if(l.startsWith('|')){if(ul)close();const c=l.split('|').slice(1,-1).map(x=>x.trim());if(c.every(x=>/^-+$/.test(x)))continue;const t=tb?'td':'th';if(!tb){h+='<table>';tb=true}h+='<tr>'+c.map(x=>`<${t}>${inl(x)}</${t}>`).join('')+'</tr>'}
+    else if(l.startsWith('> ')){close();h+=`<blockquote>${inl(l.slice(2))}</blockquote>`}
+    else if(!l.trim())close();else{close();h+=`<p>${inl(l)}</p>`}}
+  close();return h}
+let ingestGap=null;
+function openIngest(gap){ingestGap=gap||null;const d=D(),sugg=gap?gap.url:SP+d.short+'/Shared%20Documents/Client-Readiness-Notes.docx';
+  modal(`<div class="mod" style="width:min(560px,92vw)"><div class="mh"><h3>Attach a SharePoint source</h3><button class="x" data-act="close">✕</button></div><div class="mb form">
+   <div class="muted">${gap?`Needed for: <b>${esc(gap.label)}</b>. `:''}The agent fetches the file with your permissions, indexes it, and assigns a SRC-ID it must cite.</div>
+   <label>SharePoint link</label><input id="spUrl" placeholder="https://…sharepoint…/file.pdf"><div style="margin-top:5px"><button class="sug" data-act="spFill" data-arg="${esc(sugg)}">Use demo link</button></div>
+   <label>Make available to</label><div class="cks"><label><input type="radio" name="scope" value="Whole initiative" checked> Whole initiative (recommended — one SRC-ID, reused by every skill)</label><label><input type="radio" name="scope" value="This skill only"> This skill only</label></div>
+   <div class="prog" id="spProg" style="margin-top:12px"></div>
+   <div class="gact" style="justify-content:flex-end"><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="doIngest" id="spGo">Ingest</button></div></div></div>`)}
+function openGlossary(){modal(`<div class="mod glos"><div class="mh"><h3>Glossary — terms used in the workflow</h3><button class="x" data-act="close">✕</button></div><div class="mb"><table class="t">${GLOSSARY.map(g=>`<tr><td>${g[0]}</td><td><b>${g[1]}</b></td><td class="muted">${g[2]}</td></tr>`).join('')}</table></div></div>`)}
+function openSkillEditor(){const e=S.edit,x=e.draft,el=isElev(),dis=el?'':'disabled',isNew=!e.id,orig=e.id?skill(S.domain,e.id):null,custom=isNew||orig.tag==='custom';
+  modal(`<div class="mod" style="width:min(720px,94vw)"><div class="mh"><h3>${isNew?'New skill':'Skill · '+esc(orig.name)} ${isNew?'':`<span class="tag ${orig.tag}">${orig.tag}</span> <span class="mono muted">v${orig.ver}</span>`}</h3>${el?'':'<span class="stt review">READ-ONLY</span>'}<button class="x" data-act="close">✕</button></div>
+   <div class="mb form">${el?`<div class="note ok">Elevated session active — your changes publish a new version for ${D().agent} and are logged.</div>`:isSteward()?`<div class="note">You are the skill steward for ${D().name}. Editing needs a step-up check. <button class="btn pri" data-act="elevate" style="margin-left:8px">Unlock editing</button></div>`:`<div class="note">Read-only. Only the domain skill steward, <b>${PEOPLE[D().steward].name}</b>, can edit ${D().agent}'s skills. <button class="btn" data-act="reqAccess" style="margin-left:8px">Request access</button> <button class="btn" data-act="skillSwitch">Switch to ${PEOPLE[D().steward].name.split(' ')[0]}</button></div>`}<div style="display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:10px;margin-top:10px">
+    <div><label>Skill name</label><input data-f="name" value="${esc(x.name)}" ${custom?dis:'disabled'} placeholder="e.g. chargeback-rule-check"></div>
+    <div><label>Workflow stage</label><select data-f="stage" ${custom?dis:'disabled'}>${STAGES.map(s=>`<option value="${s.id}" ${x.stage===s.id?'selected':''}>${s.num} · ${s.title}</option>`).join('')}</select></div>
+    <div><label>Owner role</label><select data-f="role" ${custom?dis:'disabled'}>${Object.entries(PEOPLE).map(([k,p])=>`<option value="${k}" ${x.role===k?'selected':''}>${p.abbr} · ${p.role}</option>`).join('')}</select></div></div>
+   <label>What it does</label><input data-f="desc" value="${esc(x.desc)}" ${dis}>
+   <label>Agent instructions</label><textarea data-f="prompt" rows="6" class="mono" ${dis}>${esc(x.prompt)}</textarea>
+   <label>Data connections</label><div class="cks">${Object.entries(VIA).map(([k,l])=>`<label><input type="checkbox" data-fc="${k}" ${x.conns.includes(k)?'checked':''} ${dis}> ${l}${k==='sp'?' (file ingest)':' (MCP)'}</label>`).join('')}</div>
+   <label>Guardrails</label><div class="cks">${[['cite','Cite SRC-IDs inline'],['pii','Redact PAN / PII'],['human','Require human gate on output']].map(([k,l])=>`<label><input type="checkbox" data-fg="${k}" ${x.guards.includes(k)?'checked':''} ${dis}> ${l}</label>`).join('')}</div>
+   ${isNew?`<label>First output file name</label><input data-f="outName" value="${esc(x.outName||'')}" ${dis} placeholder="my-output.md"><div class="muted" style="margin-top:4px">Publish the skill, then open it to define each output's template and checks.</div>`
+     :`<label>Outputs · the skill's output contract</label><div class="outs">${orig.outs.map(k=>{const t=tplOf(S.domain,k);return t?`<button class="orow" data-act="tplOpen" data-arg="${k}"><b class="mono">${esc(t.name)}</b><span class="pill ${t.dest}">${DEST[t.dest]}</span>${t.gate?`<span class="role">${t.gate}</span>`:''}<small>${t.raw?'chart':t.sections.length?t.sections.length+' section'+(t.sections.length>1?'s':''):'free-form'} · ${t.checks.length} checks${t.edited?' · customized':''}</small><span class="r">Template ›</span></button>`:''}).join('')||`<div class="muted">No templated outputs yet — this skill writes ${esc(orig.outName||'a single document')}.</div>`}</div>
+      <div style="margin-top:6px"><button class="lt" data-act="outAdd" ${dis}>+ Add output</button></div>`}
+   ${isNew?'':`<label>Version history</label>${orig.history.map(h=>`<div class="log"><b>v${h.ver}</b> · ${esc(h.by)} — ${esc(h.note)}</div>`).join('')}`}
+   <div id="dry"></div>
+   <div class="gact" style="justify-content:flex-end;margin-top:14px">${!isNew&&orig.tag==='custom'&&el?`<button class="btn dng" data-act="delSkill">Delete</button><button class="btn" data-act="toggleSkill">${orig.enabled?'Disable':'Enable'}</button>`:''}<span class="sp"></span>
+    ${!isNew&&skillRan(R(),orig)?'<button class="btn" data-act="skillRerun" title="Regenerate this skill\'s outputs with the current templates">Re-run now</button>':''}<button class="btn" data-act="dryRun">Dry run</button><button class="btn pri" data-act="saveSkill" ${dis}>${isNew?'Publish skill':'Save & publish new version'}</button></div></div></div>`)}
+
+/* ---------- chat brain ---------- */
+function agentReply(room,text){const t=text.toLowerCase(),d=DOMAINS[room.id],a=nextAction(room);
+  const g=GLOSSARY.find(x=>new RegExp('(^|[^a-z0-9-])'+x[0].toLowerCase().replace(/[-]/g,'\\-')+'($|[^a-z0-9-])').test(t));
+  if(/what('s| is| does)|meaning|define|stand for/.test(t)&&g)return `<b>${g[0]}</b> — ${g[1]}. ${g[2]}`;
+  if(/status|where are we|progress|what.s next|whats next/.test(t)){const s=STAGES[stageIdx(curStage(room))];
+    return room.done?'The workflow is complete. All six gates are cleared and every artifact is in the Vault.':`We\'re in <b>Stage ${s.num} · ${s.title}</b>. ${room.arts.length} artifacts so far, ${Object.values(room.gates).filter(x=>x.status==='cleared').length}/6 gates cleared. Next: <b>${actionLabel(a)}</b> — owned by ${PEOPLE[a.actor].name} (${PEOPLE[a.actor].abbr}).`}
+  if(/skip/.test(t)&&curStage(room)==='s2'){setTimeout(()=>skipStage2(room),50);return null}
+  if(/approve|lgtm|sign/.test(t)&&a&&(a.type==='approve'||a.type==='commit')){if(a.actor===S.persona){setTimeout(()=>approveGate(room,a.gate,S.persona),50);return `Recording your ${a.type==='commit'?'commit':'approval'} on ${a.gate}.`}return `${a.gate} can only be decided by ${PEOPLE[a.actor].name} (${PEOPLE[a.actor].abbr}). I\'ve nudged them.`}
+  if(/\b(run|go|start|continue|proceed|next|do it|kick off)\b/.test(t)&&a){if(a.actor!==S.persona)return `That step — <b>${actionLabel(a)}</b> — is owned by ${PEOPLE[a.actor].name} (${PEOPLE[a.actor].abbr}). I can\'t run it on your behalf.`;
+    if(a.type==='approve'||a.type==='commit')return `The next step is your decision on ${a.gate} — use the gate card above.`;if(room.busy)return 'Give me a moment — I\'m still finishing the current skill.';setTimeout(()=>perform(room,a),50);return null}
+  if(/source|sharepoint|file|upload|attach/.test(t))return 'I ground skills through MCP connections to Knowledge Hub, Working Hub, Jira and Confluence. If those don\'t have what a skill needs, attach a SharePoint link — use <b>＋ SharePoint source</b> below and I\'ll index it and assign a SRC-ID.';
+  if(g)return `<b>${g[0]}</b> — ${g[1]}. ${g[2]}`;
+  audit(room,d.agent,'Captured note to session record');
+  return `Noted — I\'ve added that to the session record so it carries into the next artifact.${a?` When you\'re ready, the next step is <b>${actionLabel(a)}</b> (${PEOPLE[a.actor].abbr}).`:''}`}
+function send(text){text=text.trim();if(!text)return;const room=R();
+  post(room,{who:S.persona,kind:'text',html:esc(text)});
+  const mention=Object.entries(PEOPLE).find(([k,p])=>k!==S.persona&&text.toLowerCase().includes('@'+p.name.split(' ')[0].toLowerCase()));
+  if(mention){setTimeout(()=>post(room,{who:mention[0],kind:'text',html:'Got it — taking a look.'}),1100);return}
+  $('#typing').textContent=D().agent+' is thinking…';
+  setTimeout(()=>{$('#typing').textContent='';const r=agentReply(room,text);if(r)say(room,r);refresh()},650)}
+
+/* ---------- actions ---------- */
+const ACT={
+ view(v){S.view=v;S.auto=false;renderAll()},
+ domain(k){S.domain=k;S.selStage=null;S.auto=false;S.menu=null;renderAll()},
+ persona(k){S.persona=k;S.menu=null;renderAll();const n=Object.values(S.rooms).flatMap(r=>r.notifs).filter(x=>x.to===k&&!x.read).length;toast('Acting as '+PEOPLE[k].name+' · '+PEOPLE[k].role+(n?` — ${n} alert(s) waiting`:''))},
+ menu(m,el,e){if(e.target.closest('.menu'))return;S.menu=S.menu===m?null:m;renderTop()},
+ selStage(id){S.selStage=id===curStage(R())?null:id;S.tab='stage';if(S.noright){S.noright=false;try{localStorage.setItem('sr-right','open')}catch(e){}renderAll()}else{renderRail();renderRight()}},
+ tab(t){S.tab=t;renderRight()},
+ next(){const room=R();if(room.busy)return toast('The agent is still working…');const a=nextAction(room);if(!a)return;if(a.actor!==S.persona)return toast('This step is owned by '+PEOPLE[a.actor].name);perform(room,a)},
+ skip2(){skipStage2(R())},
+ approve(gid){const room=R(),a=nextAction(room);if(a&&a.gate===gid&&a.actor===S.persona)approveGate(room,gid,S.persona)},
+ changes(gid){requestChanges(R(),gid)},
+ nudge(gid){const room=R(),a=nextAction(room);notify(room,a.actor,`Nudge: ${gid} still needs you — ${D().short}`);toast('Nudged '+PEOPLE[a.actor].name);setTimeout(()=>post(room,{who:a.actor,kind:'text',html:'Thanks for the nudge — on it.'}),900);renderTop()},
+ toGate(){const els=document.querySelectorAll('.gatec:not(.cleared)');els[els.length-1]?.scrollIntoView({behavior:'smooth',block:'center'})},
+ art(k){openArt(k)},
+ close(){closeModal()},
+ bgClose(_,el,e){if(e.target===el)closeModal()},
+ dl(k){const a=art(R(),k);const u=URL.createObjectURL(new Blob([a.body.replace('<!raw>','')],{type:'text/plain'}));const l=document.createElement('a');l.href=u;l.download=a.name.replace(/[^\w.\-]+/g,'_');l.click();URL.revokeObjectURL(u)},
+ ask(q){send(q)},
+ send(){const i=$('#msgin');const v=i.value;i.value='';send(v)},
+ openIngest(key){const room=R();let gap=null;if(key){const a=nextAction(room);gap=a?.gap&&a.gap.key===key?a.gap:room.msgs.find(m=>m.kind==='gap'&&m.gap.key===key)?.gap}openIngest(gap)},
+ spFill(u){$('#spUrl').value=u},
+ async doIngest(){const u=$('#spUrl').value.trim();if(!/^https?:\/\/\S+/.test(u))return toast('Paste a SharePoint link first (or use the demo link).');
+   const scope=document.querySelector('input[name=scope]:checked').value,room=R(),g=ingestGap;$('#spGo').disabled=true;
+   for(const s of ['Authenticating with your SSO identity','Fetching '+fileName(u),'Extracting text · 38 pages','Classifying: Internal — no PAN detected','Chunking & embedding · 212 chunks','Assigning SRC-ID']){$('#spProg').insertAdjacentHTML('beforeend',`<div>${esc(s)}</div>`);await sleep(380)}
+   closeModal();ingest(room,{key:g?.key,url:u,scope},S.persona)},
+ auto(){S.auto=!S.auto;refresh();if(S.auto){toast('Auto-play — pause any time to study a step');autopilot()}},
+ speed(){const i=SPEEDS.findIndex(x=>x[0]===S.speed);S.speed=SPEEDS[(i+1)%SPEEDS.length][0];refresh()},
+ guide(){S.guide=!S.guide;if(!S.guide)S.auto=false;refresh()},
+ async step(){const room=R();if(room.busy)return toast('The agent is still working…');const a=nextAction(room);if(!a)return;
+   if(a.actor!==S.persona){S.persona=a.actor;refresh();toast('Now acting as '+PEOPLE[a.actor].name+' · '+PEOPLE[a.actor].abbr);await sleep(700)}
+   perform(room,a,{auto:true})},
+ font(k){S.font=k;S.menu=null;try{localStorage.setItem('sr5-font',k)}catch(e){}renderAll()},
+ palette(k){S.palette=k;S.menu=null;try{localStorage.setItem('sr5-palette',k)}catch(e){}renderAll()},
+ rail(){S.norail=!S.norail;try{localStorage.setItem('sr-rail',S.norail?'min':'open')}catch(e){}renderAll()},
+ right(){S.noright=!S.noright;try{localStorage.setItem('sr-right',S.noright?'min':'open')}catch(e){}renderAll()},
+ tabOpen(k){S.tab=k;S.noright=false;try{localStorage.setItem('sr-right','open')}catch(e){}renderAll()},
+ left(){S.noleft=!S.noleft;try{localStorage.setItem('sr-left',S.noleft?'min':'open')}catch(e){}renderAll()},
+ theme(){S.theme=S.theme==='light'?'dark':'light';try{localStorage.setItem('sr-theme',S.theme)}catch(e){}renderAll()},
+ glossary(){openGlossary()},
+ reset(){if(confirm('Reset the whole simulation?'))boot()},
+ vf(k){S.vf=k;renderVault()},
+ runCustom(id){const room=R(),sk=skill(room.id,id);if(room.busy)return toast('The agent is still working…');if(sk.role!==S.persona)return toast('This skill is owned by '+PEOPLE[sk.role].name+' ('+PEOPLE[sk.role].abbr+')');runSkill(room,sk,S.persona)},
+ /* studio */
+ elevate(){modal(`<div class="mod" style="width:min(460px,92vw)"><div class="mh"><h3>◈ Step-up verification</h3><button class="x" data-act="close">✕</button></div><div class="mb form">
+   <div class="muted">Editing agent skills is a high-security action. Access is time-boxed and every change is attributed to you.</div>
+   <label>Reason for access</label><input id="elevWhy" value="Tune ${D().short} skills for the current release">
+   <div class="prog" id="elevP" style="margin-top:10px"></div>
+   <div class="gact" style="justify-content:flex-end"><button class="btn pri" data-act="doElev" id="elevGo">Verify identity</button></div></div></div>`)},
+ async doElev(){$('#elevGo').disabled=true;const why=$('#elevWhy').value;for(const s of ['Checking steward entitlement for '+D().name,'Hardware key verified','Elevated session granted · 10:00'])
+   {$('#elevP').insertAdjacentHTML('beforeend',`<div>${esc(s)}</div>`);await sleep(450)}
+   S.elev[S.domain]=Date.now()+600000;audit(R(),PEOPLE[S.persona].name,'Started elevated Skill Studio session — '+why);const back=S.edit;closeModal();renderStudio();refresh();if(back){S.edit=back;openSkillEditor()}},
+ endElev(){S.elev[S.domain]=0;audit(R(),PEOPLE[S.persona].name,'Ended elevated session');renderStudio()},
+ reqAccess(){const d=D();notify(R(),d.steward,`${PEOPLE[S.persona].name} requested Skill Studio access — ${d.short}`);audit(R(),PEOPLE[S.persona].name,'Requested Skill Studio access');toast('Request sent to '+PEOPLE[d.steward].name);renderTop()},
+ editSkill(id){const x=skill(S.domain,id);S.edit={id,draft:{name:x.name,stage:x.stage,role:x.role,desc:x.desc,prompt:x.prompt,conns:[...new Set(x.needs.map(n=>n.via))],guards:[...x.guards],outName:x.outName}};openSkillEditor()},
+ skillSwitch(){const back=S.edit;S.persona=D().steward;renderAll();S.edit=back;openSkillEditor();toast('Acting as '+PEOPLE[S.persona].name+' — skill steward')},
+ newSkillHere(){S.edit={id:null,draft:{name:'',stage:S.selStage||curStage(R()),role:'po',desc:'',prompt:`You are the ${D().agent}.\nDescribe exactly what this skill should produce and which sources it must cite.`,conns:['kh'],guards:['cite','pii'],outName:''}};openSkillEditor()},
+ newSkill(){S.edit={id:null,draft:{name:'',stage:curStage(R()),role:'po',desc:'',prompt:`You are the ${D().agent}.\nDescribe exactly what this skill should produce and which sources it must cite.`,conns:['kh'],guards:['cite','pii'],outName:''}};openSkillEditor()},
+ async dryRun(){const x=S.edit.draft;$('#dry').innerHTML='<div class="note">Running against a sandbox copy of the room…</div>';await sleep(900);
+   $('#dry').innerHTML=`<div class="note ok"><b>Dry run passed.</b> ${x.conns.length} connection(s) reachable · instructions parsed (${x.prompt.split(/\s+/).length} words) · guardrails: ${x.guards.join(', ')||'none'} · no production artifacts written.</div>`},
+ saveSkill(){if(!isElev())return toast('Elevated session required');const e=S.edit,x=e.draft,room=R(),me=PEOPLE[S.persona].name;
+   if(!x.name.trim())return toast('Give the skill a name');
+   const needs=x.conns.map(v=>({via:v,label:VIA[v]}));
+   if(e.id){const s=skill(S.domain,e.id);const [a,b]=s.ver.split('.').map(Number);s.ver=a+'.'+(b+1);
+     Object.assign(s,{desc:x.desc,prompt:x.prompt,guards:x.guards});
+     if(s.tag==='custom')Object.assign(s,{name:x.name.trim(),stage:x.stage,role:x.role,needs,outName:x.outName});else s.cz=true;
+     s.history.unshift({ver:s.ver,by:me,note:'Updated instructions / guardrails'});audit(room,me,`Published ${s.name} v${s.ver} (Skill Studio)`);toast(`${s.name} v${s.ver} published`)}
+   else{const id='c-'+Date.now();S.skills[S.domain].push({id,name:x.name.trim().replace(/\s+/g,'-').toLowerCase(),stage:x.stage,role:x.role,desc:x.desc||'Custom domain skill.',prompt:x.prompt,needs,outs:[],outName:x.outName||x.name.trim().replace(/\s+/g,'-').toLowerCase()+'.md',guards:x.guards,tag:'custom',ver:'1.0',enabled:true,trace:['Following custom instructions'],history:[{ver:'1.0',by:me,note:'Created in Skill Studio'}]});
+     audit(room,me,`Created skill ${x.name} for ${D().agent}`);toast('Skill published to '+D().agent+' — runnable from the Stage panel')}
+   closeModal();renderStudio();refresh()},
+ delSkill(){const id=S.edit.id,s=skill(S.domain,id);S.skills[S.domain]=S.skills[S.domain].filter(x=>x.id!==id);audit(R(),PEOPLE[S.persona].name,'Deleted skill '+s.name);closeModal();renderStudio();refresh()},
+ toggleSkill(){const s=skill(S.domain,S.edit.id);s.enabled=!s.enabled;audit(R(),PEOPLE[S.persona].name,(s.enabled?'Enabled ':'Disabled ')+s.name);closeModal();renderStudio();refresh()}
+};
+/* artifact viewer: read, edit by hand, or revise in conversation with the agent */
+let AV=null;
+function openArt(key){if(!art(R(),key))return;AV={key,mode:'view',ver:null,draft:'',chat:[],prop:null};renderArt()}
+function commitVersion(room,a,body,by,note){tick(room);a.ver++;a.body=body;a.t=room.clock;a.history.unshift({body,ver:a.ver,t:room.clock,by,note});
+  audit(room,PEOPLE[by].name,`${note} — ${a.name} v${a.ver}`);sys(room,`${a.name} → v${a.ver} · ${note} · ${PEOPLE[by].name}`);
+  const pg=pendingGate(room);if(a.status==='review'&&pg&&pg.gid===a.gate&&pg.who!==by)notify(room,pg.who,`${a.name} changed to v${a.ver} while in your review — ${DOMAINS[room.id].short}`);
+  refresh();if(S.view==='vault')renderVault()}
+function renderArt(){const room=R(),d=D(),a=AV&&art(room,AV.key);if(!a)return closeModal();
+  const locked=a.status==='approved',raw=a.body.startsWith('<!raw>'),can=!locked&&!raw;
+  const why=locked?'Approved artifacts are locked and cannot be changed':raw?'Generated chart — re-run the skill to change it':'';
+  const old=AV.ver&&AV.ver!==a.ver?a.history.find(h=>h.ver===AV.ver&&h.body):null;
+  const pg=pendingGate(room),isApprover=pg&&a.gate===pg.gid&&pg.who===S.persona;
+  let doc;
+  if(AV.mode==='edit')doc=`<div class="note">Editing the source directly. Saving creates <b>v${a.ver+1}</b>; earlier versions stay in the history.${isApprover?` You are the approver for ${a.gate}, so this will be recorded as a reviewer edit.`:''}</div>
+    <textarea id="artEd" class="mono arted" spellcheck="false">${esc(AV.draft)}</textarea>
+    <div class="gact" style="justify-content:flex-end"><button class="btn" data-act="artMode" data-arg="view">Cancel</button><button class="btn pri" data-act="artSave">Save as v${a.ver+1}</button></div>`;
+  else if(AV.prop!=null)doc=`<div class="note"><b>Proposed revision — not saved yet.</b> Keep refining it in the conversation, or apply it.
+    <div class="gact"><button class="btn pri" data-act="artApply">Apply as v${a.ver+1}</button><button class="btn" data-act="artDiscard">Discard</button></div></div>${md(AV.prop)}`;
+  else if(old)doc=`<div class="note">Viewing <b>v${old.ver}</b> (read-only). <button class="btn" data-act="artVer" data-arg="0">Back to current v${a.ver}</button></div>${md(old.body)}`;
+  else doc=md(a.body);
+  const side=AV.mode==='ai'?`<div class="metaP aic"><div class="aih"><div class="orb sm"></div><div><b>Revise with ${d.agent}</b><div class="muted">Describe the change. Nothing is saved until you apply it.</div></div></div>
+     <div class="ail" id="ail">${AV.chat.map(m=>`<div class="aim ${m.who}">${m.html}</div>`).join('')||'<div class="muted">Try a suggestion below, or type your own instruction.</div>'}</div>
+     <div class="sugs">${['Make it more concise','Lead with a BLUF','Add a risk about certification timing','Replace "PI 27.1" with "PI 27.2"'].map(x=>`<button class="sug" data-act="artAsk" data-arg="${esc(x)}">${esc(x)}</button>`).join('')}</div>
+     <div class="inrow"><input id="aiIn" placeholder="e.g. add an NFR about audit logging" autocomplete="off"><button class="btn pri" data-act="artAskSend">Send</button></div>
+     <button class="btn" data-act="artMode" data-arg="view">Back to details</button></div>`
+   :`<div class="metaP">${locked?`<div class="lock">◆ <b>Approved & locked</b>${a.approval?`<br>${a.approval.gate} · ${a.approval.by}<br>${fmtT(a.approval.t)} · sig <span class="mono">${a.approval.sig}</span>`:'<br>Committed as Working Hub evidence'}</div>`:`<span class="stt ${a.status}">${a.status}</span>`}
+    <dl><dt>Destination</dt><dd><span class="pill ${a.dest}">${DEST[a.dest]}</span> ${a.note?`<span class="muted">${a.note}</span>`:''}</dd>
+    <dt>Gate</dt><dd>${a.gate?`${a.gate} — ${GATES[a.gate].name}`:'— not a gate'}</dd>
+    <dt>Lineage</dt><dd>${d.agent} · <span class="mono">${esc(a.skill)} v${a.skillVer}</span><br>Requested by ${PEOPLE[a.author]?.name||a.author}<br><span class="muted">Stage ${STAGES[stageIdx(a.stage)].num} · ${STAGES[stageIdx(a.stage)].title}</span></dd>
+    <dt>Grounded in</dt><dd>${[...new Set(a.via)].map(v=>`<span class="role">${VIA[v]}</span>`).join(' ')||'<span class="muted">session context</span>'}<br>${a.cites.map(c=>`<span class="src">${c}</span>`).join(' ')}</dd>
+    ${a.checks?`<dt>Output contract</dt><dd><span class="muted">Template: ${esc(a.skill)}${a.tplEdited?' · customized':' · standard'}</span>${a.checks.map(c=>`<div class="ck ${c.ok?'':'bad'}">${c.ok?'✓':'✗'} ${esc(c.c)}</div>`).join('')}</dd>`:''}
+    <dt>Version history</dt><dd>${a.history.map(h=>`<button class="log" ${h.body?`data-act="artVer" data-arg="${h.ver}" title="View this version"`:''}><b>v${h.ver}</b> · ${fmtT(h.t)}${PEOPLE[h.by]?' · '+PEOPLE[h.by].name:''}<br>${esc(h.note)}</button>`).join('')}</dd></dl></div>`;
+  modal(`<div class="mod artv ${AV.mode==='ai'?'ai':''}"><div class="doc"><div class="mh" style="margin:-20px -26px 14px;padding:12px 26px"><h3 class="mono">${esc(a.name)} <span class="role">v${a.ver}</span></h3>
+     <button class="btn" data-act="artMode" data-arg="edit" ${can?'':'disabled'} title="${why||'Edit the text yourself'}">Edit</button>
+     <button class="btn ${can?'pri':''}" data-act="artMode" data-arg="ai" ${can?'':'disabled'} title="${why||'Talk the change through with the agent'}">Revise with agent</button>
+     <button class="btn" data-act="dl" data-arg="${AV.key}">Download</button><button class="x" data-act="close">✕</button></div>${doc}</div>${side}</div>`);
+  const l=$('#ail');if(l)l.scrollTop=l.scrollHeight;if(AV.mode==='ai')$('#aiIn')?.focus()}
+function lineDiff(a,b){const A=a.split('\n'),B=b.split('\n');return {add:B.filter(l=>l.trim()&&!A.includes(l)),del:A.filter(l=>l.trim()&&!B.includes(l))}}
+function reviseBody(body,text){const t=text.trim(),lo=t.toLowerCase();let L=body.split('\n'),what;
+  const m=t.match(/(?:change|replace|rename|swap)\s+["“']?(.+?)["”']?\s+(?:to|with|for)\s+["“']?(.+?)["”']?\.?$/i);
+  if(m){if(!body.includes(m[1]))return {none:`I couldn't find “${esc(m[1])}” in this artifact, so I left it unchanged. Quote the exact wording and I'll swap it.`};
+    L=body.split(m[1]).join(m[2]).split('\n');what=`Replaced “${esc(m[1])}” with “${esc(m[2])}” throughout.`}
+  else if(/\b(remove|delete|drop|cut|strike)\b/.test(lo)){
+    const kw=lo.replace(/.*\b(remove|delete|drop|cut|strike)\b/,'').split(/\W+/).filter(w=>w.length>2&&!['the','any','all','section','line','lines','bullet','bullets','row','rows','about','mention','mentions','reference','references','that','from','out'].includes(w));
+    const keep=L.filter(l=>l.startsWith('#')||!kw.some(k=>l.toLowerCase().includes(k)));
+    if(!kw.length||keep.length===L.length)return {none:'I couldn\'t find anything matching that to remove. Name a word or phrase from the line you want gone.'};
+    what=`Removed ${L.length-keep.length} line(s) mentioning “${esc(kw.join(' '))}”.`;L=keep}
+  else if(/\b(concise|shorter|shorten|tighten|trim|brief|simplif\w*)\b/.test(lo)){let n=0,b=0;const out=[];
+    for(const l of L){if(l.startsWith('#')){b=0;out.push(l)}else if(l.startsWith('- ')){if(++b<=3)out.push(l);else n++}
+      else if(l.startsWith('|')||l.startsWith('>')||!l.trim())out.push(l);else{const s=l.split(/(?<=\.)\s/)[0];if(s!==l)n++;out.push(s)}}
+    if(!n)return {none:'This is already as tight as I can make it without dropping content the gate requires.'};
+    L=out;what=`Tightened it: kept the lead sentence of each paragraph and the first three bullets per section (${n} cut${n>1?'s':''}).`}
+  else if(/\b(bluf|bottom line|executive summary|summary up front)\b/.test(lo)){
+    if(L.some(l=>l.includes('**BLUF:**')))return {none:'This artifact already opens with a BLUF.'};
+    L.splice(L.findIndex(l=>l.startsWith('# '))+1,0,`> **BLUF:** ${D().outcome} Decision needed: confirm scope and proceed.`);what='Added a BLUF directly under the title, so a reader can act on the first sentence.'}
+  else{const c=t.replace(/^(please\s+)?(can you\s+|could you\s+)?(add|include|mention|note|insert|append|call out|state)\s+(that\s+)?/i,'').replace(/\.$/,'');
+    const words=lo.split(/\W+/).filter(w=>w.length>2&&!['add','the','and','for','about','that','with','this','include','mention','note','section','please','under','into','can','you','could'].includes(w));
+    if(words.includes('nfr'))words.push('non-functional','constraint');if(words.includes('risk'))words.push('governance');
+    const hi=L.findIndex(l=>l.startsWith('## ')&&words.some(w=>l.toLowerCase().includes(w.replace(/s$/,''))));
+    const line='- '+c.charAt(0).toUpperCase()+c.slice(1);
+    if(hi<0){L.push('## Additional notes',line);what='Added it as a new “Additional notes” section, since no existing section was an obvious home.'}
+    else{let j=hi+1;while(j<L.length&&!L[j].startsWith('## '))j++;while(j>hi+1&&!L[j-1].trim())j--;L.splice(j,0,line);what=`Added it under “${esc(L[hi].slice(3))}”.`}}
+  return {body:L.join('\n'),what}}
+async function artRevise(text){text=(text||'').trim();if(!text||!AV)return;const key=AV.key,a=art(R(),key),base=AV.prop??a.body;
+  AV.chat.push({who:'me',html:esc(text)},{who:'ag',html:'<span class="spin" style="display:inline-block"></span> Revising…'});renderArt();await sleep(900);
+  if(!AV||AV.key!==key)return;AV.chat.pop();const r=reviseBody(base,text);
+  if(r.none)AV.chat.push({who:'ag',html:r.none});
+  else{const df=lineDiff(base,r.body);AV.prop=r.body;
+    AV.chat.push({who:'ag',html:`${r.what} Review the proposed draft on the left.<div class="dif">${df.add.slice(0,5).map(l=>`<div class="ad">+ ${esc(l)}</div>`).join('')}${df.del.slice(0,5).map(l=>`<div class="dl">− ${esc(l)}</div>`).join('')}${df.add.length+df.del.length>10?'<div>…</div>':''}</div>`})}
+  renderArt()}
+Object.assign(ACT,{
+ artMode(m){const a=art(R(),AV.key);AV.mode=m;AV.ver=null;if(m==='edit'){AV.draft=AV.prop??a.body;AV.prop=null}renderArt()},
+ artVer(v){AV.ver=+v||null;AV.mode='view';AV.prop=null;renderArt()},
+ artSave(){const room=R(),a=art(room,AV.key),pg=pendingGate(room);if(AV.draft===a.body)return toast('No changes to save');
+   commitVersion(room,a,AV.draft,S.persona,pg&&a.gate===pg.gid&&pg.who===S.persona?'Reviewer edit':'Manual edit');AV.mode='view';renderArt();toast(a.name+' saved as v'+a.ver)},
+ artAsk(x){artRevise(x)},
+ artAskSend(){const i=$('#aiIn'),v=i.value;i.value='';artRevise(v)},
+ artApply(){const room=R(),a=art(room,AV.key);commitVersion(room,a,AV.prop,S.persona,'Revised with '+D().agent);AV.prop=null;
+   AV.chat.push({who:'ag',html:`Saved as <b>v${a.ver}</b>. The previous version is kept in the history.`});renderArt()},
+ artDiscard(){AV.prop=null;AV.chat.push({who:'ag',html:'Discarded — the artifact is unchanged. Tell me what to try instead.'});renderArt()}
+});
+/* ---------- room pet (optional companion) ---------- */
+const PETS={
+ bot:{name:'Byte',note:'A small helper robot',svg:`<svg viewBox="0 0 48 48"><line class="pl" x1="24" y1="14" x2="24" y2="7"/><circle class="ant" cx="24" cy="6" r="2.2"/><rect class="pb" x="9" y="14" width="30" height="22" rx="7"/><rect class="pb" x="5" y="21" width="4" height="8" rx="2"/><rect class="pb" x="39" y="21" width="4" height="8" rx="2"/><circle class="eye" cx="18" cy="24" r="2.8"/><circle class="eye" cx="30" cy="24" r="2.8"/><path class="pl" d="M19 30.5 q5 3 10 0"/><rect class="pb" x="15" y="36" width="6" height="5" rx="2"/><rect class="pb" x="27" y="36" width="6" height="5" rx="2"/></svg>`},
+ cat:{name:'Pixel',note:'A curious cat',svg:`<svg viewBox="0 0 48 48"><path class="pl tail" d="M36 36 q9 -1 6 -11"/><path class="pb" d="M11 20 L13 7 L21 14 Z"/><path class="pb" d="M37 20 L35 7 L27 14 Z"/><ellipse class="pb" cx="24" cy="26" rx="15" ry="13"/><ellipse class="eye" cx="18" cy="24" rx="2.2" ry="3"/><ellipse class="eye" cx="30" cy="24" rx="2.2" ry="3"/><path class="pl" d="M22.5 29 L24 30.5 L25.5 29 M24 30.5 v2 M21 33.5 q3 2 6 0"/><path class="pl thin" d="M6 27 h7 M6 31 l7 -1 M42 27 h-7 M42 31 l-7 -1"/></svg>`},
+ blob:{name:'Orbit',note:'A friendly little ghost',svg:`<svg viewBox="0 0 48 48"><path class="pb" d="M10 40 V23 a14 14 0 0 1 28 0 V40 l-4.7 -4.5 -4.7 4.5 -4.6 -4.5 -4.7 4.5 -4.6 -4.5 z"/><circle class="eye" cx="19" cy="23" r="2.8"/><circle class="eye" cx="29" cy="23" r="2.8"/><ellipse class="pl" cx="24" cy="30" rx="2.4" ry="1.6"/><circle class="ant" cx="40" cy="12" r="1.8"/></svg>`},
+ owl:{name:'Sage',note:'A wise owl for governance',svg:`<svg viewBox="0 0 48 48"><path class="pb" d="M10 12 L16 16 H32 L38 12 V30 a14 12 0 0 1 -28 0 Z"/><circle class="pb" cx="18" cy="23" r="5.5"/><circle class="pb" cx="30" cy="23" r="5.5"/><circle class="eye" cx="18" cy="23" r="2.4"/><circle class="eye" cx="30" cy="23" r="2.4"/><path class="ant" d="M22 28 h4 l-2 3.5 z"/><path class="pl" d="M19 42 v-3 M29 42 v-3 M17 35 q7 4 14 0"/></svg>`}
+};
+const PET_QUIPS=['Hi! I keep the squad company.','Every gate is a human decision.','I cite my sources. Do you?','Knowledge Hub first, SharePoint second.','Separation of duties — I approve of that.','Pet me again and I might run a skill.','Stay hydrated. Stay governed.'];
+let petT=0;
+function petMood(room){const pg=pendingGate(room);return room.done?'party':room.busy?'work':pg?(pg.who===S.persona?'alert':'wait'):'idle'}
+function renderPet(){let el=$('#pet');if(!el){el=document.createElement('button');el.id='pet';el.dataset.act='petPoke';$('#center').append(el)}
+  if(!PETS[S.pet]||S.view!=='room'){el.style.display='none';el.dataset.sig='';return}
+  const room=R(),m=petMood(room),pg=pendingGate(room);
+  const say=S.petSay||({work:'Crunching…',alert:`Your call on ${pg?.gid}!`,wait:`Waiting on ${pg?PEOPLE[pg.who].name.split(' ')[0]:''}…`,party:'We shipped it!'}[m]||'');
+  el.style.display='';el.style.bottom=(($('#comp')?.offsetHeight||100)-7)+'px';
+  const sig=[S.pet,m,say,S.petHop].join('|');if(el.dataset.sig===sig)return;el.dataset.sig=sig;
+  el.className='pet '+m+(S.petHop?' hop':'');el.title=PETS[S.pet].name+' — click me';
+  el.innerHTML=(say?`<span class="psay">${esc(say)}</span>`:'')+PETS[S.pet].svg}
+Object.assign(ACT,{
+ pet(k){S.pet=k;S.menu=null;try{localStorage.setItem('sr-pet',k)}catch(e){}renderAll();if(PETS[k])toast(PETS[k].name+' joined the room')},
+ petPoke(){S.petSay=PET_QUIPS[Math.floor(Math.random()*PET_QUIPS.length)];S.petHop=true;renderPet();clearTimeout(petT);petT=setTimeout(()=>{S.petSay='';S.petHop=false;renderPet()},2600)}
+});
+/* ---------- slash commands in the chat box ---------- */
+function slashItems(){const lv=S.slash.level,q=($('#msgin')?.value||'').slice(1).trim().toLowerCase();let it;
+  if(lv==='pet')it=[{label:'None',desc:'No companion',cur:!PETS[S.pet],run:()=>ACT.pet('off')},...Object.entries(PETS).map(([k,p])=>({label:p.name,desc:p.note,cur:S.pet===k,run:()=>ACT.pet(k)}))];
+  else if(lv==='font')it=Object.entries(FONTS).map(([k,F])=>({label:F.name,desc:F.note,cur:S.font===k,run:()=>ACT.font(k)}));
+  else it=[{label:'/guide',desc:'Step-by-step guide panel',right:S.guide?'On':'Off',run:()=>ACT.guide()},
+    {label:'/glossary',desc:'Terms and abbreviations',close:true,run:()=>openGlossary()},
+    {label:'/skills',desc:'View and edit agent skills',close:true,run:()=>ACT.view('studio')},
+    {label:'/pet',desc:'Room companion',right:(PETS[S.pet]?.name||'None')+' ›',sub:'pet'},
+    {label:'/font',desc:'Typeface',right:FONTS[S.font].name+' ›',sub:'font'}];
+  return q?it.filter(x=>x.label.toLowerCase().includes(q)):it}
+function renderSlash(){let el=$('#slash');if(!el){el=document.createElement('div');el.id='slash';$('#center').append(el)}
+  if(!S.slash||S.view!=='room'){el.style.display='none';return}
+  const it=slashItems();S.slash.idx=Math.max(0,Math.min(S.slash.idx,it.length-1));
+  el.style.display='';el.style.bottom=(($('#comp')?.offsetHeight||100)+6)+'px';
+  el.innerHTML=`<div class="sh">${S.slash.level==='root'?'Commands':`<button data-act="slashBack">← Back</button> /${S.slash.level}`}</div>
+    ${it.map((x,i)=>`<button class="si ${i===S.slash.idx?'on':''}" data-act="slashPick" data-arg="${i}"><b>${esc(x.label)}</b><small>${esc(x.desc)}</small><span class="r">${x.cur?'✓ current':esc(x.right||'')}</span></button>`).join('')||'<div class="si"><small>No matching command</small></div>'}
+    <div class="sf">↑↓ move · Enter select · ${S.slash.level==='root'?'Esc close':'Backspace back'}</div>`}
+function slashInput(){const v=$('#msgin').value;if(v.startsWith('/')){S.slash=S.slash||{level:'root',idx:0};S.slash.idx=0}else S.slash=null;renderSlash()}
+function slashKey(e){const it=slashItems(),k=e.key;
+  if(k==='ArrowDown'||k==='ArrowUp'){S.slash.idx=(S.slash.idx+(k==='ArrowDown'?1:it.length-1))%Math.max(it.length,1);renderSlash()}
+  else if(k==='Enter'||k==='Tab'||k==='ArrowRight'){if(k==='ArrowRight'&&!it[S.slash.idx]?.sub)return false;ACT.slashPick(S.slash.idx)}
+  else if(k==='Escape'){S.slash=null;$('#msgin').value='';renderSlash()}
+  else if((k==='Backspace'||k==='ArrowLeft')&&S.slash.level!=='root'&&$('#msgin').value==='/'){ACT.slashBack()}
+  else return false;
+  e.preventDefault();return true}
+Object.assign(ACT,{
+ slashOpen(){const i=$('#msgin');i.value='/';i.focus();S.slash={level:'root',idx:0};renderSlash()},
+ slashBack(){S.slash={level:'root',idx:0};const i=$('#msgin');i.value='/';i.focus();renderSlash()},
+ slashPick(n){const x=slashItems()[+n];if(!x)return;
+   if(x.sub){S.slash={level:x.sub,idx:0};$('#msgin').value='/'}
+   else{S.slash.idx=+n;x.run();if(x.close){S.slash=null;$('#msgin').value=''}}
+   if(!x.close)$('#msgin')?.focus();renderSlash()}
+});
+/* ---------- output contracts: per-output template + acceptance checks ---------- */
+function defaultChecks(dest,gate){return ['All required sections present, in order','No PAN / PII in the output',...(dest==='gov'||dest==='ev'?['Cites at least one SRC-ID inline']:[]),...(gate?[`Meets ${gate} entry conditions`]:[])]}
+function tplOf(dom,key){S.tpl=S.tpl||{};const m=S.tpl[dom]=S.tpl[dom]||{};
+  if(!m[key]&&FILES[key]){const d=DOMAINS[dom],f=FILES[key],body=f.body(d,{id:dom,sources:[],interview:null});
+    m[key]={name:f.name(d),dest:f.dest,gate:f.gate||null,raw:body.startsWith('<!raw>'),edited:false,
+      sections:(body.match(/^## .+$/gm)||[]).map(h=>({h:h.slice(3),orig:h.slice(3),guide:''})),checks:defaultChecks(f.dest,f.gate)}}
+  return m[key]}
+function applyTemplate(body,t,d,room){if(t.raw||!t.edited)return body;
+  const pre=[],map={};let cur=null;
+  for(const l of body.split('\n')){if(l.startsWith('## ')){cur=l.slice(3);map[cur]=[]}else(cur===null?pre:map[cur]).push(l)}
+  const src=room.sources&&room.sources[0]?` and [${room.sources[0].id}]`:'';
+  return [...pre,...t.sections.filter(s=>s.h.trim()).flatMap(s=>['## '+s.h,...(s.orig&&map[s.orig]?map[s.orig]
+    :[`- ${s.guide?s.guide.replace(/\.$/,'')+' — drafted':'Drafted'} for ${d.initiative}.`,`- Grounded in Knowledge Hub${src}; review before the gate.`])])].join('\n')}
+function applyContract(room,key,base,d){const t=tplOf(room.id,key);if(!t)return;
+  base.name=t.name;base.dest=t.dest;base.body=applyTemplate(base.body,t,d,room);base.tplEdited=t.edited;
+  base.checks=t.checks.map(c=>({c,ok:/SRC-ID/i.test(c)?room.sources.length>0:true}))}
+function bumpSkill(sk,note){const [a,b]=sk.ver.split('.').map(Number),me=PEOPLE[S.persona].name;sk.ver=a+'.'+(b+1);if(sk.tag!=='custom')sk.cz=true;
+  sk.history.unshift({ver:sk.ver,by:me,note});audit(R(),me,`Published ${sk.name} v${sk.ver} — ${note}`)}
+function skillRan(room,sk){const i=room.chain.indexOf(sk.id);return room.done||(i>=0&&i<room.ptr)}
+function tplRender(){const E=S.tplEdit,t=E.draft,el=isElev(),dis=el?'':'disabled',sk=skill(S.domain,S.edit.id);
+  modal(`<div class="mod" style="width:min(860px,95vw)"><div class="mh"><button class="btn" data-act="tplBack">← ${esc(sk.name)}</button><h3>Output template · <span class="mono">${esc(t.name)}</span></h3>${el?'':'<span class="stt review">READ-ONLY</span>'}<button class="x" data-act="close">✕</button></div>
+  <div class="mb form"><div class="note">This is the output contract. The agent must produce these sections, in this order, and pass the checks below before the artifact is stored in the room.</div>
+   <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:10px"><div><label>File name</label><input data-tf="name" value="${esc(t.name)}" ${dis}></div>
+    <div><label>Destination</label><select data-tf="dest" ${dis}>${Object.entries(DEST).map(([k,l])=>`<option value="${k}" ${t.dest===k?'selected':''}>${l}</option>`).join('')}</select></div>
+    <div><label>Feeds gate</label><input value="${t.gate?t.gate+' — required by gate':'None'}" disabled></div></div>
+   <label>Required sections · in order</label>
+   ${t.raw?'<div class="muted">This output is a generated chart, so its layout is not templated. Checks still apply.</div>'
+     :t.sections.map((s,i)=>`<div class="srow"><span class="mono">${i+1}</span><input data-ts="${i}" value="${esc(s.h)}" ${dis} placeholder="Section heading"><input data-tg="${i}" value="${esc(s.guide)}" ${dis} placeholder="${s.orig?'Guidance for the agent (optional)':'Tell the agent what belongs in this section'}">
+       <button class="lt" data-act="tplMove" data-arg="${i},-1" ${dis} title="Move up">↑</button><button class="lt" data-act="tplMove" data-arg="${i},1" ${dis} title="Move down">↓</button><button class="lt" data-act="tplDel" data-arg="${i}" ${dis} title="Remove section">✕</button></div>`).join('')||'<div class="muted">No sections yet.</div>'}
+   ${t.raw?'':`<div style="margin-top:6px"><button class="lt" data-act="tplAdd" ${dis}>+ Add section</button></div>`}
+   <label>Acceptance checks · one per line</label><textarea data-tf="checks" rows="4" ${dis}>${esc(t.checks.join('\n'))}</textarea>
+   <div id="tplPrev"></div>
+   <div class="gact" style="margin-top:14px">${!t.gate&&el?'<button class="btn dng" data-act="outRemove">Remove this output</button>':t.gate?`<span class="muted">Required by ${t.gate} — cannot be removed.</span>`:''}<span class="sp"></span>
+    <button class="btn" data-act="tplPreview">Preview output</button><button class="btn pri" data-act="tplSave" ${dis}>Save template</button></div></div></div>`)}
+Object.assign(ACT,{
+ tplOpen(key){const t=tplOf(S.domain,key);if(!t||!S.edit)return;S.tplEdit={key,draft:JSON.parse(JSON.stringify(t))};tplRender()},
+ tplBack(){S.tplEdit=null;openSkillEditor()},
+ tplAdd(){S.tplEdit.draft.sections.push({h:'',orig:null,guide:''});tplRender();const r=document.querySelectorAll('[data-ts]');r[r.length-1]?.focus()},
+ tplDel(i){S.tplEdit.draft.sections.splice(+i,1);tplRender()},
+ tplMove(arg){const [i,dir]=arg.split(',').map(Number),s=S.tplEdit.draft.sections,j=i+dir;if(j<0||j>=s.length)return;[s[i],s[j]]=[s[j],s[i]];tplRender()},
+ tplPreview(){const E=S.tplEdit,d=D(),room=R(),f=FILES[E.key];const base=f?f.body(d,room):'# '+E.draft.name.replace(/\.\w+$/,'')+'\nGenerated for '+d.initiative+'.';
+   $('#tplPrev').innerHTML=`<label>Preview · what the next run will produce</label><div class="doc tprev">${md(applyTemplate(base,{...E.draft,edited:true},d,room))}</div>`;$('#tplPrev').scrollIntoView({behavior:'smooth',block:'nearest'})},
+ tplSave(){if(!isElev())return toast('Elevated session required');const E=S.tplEdit,t=E.draft,sk=skill(S.domain,S.edit.id);
+   if(!t.name.trim())return toast('Give the output a file name');t.sections=t.sections.filter(s=>s.h.trim());t.edited=true;
+   S.tpl[S.domain][E.key]=t;bumpSkill(sk,`Updated output template ${t.name}`);toast(`${sk.name} v${sk.ver} published — template applies from the next run`);S.tplEdit=null;refresh();openSkillEditor()},
+ outAdd(){if(!isElev())return toast('Elevated session required');const sk=skill(S.domain,S.edit.id),key='x:'+Date.now();tplOf(S.domain,'intake');
+   S.tpl[S.domain][key]={name:'new-output.md',dest:'local',gate:null,raw:false,edited:true,sections:['Summary','Details','Next steps'].map(h=>({h,orig:null,guide:''})),checks:defaultChecks('local',null)};
+   sk.outs=[...sk.outs,key];bumpSkill(sk,'Added an output');refresh();ACT.tplOpen(key)},
+ outRemove(){const E=S.tplEdit,sk=skill(S.domain,S.edit.id);sk.outs=sk.outs.filter(k=>k!==E.key);bumpSkill(sk,`Removed output ${E.draft.name}`);toast('Output removed from '+sk.name);S.tplEdit=null;refresh();openSkillEditor()},
+ skillRerun(){const room=R(),sk=skill(S.domain,S.edit.id);if(room.busy)return toast('The agent is still working…');
+   if(sk.outs.some(k=>art(room,k)?.status==='approved'))return toast('These outputs are approved and locked — the new template applies to the next initiative.');
+   closeModal();if(S.view!=='room'){S.view='room';renderAll()}runSkill(room,sk,S.persona)}
+});
+document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');
+  if(!el){if(S.menu){S.menu=null;renderTop()}return}
+  const f=ACT[el.dataset.act];if(f)f(el.dataset.arg,el,e)});
+document.addEventListener('input',e=>{const t=e.target,ds=t.dataset;if(t.id==='msgin'){slashInput();return}if(S.tplEdit){const dr=S.tplEdit.draft;if(ds.ts){dr.sections[+ds.ts].h=t.value;return}if(ds.tg){dr.sections[+ds.tg].guide=t.value;return}if(ds.tf){dr[ds.tf]=ds.tf==='checks'?t.value.split('\n').map(x=>x.trim()).filter(Boolean):t.value;return}}if(t.id==='artEd'){AV.draft=t.value;return}
+  if(ds.iv)R().interview.answers[ds.iv]=t.value;
+  else if(ds.gc)R().gates[ds.gc].draft=t.value;
+  else if(ds.f&&S.edit)S.edit.draft[ds.f]=t.value;
+  else if(ds.fc&&S.edit){const c=S.edit.draft.conns;t.checked?c.push(ds.fc):c.splice(c.indexOf(ds.fc),1)}
+  else if(ds.fg&&S.edit){const c=S.edit.draft.guards;t.checked?c.push(ds.fg):c.splice(c.indexOf(ds.fg),1)}
+  else if(t.id==='vq'){S.vq=t.value;const p=t.selectionStart;renderVault();const n=$('#vq');n.focus();n.setSelectionRange(p,p)}});
+document.addEventListener('keydown',e=>{if(S.slash&&e.target.id==='msgin'&&slashKey(e))return;if(e.key==='Enter'&&e.target.id==='msgin'){if(e.target.value.startsWith('/'))return;ACT.send()}if(e.key==='Enter'&&e.target.id==='aiIn')ACT.artAskSend();if(e.key==='Escape')closeModal()});
+setInterval(()=>{const el=$('#elevT');if(!el)return;const left=Math.round((S.elev[S.domain]-Date.now())/1000);if(left<=0){renderStudio();toast('Elevated session expired');return}el.textContent=Math.floor(left/60)+':'+String(left%60).padStart(2,'0')},1000);
+window.addEventListener('error',e=>toast('Script error: '+e.message));
+
+function refresh(){renderTop();renderPet();if(S.view!=='room')return;renderRail();renderLeft();renderChatHead();refreshDyn();renderComp();renderRight()}
+function renderAll(){renderView();renderTop();if(S.view==='room'){renderRail();renderLeft();renderChatHead();renderChat();renderComp();renderRight()}renderPet();renderSlash()}
+
+/* ---------- boot ---------- */
+S.pet='off';try{const sp=localStorage.getItem('sr-pet');if(sp)S.pet=sp}catch(e){}
+S.noleft=true;S.norail=true;S.noright=false; // v4 always opens with workflow + squad minimized, detail panel open
+try{if(localStorage.getItem('sr-theme')==='light')S.theme='light';const sp=localStorage.getItem('sr5-palette');if(PALETTES[sp])S.palette=sp;const sf=localStorage.getItem('sr5-font');if(FONTS[sf])S.font=sf}catch(e){}
+async function boot(){
+  Object.assign(S,{domain:'pbi',persona:'po',view:'room',tab:'stage',selStage:null,menu:null,auto:false,rooms:{},skills:{},tpl:{},elev:{},edit:null});
+  for(const id of Object.keys(DOMAINS)){initSkills(id);const room=S.rooms[id]=newRoom(id),d=DOMAINS[id];
+    room.clock=Date.now()-(id==='pbi'?40*6e4:3*864e5);
+    sys(room,`Room opened · ${d.agent} joined · ${Object.keys(PEOPLE).length} squad members`,true);
+    post(room,{who:'po',kind:'text',html:esc(d.idea)},true);
+    say(room,`Hi squad — I\'m the <b>${d.agent}</b>. I\'ll take this through the PDLC with you, one stage at a time, and I\'ll stop at every gate for a human decision. I can start with <span class="mono">intake-builder</span> on Priya\'s idea whenever you\'re ready.`,true)}
+  await fastForward(S.rooms.pricing,'@GW-RD1');
+  await fastForward(S.rooms.vault,'@GW-I2');
+  const q=new URLSearchParams(location.search);
+  if(DOMAINS[q.get('domain')])S.domain=q.get('domain');if(PEOPLE[q.get('as')])S.persona=q.get('as');if(['vault','studio'].includes(q.get('view')))S.view=q.get('view');
+  renderAll();
+  if(q.get('left'))S.noleft=q.get('left')!=='open';if(q.get('rail'))S.norail=q.get('rail')==='min';if(q.get('right'))S.noright=q.get('right')==='min';
+  if(q.get('pet'))S.pet=q.get('pet');if(q.get('slash'))S.slash={level:q.get('slash'),idx:0};
+  if(PALETTES[q.get('palette')])S.palette=q.get('palette');if(FONTS[q.get('font')])S.font=q.get('font');
+  if(q.get('theme')==='light')S.theme='light';
+  renderAll();
+  if(q.get('tsec')){const [k,h]=q.get('tsec').split(':');const t=tplOf(S.domain,k);t.sections.push({h,orig:null,guide:'Key risks and mitigations'});t.edited=true}
+  if(q.get('skill'))ACT.editSkill(q.get('skill'));if(q.get('tpl')){if(q.has('elev'))S.elev[S.domain]=Date.now()+6e5;ACT.tplOpen(q.get('tpl'));if(q.has('prev'))ACT.tplPreview()}
+  if(q.get('art')){openArt(q.get('art'));if(q.has('edit'))ACT.artMode('edit');if(q.get('ask')){ACT.artMode('ai');ACT.artAsk(q.get('ask'))}}
+  if(q.get('stage')){ACT.selStage(q.get('stage'))}
+  if(q.get('menu')){S.menu=q.get('menu');renderTop()}
+  if(q.has('demo')){S.speed=6;ACT.auto()}
+}
+boot();
+</script>
+</body>
+</html>
