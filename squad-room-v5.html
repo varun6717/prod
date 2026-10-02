@@ -520,6 +520,138 @@ button.row{cursor:pointer}
 .tprev h1{font-size:18px!important}
 .contract{margin-top:9px;font:500 10.5px var(--mono);color:var(--gr)}.contract.bad{color:var(--am)}
 .ck{font-size:11.5px;color:var(--t-po);margin-top:3px}.ck.bad{color:var(--am)}
+
+/* ===== threads + mini next button ===== */
+.thbar{margin-top:8px}
+.thstart{font:600 11px var(--sans);color:var(--ac);border:1px solid color-mix(in srgb,var(--ac) 55%,transparent);border-radius:3px;padding:4px 11px;background:color-mix(in srgb,var(--ac) 8%,transparent)}
+.thstart:hover{background:var(--ac);color:var(--on-ac)}
+.thlink{font:500 10.5px var(--mono);color:var(--dim);letter-spacing:.02em}.thlink:hover{color:var(--ac)}
+.thline{display:flex;align-items:center;gap:9px;width:100%;text-align:left;margin-top:8px;padding:6px 10px;border:1px solid var(--line2);border-left:2px solid var(--ac);border-radius:3px;background:var(--card2);font-size:12px}
+.thline:hover{background:color-mix(in srgb,var(--ac) 9%,transparent)}
+.thavs{display:inline-flex}.thavs .av{margin-right:-5px;background:var(--panel)}
+.thline b{font-weight:600;white-space:nowrap;margin-left:5px}
+.thprev{color:var(--mut);min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.thprev i{font-style:normal;color:var(--ac);font:500 10px var(--mono);margin-right:4px}
+.thline .r{color:var(--ac);font:500 10.5px var(--mono);white-space:nowrap}
+.thread{margin-top:8px;border-left:2px solid var(--ac);padding:8px 0 4px 14px;display:flex;flex-direction:column;gap:10px}
+.thh{display:flex;align-items:baseline;gap:9px;font-size:12px}
+.thc{display:flex;gap:9px;animation:rise .3s ease both}.thc .meta{margin-bottom:1px}
+.tht{font-size:13px;line-height:1.55;color:var(--soft)}
+.men{color:var(--c,var(--ac));font-weight:600;background:color-mix(in srgb,var(--c,var(--ac)) 14%,transparent);border-radius:3px;padding:0 3px}
+.thsum{border:1px solid var(--ac);border-radius:4px;padding:10px 12px;background:color-mix(in srgb,var(--ac) 8%,transparent);animation:rise .3s ease both}
+.thsum .gk{font:500 9.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ac)}
+.thsum ul{margin:6px 0;padding-left:18px;font-size:12.5px;line-height:1.55;color:var(--text)}
+.thin{display:flex;gap:7px;align-items:center}.thin input{padding:7px 10px;font-size:12px}.thin .btn{padding:6px 10px;font-size:11px;white-space:nowrap}
+.menh{display:flex;gap:5px;flex-wrap:wrap}.menh:empty{display:none}.menh .sug{font-size:11px;padding:3px 8px}
+.nextb{margin-left:auto;font:600 10.5px var(--mono);letter-spacing:.04em;color:var(--mut);border:1px solid var(--line2);border-radius:3px;padding:3px 9px;white-space:nowrap}
+.nextb:hover{color:var(--on-ac);background:var(--ac);border-color:var(--ac)}.nextb:disabled{opacity:.35}
+:root[data-theme=light] .av.sm{background:#fff}
+
+/* ===== lobby ===== */
+#landing{display:none;position:fixed;inset:0;z-index:20;overflow:auto;padding:0 40px 40px;
+  background:radial-gradient(900px 520px at 50% 8%,color-mix(in srgb,var(--ac) 16%,transparent),transparent 70%),radial-gradient(700px 500px at 50% 120%,color-mix(in srgb,var(--ac2) 9%,transparent),transparent 70%),var(--bg)}
+body.v-landing #landing{display:block}
+body.v-landing #top,body.v-landing #rail,body.v-landing #main,body.v-landing #view{display:none}
+.ltop{display:flex;align-items:center;gap:10px;padding:16px 0;font-size:12px}
+.lme{display:inline-flex;align-items:center;gap:8px}
+.ltop .nextb{margin-left:0}
+.lhero{text-align:center;padding:10px 0 34px;position:relative}
+.lhero .nlogo{width:96px;height:96px;filter:drop-shadow(0 0 26px color-mix(in srgb,var(--ac) 55%,transparent))}
+.lhero::before,.lhero::after{content:"";position:absolute;left:50%;top:58px;width:260px;height:260px;margin:-130px 0 0 -130px;border-radius:50%;border:1px dashed color-mix(in srgb,var(--ac) 22%,transparent);animation:spin 60s linear infinite;pointer-events:none}
+.lhero::after{width:420px;height:420px;margin:-210px 0 0 -210px;border-style:solid;border-color:color-mix(in srgb,var(--ac) 9%,transparent);animation-direction:reverse;animation-duration:90s}
+.lhero h1{margin:18px 0 6px;font:600 38px/1.1 var(--head);letter-spacing:-.02em;position:relative}
+.lhero h1 i{font-style:normal;color:var(--ac)}
+.lhero p{margin:0;color:var(--mut);font-size:14px;position:relative}
+.lcols{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:1240px;margin:0 auto;position:relative}
+.lsec{border:1px solid var(--line2);border-radius:6px;padding:18px;background:color-mix(in srgb,var(--panel) 82%,transparent);backdrop-filter:blur(8px);transition:.35s}
+.lcols.has-hl .lsec:not(.hl){opacity:.38}
+.lsec.hl{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac),0 0 46px color-mix(in srgb,var(--ac) 26%,transparent)}
+.lsec h3{margin:0 0 2px;font:600 16px var(--head);display:flex;align-items:baseline;gap:9px}
+.lsec h3 span{font:500 10px var(--mono);color:var(--ac);letter-spacing:.1em}
+.lsec h3 em{font:500 10px var(--mono);font-style:normal;color:var(--dim);margin-left:auto}
+.lsec>p{margin:0 0 12px}
+.lcard{display:block;width:100%;text-align:left;border:1px solid var(--line2);border-left:2px solid var(--c);border-radius:4px;padding:11px 12px;margin-bottom:9px;background:var(--card2)}
+button.lcard:hover{border-color:var(--c);background:color-mix(in srgb,var(--c) 9%,var(--card2))}
+.lc1{display:flex;align-items:center;gap:8px;font-size:12px}.lc1 .mono{color:var(--mut);font-size:10.5px}
+.lflag{margin-left:auto;font:500 9px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--am);border:1px solid var(--am);border-radius:2px;padding:1px 5px}
+.lc2{font:500 14px/1.35 var(--head);margin:5px 0 8px}
+.lc3{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--mut);flex-wrap:wrap}
+.lc3 .btn{margin-left:auto;padding:4px 10px;font-size:11px}.lgo{margin-left:auto;color:var(--c);font:500 11px var(--mono)}
+.lreq{margin-left:auto;color:var(--gr);font:500 10.5px var(--mono)}
+.lnew{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;padding:34px 18px;border:1px dashed color-mix(in srgb,var(--ac) 60%,transparent);border-radius:6px;text-align:center;background:color-mix(in srgb,var(--ac) 5%,transparent)}
+.lnew:hover{background:color-mix(in srgb,var(--ac) 12%,transparent)}.lnew:disabled{opacity:.5}
+.lnew .plus{width:46px;height:46px;border-radius:50%;border:1px solid var(--ac);color:var(--ac);font:300 28px/44px var(--sans)}
+.lnew b{font:600 15px var(--head)}.lnew small{color:var(--mut);font-size:11.5px;line-height:1.5}
+.lform{max-width:1080px;margin:10px auto 0;border:1px solid var(--line2);border-radius:6px;background:color-mix(in srgb,var(--panel) 90%,transparent);backdrop-filter:blur(8px);padding:20px 26px 24px;animation:rise .3s ease}
+.lfh{display:flex;align-items:center;gap:16px;border-bottom:1px solid var(--line);padding-bottom:12px}
+.lfh h2{margin:0;font:600 20px var(--head);flex:1}.lfh .muted{display:inline-flex;align-items:center;gap:6px}
+.lgrid{display:grid;grid-template-columns:1fr 1fr;gap:30px}
+.lseg{display:flex;border:1px solid var(--line2);border-radius:3px;overflow:hidden}.lseg button{flex:1;padding:7px 8px;font-size:11.5px;color:var(--mut)}.lseg button+button{border-left:1px solid var(--line2)}
+.lseg button.on{background:color-mix(in srgb,var(--ac) 18%,transparent);color:var(--text)}
+.linv{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.lper{display:flex;align-items:center;gap:8px;text-align:left;padding:6px 9px;border:1px solid var(--line2);border-radius:3px;font-size:12px}
+.lper b{display:block;font-weight:500}.lper small{color:var(--mut);font-size:10.5px}.lper .r{margin-left:auto;font:500 10px var(--mono);color:var(--mut);white-space:nowrap}
+.lper.on{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 10%,transparent)}.lper.on .r{color:var(--ac)}.lper.own{grid-column:1/-1}
+.ldoms{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.ldom{display:flex;align-items:center;gap:9px;text-align:left;padding:10px;border:1px solid var(--line2);border-radius:4px}
+.ldom b{display:block;font-size:13px}.ldom small{color:var(--mut);font-size:10.5px}
+.ldom.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);box-shadow:0 0 0 1px var(--c)}.ldom:disabled{opacity:.45;cursor:not-allowed}
+.lskills{margin-top:10px;border:1px solid color-mix(in srgb,var(--c,var(--ac)) 55%,transparent);border-radius:4px;padding:12px 14px;background:color-mix(in srgb,var(--c,var(--ac)) 6%,transparent);animation:rise .3s ease}
+.lskills.empty{border-style:dashed;border-color:var(--line2);background:none;color:var(--mut);font-size:12px;animation:none}
+.lskills .gk{font:500 9.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--c)}
+.lstat{display:flex;gap:18px;margin:8px 0;font-size:12px;color:var(--mut)}.lstat b{font:600 20px var(--head);color:var(--text);margin-right:4px}
+.lspin{max-width:520px;margin:9vh auto 0;text-align:center}
+.lspin .nlogo{width:110px;height:110px;filter:drop-shadow(0 0 30px color-mix(in srgb,var(--ac) 60%,transparent))}
+.lspin .nlogo .orbit,.lspin .nlogo .links{animation-duration:1.6s}
+.lspin h2{font:600 20px var(--head);margin:18px 0 14px}.lspin .prog{text-align:left;display:inline-block}.lspin .prog div{animation:rise .3s ease both}
+.domtag{display:inline-flex;align-items:center;gap:8px;padding:6px 11px;border:1px solid color-mix(in srgb,var(--ac) 60%,transparent);border-radius:3px;background:color-mix(in srgb,var(--ac) 10%,transparent);font-size:12px;white-space:nowrap}
+.domtag .lbl{font:500 9px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}.domtag b{font-weight:600}
+@media (max-width:1420px){.domtag{padding:6px 8px;gap:6px}.domtag .lbl{letter-spacing:.06em}}
+:root[data-theme=light] .lsec,:root[data-theme=light] .lform{background:rgba(255,255,255,.86);box-shadow:0 2px 14px rgba(20,28,56,.07)}
+
+/* ===== lobby v2: search-first list with tabs ===== */
+.lhero{padding-bottom:26px}
+.lhub{max-width:1040px;margin:0 auto;position:relative}
+.lsearch{display:flex;align-items:center;gap:12px;border:1px solid var(--line2);border-radius:8px;padding:4px 18px;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(8px);box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.lsearch:focus-within{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac),0 0 40px color-mix(in srgb,var(--ac) 22%,transparent)}
+.lsearch span{font-size:20px;color:var(--ac)}
+.lsearch input{border:0;background:none;padding:13px 0;font-size:15px}
+.lbar{display:flex;align-items:center;gap:14px;margin:18px 0 10px}
+.ltabs{display:flex;border:1px solid var(--line2);border-radius:4px;overflow:hidden;background:var(--panel)}
+.ltabs button{padding:8px 14px;font-size:12.5px;font-weight:500;color:var(--mut);white-space:nowrap}.ltabs button+button{border-left:1px solid var(--line2)}
+.ltabs button em{font:500 10px var(--mono);font-style:normal;color:var(--dim);margin-left:5px}
+.ltabs button.on{color:var(--text);background:color-mix(in srgb,var(--ac) 18%,var(--panel));box-shadow:inset 0 -2px 0 var(--ac)}
+.ltabs button.hl{box-shadow:inset 0 0 0 2px var(--ac)}
+.lnewb{white-space:nowrap}
+.lnewb.hl{box-shadow:0 0 0 2px var(--ac),0 0 34px color-mix(in srgb,var(--ac) 55%,transparent);animation:pulse 1s infinite}
+.llist{border:1px solid var(--line2);border-radius:6px;background:color-mix(in srgb,var(--panel) 86%,transparent);backdrop-filter:blur(8px);max-height:calc(100vh - 470px);min-height:190px;overflow:auto;transition:.35s}
+.llist.hl{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac),0 0 46px color-mix(in srgb,var(--ac) 22%,transparent)}
+.lrow{display:grid;grid-template-columns:170px 78px minmax(0,1fr) 250px 190px;gap:14px;align-items:center;width:100%;text-align:left;padding:11px 16px;border-bottom:1px solid var(--line);border-left:2px solid transparent;font-size:12.5px}
+.lrow:last-child{border-bottom:0}
+button.lrow:hover{background:color-mix(in srgb,var(--c) 9%,transparent);border-left-color:var(--c)}
+.lrow .ld{display:flex;align-items:center;gap:9px;min-width:0}.lrow .ld b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lrow .mono{color:var(--mut);font-size:10.5px}
+.lrow .ln{min-width:0}.lrow .ln b{display:block;font:500 13.5px var(--head);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lrow .ln small{color:var(--mut);font-size:11px}
+.lrow .ls{color:var(--mut);font-size:11.5px}.lrow .ls .lflag{display:inline-block;margin:3px 0 0;font-style:normal}
+.lrow .la{justify-self:end;color:var(--c);font:500 11px var(--mono);white-space:nowrap}.lrow .la .btn{padding:4px 10px;font-size:11px;color:var(--text);font-family:var(--sans)}
+.lrow .lreq{margin:0}
+.lempty{padding:34px;text-align:center;color:var(--mut)}
+:root[data-theme=light] .lsearch,:root[data-theme=light] .llist{background:rgba(255,255,255,.9);box-shadow:0 2px 14px rgba(20,28,56,.07)}
+
+/* ===== lobby: accent New Squad Room button + people search ===== */
+.btn.lnewb{background:var(--ac);border-color:var(--ac);color:var(--on-ac);font-weight:600}
+.btn.lnewb:hover{filter:brightness(1.1)}
+.lpsearch{display:flex;align-items:center;gap:9px;border:1px solid var(--line2);border-radius:3px;padding:0 10px;background:var(--card2)}
+.lpsearch:focus-within{border-color:var(--ac)}.lpsearch span{color:var(--ac);font-size:15px}.lpsearch input{border:0;background:none;padding:8px 0}
+.lpres{border:1px solid var(--ac);border-top:0;border-radius:0 0 3px 3px;background:var(--solid);margin-bottom:8px}.lpres:empty{display:none}
+.lpr{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:7px 10px;font-size:12px;border-bottom:1px solid var(--line)}.lpr:last-child{border-bottom:0}
+.lpr b{display:block;font-weight:500}.lpr small{color:var(--mut);font-size:10.5px}.lpr .r{margin-left:auto;font:600 10.5px var(--mono);color:var(--ac);white-space:nowrap}
+button.lpr:hover,.lpr.hot{background:color-mix(in srgb,var(--ac) 16%,transparent)}.lpr.hot{box-shadow:inset 0 0 0 1px var(--ac)}.lpr.none{color:var(--mut)}
+.lsquad{display:flex;flex-direction:column;gap:5px;margin-top:8px}
+.lsquad .lper{animation:rise .3s ease both}.lsquad .lper .r{color:var(--mut)}.lsquad .lper.own .r{color:var(--ac)}.lsquad .lper .lt{margin-left:8px;padding:1px 6px}
+.nextb.ready{color:var(--ac);border-color:color-mix(in srgb,var(--ac) 60%,transparent);animation:nextblink 2.4s ease-in-out infinite}
+@keyframes nextblink{0%,100%{opacity:1;box-shadow:0 0 0 0 transparent}50%{opacity:.62;box-shadow:0 0 10px color-mix(in srgb,var(--ac) 30%,transparent)}}
+.nextb.done{animation:none;opacity:1;color:var(--ac2);border:2px solid var(--ac2);background:color-mix(in srgb,var(--ac2) 12%,transparent);font-weight:700;padding:2px 9px}
+.nextb.done:hover{color:var(--ac2);background:color-mix(in srgb,var(--ac2) 20%,transparent);border-color:var(--ac2)}
 </style>
 </head>
 <body>
@@ -536,6 +668,7 @@ button.row{cursor:pointer}
   <aside id="right"></aside>
 </main>
 <section id="view"></section>
+<section id="landing"></section>
 <div id="modal" data-act="bgClose"></div>
 <div id="toasts"></div>
 
@@ -619,7 +752,7 @@ const DOMAINS={
   extra:[
    {id:'interchange-impact-model',stage:'s1',role:'po',desc:'Models margin impact of interchange table changes across merchant segments.',needs:[{via:'sp',label:'Interchange rate tables'}],outs:['ic_impact'],trace:['Loading 412 interchange categories','Simulating margin delta across 6 segments']},
    {id:'fee-schedule-diff',stage:'s4',role:'po',desc:'Diffs proposed fee schedules against the live schedule and flags notice-period triggers.',needs:[{via:'kh',label:'Live fee schedules'}],outs:['fee_diff'],trace:['Diffing 3 schedule versions','Flagging 2 changes that trigger client notice']}]},
- vault:{name:'Vault',short:'Vault',agent:'Vault Agent',c:'#7fb9ad',c2:'#b9dcd3',cL:'#2f7568',c2L:'#4d9486',steward:'ar',
+ vault:{khIntake:true,khSI:[{key:'arch',label:'Token Vault architecture & interfaces',q:'“Token Vault architecture and interfaces”',url:'kh://vault/Token-Vault-Architecture-Overview.md'},{key:'nfr',label:'Payments platform NFR standards',q:'“payments platform NFR standards”',url:'kh://vault/Payments-Platform-NFR-Standards.pdf'}],name:'Vault',short:'Vault',agent:'Vault Agent',c:'#7fb9ad',c2:'#b9dcd3',cL:'#2f7568',c2L:'#4d9486',steward:'ar',
   initiative:'Network Token Lifecycle Management for Vault',slug:'network_token_lifecycle',key:'VLT-2026-031',intakeType:'A — strategic idea',
   idea:'Card-on-file merchants keep losing approvals when cards are reissued. If Vault provisions network tokens and listens to lifecycle events, stored credentials stay fresh without the merchant doing anything.',
   problem:'Stored PANs go stale on reissue, causing declines and involuntary churn.',who:'Card-on-file and subscription merchants.',
@@ -638,12 +771,12 @@ const DOMAINS={
 const VELOCITY_GAP=d=>({key:'velocity',label:'Team velocity baseline — last 3 PIs',url:SP+d.short+'/Shared%20Documents/PI-Velocity-Baseline.xlsx',q:'“team velocity baseline”'});
 
 function coreSkills(d){return [
- {id:'intake-builder',stage:'s1',role:'po',desc:'Turns an unstructured idea or signal into a structured intake and session brief.',needs:[{via:'kh',label:'Prior intakes & domain context'},{via:'sp',label:d.gap.label,gap:d.gap}],outs:['intake','session_brief'],trace:['Classifying intake type → '+d.intakeType]},
+ {id:'intake-builder',stage:'s1',role:'po',desc:'Turns an unstructured idea or signal into a structured intake and session brief.',needs:[{via:'kh',label:'Prior intakes & domain context'},d.khIntake?{via:'kh',label:d.gap.label,khdoc:d.gap}:{via:'sp',label:d.gap.label,gap:d.gap}],outs:['intake','session_brief'],trace:['Classifying intake type → '+d.intakeType]},
  {id:'ideation-flow',stage:'s1',role:'po',desc:'Explores signals, maps the opportunity and screens options into a proposal.',needs:[{via:'kh',label:'Market & client signals'}],outs:['proposal','signals','opportunity_map','screening'],trace:['Clustering 14 signals into 3 opportunity areas','Screening 5 options → 1 recommended']},
  {id:'product-value-model',stage:'s1',role:'po',desc:'Computes the Composite Opportunity Score and runs the Sanity Suite.',needs:[{via:'kh',label:'Value benchmarks'}],outs:['opportunity_score'],trace:['Scoring 4 COS dimensions','Running Sanity Suite (6 checks)'],card:'cos'},
  {id:'product-strategy',stage:'s2',role:'po',desc:'Drafts vision & mission, strategy pillars and a roadmap.',needs:[{via:'kh',label:'Prior strategy docs / market intel'}],outs:['vision','strategy','roadmap'],trace:['Deriving 3 strategy pillars','Sequencing roadmap horizons']},
  {id:'executive-communication',stage:'s2',role:'po',desc:'Produces a BLUF-first executive brief and review log.',needs:[],outs:['exec_brief','review_log'],trace:['Leading with the BLUF','Compressing to one page']},
- {id:'project-initiation',stage:'s3',role:'po',interview:true,desc:'Runs the discovery interview (A–G + supplement) and authors solution intent and the deliverables list.',needs:[{via:'wh',label:'Working Hub project + key'},{via:'kh',label:'Stage 1–2 artifacts'}],outs:['solution_intent','deliverables_list','sources_md','project_identifiers'],trace:['Folding interview answers A–G into solution intent','Registering '+d.deliverables.length+' deliverables as Working Hub entities','Citing SRC-IDs inline']},
+ {id:'project-initiation',stage:'s3',role:'po',interview:true,desc:'Runs the discovery interview (A–G + supplement) and authors solution intent and the deliverables list.',needs:[{via:'wh',label:'Working Hub project + key'},{via:'kh',label:'Stage 1–2 artifacts'},...(d.khSI||[]).map(k=>({via:'kh',label:k.label,khdoc:k}))],outs:['solution_intent','deliverables_list','sources_md','project_identifiers'],trace:['Folding interview answers A–G into solution intent','Registering '+d.deliverables.length+' deliverables as Working Hub entities','Citing SRC-IDs inline']},
  {id:'app-context-discovery',stage:'s3',role:'po',desc:'ACD — auto-queries Knowledge Hub for every application named at D.3.',needs:[{via:'kh',label:'Application registry'}],outs:['app_context'],trace:['Resolving '+d.apps.length+' named applications','Pulling owners, SEAL IDs and interfaces']},
  {id:'governance-readiness',stage:'s3',role:'po',desc:'Stage 3f — assesses Risk Materiality / NPA / BAR readiness alongside Working Hub.',needs:[{via:'kh',label:'Change-governance policies'}],outs:['governance_readiness'],trace:['Checking RMC, NPA and BAR triggers']},
  {id:'arch-assessment',stage:'s3',role:'ar',desc:'Authors the initiative architecture assessment from solution intent and ACD.',needs:[{via:'kh',label:'Architecture knowledge base'},{via:'wh',label:'solution-intent.md (approved)'}],outs:['arch_assessment'],trace:['Evaluating architectural significance','Identifying impacted SEALs']},
@@ -659,6 +792,7 @@ function coreSkills(d){return [
 ];}
 
 /* ---------- artifact definitions ---------- */
+const citeKey=(r,k)=>{const x=r.sources.find(z=>z.key===k);return x?` [${x.id}]`:''};
 const src=r=>r.sources[0]?` [${r.sources[0].id}]`:'';
 const tbl=(h,rows)=>['| '+h.join(' | ')+' |','|'+h.map(()=>'---').join('|')+'|',...rows.map(x=>'| '+x.join(' | ')+' |')].join('\n');
 const FILES={
@@ -676,9 +810,9 @@ const FILES={
  roadmap:{name:()=>'roadmap-2026-10.md',dest:'local',body:d=>`# Roadmap — 2026-10\n## Horizons\n${tbl(['Horizon','Focus'],[['Now',d.deliverables[0]],['Next',d.deliverables[1]+' · '+d.deliverables[2]],['Later',d.deliverables[3]]])}`},
  exec_brief:{name:()=>'executive-brief-2026-10.md',dest:'local',body:d=>`# Executive brief\n> **BLUF:** Approve ${d.initiative} to proceed to Project Initiation. COS ${d.cos}.\n## Why\n- ${d.problem}\n- ${d.urgency}\n## Ask\n- Confirm squad allocation for the next Program Increment`},
  review_log:{name:()=>'review-log.md',dest:'local',body:()=>`# Review log\n${tbl(['Reviewer','Comment','Status'],[['Marcus Chen (PL)','Sharpen pillar 2 measure','Addressed'],['Elena Petrova (AR)','Call out new SEAL early','Addressed']])}`},
- solution_intent:{name:()=>'solution-intent.md',dest:'gov',gate:'GW-I1',body:(d,r)=>{const a=r.interview?.answers||ivDefaults(d);return `# Solution intent — ${d.initiative}\n**Project key:** \`${d.key}\` · legacy term: BRD\n## A. Problem & outcome\n${a.A}${src(r)}\n## B. Users & clients\n${a.B}\n## C. Scope\n${a.C}\n## D. Applications\n${a.D}\n## E. Non-functional requirements\n${a.E}\n## F. Risks & governance\n${a.F}\n## G. Timeline\n${a.G}`}},
+ solution_intent:{name:()=>'solution-intent.md',dest:'gov',gate:'GW-I1',body:(d,r)=>{const a=r.interview?.answers||ivDefaults(d);return `# Solution intent — ${d.initiative}\n**Project key:** \`${d.key}\` · legacy term: BRD\n## A. Problem & outcome\n${a.A}${src(r)}\n## B. Users & clients\n${a.B}\n## C. Scope\n${a.C}\n## D. Applications\n${a.D}${citeKey(r,'arch')}\n## E. Non-functional requirements\n${a.E}${citeKey(r,'nfr')}\n## F. Risks & governance\n${a.F}\n## G. Timeline\n${a.G}`}},
  deliverables_list:{name:()=>'deliverables-list.md',dest:'gov',gate:'GW-I1',note:'registered entity',body:d=>`# Deliverables list\nLegacy term: FRD. Each row is a registered Working Hub entity.\n${tbl(['ID','Deliverable','Owner'],d.deliverables.map((x,i)=>[d.key+'-D'+(i+1),x,'PO']))}`},
- sources_md:{name:()=>'SOURCES.md',dest:'ev',note:'Stage 3g',body:(d,r)=>`# SOURCES\n${tbl(['SRC-ID','Source','Ingested by','Scope'],r.sources.map(s=>[s.id,s.name,PEOPLE[s.by].name,s.scope]))}\n> SRC-IDs must be cited inline in governance artifacts.`},
+ sources_md:{name:()=>'SOURCES.md',dest:'ev',note:'Stage 3g',body:(d,r)=>`# SOURCES\n${tbl(['SRC-ID','Source','Ingested by','Scope'],r.sources.map(s=>[s.id,s.name,PEOPLE[s.by]?.name||'Knowledge Hub (MCP)',s.scope]))}\n> SRC-IDs must be cited inline in governance artifacts.`},
  project_identifiers:{name:()=>'project-identifiers.md',dest:'local',body:d=>`# Project identifiers\n- Working Hub key: \`${d.key}\`\n- Jira SIF label: \`SIF SI-2026-0${d.key.slice(-2)}\`\n- Domain: ${d.name}`},
  app_context:{name:()=>'app-context-registry.md',dest:'ev',note:'Stage 3g',body:d=>`# Application context registry (ACD)\nAuto-queried from Knowledge Hub after D.3.\n${tbl(['Application','SEAL','Owner','Interfaces'],d.apps.map((a,i)=>[a,'SEAL-'+(88100+i*37),['Platform A','Platform B','Core Services','Data'][i%4],String(3+i)]))}`},
  compliance_impact:{name:()=>'compliance-impact-matrix.md',dest:'ev',body:d=>`# Compliance impact matrix\n${tbl(['Clause',...d.apps],[['4.1','●','●','○','●'],['4.2','●','○','○','●'],['6.3','○','○','●','○'],['7.1','●','●','●','○']])}\n● change required · ○ no change`},
@@ -773,7 +907,8 @@ const PALETTES={
   dark:K('#0c0d12','#13151c','#181b24','#14171e','#0f1016','#f0ede6','#a39f96','#726e66','#d6d2c8','240,235,220','#0a0f1d',{pbi:['#8fb0ff','#c8d8ff'],pricing:['#f0a878','#f8d4bc'],vault:['#8fd0b8','#c8e8dc']}),
   light:L('#f6f3ea','#151a2c','#535665','#82858f','#2c3044','25,30,60',{pbi:['#1f3fa8','#4666c8'],pricing:['#a8501e','#c4703e'],vault:['#1c7458','#3c9478']})}
 };
-const domAc=k=>PALETTES[S.palette][S.theme].dom[k];
+const DOM_SWAP={pbi:'vault',vault:'pbi'}; // PBI and Vault trade accent colours
+const domAc=k=>PALETTES[S.palette][S.theme].dom[DOM_SWAP[k]||k];
 function applyPalette(){const lt=S.theme==='light',v=PALETTES[S.palette][S.theme],st=document.documentElement.style,[ac,ac2]=domAc(S.domain),dk=c=>lt?`color-mix(in srgb,${c} 84%,#000)`:c;
   const vars={bg:v.bg,panel:v.panel,panel2:v.panel2,solid:v.solid,card2:v.card2,bar:v.bar,text:v.text,mut:lt?`color-mix(in srgb,${v.mut} 60%,${v.text})`:v.mut,dim:lt?`color-mix(in srgb,${v.dim} 50%,${v.text})`:v.dim,soft:v.soft,line:v.line,line2:v.line2,'on-ac':v.onac};
   for(const k in vars)st.setProperty('--'+k,vars[k]);
@@ -794,7 +929,7 @@ function applyFont(){const F=FONTS[S.font],st=document.documentElement.style;
   document.body.classList.toggle('codefont',F.code);document.body.classList.add('sanshead')}
 
 /* ---------- state ---------- */
-const S={domain:'pbi',persona:'po',view:'room',tab:'stage',selStage:null,menu:null,auto:false,guide:true,theme:'dark',palette:'aurora',font:'grotesk',speed:1,rooms:{},skills:{},elev:{},edit:null,vf:'all',vq:''};
+const S={domain:'vault',persona:'po',view:'room',tab:'stage',selStage:null,menu:null,auto:false,guide:'mini',theme:'dark',palette:'aurora',font:'grotesk',speed:1,rooms:{},skills:{},elev:{},edit:null,vf:'all',vq:''};
 function newRoom(id){const d=DOMAINS[id];let chain=[...BASE_CHAIN];for(const x of d.inserts)chain.splice(chain.indexOf(x.after)+1,0,x.id);
   return {id,chain,ptr:0,msgs:[],arts:[],gates:{},sources:[],audit:[],notifs:[],gov:null,busy:false,runs:0,clock:Date.now(),skipped:false,interview:null,gapPosted:{},done:false,n:0}}
 function initSkills(id){const d=DOMAINS[id];S.skills[id]=[...coreSkills(d).map(s=>({...s,tag:'core'})),...d.extra.map(s=>({...s,tag:'domain'}))].map(s=>({name:s.id,ver:'1.0',enabled:true,history:[{ver:'1.0',by:'Platform team',note:'Initial release'}],prompt:`You are the ${d.agent}. ${s.desc}\nGround every claim in a cited source (SRC-ID). Never invent application names — resolve them through Knowledge Hub.`,guards:['cite','pii'],...s}))}
@@ -860,7 +995,10 @@ async function runSkill(room,sk,by,o={}){
   const m=post(room,{who:'agent',kind:'run',run:{skill:sk.id,name:sk.name,ver:sk.ver,steps:[],done:false,arts:[],by}},I);if(!I)refresh();
   const steps=[`Loaded skill ${sk.name} v${sk.ver}${sk.cz?' (customized for '+d.short+')':''}`];
   for(const n of sk.needs){
-    if(n.via==='kh')steps.push(`MCP · kh-grounded-query → Knowledge Hub · ${n.label} · ${8+sk.id.length%9} grounded passages`);
+    if(n.via==='kh'&&n.khdoc){let src=room.sources.find(x=>x.key===n.khdoc.key);
+      if(!src){tick(room,I);src={id:'SRC-'+String(room.sources.length+1).padStart(3,'0'),key:n.khdoc.key,name:fileName(n.khdoc.url),url:'kh://'+d.short.toLowerCase()+'/'+fileName(n.khdoc.url),scope:'Whole initiative',by:'kh',origin:'kh',t:room.clock};room.sources.push(src);audit(room,d.agent,`Retrieved ${src.name} from Knowledge Hub (MCP) as ${src.id}`)}
+      (m.run.kh=m.run.kh||[]).push(src.id);steps.push(`MCP · kh-grounded-query → Knowledge Hub · ${n.khdoc.q}`,`Knowledge Hub · match found · ${src.name} · ${9+src.name.length%8} grounded passages · registered as ${src.id}`)}
+    else if(n.via==='kh')steps.push(`MCP · kh-grounded-query → Knowledge Hub · ${n.label} · ${8+sk.id.length%9} grounded passages`);
     else if(n.via==='wh')steps.push(`MCP · wh-get-config-snapshot → Working Hub · ${n.label}`);
     else if(n.via==='jira')steps.push(`MCP · jira-search → Jira · ${n.label}`);
     else if(n.via==='conf')steps.push(`MCP · confluence-publish → ${n.label}`);
@@ -944,6 +1082,7 @@ function ingest(room,g,by,I){tick(room,I);const id='SRC-'+String(room.sources.le
 async function autopilot(){const room=R();
   while(S.auto&&!room.done&&S.domain===room.id&&S.view==='room'){
     if(room.busy){await sleep(300);continue}
+    const beat=demoBeat(room);if(beat){await beat.run();await sleep(2000);continue}
     const a=nextAction(room);if(!a)break;
     if(a.actor!==S.persona){S.persona=a.actor;refresh();toast('Now acting as '+PEOPLE[a.actor].name+' · '+PEOPLE[a.actor].abbr);await sleep(1300)}
     await perform(room,a,{auto:true});await sleep(2600)}
@@ -958,10 +1097,11 @@ function renderTop(){
   const unread=Object.values(S.rooms).flatMap(r=>r.notifs).filter(n=>n.to===S.persona&&!n.read);
   const me=PEOPLE[S.persona];
   $('#top').innerHTML=`
-  <div class="brand"><svg class="nlogo" viewBox="0 0 40 40" aria-hidden="true"><circle class="ring" cx="20" cy="20" r="17.5"/><circle class="ring2" cx="20" cy="20" r="13"/><g class="links"><path d="M20 20 L20 8.5"/><path d="M20 20 L30 26"/><path d="M20 20 L10 26"/></g><g class="orbit"><circle cx="20" cy="8.5" r="2.1"/><circle cx="30" cy="26" r="2.1"/><circle cx="10" cy="26" r="2.1"/></g><circle class="core" cx="20" cy="20" r="3.6"/></svg><div>Neuro <i>Squad Room</i><small>PDLC · simulated data</small></div></div>
+  <div class="brand" data-act="home" title="Back to the lobby" style="cursor:pointer"><svg class="nlogo" viewBox="0 0 40 40" aria-hidden="true"><circle class="ring" cx="20" cy="20" r="17.5"/><circle class="ring2" cx="20" cy="20" r="13"/><g class="links"><path d="M20 20 L20 8.5"/><path d="M20 20 L30 26"/><path d="M20 20 L10 26"/></g><g class="orbit"><circle cx="20" cy="8.5" r="2.1"/><circle cx="30" cy="26" r="2.1"/><circle cx="10" cy="26" r="2.1"/></g><circle class="core" cx="20" cy="20" r="3.6"/></svg><div>Neuro <i>Squad Room</i><small>PDLC · simulated data</small></div></div>
   <nav>${[['room','Squad Room'],['vault','Artifact Vault'],['studio','Skill Studio']].map(([v,l])=>`<button class="${S.view===v?'on':''}" data-act="view" data-arg="${v}">${l}</button>`).join('')}</nav>
-  <span class="vsep"></span><button class="tb agentdd" data-act="menu" data-arg="agent" title="Switch domain agent"><span class="lbl">Agent</span><i class="dd" style="background:${domAc(S.domain)[0]}"></i><b>${D().agent}</b> ▾${Object.entries(DOMAINS).some(([k])=>k!==S.domain&&pendingGate(S.rooms[k]))?'<span class="pend"></span>':''}
-    ${S.menu==='agent'?`<div class="menu left"><h6>Domain agents</h6>${Object.entries(DOMAINS).map(([k,d])=>{const pg=pendingGate(S.rooms[k]),r=S.rooms[k];return `<span class="mi ${k===S.domain?'cur':''}" data-act="domain" data-arg="${k}"><i class="dd" style="background:${domAc(k)[0]}"></i><span><b>${d.agent}</b>${k===S.domain?' · current':''}<small>${d.name} · ${r.done?'complete':'Stage '+STAGES[stageIdx(curStage(r))].num}</small>${pg?`<small class="${pg.who===S.persona?'wt':''}">${pg.gid} waiting on ${pg.who===S.persona?'you':PEOPLE[pg.who].name}</small>`:''}</span></span>`}).join('')}</div>`:''}</button>
+  <span class="vsep"></span><span class="domtag" title="This room runs on the ${D().name} agent domain"><span class="lbl">Agent Domain</span><i class="dd" style="background:${domAc(S.domain)[0]}"></i><b>${D().short}</b></span>
+  <button class="tb agentdd" data-act="menu" data-arg="agent" title="Switch between your rooms"><span class="lbl">Room</span><b>${shortKey(S.domain)}</b> ▾${myRooms().some(k=>k!==S.domain&&pendingGate(S.rooms[k]))?'<span class="pend"></span>':''}
+    ${S.menu==='agent'?`<div class="menu left"><h6>Your rooms</h6>${myRooms().map(k=>{const d=DOMAINS[k],pg=pendingGate(S.rooms[k]),r=S.rooms[k];return `<span class="mi ${k===S.domain?'cur':''}" data-act="domain" data-arg="${k}"><i class="dd" style="background:${domAc(k)[0]}"></i><span><b>${d.short} · ${shortKey(k)}</b>${k===S.domain?' · current':''}<small>${esc(r.meta?.name||d.initiative)} · ${r.done?'complete':'Stage '+STAGES[stageIdx(curStage(r))].num}</small>${pg?`<small class="${pg.who===S.persona?'wt':''}">${pg.gid} waiting on ${pg.who===S.persona?'you':PEOPLE[pg.who].name}</small>`:''}</span></span>`}).join('')}<span class="mi" data-act="home"><span style="width:7px"></span><span>← Back to the lobby<small>All rooms · request access · new room</small></span></span></div>`:''}</button>
   <div class="sp"></div>
   <button class="tb" data-act="menu" data-arg="notif">Alerts${unread.length?`<span class="badge">${unread.length}</span>`:''}
     ${S.menu==='notif'?`<div class="menu"><h6>Alerts for ${me.name}</h6>${Object.values(S.rooms).flatMap(r=>r.notifs).filter(n=>n.to===S.persona).sort((a,b)=>b.t-a.t).slice(0,8).map(n=>`<span class="mi" data-act="domain" data-arg="${n.dom}"><span>${n.read?'○':'●'}</span><span>${esc(n.text)}<small>${fmtT(n.t)}</small></span></span>`).join('')||'<div class="mi muted">Nothing waiting on you.</div>'}</div>`:''}</button>
@@ -1026,9 +1166,13 @@ function msgHTML(room,m){
     b=`<div class="ivc"><b>Discovery interview · sections A–G</b><div class="muted">Pre-filled from your Stage 1${room.skipped?'':'–2'} artifacts. Edit anything before I write solution intent.</div>
       ${Object.entries(IV_LABELS).map(([k,l])=>`<label>${l}<input data-iv="${k}" value="${esc(iv.answers[k])}" ${iv.submitted?'disabled':''}></label>`).join('')}
       ${iv.submitted?'<span class="stt approved">Submitted</span>':`<div class="gact"><button class="btn pri" data-act="next" ${mine?'':'disabled'}>Submit answers</button>${mine?'':'<span class="muted">Owned by the PO.</span>'}</div>`}</div>`}
-  return `<div class="msg ${ag?'agent':''}" id="m${m.id}">${ag?'<div class="orb sm"></div>':av(m.who)}<div class="body"><div class="meta"><b>${ag?d.agent:p.name}</b>${ag?'<span class="role">AGENT</span>':`<span class="role">${p.abbr}</span>`} · ${fmtT(m.t)}</div>${b}</div></div>`}
+  return `<div class="msg ${ag?'agent':''}" id="m${m.id}">${ag?'<div class="orb sm"></div>':av(m.who)}<div class="body"><div class="meta"><b>${ag?d.agent:p.name}</b>${ag?'<span class="role">AGENT</span>':`<span class="role">${p.abbr}</span>`} · ${fmtT(m.t)}</div>${b}${ag?threadHTML(room,m):''}</div></div>`}
 function fileChip(room,k){const a=art(room,k);return a?`<button class="file" data-act="art" data-arg="${k}">${esc(a.name)} <span class="pill ${a.dest}">${DEST[a.dest]}</span></button>`:''}
 function runCard(room,r){const d=DOMAINS[room.id];
+  const kh=(r.kh||[]).map(id=>room.sources.find(x=>x.id===id)).filter(Boolean);
+  const khNote=kh.length?`<div class="note ok"><b>Grounded in Knowledge Hub via MCP.</b> ${kh.length} document${kh.length>1?'s':''} retrieved from the knowledge base — no file upload needed: ${kh.map(x=>`<span class="src">${x.id}</span> ${esc(x.name)}`).join(' · ')}. Cited inline in the output.</div>`:'';
+  return khNote+runCardBody(room,r)}
+function runCardBody(room,r){const d=DOMAINS[room.id];
   if(r.card==='cos')return `<div class="cos"><div class="gauge" style="--v:${d.cos}"><b>${d.cos}</b></div><div class="bars">${d.cosParts.map(([a,v])=>`<div>${a}<i style="--w:${v}%"></i><b>${v}</b></div>`).join('')}</div></div>
     <div class="note ok"><b>COS ${d.cos} ≥ 70</b> — advisory threshold met. Sanity Suite 6/6 passed. Clear to advance.</div>`;
   if(r.card==='drift')return `<div class="note"><b>ACD drift detected.</b> ${d.apps[2]} changed owning team since Stage 3. I updated <span class="mono">app-context-registry.md</span> and flagged it in the deliverable.</div>`;
@@ -1051,13 +1195,13 @@ function renderChatHead(){const room=R(),d=D(),pg=pendingGate(room);
   let ban='';
   if(pg)ban=pg.who===S.persona?`<div class="banner me"><b>You\'re up.</b> ${pg.gid} is waiting on your ${GATES[pg.gid].commit?'commit':'decision'}.<button class="btn" data-act="toGate">Review</button></div>`
     :`<div class="banner other">${pg.gid} is waiting on ${av(pg.who,'sm')} <b>${PEOPLE[pg.who].name}</b> — the workflow is paused until they decide.</div>`;
-  $('#chdr').innerHTML=`<div class="chd"><div><h2>${d.initiative}</h2><small><span class="mono">${d.key}</span> · ${d.name} · facilitated by ${d.agent}</small></div></div>${ban}${guideHTML(room)}`}
+  $('#chdr').innerHTML=`<div class="chd"><div><h2>${esc(room.meta?.name||d.initiative)}</h2><small><span class="mono">${shortKey(room.id)}</span> · Agent domain: ${d.name} · facilitated by ${d.agent}${room.meta?' · owner '+PEOPLE[room.meta.owner].name:''}</small></div>${S.guide==='mini'?(room.demoDone?`<button class="nextb done" data-act="demoEnd" title="The demo sequence is complete">✓ Done</button>`:`<button class="nextb ${room.busy||room.done?'':'ready'}" data-act="step" ${room.done?'disabled':''} title="Next demo step: ${esc(nextLabel(room))}">▸ Next</button>`):''}</div>${ban}${guideHTML(room)}`}
 const SPEEDS=[[.5,'Slow'],[1,'Normal'],[3,'Fast']];
-function guideHTML(room){if(!S.guide)return '';const a=nextAction(room);let t,why,what;
+function guideHTML(room){if(S.guide!=='full')return '';const a=nextAction(room);let t,why,what;
   if(!a){t='Workflow complete';why='All six gates are cleared and every artifact is stored with its lineage and approval record.';what='Open the Artifact Vault to review any artifact, or open Skill Studio and switch to the steward to edit a skill. Use ↺ to start again.'}
   else{const p=PEOPLE[a.actor],mine=a.actor===S.persona,sw=`Click <b>${p.name}</b> in the Squad list to act as the ${p.role}, then `;
     if(a.type==='skill'){const sk=a.skill;t='Run '+sk.name;
-      why=esc(sk.desc)+(sk.needs.length?' Draws on: '+[...new Set(sk.needs.map(n=>VIA[n.via]))].join(', ')+'.':'')+(unsatGap(room,sk)?' Watch for a data gap — Knowledge Hub doesn\'t hold everything this skill needs.':'')+(sk.interview&&!room.interview?' The agent will open the discovery interview first.':'');
+      why=esc(sk.desc)+(sk.needs.length?' Draws on: '+[...new Set(sk.needs.map(n=>VIA[n.via]))].join(', ')+'.':'')+(unsatGap(room,sk)?' Watch for a data gap — Knowledge Hub doesn\'t hold everything this skill needs.':'')+(sk.needs.some(n=>n.khdoc&&!room.sources.some(x=>x.key===n.khdoc.key))?' Watch the agent retrieve its source documents straight from Knowledge Hub over MCP.':'')+(sk.interview&&!room.interview?' The agent will open the discovery interview first.':'');
       what=(mine?'Click':sw+'click')+` <b>▶ Run ${esc(sk.name)}</b> under the chat (or type “run it”).`+(sk.stage==='s2'?' Stage 2 is optional — the PO can also choose <b>Skip Stage 2</b>.':'')}
     else if(a.type==='ingest'){t='Resolve the data gap';why=`The agent won\'t guess. Knowledge Hub returned nothing for ${esc(a.gap.label)}, so the skill is paused until a file is supplied.`;
       what=(mine?'On':sw+'on')+' the red card click <b>Attach SharePoint link</b>, choose <b>Use demo link</b>, then <b>Ingest</b>. The file gets a SRC-ID the agent must cite.'}
@@ -1075,7 +1219,7 @@ function guideHTML(room){if(!S.guide)return '';const a=nextAction(room);let t,wh
     <div class="gctl">${a?`<button class="btn pri" data-act="step" ${S.auto?'disabled':''} title="Performs just this one step, then stops">Do this step for me ▸</button>
       <div><button class="btn ${S.auto?'warn':''}" data-act="auto">${S.auto?'⏸ Pause':'▶ Auto-play'}</button><button class="btn" data-act="speed" title="Pace of agent runs and auto-play">${sp[1]}</button></div>`:''}</div></div>`}
 function renderChat(){const room=R();$('#chat').innerHTML=room.msgs.map(m=>msgHTML(room,m)).join('');scrollChat()}
-function refreshDyn(){const room=R();room.msgs.forEach(m=>{if(['gate','gap','interview'].includes(m.kind)){const el=document.getElementById('m'+m.id);if(el&&!el.contains(document.activeElement))el.outerHTML=msgHTML(room,m)}})}
+function refreshDyn(){const room=R();room.msgs.forEach(m=>{if(['gate','gap','interview'].includes(m.kind)){const el=document.getElementById('m'+m.id);if(el&&!el.contains(document.activeElement))el.outerHTML=msgHTML(room,m)}else if(m.thread&&m.thread.length){const el=document.getElementById('m'+m.id);if(el&&!el.contains(document.activeElement)&&el.dataset.p!==S.persona)el.outerHTML=msgHTML(room,m)}})}
 
 function renderComp(){const room=R(),a=nextAction(room);let s='';
   if(a){const p=PEOPLE[a.actor];
@@ -1083,7 +1227,7 @@ function renderComp(){const room=R(),a=nextAction(room);let s='';
     if(curStage(room)==='s2'&&a.type==='skill'&&S.persona==='po')s+=`<button class="sug" data-act="skip2">Skip Stage 2 (optional)</button>`}
   s+=`<button class="sug" data-act="ask" data-arg="Where are we?">Where are we?</button><button class="sug" data-act="openIngest" data-arg="">＋ SharePoint source</button><button class="sug" data-act="ask" data-arg="What is COS?">What is COS?</button><button class="sug slashb" data-act="slashOpen" title="Guide, glossary, pet and font">/ Commands</button>`;
   const keep=$('#msgin')?.value||'';
-  $('#comp').innerHTML=`<div class="sugs">${s}</div><div class="inrow">${av(S.persona)}<input id="msgin" placeholder="Message the squad or ask ${D().agent}…  Type / for commands" autocomplete="off"><button class="btn pri" data-act="send">Send</button></div>`;
+  $('#comp').innerHTML=`<div class="sugs">${s}</div><div class="inrow">${av(S.persona)}<input id="msgin" placeholder="Ask ${D().agent}…  Type / for commands · reply on a card to discuss with the squad" autocomplete="off"><button class="btn pri" data-act="send">Send</button></div>`;
   $('#msgin').value=keep}
 
 function renderRight(){const room=R(),d=D();
@@ -1113,15 +1257,15 @@ function renderRight(){const room=R(),d=D();
     h+=`<div style="margin-top:10px"><button class="btn" data-act="view" data-arg="vault">Open Artifact Vault →</button></div>`}
   else if(S.tab==='src'){h+=`<h3>Knowledge & sources</h3><h5>MCP connections</h5>
      ${[['Knowledge Hub','kh-grounded-query · kh-cli'],['Working Hub','wh-* capabilities'],['Jira','search · publish'],['Confluence','publish']].map(([a,b])=>`<div class="conn"><i></i><b>${a}</b><small class="muted mono" style="margin-left:auto">${b}</small></div>`).join('')}
-     <h5>SharePoint sources <span>${room.sources.length}</span></h5>
-     ${room.sources.map(s=>`<div class="row"><span class="src">${s.id}</span><span class="nm" title="${esc(s.url)}">${esc(s.name)}</span><small>${s.scope==='Whole initiative'?'initiative':'skill'}</small></div>`).join('')||'<div class="muted">No files ingested yet. When Knowledge Hub can\'t ground a skill, attach a SharePoint link.</div>'}
+     <h5>Cited sources <span>${room.sources.length}</span></h5>
+     ${room.sources.map(s=>`<div class="row"><span class="src">${s.id}</span><span class="nm" title="${esc(s.url)}">${esc(s.name)}</span><small>${s.origin==='kh'?'Knowledge Hub':'SharePoint'} · ${s.scope==='Whole initiative'?'initiative':'skill'}</small></div>`).join('')||'<div class="muted">No sources yet. The agent retrieves from Knowledge Hub first. When Knowledge Hub can\'t ground a skill, attach a SharePoint link.</div>'}
      <div style="margin-top:10px"><button class="btn pri" data-act="openIngest" data-arg="">＋ Attach SharePoint link</button></div>`}
   else{h+=`<h3>Activity log</h3><div class="muted" style="margin-bottom:8px">Append-only record of every agent run, ingestion and decision.</div>`+room.audit.map(l=>`<div class="log"><span>${fmtT(l.t)} · ${l.h}</span><br><b>${esc(l.who)}</b> — ${esc(l.what)}</div>`).join('')}
   $('#right').innerHTML=h+'</div>'}
 
 /* ---------- full-page views ---------- */
 function renderView(){document.body.className='v-'+S.view+(S.noleft?' noleft':'')+(S.norail?' norail':'')+(S.noright?' noright':'');document.documentElement.dataset.theme=S.theme;applyPalette();applyFont();
-  if(S.view==='vault')renderVault();else if(S.view==='studio')renderStudio()}
+  if(S.view==='vault')renderVault();else if(S.view==='studio')renderStudio();else if(S.view==='landing')renderLanding()}
 function renderVault(){const room=R(),d=D();
   const rows=room.arts.filter(a=>(S.vf==='all'||a.status===S.vf)&&a.name.toLowerCase().includes(S.vq.toLowerCase()));
   $('#view').innerHTML=`<div class="vh"><div class="orb"></div><div><h1>Artifact Vault</h1><div class="muted">${d.initiative} · every output, its lineage and its approval record</div></div></div>
@@ -1202,8 +1346,6 @@ function agentReply(room,text){const t=text.toLowerCase(),d=DOMAINS[room.id],a=n
   return `Noted — I\'ve added that to the session record so it carries into the next artifact.${a?` When you\'re ready, the next step is <b>${actionLabel(a)}</b> (${PEOPLE[a.actor].abbr}).`:''}`}
 function send(text){text=text.trim();if(!text)return;const room=R();
   post(room,{who:S.persona,kind:'text',html:esc(text)});
-  const mention=Object.entries(PEOPLE).find(([k,p])=>k!==S.persona&&text.toLowerCase().includes('@'+p.name.split(' ')[0].toLowerCase()));
-  if(mention){setTimeout(()=>post(room,{who:mention[0],kind:'text',html:'Got it — taking a look.'}),1100);return}
   $('#typing').textContent=D().agent+' is thinking…';
   setTimeout(()=>{$('#typing').textContent='';const r=agentReply(room,text);if(r)say(room,r);refresh()},650)}
 
@@ -1235,8 +1377,8 @@ const ACT={
    closeModal();ingest(room,{key:g?.key,url:u,scope},S.persona)},
  auto(){S.auto=!S.auto;refresh();if(S.auto){toast('Auto-play — pause any time to study a step');autopilot()}},
  speed(){const i=SPEEDS.findIndex(x=>x[0]===S.speed);S.speed=SPEEDS[(i+1)%SPEEDS.length][0];refresh()},
- guide(){S.guide=!S.guide;if(!S.guide)S.auto=false;refresh()},
- async step(){const room=R();if(room.busy)return toast('The agent is still working…');const a=nextAction(room);if(!a)return;
+ guide(){ACT.guideMode(S.guide==='off'?'mini':'off')},
+ async step(){const room=R();if(room.demoDone)return ACT.demoEnd();if(room.busy)return toast('The agent is still working…');const beat=demoBeat(room);if(beat)return beat.run();const a=nextAction(room);if(!a)return;
    if(a.actor!==S.persona){S.persona=a.actor;refresh();toast('Now acting as '+PEOPLE[a.actor].name+' · '+PEOPLE[a.actor].abbr);await sleep(700)}
    perform(room,a,{auto:true})},
  font(k){S.font=k;S.menu=null;try{localStorage.setItem('sr5-font',k)}catch(e){}renderAll()},
@@ -1386,8 +1528,9 @@ Object.assign(ACT,{
 /* ---------- slash commands in the chat box ---------- */
 function slashItems(){const lv=S.slash.level,q=($('#msgin')?.value||'').slice(1).trim().toLowerCase();let it;
   if(lv==='pet')it=[{label:'None',desc:'No companion',cur:!PETS[S.pet],run:()=>ACT.pet('off')},...Object.entries(PETS).map(([k,p])=>({label:p.name,desc:p.note,cur:S.pet===k,run:()=>ACT.pet(k)}))];
+  else if(lv==='guide')it=[['off','Off','No demo controls'],['mini','Next button','A small ▸ Next button in the room header'],['full','Full guide','Step-by-step panel with explanations']].map(([k,l,dsc])=>({label:l,desc:dsc,cur:S.guide===k,run:()=>ACT.guideMode(k)}));
   else if(lv==='font')it=Object.entries(FONTS).map(([k,F])=>({label:F.name,desc:F.note,cur:S.font===k,run:()=>ACT.font(k)}));
-  else it=[{label:'/guide',desc:'Step-by-step guide panel',right:S.guide?'On':'Off',run:()=>ACT.guide()},
+  else it=[{label:'/guide',desc:'Demo controls',right:({off:'Off',mini:'Next button',full:'Full guide'})[S.guide]+' ›',sub:'guide'},
     {label:'/glossary',desc:'Terms and abbreviations',close:true,run:()=>openGlossary()},
     {label:'/skills',desc:'View and edit agent skills',close:true,run:()=>ACT.view('studio')},
     {label:'/pet',desc:'Room companion',right:(PETS[S.pet]?.name||'None')+' ›',sub:'pet'},
@@ -1469,17 +1612,198 @@ Object.assign(ACT,{
    if(sk.outs.some(k=>art(room,k)?.status==='approved'))return toast('These outputs are approved and locked — the new template applies to the next initiative.');
    closeModal();if(S.view!=='room'){S.view='room';renderAll()}runSkill(room,sk,S.persona)}
 });
+/* ---------- threads on agent cards: squad discussion, @mentions, agent summary ---------- */
+const firstName=k=>PEOPLE[k].name.split(' ')[0];
+const msgById=(room,id)=>room.msgs.find(x=>x.id===id);
+function mentionHTML(text){let h=esc(text);
+  for(const [k,p] of Object.entries(PEOPLE))h=h.replace(new RegExp('@'+firstName(k)+'\\b','gi'),`<span class="men" style="--c:${p.c}">@${firstName(k)}</span>`);
+  return h.replace(/@(vault |pbi |pricing )?agent\b/gi,'<span class="men ag">@Agent</span>')}
+function mentionsIn(text){const t=text.toLowerCase();return {people:Object.keys(PEOPLE).filter(k=>t.includes('@'+firstName(k).toLowerCase())),agent:/@(\w+ )?agent\b/.test(t)}}
+function threadHTML(room,m){const th=m.thread||[],d=DOMAINS[room.id];
+  if(!th.length&&!m.tOpen)return `<div class="thbar"><button class="thstart" data-act="thToggle" data-arg="${m.id}" title="Discuss this with the squad">↩ Reply in thread</button></div>`;
+  const people=[...new Set(th.map(c=>c.who).filter(w=>PEOPLE[w]))];
+  if(!m.tOpen){const last=th[th.length-1];
+    return `<button class="thline" data-act="thToggle" data-arg="${m.id}"><span class="thavs">${people.slice(0,4).map(k=>av(k,'sm')).join('')}</span><b>${th.length} ${th.length===1?'reply':'replies'}</b>
+      <span class="thprev">${m.summary?'<i>Summary</i> '+esc(m.summary.points[0]||''):`${last.who==='agent'?d.agent:firstName(last.who)}: ${last.text?esc(last.text):'…'}`}</span><span class="r">Expand ▾</span></button>`}
+  return `<div class="thread"><div class="thh"><b>Thread</b><span class="muted">${th.length} ${th.length===1?'reply':'replies'}${people.length?' · '+people.length+' people':''} · ${d.agent} is listening</span><button class="thlink" data-act="thToggle" data-arg="${m.id}" style="margin-left:auto">Collapse ▴</button></div>
+    ${th.map(c=>{const ag=c.who==='agent';return `<div class="thc">${ag?'<div class="orb sm"></div>':av(c.who,'sm')}<div><div class="meta"><b>${ag?d.agent:PEOPLE[c.who].name}</b><span class="role">${ag?'AGENT':PEOPLE[c.who].abbr}</span> · ${fmtT(c.t)}</div><div class="tht">${c.html}</div></div></div>`}).join('')}
+    ${m.tBusy?`<div class="thc"><div class="orb sm run"></div><div class="tht muted"><span class="spin" style="display:inline-block;margin-right:6px"></span>${d.agent} is reading the thread…</div></div>`:''}
+    ${m.summary?`<div class="thsum"><div class="gk">Summary by ${d.agent} · ${m.summary.n} comments · ${m.summary.k} people</div><ul>${m.summary.points.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${m.summary.open?`<div class="muted"><b>Open:</b> ${esc(m.summary.open)}</div>`:''}</div>`:''}
+    <div class="thin">${av(S.persona,'sm')}<input data-th="${m.id}" placeholder="Reply to the squad…  @name to mention, @agent to ask ${d.agent}" value="${esc(m.tDraft||'')}" autocomplete="off"><button class="btn" data-act="thSend" data-arg="${m.id}">Reply</button>
+      <button class="btn" data-act="thSum" data-arg="${m.id}" ${th.filter(c=>c.who!=='agent').length<2?'disabled':''} title="Ask the agent to summarize this thread">Summarize</button></div><div class="menh" id="mh${m.id}"></div></div>`}
+function threadUpdate(room,m,focus){if(!live(room))return;const el=document.getElementById('m'+m.id);if(!el)return;el.outerHTML=msgHTML(room,m);
+  const n=document.getElementById('m'+m.id);n.scrollIntoView({block:'nearest'});const c=$('#chat');if(room.msgs[room.msgs.length-1]===m)c.scrollTop=c.scrollHeight;
+  if(focus){const i=n.querySelector('[data-th]');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}}}
+function threadAdd(room,m,who,text,html){tick(room);(m.thread=m.thread||[]).push({who,text,html:html||mentionHTML(text),t:room.clock})}
+function buildSummary(m){const hum=m.thread.filter(c=>c.who!=='agent'),k=new Set(hum.map(c=>c.who)).size;
+  if(m.scripted)return {n:hum.length,k,points:m.scripted.points,open:m.scripted.open};
+  const men=[...new Set(hum.flatMap(c=>mentionsIn(c.text).people))];
+  return {n:hum.length,k,points:hum.map(c=>`${firstName(c.who)}: ${c.text.replace(/@\w+/g,'').trim().split(/(?<=[.?!])\s/)[0]}`).slice(-6),open:men.length?`${men.map(firstName).join(', ')} ${men.length>1?'were':'was'} asked to follow up.`:''}}
+async function summarizeThread(room,m){if(m.tBusy)return;m.tOpen=true;m.tBusy=true;threadUpdate(room,m);await sleep(1400);
+  m.tBusy=false;m.summary=buildSummary(m);audit(room,DOMAINS[room.id].agent,`Summarized a ${m.summary.n}-comment thread`);threadUpdate(room,m)}
+/* scripted demo beats for the Vault room, played by the Next button after solution intent is drafted */
+const VAULT_THREAD=[
+ ['ar','@Dev the NFR section commits to 99.995% availability. Does that hold during the PAN-to-token migration waves, or only in steady state?'],
+ ['eng','Steady state only. During migration we run dual-write, so I would commit to 99.99% for those windows. @Priya can the scope section call that out?'],
+ ['pl','Agree. Section F should also name the HSM capacity risk — key operations roughly double while both the PAN and token paths are live.'],
+ ['ux','From the merchant side: “invisible to the merchant” needs one caveat. They will see new token fields in reporting, so add a line under Users & clients.'],
+ ['po','Good catches, all three. @Agent can you summarize so I can fold these into the intent before GW-I1?']];
+const VAULT_SUMMARY={points:['NFRs (E): 99.995% availability applies to steady state; commit to 99.99% during migration windows — raised by Elena, confirmed by Dev.','Risks (F): add HSM capacity risk while PAN and token paths are both live — Marcus.','Users & clients (B): note that merchants will see new token fields in reporting — Sofia.'],open:'Priya to fold these three changes into solution-intent.md before GW-I1.'};
+function demoBeat(room){
+  if(room.id==='vault'&&room.ptr===0&&!room.ff&&room.meta)return {label:'Fast-forward Stages 1–2 to the solution intent',run:async()=>{room.ff=true;room.busy=true;S.norail=false;S.selStage=null;renderAll();await sleep(3200);room.busy=false;const sp=S.speed;S.speed=Math.max(sp,1)*9;
+    toast('Fast-forwarding Stages 1–2 · Intake, Ideation and Product Strategy');
+    try{while(room.chain[room.ptr]!=='project-initiation'){while(room.busy)await sleep(60);const a=nextAction(room);if(a.actor!==S.persona){S.persona=a.actor;refresh()}await perform(room,a,{auto:true});while(room.busy)await sleep(60);await sleep(500)}
+      room.interview={answers:ivDefaults(DOMAINS.vault),submitted:true};
+      post(room,{who:'po',kind:'text',html:'Discovery interview answers (A–G) are in. Please draft the solution intent.'});
+      say(room,'Thanks — I have the interview answers. I\'ll generate <span class="mono">solution-intent.md</span> next, pulling the application landscape and NFR standards from <b>Knowledge Hub</b> over MCP.')}
+    finally{S.speed=sp;refresh()}}};
+  if(room.id!=='vault'||room.chain[room.ptr]!=='app-context-discovery')return null;
+  const m=room.msgs.find(x=>x.kind==='run'&&x.run.skill==='project-initiation'&&x.run.done);if(!m)return null;
+  if(!m.demoThread)return {label:'Squad discusses the solution intent',run:async()=>{m.demoThread=true;m.scripted=VAULT_SUMMARY;m.tOpen=true;room.busy=true;refresh();
+    for(const [who,text] of VAULT_THREAD){threadAdd(room,m,who,text);for(const k of mentionsIn(text).people)notify(room,k,`${PEOPLE[who].name} mentioned you in a thread — ${DOMAINS[room.id].short}`);threadUpdate(room,m);await sleep(1500)}
+    audit(room,'Squad',`Discussed solution-intent.md in a thread (${VAULT_THREAD.length} comments)`);room.busy=false;refresh()}};
+  if(!m.summary)return {label:'Agent summarizes the thread',run:async()=>{room.busy=true;refresh();await summarizeThread(room,m);room.busy=false;room.demoDone=true;refresh()}};
+  return null}
+function nextLabel(room){const b=demoBeat(room);if(b)return b.label;const a=nextAction(room);return a?actionLabel(a)+' · '+PEOPLE[a.actor].abbr:'Workflow complete'}
+Object.assign(ACT,{
+ thToggle(id){const room=R(),m=msgById(room,id);m.tOpen=!m.tOpen;threadUpdate(room,m,m.tOpen)},
+ thSend(id){const room=R(),m=msgById(room,id),text=(m.tDraft||'').trim();if(!text)return;m.tDraft='';m.tOpen=true;
+   threadAdd(room,m,S.persona,text);const mn=mentionsIn(text),me=PEOPLE[S.persona].name;
+   for(const k of mn.people)if(k!==S.persona){notify(room,k,`${me} mentioned you in a thread — ${D().short}`);
+     setTimeout(()=>{threadAdd(room,m,k,'Thanks for the tag — taking a look now.');threadUpdate(room,m)},1300)}
+   threadUpdate(room,m,true);renderTop();
+   if(mn.agent){if(/summar/i.test(text))summarizeThread(room,m);
+     else setTimeout(()=>{threadAdd(room,m,'agent','','Noted. I\'ve been following this thread and will reflect it in the next revision. Ask me to <b>summarize</b> whenever you want the decisions pulled together.');threadUpdate(room,m)},1000)}},
+ thSum(id){const room=R();summarizeThread(room,msgById(room,id))},
+ thMen(arg){const [id,name]=arg.split('|'),room=R(),m=msgById(room,id);m.tDraft=(m.tDraft||'').replace(/@\w*$/,'@'+name+' ');threadUpdate(room,m,true)},
+ demoEnd(){toast('Demo sequence complete — carry on in the room with the buttons under the chat')},
+ guideMode(k){S.guide=k;if(k!=='full')S.auto=false;refresh()}
+});
+function thInput(t){const room=R(),m=msgById(room,t.dataset.th);m.tDraft=t.value;const q=(t.value.match(/@(\w*)$/)||[])[1],box=document.getElementById('mh'+m.id);if(!box)return;
+  box.innerHTML=q===undefined?'':[...Object.keys(PEOPLE).filter(k=>k!==S.persona).map(k=>[firstName(k),PEOPLE[k].abbr]),['Agent','AI']].filter(([n])=>n.toLowerCase().startsWith(q.toLowerCase())).map(([n,r])=>`<button class="sug" data-act="thMen" data-arg="${m.id}|${n}">@${n} <span class="role">${r}</span></button>`).join('')}
+/* ---------- lobby: your rooms, discover rooms, spin up a new Squad Room ---------- */
+const NLOGO='<svg class="nlogo" viewBox="0 0 40 40" aria-hidden="true"><circle class="ring" cx="20" cy="20" r="17.5"/><circle class="ring2" cx="20" cy="20" r="13"/><g class="links"><path d="M20 20 L20 8.5"/><path d="M20 20 L30 26"/><path d="M20 20 L10 26"/></g><g class="orbit"><circle cx="20" cy="8.5" r="2.1"/><circle cx="30" cy="26" r="2.1"/><circle cx="10" cy="26" r="2.1"/></g><circle class="core" cx="20" cy="20" r="3.6"/></svg>';
+const shortKey=k=>DOMAINS[k].key.replace(/-\d{4}-/,'-');
+const myRooms=()=>Object.keys(DOMAINS).filter(k=>S.created[k]);
+const DEMO_ROOM={name:'Network Token Lifecycle Management for Vault',bg:'Card-on-file merchants lose approvals when cards are reissued. Vault will provision network tokens and listen to lifecycle events, so stored credentials stay fresh without the merchant doing anything.'};
+function createRoom(id,meta){const d=DOMAINS[id],room=S.rooms[id]=newRoom(id);room.meta=meta;room.clock=Date.now();S.created[id]=true;
+  sys(room,`Room ${shortKey(id)} created by ${PEOPLE[meta.owner].name} · ${d.agent} joined · ${meta.inv.length} squad members invited`);
+  post(room,{who:meta.owner,kind:'text',html:esc(meta.bg)});
+  say(room,`Hi squad — I\'m the <b>${d.agent}</b>, loaded with ${S.skills[id].length} predefined skills for the ${d.name} domain. I\'ll take this through the PDLC with you, one stage at a time, and I\'ll stop at every gate for a human decision. I can start with <span class="mono">intake-builder</span> whenever you\'re ready.`);
+  audit(room,PEOPLE[meta.owner].name,`Created room ${shortKey(id)} on the ${d.name} agent domain`);return room}
+const DIRECTORY=[...Object.entries(PEOPLE).map(([id,p])=>({id,name:p.name,role:p.role,team:'Merchant Services',c:p.c,ini:p.ini})),
+ {id:'x1',name:'Priyanka Shah',role:'Business Analyst',team:'Vault'},{id:'x2',name:'Elliot Park',role:'Security Architect',team:'Cybersecurity'},{id:'x3',name:'Aisha Khan',role:'Product Leader',team:'Disputes'},
+ {id:'x4',name:'Devika Rao',role:'QA Lead',team:'Vault'},{id:'x5',name:'Samuel Ortiz',role:'Site Reliability Engineer',team:'Platform'},{id:'x6',name:'Grace Liu',role:'Product Leader',team:'Merchant Onboarding'},
+ {id:'x7',name:'Marta Novak',role:'Compliance Officer',team:'Risk & Controls'},{id:'x8',name:'Ethan Brooks',role:'Data Engineer',team:'Knowledge Hub'}].map(x=>({c:'var(--mut)',ini:x.name.split(' ').map(w=>w[0]).join(''),...x}));
+const dirById=id=>DIRECTORY.find(x=>x.id===id);
+const pav=x=>`<span class="av sm" style="--c:${x.c}">${x.ini}</span>`;
+function peopleResults(){const c=S.land.create,q=(c.pq||'').trim().toLowerCase();if(!q)return '';
+  const r=DIRECTORY.filter(x=>x.id!==S.persona&&!c.inv.includes(x.id)&&(x.name+' '+x.role+' '+x.team).toLowerCase().includes(q)).slice(0,5);
+  return r.map((x,i)=>`<button class="lpr ${c.hot&&i===0?'hot':''}" data-act="landInv" data-arg="${x.id}">${pav(x)}<span><b>${x.name}</b><small>${x.role} · ${x.team}</small></span><span class="r">+ Add</span></button>`).join('')||'<div class="lpr none">No one matches that search.</div>'}
+function landCreateHTML(){const c=S.land.create,me=PEOPLE[S.persona],dk=c.domain,d=dk&&DOMAINS[dk],sk=dk?S.skills[dk]:[];
+  const conns=[...new Set(sk.flatMap(x=>x.needs.map(n=>VIA[n.via])))];
+  return `<div class="lform"><div class="lfh"><button class="thlink" data-act="landBack">← Lobby</button><h2>Spin up a new Squad Room</h2><span class="muted">Owner: ${av(S.persona,'sm')} ${me.name} · ${me.role}</span></div>
+   <div class="lgrid"><div class="form">
+     <label>Room name</label><input data-lf="name" value="${esc(c.name)}" placeholder="What is this squad working on?" autocomplete="off">
+     <label>Background · keep it concise</label><textarea data-lf="bg" rows="4" placeholder="Two or three sentences: the problem, who it affects, the outcome you want.">${esc(c.bg)}</textarea>
+     <label>Who can find this room</label><div class="lseg">${[['request','Discoverable · access by request'],['private','Private · invite only']].map(([k,l])=>`<button class="${c.vis===k?'on':''}" data-act="landVis" data-arg="${k}">${l}</button>`).join('')}</div>
+     <label>Squad · search and add people</label>
+     <div class="lpsearch"><span>⌕</span><input data-lp placeholder="Search by name, role or team…" value="${esc(c.pq||'')}" autocomplete="off"></div>
+     <div class="lpres" id="lpres">${peopleResults()}</div>
+     <div class="lsquad"><div class="lper on own">${av(S.persona,'sm')}<span><b>${me.name}</b><small>${me.role}</small></span><span class="r">Owner</span></div>
+       ${c.inv.map(id=>{const x=dirById(id);return `<div class="lper on">${pav(x)}<span><b>${x.name}</b><small>${x.role} · ${x.team}</small></span><span class="r">Invited when the room is created</span><button class="lt" data-act="landInv" data-arg="${id}" title="Remove">✕</button></div>`}).join('')}
+       ${c.inv.length?'':'<div class="muted" style="font-size:11.5px;padding:4px 2px">No one added yet. Everyone you add is invited automatically when the room is created.</div>'}</div>
+   </div><div class="form">
+     <label>Agent domain · choose the agent that runs this room</label><div class="ldoms">${Object.entries(DOMAINS).map(([k,x])=>`<button class="ldom ${dk===k?'on':''}" data-act="landDomain" data-arg="${k}" style="--c:${domAc(k)[0]}" ${S.created[k]?'disabled':''}><i class="dd" style="background:var(--c)"></i><span><b>${x.short}</b><small>${S.created[k]?'You already have a room':x.agent}</small></span></button>`).join('')}</div>
+     ${d?`<div class="lskills" style="--c:${domAc(dk)[0]}"><div class="gk">${d.agent} · ready to run</div>
+        <div class="lstat"><span><b>${sk.length}</b> predefined skills</span><span><b>${STAGES.length}</b> workflow stages</span><span><b>${Object.keys(GATES).length}</b> gates</span></div>
+        <div class="muted">Connections come with the agent\'s skills: ${conns.join(' · ')}.</div>
+        <div class="muted" style="margin-top:6px">Domain skills: ${sk.filter(x=>x.tag==='domain').map(x=>`<span class="mono">${esc(x.name)}</span>`).join(', ')}.</div>
+        <div class="muted" style="margin-top:6px">Gate approvers follow role: ${Object.entries(GATES).map(([g,G])=>`${g==='EXIT'?'Exit':g} → ${G.approvers.map(a=>PEOPLE[a].abbr).join('+')}`).join(' · ')}.</div></div>`
+       :'<div class="lskills empty">Choose an agent domain to see its predefined skills, connections and gates.</div>'}
+     <div class="gact" style="justify-content:flex-end;margin-top:16px"><button class="btn" data-act="landBack">Cancel</button><button class="btn pri lspinb" data-act="landSpin" ${c.name.trim()&&dk?'':'disabled'}>Spin up room →</button></div>
+   </div></div></div>`}
+const OTHER_ROOMS=[
+ {id:'dsp',dom:'Disputes',num:'DSP-044',c:'var(--vi)',title:'Chargeback evidence automation',owner:'Aisha Khan',n:6,stage:'Stage 4 · Refine & Design'},
+ {id:'frd',dom:'Fraud',num:'FRD-019',c:'var(--rd)',title:'Real-time risk scoring refresh',owner:'Tomás Rivera',n:5,stage:'Stage 3 · Project Initiation'},
+ {id:'mob',dom:'Merchant Onboarding',num:'MOB-072',c:'var(--am)',title:'Instant underwriting decisions',owner:'Grace Liu',n:7,stage:'Stage 5 · PI Planning'},
+ {id:'gtw',dom:'Gateway',num:'GTW-027',c:'var(--cy)',title:'Smart retry orchestration',owner:'Noah Fischer',n:4,stage:'Stage 2 · Product Strategy'},
+ {id:'trs',dom:'Treasury',num:'TRS-005',c:'var(--bl)',title:'FX rate lock for cross-border payouts',owner:'Ifeoma Obi',n:6,stage:'Stage 1 · Intake & Ideation'},
+ {id:'trm',dom:'Terminals',num:'TRM-090',c:'var(--mg)',title:'SoftPOS certification programme',owner:'Kenji Watanabe',n:8,stage:'Stage 4.5 · Construct'},
+ {id:'rsk',dom:'Risk',num:'RSK-014',c:'var(--gr)',title:'Merchant monitoring rules refresh',owner:'Lucía Ortega',n:5,stage:'Stage 3 · Project Initiation'},
+ {id:'loy',dom:'Loyalty',num:'LOY-061',c:'var(--am)',title:'Pay with points at checkout',owner:'Daniel Abebe',n:5,stage:'Stage 6 · Communication'}];
+const MEMBER_ROOMS=[
+ {dom:'Settlement',num:'STL-058',c:'var(--bl)',title:'Same-day settlement for marketplaces',owner:'Hannah Weiss',n:6,stage:'Stage 5 · PI Planning'},
+ {dom:'Reporting',num:'RPT-033',c:'var(--vi)',title:'Merchant analytics refresh',owner:'Omar Haddad',n:4,stage:'Stage 4 · Refine & Design'},
+ {dom:'Tokenization',num:'TKN-012',c:'var(--cy)',title:'Device token provisioning',owner:'Mei Tanaka',n:7,stage:'Stage 2 · Product Strategy'},
+ {dom:'Billing',num:'BIL-046',c:'var(--mg)',title:'Statement redesign for mid-market',owner:'Carlos Mendes',n:5,stage:'Stage 6 · Communication'}];
+function landRows(){const L=S.land,q=L.q.trim().toLowerCase(),hit=(...a)=>!q||a.join(' ').toLowerCase().includes(q);let rows=[];
+  if(L.tab==='mine'){
+    rows=myRooms().filter(k=>{const d=DOMAINS[k];return hit(d.short,d.name,shortKey(k),S.rooms[k].meta?.name||d.initiative,d.agent)}).map(k=>{const d=DOMAINS[k],r=S.rooms[k],pg=pendingGate(r),st=STAGES[stageIdx(curStage(r))],own=r.meta?PEOPLE[r.meta.owner].name:'Marcus Chen';
+      return `<button class="lrow" data-act="landEnter" data-arg="${k}" style="--c:${domAc(k)[0]}"><span class="ld"><i class="dd" style="background:var(--c)"></i><b>${d.short}</b></span><span class="mono">${shortKey(k)}</span>
+        <span class="ln"><b>${esc(r.meta?.name||d.initiative)}</b><small>Owner ${own===PEOPLE[S.persona].name?'you':own} · ${Object.keys(PEOPLE).length} members</small></span>
+        <span class="ls">${r.done?'Complete':`Stage ${st.num} · ${st.title}`}${pg&&pg.who===S.persona?'<em class="lflag">Gate waiting on you</em>':''}</span><span class="la">Enter →</span></button>`});
+    rows.push(...MEMBER_ROOMS.filter(r=>hit(r.dom,r.num,r.title,r.owner)).map(r=>`<button class="lrow" data-act="landSample" data-arg="${r.num}" style="--c:${r.c}"><span class="ld"><i class="dd" style="background:var(--c)"></i><b>${r.dom}</b></span><span class="mono">${r.num}</span>
+        <span class="ln"><b>${r.title}</b><small>Owner ${r.owner} · ${r.n} members · you are a member</small></span><span class="ls">${r.stage}</span><span class="la">Enter →</span></button>`))}
+  else rows=OTHER_ROOMS.filter(r=>hit(r.dom,r.num,r.title,r.owner)).map(r=>`<div class="lrow" style="--c:${r.c}"><span class="ld"><i class="dd" style="background:var(--c)"></i><b>${r.dom}</b></span><span class="mono">${r.num}</span>
+        <span class="ln"><b>${r.title}</b><small>Owner ${r.owner} · ${r.n} members</small></span><span class="ls">${r.stage}</span>
+        <span class="la">${L.req[r.id]?'<span class="lreq">✓ Requested · owner notified</span>':`<button class="btn" data-act="landReq" data-arg="${r.id}">Request access</button>`}</span></div>`);
+  return rows.join('')||`<div class="lempty">No rooms match “${esc(L.q)}”.</div>`}
+function renderLanding(){const L=S.land,me=PEOPLE[S.persona],free=Object.keys(DOMAINS).some(k=>!S.created[k]);let body;
+  if(L.spin)body=`<div class="lspin">${NLOGO}<h2>Spinning up ${esc(L.create.name)}</h2><div class="prog">${L.spin.map(x=>`<div>${esc(x)}</div>`).join('')}</div></div>`;
+  else if(L.create)body=landCreateHTML();
+  else body=`<div class="lhero">${NLOGO}<h1>Neuro <i>Squad Room</i></h1><p>Where squads and domain agents take a product from idea to launch.</p></div>
+   <div class="lhub"><div class="lsearch"><span>⌕</span><input data-lq placeholder="Search rooms by name, number, agent domain or owner…" value="${esc(L.q)}" autocomplete="off"></div>
+    <div class="lbar"><div class="ltabs"><button class="${L.tab==='mine'?'on':''} ${L.hl==='mine'?'hl':''}" data-act="landTab" data-arg="mine">Your rooms <em>${myRooms().length+MEMBER_ROOMS.length}</em></button><button class="${L.tab==='disc'?'on':''} ${L.hl==='disc'?'hl':''}" data-act="landTab" data-arg="disc">Discover rooms <em>${OTHER_ROOMS.length}</em></button></div>
+      <span class="muted">${L.tab==='mine'?'Rooms you own or belong to.':'Rooms run by other squads — ask the owner for access.'}</span><span class="sp"></span>
+      <button class="btn pri lnewb ${L.hl==='new'?'hl':''}" data-act="landCreate" ${free?'':'disabled'} title="${free?'You become the owner':'Each of your agent domains already has a room'}">+ New Squad Room</button></div>
+    <div class="llist ${L.hl==='mine'||L.hl==='disc'?'hl':''}" id="llist">${landRows()}</div></div>`;
+  $('#landing').innerHTML=`<div class="ltop"><span class="lme">${av(S.persona,'sm')} ${me.name} · ${me.role} <span class="muted">· signed in with SSO</span></span><span class="sp"></span>
+    ${S.guide!=='off'?`<button class="nextb ${L.busy||L.spin?'':'ready'}" data-act="landNext" title="Next demo step">▸ Next</button>`:''}<button class="tb" data-act="theme">${S.theme==='light'?'☾':'☀'}</button></div>${body}`}
+async function typeInto(field,text,chunk=6){const c=S.land.create;for(let i=0;i<text.length;i+=chunk){c[field]+=text.slice(i,i+chunk);const el=document.querySelector(`[data-lf="${field}"]`);if(el){el.value=c[field];el.scrollTop=el.scrollHeight}await sleep(22)}renderLanding()}
+async function demoAddPerson(query){const c=S.land.create;c.pq='';renderLanding();const box=()=>document.querySelector('[data-lp]');box()?.focus();
+  for(const ch of query){c.pq+=ch;if(box())box().value=c.pq;$('#lpres').innerHTML=peopleResults();await sleep(260)}
+  await sleep(700);c.hot=true;$('#lpres').innerHTML=peopleResults();await sleep(900);
+  const first=DIRECTORY.find(x=>x.id!==S.persona&&!c.inv.includes(x.id)&&(x.name+' '+x.role+' '+x.team).toLowerCase().includes(c.pq.toLowerCase()));if(first)ACT.landInv(first.id);await sleep(900)}
+async function landNext(){const L=S.land;if(L.busy||S.view!=='landing')return;L.busy=true;document.querySelectorAll('.nextb').forEach(b=>b.classList.remove('ready'));
+  try{if(L.beat===0){L.hl='mine';L.tab='mine';L.q='';L.create=null;renderLanding()}
+    else if(L.beat===1){L.hl='disc';L.tab='disc';L.q='';L.create=null;renderLanding();await sleep(1100);ACT.landReq(OTHER_ROOMS[0].id)}
+    else if(L.beat===2||!L.create){L.hl='new';L.create=null;renderLanding();await sleep(1100);ACT.landCreate();await sleep(600);
+      await typeInto('name',DEMO_ROOM.name);await sleep(150);await typeInto('bg',DEMO_ROOM.bg);await sleep(350);
+      ACT.landDomain(Object.keys(DOMAINS).find(k=>!S.created[k]&&k==='vault')||Object.keys(DOMAINS).find(k=>!S.created[k]));await sleep(1200);
+      await demoAddPerson('priya');await demoAddPerson('archi');if(L.beat>2)await ACT.landSpin()}
+    else await ACT.landSpin();
+    L.beat++}finally{L.busy=false;if(S.view==='landing'&&!L.spin)renderLanding()}}
+const demoNext=()=>S.view==='landing'?landNext():ACT.step();
+Object.assign(ACT,{
+ home(){S.view='landing';S.auto=false;S.menu=null;S.land.hl=null;S.land.create=null;renderAll()},
+ landNext(){landNext()},
+ landEnter(k){S.domain=k;S.view='room';S.selStage=null;renderAll()},
+ landReq(id){const r=OTHER_ROOMS.find(x=>x.id===id);S.land.req[id]=true;renderLanding();toast(`Access requested — ${r.owner} has been notified`)},
+ landCreate(){if(Object.keys(DOMAINS).every(k=>S.created[k]))return toast('Each of your agent domains already has a room');S.land.create={name:'',bg:'',domain:null,inv:[],vis:'request'};renderLanding();document.querySelector('[data-lf="name"]')?.focus()},
+ landTab(k){S.land.tab=k;S.land.hl=null;renderLanding()},
+ landSample(n){toast(`Room ${n} is not loaded in this demo — open PBI or Pricing, or spin up a new room`)},
+ landBack(){S.land.create=null;renderLanding()},
+ landDomain(k){if(!k||S.created[k])return;S.land.create.domain=k;S.domain=k;applyPalette();renderLanding()},
+ landInv(k){const c=S.land.create,v=c.inv,i=v.indexOf(k);if(i<0){v.push(k);c.pq='';c.hot=false}else v.splice(i,1);renderLanding();document.querySelector('[data-lp]')?.focus()},
+ landVis(k){S.land.create.vis=k;renderLanding()},
+ async landSpin(){const L=S.land,c=L.create;if(!c||L.spin)return;if(!c.name.trim()||!c.domain)return toast('Give the room a name and choose an agent domain');
+   const d=DOMAINS[c.domain];L.spin=[];renderLanding();
+   for(const x of [`Provisioning ${d.agent}`,`Loading ${S.skills[c.domain].length} predefined skills for the ${d.name} domain`,'Connections attached through the agent\'s skills','Workflow and gates configured · approvers assigned by role',`Inviting ${c.inv.length} squad member${c.inv.length===1?'':'s'}`,`Room ${shortKey(c.domain)} is ready`]){L.spin.push(x);renderLanding();await sleep(560)}
+   createRoom(c.domain,{name:c.name.trim(),bg:c.bg.trim()||d.idea,owner:S.persona,inv:[...c.inv],vis:c.vis});
+   await sleep(500);S.domain=c.domain;S.view='room';S.selStage=null;S.norail=true;S.noleft=true;S.noright=true;L.create=null;L.spin=null;L.hl=null;renderAll();toast(`Welcome to ${shortKey(c.domain)} — you are the room owner`)}
+});
 document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');
   if(!el){if(S.menu){S.menu=null;renderTop()}return}
   const f=ACT[el.dataset.act];if(f)f(el.dataset.arg,el,e)});
-document.addEventListener('input',e=>{const t=e.target,ds=t.dataset;if(t.id==='msgin'){slashInput();return}if(S.tplEdit){const dr=S.tplEdit.draft;if(ds.ts){dr.sections[+ds.ts].h=t.value;return}if(ds.tg){dr.sections[+ds.tg].guide=t.value;return}if(ds.tf){dr[ds.tf]=ds.tf==='checks'?t.value.split('\n').map(x=>x.trim()).filter(Boolean):t.value;return}}if(t.id==='artEd'){AV.draft=t.value;return}
+document.addEventListener('input',e=>{const t=e.target,ds=t.dataset;if('lp' in ds&&S.land.create){S.land.create.pq=t.value;$('#lpres').innerHTML=peopleResults();return}if('lq' in ds){S.land.q=t.value;S.land.hl=null;$('#llist').innerHTML=landRows();return}if(ds.lf&&S.land.create){S.land.create[ds.lf]=t.value;const b=document.querySelector('.lspinb');if(b)b.disabled=!(S.land.create.name.trim()&&S.land.create.domain);return}if(t.id==='msgin'){slashInput();return}if(ds.th){thInput(t);return}if(S.tplEdit){const dr=S.tplEdit.draft;if(ds.ts){dr.sections[+ds.ts].h=t.value;return}if(ds.tg){dr.sections[+ds.tg].guide=t.value;return}if(ds.tf){dr[ds.tf]=ds.tf==='checks'?t.value.split('\n').map(x=>x.trim()).filter(Boolean):t.value;return}}if(t.id==='artEd'){AV.draft=t.value;return}
   if(ds.iv)R().interview.answers[ds.iv]=t.value;
   else if(ds.gc)R().gates[ds.gc].draft=t.value;
   else if(ds.f&&S.edit)S.edit.draft[ds.f]=t.value;
   else if(ds.fc&&S.edit){const c=S.edit.draft.conns;t.checked?c.push(ds.fc):c.splice(c.indexOf(ds.fc),1)}
   else if(ds.fg&&S.edit){const c=S.edit.draft.guards;t.checked?c.push(ds.fg):c.splice(c.indexOf(ds.fg),1)}
   else if(t.id==='vq'){S.vq=t.value;const p=t.selectionStart;renderVault();const n=$('#vq');n.focus();n.setSelectionRange(p,p)}});
-document.addEventListener('keydown',e=>{if(S.slash&&e.target.id==='msgin'&&slashKey(e))return;if(e.key==='Enter'&&e.target.id==='msgin'){if(e.target.value.startsWith('/'))return;ACT.send()}if(e.key==='Enter'&&e.target.id==='aiIn')ACT.artAskSend();if(e.key==='Escape')closeModal()});
+document.addEventListener('keydown',e=>{if(S.slash&&e.target.id==='msgin'&&slashKey(e))return;if(e.key==='Enter'&&e.target.id==='msgin'){if(e.target.value.startsWith('/'))return;ACT.send()}if(e.key==='Enter'&&e.target.id==='aiIn')ACT.artAskSend();if(e.key==='Enter'&&e.target.dataset.th)ACT.thSend(e.target.dataset.th);if(e.key==='Escape')closeModal()});
 setInterval(()=>{const el=$('#elevT');if(!el)return;const left=Math.round((S.elev[S.domain]-Date.now())/1000);if(left<=0){renderStudio();toast('Elevated session expired');return}el.textContent=Math.floor(left/60)+':'+String(left%60).padStart(2,'0')},1000);
 window.addEventListener('error',e=>toast('Script error: '+e.message));
 
@@ -1487,19 +1811,20 @@ function refresh(){renderTop();renderPet();if(S.view!=='room')return;renderRail(
 function renderAll(){renderView();renderTop();if(S.view==='room'){renderRail();renderLeft();renderChatHead();renderChat();renderComp();renderRight()}renderPet();renderSlash()}
 
 /* ---------- boot ---------- */
-S.pet='off';try{const sp=localStorage.getItem('sr-pet');if(sp)S.pet=sp}catch(e){}
+S.pet='bot'; // always start with Byte, the robot
 S.noleft=true;S.norail=true;S.noright=false; // v4 always opens with workflow + squad minimized, detail panel open
 try{if(localStorage.getItem('sr-theme')==='light')S.theme='light';const sp=localStorage.getItem('sr5-palette');if(PALETTES[sp])S.palette=sp;const sf=localStorage.getItem('sr5-font');if(FONTS[sf])S.font=sf}catch(e){}
 async function boot(){
-  Object.assign(S,{domain:'pbi',persona:'po',view:'room',tab:'stage',selStage:null,menu:null,auto:false,rooms:{},skills:{},tpl:{},elev:{},edit:null});
+  Object.assign(S,{created:{pbi:true,pricing:true},land:{beat:0,hl:null,tab:'mine',q:'',req:{},create:null,spin:null,busy:false},domain:'vault',persona:'pl',view:'landing',tab:'stage',selStage:null,menu:null,auto:false,rooms:{},skills:{},tpl:{},elev:{},edit:null});
   for(const id of Object.keys(DOMAINS)){initSkills(id);const room=S.rooms[id]=newRoom(id),d=DOMAINS[id];
-    room.clock=Date.now()-(id==='pbi'?40*6e4:3*864e5);
+    room.clock=Date.now()-3*864e5;
     sys(room,`Room opened · ${d.agent} joined · ${Object.keys(PEOPLE).length} squad members`,true);
     post(room,{who:'po',kind:'text',html:esc(d.idea)},true);
     say(room,`Hi squad — I\'m the <b>${d.agent}</b>. I\'ll take this through the PDLC with you, one stage at a time, and I\'ll stop at every gate for a human decision. I can start with <span class="mono">intake-builder</span> on Priya\'s idea whenever you\'re ready.`,true)}
   await fastForward(S.rooms.pricing,'@GW-RD1');
-  await fastForward(S.rooms.vault,'@GW-I2');
+  await fastForward(S.rooms.pbi,'@GW-I2');
   const q=new URLSearchParams(location.search);
+  if(q.has('room')||q.has('demo')||q.get('domain')||q.get('view')||q.get('skill')||q.get('art')){createRoom('vault',{name:DEMO_ROOM.name,bg:DEMO_ROOM.bg,owner:'pl',inv:['po','ar','eng','ux'],vis:'request'});S.view='room';if(!q.get('as'))S.persona='po'}
   if(DOMAINS[q.get('domain')])S.domain=q.get('domain');if(PEOPLE[q.get('as')])S.persona=q.get('as');if(['vault','studio'].includes(q.get('view')))S.view=q.get('view');
   renderAll();
   if(q.get('left'))S.noleft=q.get('left')!=='open';if(q.get('rail'))S.norail=q.get('rail')==='min';if(q.get('right'))S.noright=q.get('right')==='min';
@@ -1512,6 +1837,9 @@ async function boot(){
   if(q.get('art')){openArt(q.get('art'));if(q.has('edit'))ACT.artMode('edit');if(q.get('ask')){ACT.artMode('ai');ACT.artAsk(q.get('ask'))}}
   if(q.get('stage')){ACT.selStage(q.get('stage'))}
   if(q.get('menu')){S.menu=q.get('menu');renderTop()}
+  if(q.get('ltab')){S.land.tab=q.get('ltab');S.land.q=q.get('lq')||'';renderLanding()}
+  if(q.has('form')){S.land.create={name:DEMO_ROOM.name,bg:DEMO_ROOM.bg,domain:'vault',inv:['po'],vis:'request',pq:q.get('pq')||'',hot:q.has('hot')};renderLanding()}
+  if(q.get('steps')){S.speed=6;for(let i=0;i<+q.get('steps');i++){while(S.land.busy||R().busy)await sleep(100);await demoNext();await sleep(300);while(S.land.busy||R().busy)await sleep(100)}if(q.get('tab')){S.tab=q.get('tab');renderRight()}}
   if(q.has('demo')){S.speed=6;ACT.auto()}
 }
 boot();
