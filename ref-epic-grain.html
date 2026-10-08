@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ref_Num to Epic Grain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: a single reading column of five walkthrough steps; every Ref_Num and Epic is hover-linked across the diagram and tables. */
+:root{
+  --bg:#070B12; --panel:#0C131F; --panel2:#111A29; --panel3:#162134;
+  --line:rgba(142,170,210,.14); --line2:rgba(142,170,210,.3);
+  --ink:#E6EDF6; --muted:#9AAAC0; --dim:#64778F;
+  --kmf:#B98CE0; --pbi:#4FC3D9; --epic:#E8B34A; --calc:#8A9BB5;
+  --mint:#5BD6A0; --red:#F0716A; --gold:#E8B34A;
+  --display:"Chivo","IBM Plex Sans",system-ui,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#EBEFF6; --panel:#FFFFFF; --panel2:#F3F6FB; --panel3:#E8EDF6;
+    --line:rgba(20,40,80,.12); --line2:rgba(20,40,80,.28);
+    --ink:#0E1726; --muted:#4B5A70; --dim:#7A879A;
+    --kmf:#7A4FB3; --pbi:#0F8CA3; --epic:#A66F0B; --calc:#5F6E86;
+    --mint:#1C8A59; --red:#C4453D; --gold:#A66F0B;
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#EBEFF6; --panel:#FFFFFF; --panel2:#F3F6FB; --panel3:#E8EDF6;
+  --line:rgba(20,40,80,.12); --line2:rgba(20,40,80,.28);
+  --ink:#0E1726; --muted:#4B5A70; --dim:#7A879A;
+  --kmf:#7A4FB3; --pbi:#0F8CA3; --epic:#A66F0B; --calc:#5F6E86;
+  --mint:#1C8A59; --red:#C4453D; --gold:#A66F0B;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--pbi);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1040px;margin:0 auto;padding-block:28px 60px;padding-inline:16px;display:grid;gap:22px}
+
+header{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
+header h1{margin:0;font-family:var(--display);font-weight:900;font-size:clamp(24px,4vw,34px);letter-spacing:-.02em;line-height:1.05;text-wrap:balance}
+header p{margin:8px 0 0;color:var(--muted);max-width:62ch}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--pbi);margin-bottom:6px}
+.tbtn{margin-left:auto;border:1px solid var(--line2);background:var(--panel2);border-radius:999px;padding:7px 12px;font-size:12.5px;display:inline-flex;gap:6px;align-items:center}
+
+.step{border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden}
+.sh{display:flex;align-items:baseline;gap:12px;padding:16px 20px 0}
+.sh .n{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em}
+.sh h2{margin:0;font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:-.01em}
+.sh p{margin:0;color:var(--muted);font-size:13.5px;flex-basis:100%;max-width:70ch}
+.sb{padding:16px 20px 20px}
+
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-bottom:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px;background:var(--c)}
+.legend i.l{width:18px;height:0;border-top:2px solid var(--c);border-radius:0}
+.legend i.d{border-top-style:dashed}
+.c-kmf{--c:var(--kmf)}.c-pbi{--c:var(--pbi)}.c-epic{--c:var(--epic)}.c-calc{--c:var(--calc)}.c-mint{--c:var(--mint)}.c-red{--c:var(--red)}
+
+/* diagram */
+.dia{width:100%;overflow-x:auto}
+svg{display:block;width:100%;height:auto;font-family:var(--mono)}
+.node rect{fill:var(--panel2);stroke:var(--c);stroke-width:1.2;transition:fill .2s,stroke-width .2s}
+.node text{fill:var(--ink);font-size:12px}
+.node .sub{fill:var(--muted);font-size:10.5px}
+.node{cursor:pointer}
+.node.hi rect{fill:color-mix(in srgb,var(--c) 22%,var(--panel2));stroke-width:2.2}
+.node.dimmed{opacity:.3}
+.edge{fill:none;stroke-width:2;transition:opacity .2s,stroke-width .2s}
+.edge.both{stroke:var(--mint)}
+.edge.kmf{stroke:var(--kmf);stroke-dasharray:6 5}
+.edge.pbi{stroke:var(--pbi);stroke-dasharray:6 5}
+.edge.dimmed{opacity:.12}
+.edge.hi{stroke-width:3.5}
+.hdr{fill:var(--dim);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase}
+.callout{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:14px}
+.co{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--panel2);font-size:13px}
+.co b{display:block;font-family:var(--display);margin-bottom:2px}
+.co.warn{border-color:color-mix(in srgb,var(--gold) 50%,transparent)}
+
+/* tables */
+.tables{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.tb{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel2);min-width:0}
+.tb .th{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--line);font-family:var(--display);font-size:13px}
+.tb .th i{width:9px;height:9px;border-radius:2px;background:var(--c)}
+.tb .th small{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--muted);font-weight:400}
+.tb .sc{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px;font-family:var(--mono)}
+th{text-align:left;font-weight:500;color:var(--dim);font-size:10.5px;letter-spacing:.08em;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+td.num{text-align:right}
+tr[data-ref],tr[data-epic]{cursor:pointer;transition:background .15s}
+tr.hi td{background:color-mix(in srgb,var(--pbi) 14%,transparent)}
+tr.dimmed td{opacity:.35}
+td.ref{color:var(--pbi)}
+td.epic{color:var(--epic)}
+.pill{display:inline-block;padding:1px 7px;border-radius:999px;font-size:11px;border:1px solid var(--line2);color:var(--muted);font-family:var(--body)}
+.pill.both{border-color:color-mix(in srgb,var(--mint) 55%,transparent);color:var(--mint)}
+.pill.kmf{border-color:color-mix(in srgb,var(--kmf) 55%,transparent);color:var(--kmf)}
+.pill.pbi{border-color:color-mix(in srgb,var(--pbi) 55%,transparent);color:var(--pbi)}
+.pill.same{border-color:color-mix(in srgb,var(--mint) 55%,transparent);color:var(--mint)}
+.pill.extra{border-color:color-mix(in srgb,var(--gold) 55%,transparent);color:var(--gold)}
+.pill.disjoint{border-color:color-mix(in srgb,var(--red) 55%,transparent);color:var(--red)}
+.badge{display:inline-block;margin-left:4px;padding:0 6px;border-radius:999px;font-size:10.5px;background:color-mix(in srgb,var(--epic) 20%,transparent);color:var(--epic);border:1px solid color-mix(in srgb,var(--epic) 45%,transparent);font-family:var(--body)}
+td.rep{color:var(--dim)}
+td.rep s{text-decoration-color:var(--red)}
+.foot td{font-weight:600;border-top:1px solid var(--line2);background:var(--panel3)}
+.foot td.bad{color:var(--red)}
+.foot td.good{color:var(--mint)}
+
+/* grain switch */
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:10px;overflow:hidden;background:var(--panel2)}
+.seg button{border:none;background:transparent;padding:8px 14px;font-size:13px;color:var(--muted);display:grid;gap:1px;text-align:left}
+.seg button small{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.seg button.on{background:linear-gradient(100deg,color-mix(in srgb,var(--pbi) 30%,transparent),color-mix(in srgb,var(--kmf) 30%,transparent));color:var(--ink)}
+.seg button+button{border-left:1px solid var(--line2)}
+.ctl{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:12px}
+.ctl label{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.note{margin-top:10px;font-size:13px;color:var(--muted);padding:10px 12px;border-left:3px solid var(--c,var(--pbi));background:var(--panel2);border-radius:0 8px 8px 0}
+.note b{color:var(--ink)}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:760px){.twocol{grid-template-columns:1fr}}
+.cell-list{display:inline-flex;gap:4px;align-items:center}
+
+@media (prefers-reduced-motion: reduce){*{transition-duration:.001s!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Data model note · Nexus Report Studio</div>
+      <h1>One Ref_Num, many Epics. One Epic, many Ref_Nums.</h1>
+      <p>Ref_Num is unique in KMF and unique in PBI Tracker, so the two systems join cleanly. Epics do not line up one-to-one with Ref_Nums, so the link between them needs its own table, and every report has to say what one row means. Hover any Ref_Num or Epic below to follow it through the whole page.</p>
+    </div>
+    <button class="tbtn" id="themeBtn">◐ Theme</button>
+  </header>
+
+  <!-- 1 -->
+  <section class="step">
+    <div class="sh"><span class="n">01</span><h2>The shape of the problem</h2><p>Six Ref_Nums, five Epics. Solid lines are links both systems agree on. Dashed lines are asserted by only one system.</p></div>
+    <div class="sb">
+      <div class="legend"><span class="c-pbi"><i></i>Ref_Num (KMF + PBI row)</span><span class="c-epic"><i></i>Jira Epic</span><span class="c-mint"><i class="l"></i>both systems</span><span class="c-kmf"><i class="l d"></i>KMF only</span><span class="c-pbi"><i class="l d"></i>PBI only</span></div>
+      <div class="dia"><svg id="dia" viewBox="0 0 900 330" role="img" aria-label="Bipartite diagram linking Ref_Nums to Epics"></svg></div>
+      <div class="callout">
+        <div class="co c-epic"><b>One epic, many Ref_Nums</b>PAY-1201 covers REF-0114 and REF-0127. Grouping by epic needs a Ref_Count, not a single Ref_Num column.</div>
+        <div class="co c-pbi"><b>One Ref_Num, many epics</b>REF-0127 is linked to three epics. Its $1.2M impact is one number, not three.</div>
+        <div class="co warn"><b>Systems disagree</b>REF-0166 points at PAY-1210 in KMF and PAY-1214 in PBI. Neither is "the" epic until someone reconciles.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="step">
+    <div class="sh"><span class="n">02</span><h2>Store it as three tables, not one wide one</h2><p>KMF and PBI stay at Ref_Num grain, where Ref_Num is unique. The link lives in a bridge table with one row per Ref_Num and Epic pair, tagged with which system asserted it.</p></div>
+    <div class="sb">
+      <div class="tables">
+        <div class="tb c-kmf"><div class="th"><i></i>KMF<small>1 row per Ref_Num</small></div><div class="sc"><table id="tKMF"></table></div></div>
+        <div class="tb c-pbi"><div class="th"><i></i>PBI Tracker<small>1 row per Ref_Num</small></div><div class="sc"><table id="tPBI"></table></div></div>
+        <div class="tb c-epic"><div class="th"><i></i>Ref_Epic_Link<small>1 row per Ref × Epic</small></div><div class="sc"><table id="tLINK"></table></div></div>
+      </div>
+      <div class="note">Measures stay on the table where they are true. <b>Financial_Impact_Estimate</b> is a property of the Ref_Num, so it lives on the PBI row and never on the link row. That single decision is what keeps sums honest in the next step.</div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="step">
+    <div class="sh"><span class="n">03</span><h2>The report builder asks what one row means</h2><p>Same four fields, two grains. Switch between them and watch the total.</p></div>
+    <div class="sb">
+      <div class="ctl">
+        <div class="seg" role="tablist">
+          <button class="on" data-grain="ref" role="tab">One row per Ref_Num<small>epics collapse into a list</small></button>
+          <button data-grain="pair" role="tab">One row per Ref_Num × Epic<small>Ref_Num repeats</small></button>
+        </div>
+        <label id="allocWrap" hidden><input type="checkbox" id="alloc"> Allocate impact evenly across epics</label>
+      </div>
+      <div class="tb c-calc"><div class="th"><i></i><span id="grainTitle">Report · Ref_Num grain</span><small id="grainRows"></small></div><div class="sc"><table id="tReport"></table></div></div>
+      <div class="note" id="grainNote"></div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="step">
+    <div class="sh"><span class="n">04</span><h2>Flip it: the epic view</h2><p>Group by Epic at pair grain and the "one epic, many Ref_Nums" case becomes a plain count. Impact is shown as a range of what the epic touches, never summed, because the same Ref_Num can sit under several epics.</p></div>
+    <div class="sb"><div class="tb c-epic"><div class="th"><i></i>Report · grouped by Epic<small>5 rows</small></div><div class="sc"><table id="tEpic"></table></div></div></div>
+  </section>
+
+  <!-- 5 -->
+  <section class="step">
+    <div class="sh"><span class="n">05</span><h2>Reconciliation becomes a set comparison</h2><p>With one epic per side, drift was a single ≠. With many, each Ref_Num compares the set of epics KMF knows against the set PBI knows. This is a derived field the join job can add: CALC_Epic_Link_Status.</p></div>
+    <div class="sb">
+      <div class="tb c-calc"><div class="th"><i></i>CALC_Epic_Link_Status per Ref_Num<small>6 rows</small></div><div class="sc"><table id="tRecon"></table></div></div>
+      <div class="callout">
+        <div class="co c-mint"><b>Same set</b>Both systems list exactly the same epics. Nothing to do.</div>
+        <div class="co c-epic"><b>One side has extras</b>PBI added PAY-1207 to REF-0127 and KMF has not caught up. Usually a KMF update.</div>
+        <div class="co c-red"><b>Disjoint</b>No epic in common. Someone keyed the wrong epic in one system. Needs a human.</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+'use strict';
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const root=document.documentElement;
+let theme='dark';try{theme=localStorage.getItem('grain.theme')||'dark'}catch(e){}
+root.dataset.theme=theme;
+$('#themeBtn').addEventListener('click',()=>{theme=theme==='dark'?'light':'dark';root.dataset.theme=theme;try{localStorage.setItem('grain.theme',theme)}catch(e){}});
+
+/* ---- sample data ---- */
+const REFS=[
+ {id:'REF-0114',art:'KB-10216',title:'Visa interchange rate revision',impact:420000,status:'In Progress'},
+ {id:'REF-0127',art:'KB-10268',title:'Mastercard dispute reason codes',impact:1200000,status:'Blocked'},
+ {id:'REF-0140',art:'KB-10320',title:'Amex token provisioning SLA',impact:150000,status:'Done'},
+ {id:'REF-0153',art:'KB-10372',title:'Visa 3DS liability shift',impact:800000,status:'In Progress'},
+ {id:'REF-0166',art:'KB-10424',title:'Discover settlement T+1',impact:95000,status:'Refinement'},
+ {id:'REF-0179',art:'KB-10476',title:'UnionPay cross-border fee tier',impact:310000,status:'Backlog'},
+];
+const EPICS=['PAY-1201','PAY-1203','PAY-1207','PAY-1210','PAY-1214'];
+const LINKS=[
+ ['REF-0114','PAY-1201','both'],
+ ['REF-0127','PAY-1201','both'],['REF-0127','PAY-1203','both'],['REF-0127','PAY-1207','pbi'],
+ ['REF-0140','PAY-1203','both'],
+ ['REF-0153','PAY-1207','both'],
+ ['REF-0166','PAY-1210','kmf'],['REF-0166','PAY-1214','pbi'],
+ ['REF-0179','PAY-1210','both'],
+];
+const money=v=>'$'+Math.round(v).toLocaleString('en-US');
+const epicsOf=(ref,side)=>LINKS.filter(l=>l[0]===ref&&(side?l[2]==='both'||l[2]===side:true)).map(l=>l[1]);
+const refsOf=epic=>LINKS.filter(l=>l[1]===epic).map(l=>l[0]);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---- diagram ---- */
+(function draw(){
+  const svg=$('#dia');const W=900,lx=120,rx=780,rw=150,rh=40;
+  const ry=i=>36+i*50, ey=i=>60+i*56;
+  let s=`<text class="hdr" x="${lx}" y="18">Ref_Num</text><text class="hdr" x="${rx}" y="18">Epic</text>`;
+  for(const l of LINKS){const i=REFS.findIndex(r=>r.id===l[0]),j=EPICS.indexOf(l[1]);
+    const x1=lx+rw,y1=ry(i)+rh/2,x2=rx,y2=ey(j)+rh/2,c=(x1+x2)/2;
+    s+=`<path class="edge ${l[2]}" data-ref="${l[0]}" data-epic="${l[1]}" d="M${x1},${y1} C${c},${y1} ${c},${y2} ${x2},${y2}"/>`}
+  REFS.forEach((r,i)=>{s+=`<g class="node c-pbi" data-ref="${r.id}" transform="translate(${lx},${ry(i)})"><rect width="${rw}" height="${rh}" rx="8"/><text x="12" y="17">${r.id}</text><text class="sub" x="12" y="32">${money(r.impact)} · ${epicsOf(r.id).length} epic${epicsOf(r.id).length>1?'s':''}</text></g>`});
+  EPICS.forEach((e,j)=>{s+=`<g class="node c-epic" data-epic="${e}" transform="translate(${rx-rw},${ey(j)})"><rect width="${rw}" height="${rh}" rx="8"/><text x="12" y="17">${e}</text><text class="sub" x="12" y="32">${refsOf(e).length} Ref_Num${refsOf(e).length>1?'s':''}</text></g>`});
+  svg.innerHTML=s;
+})();
+
+/* ---- tables ---- */
+function table(el,cols,rows){el.innerHTML=`<thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody>`}
+table($('#tKMF'),['Ref_Num','Article_ID','Article_Summary'],REFS.map(r=>`<tr data-ref="${r.id}"><td class="ref">${r.id}</td><td>${r.art}</td><td style="font-family:var(--body);white-space:normal;min-width:150px">${esc(r.title)}</td></tr>`));
+table($('#tPBI'),['Ref_Num','Status','Impact'],REFS.map(r=>`<tr data-ref="${r.id}"><td class="ref">${r.id}</td><td><span class="pill">${r.status}</span></td><td class="num">${money(r.impact)}</td></tr>`));
+table($('#tLINK'),['Ref_Num','Epic','Asserted_By'],LINKS.map(l=>`<tr data-ref="${l[0]}" data-epic="${l[1]}"><td class="ref">${l[0]}</td><td class="epic">${l[1]}</td><td><span class="pill ${l[2]}">${l[2]==='both'?'KMF + PBI':l[2].toUpperCase()+' only'}</span></td></tr>`));
+
+/* epic view */
+table($('#tEpic'),['Epic','Ref_Count','Ref_Nums','Impact touched','Status mix'],EPICS.map(e=>{const rs=refsOf(e).map(id=>REFS.find(r=>r.id===id));const tot=rs.reduce((a,r)=>a+r.impact,0);const st=[...new Set(rs.map(r=>r.status))].join(', ');
+  return `<tr data-epic="${e}"><td class="epic">${e}</td><td class="num">${rs.length}</td><td>${rs.map(r=>`<span class="ref" style="color:var(--pbi)">${r.id}</span>`).join(', ')}</td><td class="num" title="Sum of the Ref_Nums this epic touches. Not additive across epics.">${money(tot)}<span class="badge">touches</span></td><td style="font-family:var(--body)">${st}</td></tr>`}));
+
+/* reconciliation */
+table($('#tRecon'),['Ref_Num','KMF epics','PBI epics','CALC_Epic_Link_Status'],REFS.map(r=>{const k=epicsOf(r.id,'kmf'),p=epicsOf(r.id,'pbi');const ks=new Set(k),ps=new Set(p);
+  const inter=k.filter(x=>ps.has(x)).length;let st,cls;
+  if(k.length===p.length&&inter===k.length){st='Same set';cls='same'}else if(inter===0){st='Disjoint';cls='disjoint'}else if(p.length>k.length){st='PBI has extra';cls='extra'}else{st='KMF has extra';cls='extra'}
+  const fmt=(arr,other)=>arr.map(x=>`<span class="epic" style="color:${other.has(x)?'var(--epic)':'var(--red)'}">${x}</span>`).join(', ');
+  return `<tr data-ref="${r.id}"><td class="ref">${r.id}</td><td>${fmt(k,ps)}</td><td>${fmt(p,ks)}</td><td><span class="pill ${cls}">${st}</span></td></tr>`}));
+
+/* grain switch */
+let grain='ref',alloc=false;
+function renderReport(){
+  const t=$('#tReport');$('#allocWrap').hidden=grain!=='pair';
+  if(grain==='ref'){
+    const rows=REFS.map(r=>{const es=epicsOf(r.id);return `<tr data-ref="${r.id}"><td class="ref">${r.id}</td><td style="font-family:var(--body);white-space:normal;min-width:160px">${esc(r.title)}</td><td><span class="cell-list"><span class="epic">${es.slice(0,2).join(', ')}</span>${es.length>2?`<span class="badge">+${es.length-2}</span>`:''}</span></td><td class="num">${es.length}</td><td class="num">${money(r.impact)}</td></tr>`});
+    const tot=REFS.reduce((a,r)=>a+r.impact,0);
+    rows.push(`<tr class="foot"><td colspan="3">Total</td><td class="num">${LINKS.length} links</td><td class="num good">${money(tot)}</td></tr>`);
+    table(t,['Ref_Num','Article_Summary','Jira_Epic_ID <span class="badge">multi</span>','CALC_Epic_Count','Financial_Impact_Estimate'],rows);
+    $('#grainTitle').textContent='Report · one row per Ref_Num';$('#grainRows').textContent=`${REFS.length} rows`;
+    $('#grainNote').innerHTML='<b>Default grain.</b> Each Ref_Num appears once. The epic column is multi-valued: the first two show inline with a count badge, the full list on hover or export. The total is the true exposure because nothing is repeated.';
+    $('#grainNote').style.setProperty('--c','var(--mint)');
+  }else{
+    let tot=0;const rows=LINKS.map(l=>{const r=REFS.find(x=>x.id===l[0]);const n=epicsOf(r.id).length;const v=alloc?r.impact/n:r.impact;tot+=v;
+      return `<tr data-ref="${r.id}" data-epic="${l[1]}"><td class="ref">${r.id}${n>1?`<span class="badge">×${n}</span>`:''}</td><td class="epic">${l[1]}</td><td><span class="pill ${l[2]}">${l[2]==='both'?'KMF + PBI':l[2].toUpperCase()+' only'}</span></td><td class="num ${alloc||n===1?'':'rep'}" title="${alloc?'1/'+n+' of '+money(r.impact):n>1?'Repeated on '+n+' rows':''}">${money(v)}${alloc&&n>1?`<span class="badge">1/${n}</span>`:''}</td></tr>`});
+    const trueTot=REFS.reduce((a,r)=>a+r.impact,0);const bad=!alloc&&Math.round(tot)!==trueTot;
+    rows.push(`<tr class="foot"><td colspan="3">Total${bad?' <span style="color:var(--red);font-weight:400">· double-counted</span>':''}</td><td class="num ${bad?'bad':'good'}">${money(tot)}${bad?` <span style="font-weight:400;color:var(--muted)">(true ${money(trueTot)})</span>`:''}</td></tr>`);
+    table(t,['Ref_Num','Jira_Epic_ID','Asserted_By','Financial_Impact_Estimate'+(alloc?' <span class="badge">allocated</span>':'')],rows);
+    $('#grainTitle').textContent='Report · one row per Ref_Num × Epic';$('#grainRows').textContent=`${LINKS.length} rows`;
+    $('#grainNote').innerHTML=alloc
+      ?'<b>Allocated.</b> Impact is split evenly across the epics a Ref_Num touches, so the total ties back to the true number. Useful for an epic-level budget view, as long as the column says it is allocated.'
+      :'<b>Pair grain repeats the measure.</b> REF-0127 appears three times and REF-0166 twice, so a naive SUM is wrong. The builder should grey this column out of aggregation at this grain, or offer the allocation option.';
+    $('#grainNote').style.setProperty('--c',alloc?'var(--mint)':'var(--red)');
+  }
+}
+$$('.seg button').forEach(b=>b.addEventListener('click',()=>{grain=b.dataset.grain;$$('.seg button').forEach(x=>x.classList.toggle('on',x===b));renderReport()}));
+$('#alloc').addEventListener('change',e=>{alloc=e.target.checked;renderReport()});
+renderReport();
+
+/* ---- cross highlighting ---- */
+function highlight(ref,epic){
+  const nodes=$$('[data-ref],[data-epic]');
+  if(!ref&&!epic){nodes.forEach(n=>n.classList.remove('hi','dimmed'));return}
+  const refs=new Set(),epics=new Set();
+  if(ref){refs.add(ref);epicsOf(ref).forEach(e=>epics.add(e))}
+  if(epic){epics.add(epic);refsOf(epic).forEach(r=>refs.add(r))}
+  nodes.forEach(n=>{const r=n.dataset.ref,e=n.dataset.epic;let on;
+    if(r&&e) on=ref?r===ref:e===epic; else if(r) on=refs.has(r); else on=epics.has(e);
+    n.classList.toggle('hi',on);n.classList.toggle('dimmed',!on)});
+}
+document.addEventListener('mouseover',e=>{const t=e.target.closest('[data-ref],[data-epic]');if(!t)return;highlight(t.dataset.ref&&!t.dataset.epic?t.dataset.ref:(t.dataset.ref&&t.dataset.epic?t.dataset.ref:null),!t.dataset.ref?t.dataset.epic:null)});
+document.addEventListener('mouseout',e=>{if(e.target.closest&&e.target.closest('[data-ref],[data-epic]')&&!(e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest('[data-ref],[data-epic]')))highlight(null,null)});
+})();
+</script>
+</body>
+</html>
