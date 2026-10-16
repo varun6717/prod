@@ -755,8 +755,9 @@ button.lpr:hover,.lpr.hot{background:color-mix(in srgb,var(--ac) 16%,transparent
 .hddw{position:relative;display:inline-block;margin-left:2px;vertical-align:middle} .hdd{background:none;border:0;color:var(--dim);opacity:.28;font-size:10px;padding:2px 4px;cursor:pointer;line-height:1} .hdd:hover,.hddw:hover .hdd{opacity:.9;color:var(--ac)}
 .hdm{position:absolute;right:0;top:calc(100% + 6px);z-index:1200;width:380px;max-height:380px;overflow:auto;background:var(--panel);border:1px solid var(--line2);border-radius:10px;box-shadow:0 18px 50px rgba(0,0,0,.55);padding:6px;text-align:left} .hdm h6{margin:4px 8px 6px;font:500 9px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
 .hdm button{display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:center;width:100%;text-align:left;background:none;border:0;border-radius:6px;padding:6px 8px;color:var(--soft);font:400 12px var(--sans);cursor:pointer;line-height:1.3} .hdm button:hover{background:color-mix(in srgb,var(--ac) 10%,transparent)} .hdm button b{font-family:var(--mono);font-size:10.5px;color:var(--dim)} .hdm button:first-of-type b{color:var(--ac)} .nextb:not(.ready):not(.done):not(:disabled){color:var(--dim);border-color:var(--line);background:none;cursor:wait;padding-left:22px} .nextb:not(.ready):not(.done):not(:disabled)::before{content:"";position:absolute;left:8px;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;border:1.5px solid var(--dim);border-top-color:transparent;animation:nbspin .8s linear infinite} .nextb:not(.ready):not(.done):not(:disabled):hover{color:var(--dim);background:none;border-color:var(--line)}
-.nextb.ready{color:var(--on-ac);background:var(--ac);border-color:var(--ac);font-weight:700;box-shadow:0 0 0 0 color-mix(in srgb,var(--ac) 60%,transparent);animation:nbready 1.6s ease-out infinite}
-@keyframes nbready{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ac) 55%,transparent)}70%{box-shadow:0 0 0 9px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.nextb.ready{color:var(--on-ac);background:var(--ac);border-color:var(--ac);font-weight:700} .nextb.ready::after{content:"";position:absolute;inset:-3px;border-radius:5px;border:2px solid var(--ac);opacity:0;animation:nbready 1.6s ease-out infinite;pointer-events:none}
+@keyframes nbready{0%{opacity:.7;transform:scale(1)}70%{opacity:0;transform:scale(1.35)}100%{opacity:0;transform:scale(1.35)}}
+body.lite *,body.lite *::before,body.lite *::after{animation:none!important;transition:none!important;backdrop-filter:none!important;filter:none!important;text-shadow:none!important} body.lite .nextb.ready::after{opacity:.6;transform:none}
 @keyframes nbspin{to{transform:rotate(360deg)}}
 @keyframes nextblink{0%,100%{opacity:1;box-shadow:0 0 0 0 transparent}50%{opacity:.62;box-shadow:0 0 10px color-mix(in srgb,var(--ac) 30%,transparent)}}
 .nextb.done{animation:none;opacity:1;color:var(--ac2);border:2px solid var(--ac2);background:color-mix(in srgb,var(--ac2) 12%,transparent);font-weight:700;padding:2px 9px}
@@ -965,6 +966,7 @@ pre.yaml{margin:0;font:12px/1.6 var(--mono);color:var(--soft);white-space:pre-wr
    in the browser; no network calls are made.
    ============================================================ */
 const $=(s,r=document)=>r.querySelector(s);
+const setHTML=(el,html)=>{if(!el)return;if(el.__h!==html){el.__h=html;el.innerHTML=html}};const $h=s=>{const el=$(s);return {set innerHTML(v){setHTML(el,v)}}};
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmtT=t=>new Date(t).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
 const hash=s=>{let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return (h>>>0).toString(16).padStart(8,'0')};
@@ -1462,7 +1464,7 @@ function pendingGate(room){const st=room.chain[room.ptr];if(room.done||st[0]!=='
 function renderTop(){
   const unread=Object.values(S.rooms).flatMap(r=>r.notifs).filter(n=>n.to===S.persona&&!n.read);
   const me=PEOPLE[S.persona];
-  $('#top').innerHTML=`
+  $h('#top').innerHTML=`
   <div class="brand" data-act="home" title="Back to the lobby" style="cursor:pointer">${logoSVG()}<div>Neuro <i>Squad Room</i><small>PDLC · simulated data</small></div></div>
   <nav>${[['room','Squad Room'],['vault','Artifact Vault'],['board','Program'],['studio','Skill Studio'],['queue','Inbox']].map(([v,l])=>{const n=v==='queue'?queueItems().length:0,off=v==='board'&&!((R().children||[]).length||R().parent);return `<button class="${S.view===v?'on':''} ${off?'dis':''}" data-act="${off?'boardOff':'view'}" data-arg="${v}" title="${v==='queue'?'Everything waiting on you, across all your rooms':off?'Program board — lights up once child rooms are spun up at System Impacts':v==='board'?'Status of every linked room':''}">${l}${n?`<span class="qn">${n}</span>`:''}</button>`}).join('')}</nav>
   <span class="vsep"></span><span class="domtag" title="This room runs on the ${D().name} agent domain"><span class="lbl">Agent Domain</span><i class="dd" style="background:${domAc(S.domain)[0]}"></i><b>${D().short}</b></span>
@@ -1479,7 +1481,7 @@ function renderTop(){
   <button class="tb" data-act="reset" title="Reset the simulation">↺</button>`}
 
 function renderRail(){const room=R(),cs=stageIdx(curStage(room));
-  if(S.norail){const pg=pendingGate(room);$('#rail').innerHTML=`<div class="railmin"><button class="lt" data-act="rail" title="Expand the workflow">»<span class="xl"> Workflow</span></button><div class="rm-steps">${STAGES.map((s,i)=>{let c=room.done||i<cs?'done':i===cs?'active':'todo';if(s.id==='s2'&&room.skipped)c='skipped';return `<button class="rm ${c}${s.later&&c==='todo'?' later':''}${(S.selStage||curStage(room))===s.id?' sel':''}" data-act="selStage" data-arg="${s.id}" title="Stage ${s.num} · ${s.title} — click to view its skills">${s.num}</button>`}).join('')}</div><span class="rm-cur">${room.done?'<b>Workflow complete</b>':`Stage ${STAGES[cs].num} · <b>${STAGES[cs].title}</b>`}</span>${pg?`<span class="chip ${GATES[pg.gid].cls} pending">${pg.gid} · waiting on ${PEOPLE[pg.who].abbr}</span>`:''}</div>`;return}
+  if(S.norail){const pg=pendingGate(room);$h('#rail').innerHTML=`<div class="railmin"><button class="lt" data-act="rail" title="Expand the workflow">»<span class="xl"> Workflow</span></button><div class="rm-steps">${STAGES.map((s,i)=>{let c=room.done||i<cs?'done':i===cs?'active':'todo';if(s.id==='s2'&&room.skipped)c='skipped';return `<button class="rm ${c}${s.later&&c==='todo'?' later':''}${(S.selStage||curStage(room))===s.id?' sel':''}" data-act="selStage" data-arg="${s.id}" title="Stage ${s.num} · ${s.title} — click to view its skills">${s.num}</button>`}).join('')}</div><span class="rm-cur">${room.done?'<b>Workflow complete</b>':`Stage ${STAGES[cs].num} · <b>${STAGES[cs].title}</b>`}</span>${pg?`<span class="chip ${GATES[pg.gid].cls} pending">${pg.gid} · waiting on ${PEOPLE[pg.who].abbr}</span>`:''}</div>`;return}
   const cells=STAGES.map((s,i)=>{
     const idxs=room.chain.map((x,j)=>j).filter(j=>stepStage(room,j)===s.id);
     const skillsIdx=idxs.filter(j=>room.chain[j][0]!=='@'),gatesIdx=idxs.filter(j=>room.chain[j][0]==='@');
@@ -1494,15 +1496,15 @@ function renderRail(){const room=R(),cs=stageIdx(curStage(room));
       <div class="ph">${s.phase}${s.opt?' · optional':''}${s.later?' · next conversation':''}</div><div class="hd"><span class="n">${s.num}</span>${s.title}</div>
       <div class="dots">${dots}<span style="margin-left:4px">${cls==='skipped'?'skipped':nd+'/'+skillsIdx.length+' skills'}</span></div><div class="gs">${gs}</div></button>`}).join('');
   const g=room.gov;
-  $('#rail').innerHTML=`<div class="sech"><span>Workflow</span><button class="lt" data-act="rail" title="Minimize the workflow">Minimize</button></div><div class="railgrid">${cells}
+  $h('#rail').innerHTML=`<div class="sech"><span>Workflow</span><button class="lt" data-act="rail" title="Minimize the workflow">Minimize</button></div><div class="railgrid">${cells}
    <div class="legend"><span><i style="background:var(--bl)"></i>PL approval</span><span><i style="background:var(--gr)"></i>PO approval</span><span><i style="background:var(--t-eng)"></i>ENG-L commit</span><span><i style="background:var(--am)"></i>Advisory</span></div>
    <div class="gov ${g?'':'off'}"><b>GOVERNANCE TRACK · 3f</b> runs alongside Working Hub from Stage 3 — not a gate, but go-live depends on it.
      <span class="sp"></span>${g?`<span class="chip adv">RMC · ${g.rmc}</span><span class="chip adv">NPA · ${g.npa}</span><span class="chip adv">BAR · ${g.bar}</span>`:'<span class="mono">starts at Stage 3</span>'}</div></div>`}
 
 function renderLeft(){const room=R(),d=D(),pg=pendingGate(room);
   const cleared=Object.values(room.gates).filter(g=>g.status==='cleared').length;
-  if(S.noleft){$('#left').innerHTML=`<button class="lt" data-act="left" title="Expand the squad panel">»</button>${room.parent?`<div class="kidtag" title="Child room of ${shortKey(room.parent)}">↑</div>`:''}<div class="orb sm ${room.busy?'run':''}" title="${d.agent}${room.busy?' — running a skill':''}"></div><div class="mini">${SQUAD().map(([k,p])=>`<button class="${k===S.persona?'cur':''} ${pg&&pg.who===k?'wt':''}" data-act="persona" data-arg="${k}" title="${p.name} · ${p.role}${pg&&pg.who===k?' — '+pg.gid+' waiting':''}">${av(k)}</button>`).join('')}</div><div class="lstat" title="Gates cleared">${cleared}/${room.chain.filter(x=>x[0]==='@').length}<br>gates</div>`;return}
-  $('#left').innerHTML=`<h5>Domain agent <button class="lt" data-act="left" title="Minimize the squad panel">« Minimize</button></h5>
+  if(S.noleft){$h('#left').innerHTML=`<button class="lt" data-act="left" title="Expand the squad panel">»</button>${room.parent?`<div class="kidtag" title="Child room of ${shortKey(room.parent)}">↑</div>`:''}<div class="orb sm ${room.busy?'run':''}" title="${d.agent}${room.busy?' — running a skill':''}"></div><div class="mini">${SQUAD().map(([k,p])=>`<button class="${k===S.persona?'cur':''} ${pg&&pg.who===k?'wt':''}" data-act="persona" data-arg="${k}" title="${p.name} · ${p.role}${pg&&pg.who===k?' — '+pg.gid+' waiting':''}">${av(k)}</button>`).join('')}</div><div class="lstat" title="Gates cleared">${cleared}/${room.chain.filter(x=>x[0]==='@').length}<br>gates</div>`;return}
+  $h('#left').innerHTML=`<h5>Domain agent <button class="lt" data-act="left" title="Minimize the squad panel">« Minimize</button></h5>
    <div class="card agent"><div class="orb ${room.busy?'run':''}"></div><div><b>${d.agent}</b><small>${room.busy?'Running a skill…':room.done?'Workflow complete':'Listening · Stage '+STAGES[stageIdx(curStage(room))].num}</small><small class="mono">${S.skills[S.domain].length} skills · MCP ×4</small></div></div>
    <h5>Squad <span>${SQUAD().length} online</span></h5>
    ${SQUAD().map(([k,p])=>`<button class="person ${k===S.persona?'me':''}" data-act="persona" data-arg="${k}" title="Act as ${p.name}">${av(k,'on')}<span><b>${p.name}${k===S.persona?' (you)':''}</b><small>${p.role}</small></span>
@@ -1596,7 +1598,7 @@ function renderChatHead(){const room=R(),d=D(),pg=pendingGate(room);
   let ban='';
   if(pg)ban=pg.who===S.persona?`<div class="banner me"><b>You\'re up.</b> ${pg.gid} is waiting on your ${cmt(GATES[pg.gid],room.gates[pg.gid],room)?'commit':'review'}.<button class="btn" data-act="toGate">Review</button></div>`
     :`<div class="banner other">${pg.gid} is waiting on ${av(pg.who,'sm')} <b>${PEOPLE[pg.who].name}</b> — the workflow is paused until they decide.</div>`;
-  $('#chdr').innerHTML=`<div class="chd"><div><h2>${esc(room.meta?.name||d.initiative)}</h2><small><span class="mono">${shortKey(room.id)}</span> · Agent domain: ${d.name} · facilitated by ${d.agent}${room.meta?' · owner '+PEOPLE[room.meta.owner].name:''}</small></div>${S.guide==='mini'?(room.demoDone&&!demoBeat(room)?`<button class="nextb done" data-act="demoEnd" title="The demo sequence is complete">✓ Done</button>`:`<button class="nextb ${room.busy||room.done?'':'ready'}" data-act="step" ${room.done?'disabled':''} title="Next demo step: ${esc(nextLabel(room))}">▸ Next</button>`):''}</div>${ban}${chatFilterHTML(room)}${guideHTML(room)}`}
+  $h('#chdr').innerHTML=`<div class="chd"><div><h2>${esc(room.meta?.name||d.initiative)}</h2><small><span class="mono">${shortKey(room.id)}</span> · Agent domain: ${d.name} · facilitated by ${d.agent}${room.meta?' · owner '+PEOPLE[room.meta.owner].name:''}</small></div>${S.guide==='mini'?(room.demoDone&&!demoBeat(room)?`<button class="nextb done" data-act="demoEnd" title="The demo sequence is complete">✓ Done</button>`:`<button class="nextb ${room.busy||room.done?'':'ready'}" data-act="step" ${room.done?'disabled':''} title="Next demo step: ${esc(nextLabel(room))}">▸ Next</button>`):''}</div>${ban}${chatFilterHTML(room)}${guideHTML(room)}`}
 const SPEEDS=[[.5,'Slow'],[1,'Normal'],[3,'Fast']];
 function guideHTML(room){if(S.guide!=='full')return '';const a=nextAction(room);let t,why,what;
   if(!a){t='Workflow complete';why='All six gates are cleared and every artifact is stored with its lineage and approval record.';what='Open the Artifact Vault to review any artifact, or open Skill Studio and switch to the steward to edit a skill. Use ↺ to start again.'}
@@ -1636,12 +1638,12 @@ function renderComp(){const room=R(),a=nextAction(room);let s='';
   if(room.id==='tds'&&room.smeApply&&!room.kidsCard&&!room.busy)s+=`<button class="sug" data-act="proposeKids" title="One child room per confirmed change">Propose child rooms</button>`;
   s+=`<button class="sug" data-act="ask" data-arg="Where are we?">Where are we?</button><button class="sug" data-act="openIngest" data-arg="">＋ SharePoint source</button><button class="sug" data-act="ask" data-arg="What is COS?">What is COS?</button><button class="sug slashb" data-act="slashOpen" title="Guide, glossary, skills, pet and font">/ Commands</button>`;
   const keep=$('#msgin')?.value||'';
-  $('#comp').innerHTML=`<div class="sugs">${s}</div><div class="inrow">${av(S.persona)}<input id="msgin" placeholder="Ask ${D().agent}…  Type / for commands · reply on a card to discuss with the squad" autocomplete="off"><button class="btn pri" data-act="send">Send</button></div>`;
+  $h('#comp').innerHTML=`<div class="sugs">${s}</div><div class="inrow">${av(S.persona)}<input id="msgin" placeholder="Ask ${D().agent}…  Type / for commands · reply on a card to discuss with the squad" autocomplete="off"><button class="btn pri" data-act="send">Send</button></div>`;
   $('#msgin').value=keep}
 
 function renderRight(){const room=R(),d=D();
   const tabs=[['stage','Stage'],['arts','Artifacts'],['src','Sources'],...(room.parent?[]:[['sme','SMEs']]),['log','Activity']];
-  if(S.noright){$('#right').innerHTML=`<div class="rmin"><button class="lt" data-act="right" title="Expand this panel">«</button>${tabs.map(([k,l])=>`<button class="vt ${S.tab===k?'on':''}" data-act="tabOpen" data-arg="${k}" title="Open ${l}">${l}${k==='arts'?' · '+room.arts.length:''}</button>`).join('')}</div>`;return}
+  if(S.noright){$h('#right').innerHTML=`<div class="rmin"><button class="lt" data-act="right" title="Expand this panel">«</button>${tabs.map(([k,l])=>`<button class="vt ${S.tab===k?'on':''}" data-act="tabOpen" data-arg="${k}" title="Open ${l}">${l}${k==='arts'?' · '+room.arts.length:''}</button>`).join('')}</div>`;return}
   let h=`<div class="tabs">${tabs.map(([k,l])=>`<button class="${S.tab===k?'on':''}" data-act="tab" data-arg="${k}">${l}</button>`).join('')}<button class="lt" data-act="right" title="Minimize this panel" style="flex:none;align-self:center;margin:0 8px;padding:2px 8px">»</button></div><div class="rp">`;
   if(S.tab==='stage'){const sid=S.selStage||curStage(room),s=STAGES[stageIdx(sid)];
     const idxs=room.chain.map((x,j)=>j).filter(j=>stepStage(room,j)===sid);
@@ -1671,10 +1673,10 @@ function renderRight(){const room=R(),d=D();
      <div style="margin-top:10px"><button class="btn pri" data-act="openIngest" data-arg="">＋ Attach SharePoint link</button></div>`}
   else if(S.tab==='sme')h+=smeTabHTML(room,d);
   else{h+=`<h3>Activity log</h3><div class="muted" style="margin-bottom:8px">Append-only record of every agent run, ingestion and decision.</div>`+room.audit.map(l=>`<div class="log"><span>${fmtT(l.t)} · ${l.h}</span><br><b>${esc(l.who)}</b> — ${esc(l.what)}</div>`).join('')}
-  $('#right').innerHTML=h+'</div>'}
+  $h('#right').innerHTML=h+'</div>'}
 
 /* ---------- full-page views ---------- */
-function renderView(){document.body.className='v-'+S.view+' logo-'+S.logo+(S.noleft?' noleft':'')+(S.norail?' norail':'')+(S.noright?' noright':'');document.documentElement.dataset.theme=S.theme;applyPalette();applyFont();
+function renderView(){document.body.className='v-'+S.view+' logo-'+S.logo+(S.lite?' lite':'')+(S.noleft?' noleft':'')+(S.norail?' norail':'')+(S.noright?' noright':'');document.documentElement.dataset.theme=S.theme;applyPalette();applyFont();
   if(S.view==='vault')renderVault();else if(S.view==='board')renderBoard();else if(S.view==='askv')renderAskv();else if(S.view==='studio')renderStudio();else if(S.view==='queue')renderQueue();else if(S.view==='sme')renderSme();else if(S.view==='landing')renderLanding();if(S.view!=='sme'&&!AV)setHash('')}
 /* ---------- My queue: everything waiting on the current persona, across all their rooms ---------- */
 function bizDays(t,n){const d=new Date(t);let k=0;while(k<n){d.setDate(d.getDate()+1);if(d.getDay()%6)k++}d.setHours(17,0,0,0);return d.getTime()}
@@ -2014,7 +2016,7 @@ function renderStudio(){const d=D(),sk=S.skills[S.domain],st=PEOPLE[d.steward],e
        <div class="muted mono" style="margin-top:5px;font-size:9.5px">${[...new Set(x.needs.map(n=>VIA[n.via]))].join(' · ')||'session context'}</div></button>`).join('')||'<div class="muted">No skills.</div>'}</div>`).join('')}</div>`}
 
 /* ---------- modals ---------- */
-function modal(html){$('#modal').innerHTML=html;$('#modal').classList.add('on');setTimeout(histMount,0)}
+function modal(html){$('#modal').innerHTML=html;$('#modal').classList.add('on');histMount()}
 function closeModal(){if(AV&&S.view!=='sme')setHash('');AV=null;S.tplEdit=null;$('#modal').classList.remove('on');$('#modal').innerHTML='';S.edit=null}
 const mdInl=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/`(.+?)`/g,'<code>$1</code>').replace(/\[(SRC-\d+)\]/g,'<span class="src">$1</span>');
 function md(srcTxt,cont){if(srcTxt.startsWith('<!raw>'))return srcTxt.slice(6);
@@ -3029,15 +3031,15 @@ function histGo(i){const h=HIST[i];if(!h)return;const keep={};PREFS.forEach(k=>k
   for(const r of Object.values(S.rooms))if(r.parent)r.arts=r.arts.map(a=>a.inherited?Object.create(art(S.rooms[a.from],a.key)||{},{inherited:{value:true,enumerable:true},from:{value:a.from,enumerable:true},key:{value:a.key,enumerable:true}}):a);
   HIST.length=i;S.histOpen=false;renderAll();refresh();toast(`Back to click ${h.n} — Next runs it again`)}
 function histHTML(){if(!HIST.length)return '';const open=S.histOpen;return `<span class="hddw"><button class="hdd" data-act="histToggle" title="Demo history">▾</button>${open?`<div class="hdm"><h6>Jump back · Next re-runs that click</h6>${HIST.slice().reverse().map((h,ri)=>{const i=HIST.length-1-ri;return `<button data-act="histGo" data-arg="${i}"><b>${h.n}</b><span>${esc(h.label)}</span></button>`}).join('')}</div>`:''}</span>`}
-function histMount(){document.querySelectorAll('.hddw').forEach(e=>e.remove());if(!HIST.length)return;document.querySelectorAll('.nextb').forEach(b=>{if(b.offsetParent!==null)b.insertAdjacentHTML('afterend',histHTML())})}
+function histMount(){if(!HIST.length)return;const html=histHTML();document.querySelectorAll('.hddw').forEach(e=>{const b=e.previousElementSibling;if(!b||!b.classList.contains('nextb')||b.offsetParent===null)e.remove();else if(e.__h!==html){e.outerHTML=html}});document.querySelectorAll('.nextb').forEach(b=>{if(b.offsetParent!==null&&!(b.nextElementSibling&&b.nextElementSibling.classList.contains('hddw')))b.insertAdjacentHTML('afterend',html)});document.querySelectorAll('.hddw').forEach(e=>e.__h=html)}
 document.addEventListener('click',e=>{if(S.histOpen&&!e.target.closest('.hddw')){S.histOpen=false;histMount()}});
-function refresh(){renderTop();renderPet();setTimeout(brainFire,50);setTimeout(histMount,0);{const b=(S.rooms[S.domain]||{}).busy;document.querySelectorAll('#modal .nextb, #view .nextb').forEach(e=>{if(!e.classList.contains('done'))e.classList.toggle('ready',!b)})}if(S.view==='queue')renderQueue();if(S.view==='sme'&&!document.activeElement?.matches?.('textarea,select,input'))renderSme();if(S.view!=='room')return;renderRail();renderLeft();renderChatHead();refreshDyn();renderComp();renderRight()}
-function renderAll(){renderView();renderTop();setTimeout(brainFire,50);setTimeout(histMount,0);if(S.view==='room'){renderRail();renderLeft();renderChatHead();renderChat();renderComp();renderRight()}renderPet();renderSlash()}
+function refresh(){renderTop();renderPet();setTimeout(brainFire,50);{const b=(S.rooms[S.domain]||{}).busy;document.querySelectorAll('#modal .nextb, #view .nextb').forEach(e=>{if(!e.classList.contains('done'))e.classList.toggle('ready',!b)})}if(S.view==='queue')renderQueue();if(S.view==='sme'&&!document.activeElement?.matches?.('textarea,select,input'))renderSme();if(S.view!=='room')return;renderRail();renderLeft();renderChatHead();refreshDyn();renderComp();renderRight();histMount()}
+function renderAll(){renderView();renderTop();setTimeout(brainFire,50);if(S.view==='room'){renderRail();renderLeft();renderChatHead();renderChat();renderComp();renderRight()}renderPet();renderSlash();histMount()}
 
 /* ---------- boot ---------- */
 S.pet='bot'; // always start with Byte, the robot
 S.noleft=true;S.norail=true;S.noright=false; // v4 always opens with workflow + squad minimized, detail panel open
-S.cf='room';try{const cf=localStorage.getItem('sr-cf2');if(['all','room','link'].includes(cf))S.cf=cf;if(localStorage.getItem('sr-theme')==='light')S.theme='light';const sp=localStorage.getItem('sr7-palette');if(PALETTES[sp])S.palette=sp;const sf=localStorage.getItem('sr7-font');if(FONTS[sf])S.font=sf;const sl=localStorage.getItem('sr7-logo');if(LOGOS[sl])S.logo=sl}catch(e){}
+S.lite=/[?&]lite=1/.test(location.search);S.cf='room';try{const cf=localStorage.getItem('sr-cf2');if(['all','room','link'].includes(cf))S.cf=cf;if(localStorage.getItem('sr-theme')==='light')S.theme='light';const sp=localStorage.getItem('sr7-palette');if(PALETTES[sp])S.palette=sp;const sf=localStorage.getItem('sr7-font');if(FONTS[sf])S.font=sf;const sl=localStorage.getItem('sr7-logo');if(LOGOS[sl])S.logo=sl}catch(e){}
 async function boot(){const initHash=location.hash;
   Object.assign(S,{created:{vault:true,pricing:true},land:{beat:0,hl:null,page:null,tab:'mine',q:'',req:{},create:null,spin:null,busy:false},domain:'vault',persona:'pl',view:'landing',tab:'stage',selStage:null,menu:null,auto:false,rooms:{},skills:{},tpl:{},elev:{},edit:null});
   for(const id of Object.keys(DOMAINS)){initSkills(id);const room=S.rooms[id]=newRoom(id),d=DOMAINS[id];
