@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Article Intake – Multi-Network Extension Handoff</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a dense engineering one-pager. Pipeline strip on top, then a two-column grid of
+   compact panels (extraction loop, prompt assembly, fields, work plan, open questions). */
+:root{
+  --bg:#f3f5f8; --surface:#ffffff; --fg:#17212b; --muted:#5d6977; --line:#d6dde6;
+  --accent:#1e4b94; --accent-soft:#e3ebf8;
+  --new:#0e6f68; --new-soft:#dcf1ee;
+  --manual:#a85a00; --manual-soft:#fbeedb;
+  --reuse:#5d6977; --reuse-soft:#eceff3;
+  --code-bg:#eef1f5;
+  --display:"Chivo","Helvetica Neue",Arial,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f141a; --surface:#171e27; --fg:#e4e9ef; --muted:#98a4b2; --line:#2a3542;
+    --accent:#8db1ea; --accent-soft:#1a2b47;
+    --new:#5ccfc1; --new-soft:#10302d;
+    --manual:#f0b25a; --manual-soft:#3a2a12;
+    --reuse:#a3aebb; --reuse-soft:#232c37;
+    --code-bg:#1f2731;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --surface:#171e27; --fg:#e4e9ef; --muted:#98a4b2; --line:#2a3542;
+  --accent:#8db1ea; --accent-soft:#1a2b47;
+  --new:#5ccfc1; --new-soft:#10302d;
+  --manual:#f0b25a; --manual-soft:#3a2a12;
+  --reuse:#a3aebb; --reuse-soft:#232c37;
+  --code-bg:#1f2731;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg); color:var(--fg); font-family:var(--body); font-size:14px; line-height:1.45;
+  padding-block:28px 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.page{max-width:1180px; margin:0 auto; display:grid; gap:18px}
+h1,h2,h3{font-family:var(--display); margin:0; text-wrap:balance; line-height:1.15}
+h1{font-size:26px; font-weight:700}
+h2{font-size:15px; font-weight:700; letter-spacing:.01em}
+h3{font-size:13px; font-weight:700}
+p{margin:0}
+ul,ol{margin:0; padding-left:18px}
+li{margin:2px 0}
+li::marker{color:var(--muted)}
+code{font-family:var(--mono); font-size:12px; background:var(--code-bg); padding:1px 5px; border-radius:3px}
+strong{font-weight:600}
+.muted{color:var(--muted)}
+
+/* Header */
+.head{display:flex; flex-wrap:wrap; gap:14px 28px; align-items:flex-end; justify-content:space-between; border-bottom:2px solid var(--fg); padding-bottom:12px}
+.head .eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:6px}
+.head .thesis{max-width:62ch; margin-top:8px; font-size:15px}
+.meta{display:grid; grid-template-columns:auto auto; gap:2px 12px; font-size:12px; color:var(--muted)}
+.meta dt{font-family:var(--mono); text-transform:uppercase; letter-spacing:.06em; font-size:10.5px}
+.meta dd{margin:0; color:var(--fg)}
+
+/* Tags */
+.tag{display:inline-block; font-family:var(--mono); font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; padding:1px 6px; border-radius:3px; line-height:1.6; white-space:nowrap}
+.tag.reuse{background:var(--reuse-soft); color:var(--reuse)}
+.tag.extend{background:var(--accent-soft); color:var(--accent)}
+.tag.new{background:var(--new-soft); color:var(--new)}
+.tag.manual{background:var(--manual-soft); color:var(--manual)}
+.legend{display:flex; flex-wrap:wrap; gap:6px 14px; font-size:12px; color:var(--muted); align-items:center}
+
+/* Pipeline strip */
+.strip{background:var(--surface); border:1px solid var(--line); padding:14px 16px; display:grid; gap:12px}
+.strip-head{display:flex; flex-wrap:wrap; gap:8px 18px; justify-content:space-between; align-items:baseline}
+.flow{display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:0; overflow-x:auto}
+.stage{position:relative; min-width:0; padding:10px 14px 10px 10px; border-top:3px solid var(--line)}
+.stage+.stage::before{content:""; position:absolute; left:-7px; top:-3px; width:0; height:0; border-left:7px solid var(--surface); border-top:7px solid transparent; border-bottom:7px solid transparent; z-index:1}
+.stage.reuse{border-top-color:var(--reuse)}
+.stage.extend{border-top-color:var(--accent)}
+.stage.new{border-top-color:var(--new)}
+.stage.manual{border-top-color:var(--manual)}
+.stage .n{font-family:var(--mono); font-size:10.5px; color:var(--muted)}
+.stage h3{margin:2px 0 4px}
+.stage p{font-size:12px; color:var(--muted)}
+.stage .tag{margin-top:6px}
+.boundary{display:grid; grid-template-columns:1fr 6fr; gap:0; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase}
+.boundary span{padding:4px 10px; border-top:1px dashed var(--line)}
+.boundary .m{color:var(--manual)}
+.boundary .a{color:var(--accent)}
+
+/* Compare today vs target */
+.compare{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+.lane{border:1px solid var(--line); background:var(--surface); padding:10px 12px}
+.lane .lbl{font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-bottom:6px}
+.chain{display:flex; flex-wrap:wrap; align-items:center; gap:4px 6px; font-size:12.5px}
+.chain .box{border:1px solid var(--line); padding:2px 8px; border-radius:3px; background:var(--bg)}
+.chain .box.hot{border-color:var(--manual); color:var(--manual); background:var(--manual-soft)}
+.chain .box.add{border-color:var(--new); color:var(--new); background:var(--new-soft)}
+.chain .arr{color:var(--muted)}
+
+/* Panel grid */
+.grid{display:grid; grid-template-columns:1fr 1fr; gap:18px}
+.panel{background:var(--surface); border:1px solid var(--line); padding:14px 16px; display:grid; gap:10px; align-content:start; min-width:0}
+.panel.span{grid-column:1 / -1}
+.panel-head{display:flex; justify-content:space-between; gap:10px; align-items:baseline; border-bottom:1px solid var(--line); padding-bottom:6px}
+.panel-head .ref{font-family:var(--mono); font-size:11px; color:var(--muted)}
+
+/* Loop steps */
+.steps{display:grid; gap:6px}
+.step{display:grid; grid-template-columns:22px 1fr; gap:8px; align-items:start}
+.step .k{font-family:var(--mono); font-size:11px; color:var(--accent); padding-top:2px}
+.step p{font-size:13px}
+.step p b{font-weight:600}
+.gate{border:1px dashed var(--line); padding:8px 10px; font-size:12.5px; display:grid; gap:4px; background:var(--bg)}
+.gate .lbl{font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted)}
+.rules{display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; font-size:12.5px}
+.rules div::before{content:"✓ "; color:var(--new)}
+
+/* Prompt assembly */
+.assembly{display:grid; grid-template-columns:1fr auto 1fr auto 1fr; gap:8px; align-items:stretch}
+.part{border:1px solid var(--line); padding:8px 10px; font-size:12.5px; background:var(--bg); min-width:0}
+.part .t{font-family:var(--mono); font-size:11px; color:var(--accent); margin-bottom:3px}
+.plus{align-self:center; font-family:var(--display); font-size:18px; color:var(--muted)}
+.retrieval{display:grid; gap:4px; font-size:12.5px}
+.retrieval .row{display:grid; grid-template-columns:70px 1fr; gap:8px}
+.retrieval .row span:first-child{font-family:var(--mono); font-size:11px; color:var(--muted); padding-top:1px}
+
+/* Fields table */
+table{width:100%; border-collapse:collapse; font-size:12.5px}
+th,td{text-align:left; padding:5px 8px; border-bottom:1px solid var(--line); vertical-align:top}
+th{font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:500}
+td.f{font-weight:600; white-space:nowrap}
+
+/* Work plan */
+.plan{counter-reset:s; display:grid; gap:5px; list-style:none; padding:0}
+.plan li{counter-increment:s; display:grid; grid-template-columns:22px 1fr auto; gap:8px; align-items:baseline; font-size:13px}
+.plan li::before{content:counter(s); font-family:var(--mono); font-size:11px; color:var(--accent)}
+.plan li .tag{justify-self:end}
+
+/* Questions */
+.q{display:grid; gap:5px; font-size:13px}
+.q li{list-style:none; display:grid; grid-template-columns:16px 1fr; gap:6px}
+.q li::before{content:"?"; font-family:var(--mono); color:var(--manual); font-weight:500}
+.callout{border-left:3px solid var(--manual); background:var(--manual-soft); padding:8px 12px; font-size:13px; display:grid; gap:3px}
+.callout b{color:var(--manual)}
+
+footer{font-size:11.5px; color:var(--muted); display:flex; flex-wrap:wrap; gap:6px 18px; justify-content:space-between; border-top:1px solid var(--line); padding-top:8px}
+
+@media (max-width:860px){
+  .grid,.compare,.rules{grid-template-columns:1fr}
+  .flow{grid-template-columns:repeat(7, 180px)}
+  .assembly{grid-template-columns:1fr}
+  .plus{justify-self:center}
+  .boundary{display:none}
+}
+@media print{
+  body{background:#fff; color:#000; padding:0; font-size:11.5px}
+  .page{gap:10px; max-width:none}
+  .panel,.strip,.lane{border-color:#bbb; break-inside:avoid}
+  .grid{gap:10px}
+  @page{size:A4 landscape; margin:10mm}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="head">
+    <div>
+      <div class="eyebrow">Engineering handoff · AI Automation · Merchant Services PBI</div>
+      <h1>Article Intake – Multi-Network Extension</h1>
+      <p class="thesis">Take the production Mastercard / Visa article pipeline and extend its back half to the other <strong>16 payment networks</strong>. Ingestion stays manual for those networks; everything after the MFTS upload is automated, with every record scored and reviewed by a human before it loads.</p>
+    </div>
+    <dl class="meta">
+      <dt>Owner</dt><dd>V (Varun Munjal)</dd>
+      <dt>Audience</dt><dd>Development team</dd>
+      <dt>Status</dt><dd>Handoff · pre-build</dd>
+      <dt>Rule #1</dt><dd>MC / Visa prod flow stays untouched</dd>
+    </dl>
+  </header>
+
+  <!-- Today vs target -->
+  <section class="compare">
+    <div class="lane">
+      <div class="lbl">Today · Mastercard &amp; Visa (production)</div>
+      <div class="chain">
+        <span class="box">Network SFTP</span><span class="arr">→</span>
+        <span class="box">MFTS</span><span class="arr">→</span>
+        <span class="box">S3</span><span class="arr">→</span>
+        <span class="box">LLM extraction</span><span class="arr">→</span>
+        <span class="box">SharePoint API</span>
+      </div>
+    </div>
+    <div class="lane">
+      <div class="lbl">Target · 16 other networks</div>
+      <div class="chain">
+        <span class="box hot">Ops manual upload</span><span class="arr">→</span>
+        <span class="box">MFTS</span><span class="arr">→</span>
+        <span class="box">S3</span><span class="arr">→</span>
+        <span class="box">Extraction (network-aware)</span><span class="arr">→</span>
+        <span class="box add">Validation loop</span><span class="arr">→</span>
+        <span class="box add">Confidence score + risk flag</span><span class="arr">→</span>
+        <span class="box add">Human review (every record)</span><span class="arr">→</span>
+        <span class="box">SharePoint API</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pipeline strip -->
+  <section class="strip">
+    <div class="strip-head">
+      <h2>Target flow, stage by stage</h2>
+      <div class="legend">
+        <span><span class="tag manual">Manual</span> ops does it</span>
+        <span><span class="tag reuse">Reuse</span> existing MC/Visa code as-is</span>
+        <span><span class="tag extend">Extend</span> existing code, generalized</span>
+        <span><span class="tag new">New</span> built for this extension</span>
+      </div>
+    </div>
+    <div class="flow">
+      <div class="stage manual">
+        <div class="n">1</div><h3>Ops upload</h3>
+        <p>Ops team drops the article into a designated MFTS location. Folder or filename prefix carries the <strong>network tag</strong>.</p>
+        <span class="tag manual">Manual</span>
+      </div>
+      <div class="stage extend">
+        <div class="n">2</div><h3>Pickup → S3</h3>
+        <p>Same pickup pattern as MC/Visa. Routing must recognize all 16 networks and preserve the tag.</p>
+        <span class="tag extend">Extend</span>
+      </div>
+      <div class="stage new">
+        <div class="n">3</div><h3>Render + retrieve</h3>
+        <p>Convert file to page images (keep text layer). Quick-pass title/description, pull top 5 similar past records.</p>
+        <span class="tag new">New</span>
+      </div>
+      <div class="stage extend">
+        <div class="n">4</div><h3>Vision extraction</h3>
+        <p>Base prompt + network config + retrieved examples. Vision model extracts the core fields.</p>
+        <span class="tag extend">Extend</span>
+      </div>
+      <div class="stage new">
+        <div class="n">5</div><h3>Checks + validator</h3>
+        <p>Text cross-check, deterministic rules, then a separate validation agent. Loop capped at 2–3 passes. Emits a <strong>confidence score</strong> and a <strong>high-risk flag</strong>.</p>
+        <span class="tag new">New</span>
+      </div>
+      <div class="stage new">
+        <div class="n">6</div><h3>Human review</h3>
+        <p><strong>Every record</strong> is reviewed before load. Queue is sorted by risk: high-risk and low-score records first, with the flagged fields called out.</p>
+        <span class="tag new">New</span>
+      </div>
+      <div class="stage reuse">
+        <div class="n">7</div><h3>SharePoint load</h3>
+        <p>Existing API loader. Add a network identifier field if one does not exist.</p>
+        <span class="tag reuse">Reuse</span>
+      </div>
+    </div>
+    <div class="boundary"><span class="m">Manual</span><span class="a">Automated from here</span></div>
+  </section>
+
+  <div class="grid">
+
+    <!-- Extraction & validation -->
+    <section class="panel">
+      <div class="panel-head"><h2>Extraction and validation loop</h2><span class="ref">§3a</span></div>
+      <p class="muted" style="font-size:12.5px">Vision mode because the 16 networks vary widely in layout, tables and scan quality. Volumes are low, so the extra cost and latency are acceptable.</p>
+      <div class="steps">
+        <div class="step"><span class="k">01</span><p><b>Render to images.</b> Every upload (PDF, Word, HTML, scan) becomes page images. Keep the text layer where one exists.</p></div>
+        <div class="step"><span class="k">02</span><p><b>Vision extraction (primary).</b> Model reads the page images and fills the core fields. Few-shot examples come from that network's historical SharePoint records.</p></div>
+        <div class="step"><span class="k">03</span><p><b>Text cross-check.</b> Compare exact values (dates, titles) against the text layer. Disagreements get flagged.</p></div>
+        <div class="step"><span class="k">04</span><p><b>Deterministic rule checks.</b> Cheap, run before the validator:</p></div>
+      </div>
+      <div class="rules">
+        <div>Effective date ≥ publish date</div>
+        <div>Region is in the fixed list</div>
+        <div>Impact ∈ {issuer, acquirer, both}</div>
+        <div>All required fields present</div>
+      </div>
+      <div class="steps">
+        <div class="step"><span class="k">05</span><p><b>Recursive validation agent.</b> Gets the extraction plus the page images, confirms or corrects each field. <b>Different prompt, ideally a different model</b>, so the extractor is not grading its own work.</p></div>
+        <div class="step"><span class="k">06</span><p><b>Loop cap and scoring.</b> Stop after 2–3 validation passes. Score each field, then the record: validator agreement, text cross-check match, and rule-check results feed a 0–1 probability. Any hard failure or a score under the threshold sets <b>high risk</b>.</p></div>
+      </div>
+      <div class="gate">
+        <span class="lbl">Exit gate · review on everything</span>
+        <span><strong>Every record</strong> → human review queue with its confidence score and flagged fields. Nothing loads until a reviewer clears it.</span>
+        <span><strong>High risk</strong> (score below threshold, any rule failure, or loop hit the cap) → flagged and moved to the front of the queue.</span>
+        <span><strong>Reviewer clears</strong> → load to SharePoint, tagged with the network identifier, score and flag stored with the record.</span>
+      </div>
+    </section>
+
+    <!-- Prompt architecture -->
+    <section class="panel">
+      <div class="panel-head"><h2>Prompt assembly and retrieval</h2><span class="ref">§3b</span></div>
+      <p class="muted" style="font-size:12.5px">One shared base prompt, one config file per network, similar past articles injected at runtime. The network tag from the MFTS upload drives assembly.</p>
+      <div class="assembly">
+        <div class="part"><div class="t">base_prompt (1 file)</div>Shared extraction instructions, field definitions, output schema, and a slot for retrieved examples.</div>
+        <div class="plus">+</div>
+        <div class="part"><div class="t">networks/&lt;tag&gt;.config (1 per network)</div>Network-specific rules, terminology, layout quirks, field-mapping notes. Tuned and version-tracked independently.</div>
+        <div class="plus">+</div>
+        <div class="part"><div class="t">retrieved examples (top 5)</div>Past SharePoint records for the same network, each with all fields filled in.</div>
+      </div>
+      <h3>Retrieval, two passes</h3>
+      <div class="retrieval">
+        <div class="row"><span>quick</span><span>Pull title and description from the article.</span></div>
+        <div class="row"><span>retrieve</span><span>Search that network's historical SharePoint records by title + description similarity. Keep the top 5.</span></div>
+        <div class="row"><span>full</span><span>Run full extraction with those 5 records as few-shot examples. Output feeds the validation loop.</span></div>
+        <div class="row"><span>fallback</span><span>Network has too few records → add similar examples from other networks.</span></div>
+      </div>
+      <h3>Knowledge base</h3>
+      <p style="font-size:12.5px">SharePoint already holds years of article loads across all networks. Use it for few-shot examples per network, to learn historical field mappings, and to build a <strong>labeled evaluation set</strong> so accuracy is measured per network before go-live.</p>
+    </section>
+
+    <!-- Fields -->
+    <section class="panel">
+      <div class="panel-head"><h2>Fields to extract</h2><span class="ref">§4 · same schema for every network</span></div>
+      <table>
+        <thead><tr><th>Field</th><th>Constraint / check</th></tr></thead>
+        <tbody>
+          <tr><td class="f">Effective date</td><td>Must not be before publish date</td></tr>
+          <tr><td class="f">Publish date</td><td>Cross-checked against text layer</td></tr>
+          <tr><td class="f">Region</td><td>From a fixed list</td></tr>
+          <tr><td class="f">Article title</td><td>Cross-checked against text layer; used for retrieval</td></tr>
+          <tr><td class="f">Article description</td><td>Used for retrieval</td></tr>
+          <tr><td class="f">Issuer / acquirer impact</td><td>One of: issuer, acquirer, both</td></tr>
+          <tr><td class="f">Network identifier</td><td>From the upload tag; added to the SharePoint record</td></tr>
+          <tr><td class="f">Confidence score</td><td>0–1 per record (per field kept for the reviewer); written with the record</td></tr>
+          <tr><td class="f">High-risk flag</td><td>Set when score &lt; threshold, a rule check fails, or the loop hits its cap</td></tr>
+          <tr><td class="f muted">TBD (1–2 more)</td><td class="muted">V to confirm. ~10–12 fields total.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Work plan -->
+    <section class="panel">
+      <div class="panel-head"><h2>Suggested work plan</h2><span class="ref">§6 · in order</span></div>
+      <ol class="plan">
+        <li><span>Review the existing MC/Visa pipeline: MFTS pickup, S3 handoff, extraction prompt, SharePoint loader.</span><span class="tag reuse">Reuse</span></li>
+        <li><span>Define the MFTS convention for manual uploads (folder per network, or network prefix in filename).</span><span class="tag manual">Manual</span></li>
+        <li><span>Extend pickup and S3 routing to recognize the 16 networks.</span><span class="tag extend">Extend</span></li>
+        <li><span>Pull historical SharePoint records per network. Build few-shot examples and an evaluation set.</span><span class="tag new">New</span></li>
+        <li><span>Generalize the extraction prompt to a network-agnostic schema, with per-network config where formats differ.</span><span class="tag extend">Extend</span></li>
+        <li><span>Reuse the SharePoint loader. Add a network identifier field if missing.</span><span class="tag reuse">Reuse</span></li>
+        <li><span>Build the review queue: every record, sorted by risk, score and flagged fields visible to the reviewer.</span><span class="tag new">New</span></li>
+        <li><span>Run evaluations per network. Pilot with a few networks, then roll out to all 16. Use review outcomes vs scores to calibrate the threshold.</span><span class="tag new">New</span></li>
+      </ol>
+    </section>
+
+    <!-- Open questions + constraints -->
+    <section class="panel span">
+      <div class="panel-head"><h2>Open questions before build starts</h2><span class="ref">§7 · §8</span></div>
+      <div class="grid" style="gap:14px">
+        <ul class="q">
+          <li>Final list of the remaining one or two fields.</li>
+          <li>Full list of the 16 networks and the file formats each sends (PDF, Word, HTML, email).</li>
+          <li>MFTS upload convention, and who on the ops team owns uploads.</li>
+          <li>Confidence threshold and the rules that mark a record high risk. Review is on for every record; the score only orders the queue.</li>
+          <li>Repo path for the existing MC/Visa code and prompts, so the team starts from it rather than beside it.</li>
+        </ul>
+        <div class="callout">
+          <span><b>Constraints.</b> Follow existing JPMC controls for data handling and model use.</span>
+          <span>Keep the Mastercard / Visa production flow untouched. Build the extension so it cannot regress it: new code paths, new configs, shared code only where it is already generic.</span>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    <span>Source: Article Intake – Multi-Network Extension Handoff.md · AI Automation Team, JPMC Merchant Services – PBI</span>
+    <span>Internal use only</span>
+  </footer>
+</div>
+</body>
+</html>
