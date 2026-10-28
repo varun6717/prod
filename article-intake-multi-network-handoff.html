@@ -239,12 +239,12 @@ footer{font-size:11.5px; color:var(--muted); display:flex; flex-wrap:wrap; gap:6
       </div>
       <div class="stage new">
         <div class="n">3</div><h3>Render + retrieve</h3>
-        <p>Convert file to page images (keep text layer). Quick-pass title/description, pull top 5 similar past records.</p>
+        <p>Convert file to page images (keep text layer). Quick-pass title/description, <strong>French networks: quick English version for the search only</strong>, pull top 5 similar past records from the English history.</p>
         <span class="tag new">New</span>
       </div>
       <div class="stage extend">
         <div class="n">4</div><h3>Vision extraction</h3>
-        <p>Base prompt + network config + retrieved examples. Vision model extracts the core fields.</p>
+        <p>Base prompt + network config + retrieved examples. Vision model extracts the core fields in the source language. <strong>French networks: the real translation happens here.</strong> Normalize, then translate title and description to English; both versions go forward.</p>
         <span class="tag extend">Extend</span>
       </div>
       <div class="stage new">
@@ -274,8 +274,8 @@ footer{font-size:11.5px; color:var(--muted); display:flex; flex-wrap:wrap; gap:6
       <p class="muted" style="font-size:12.5px">Vision mode because the 16 networks vary widely in layout, tables and scan quality. Volumes are low, so the extra cost and latency are acceptable.</p>
       <div class="steps">
         <div class="step"><span class="k">01</span><p><b>Render to images.</b> Every upload (PDF, Word, HTML, scan) becomes page images. Keep the text layer where one exists.</p></div>
-        <div class="step"><span class="k">02</span><p><b>Vision extraction (primary).</b> Model reads the page images and fills the core fields. Few-shot examples come from that network's historical SharePoint records.</p></div>
-        <div class="step"><span class="k">03</span><p><b>Text cross-check.</b> Compare exact values (dates, titles) against the text layer. Disagreements get flagged.</p></div>
+        <div class="step"><span class="k">02</span><p><b>Vision extraction (primary).</b> Model reads the page images in their source language and fills the core fields. Few-shot examples come from that network's historical SharePoint records.</p></div>
+        <div class="step"><span class="k">03</span><p><b>Text cross-check.</b> Compare exact values (dates, titles) against the original-language text layer. Disagreements get flagged. For French networks, translate title and description to English after this step (see §3c).</p></div>
         <div class="step"><span class="k">04</span><p><b>Deterministic rule checks.</b> Cheap, run before the validator:</p></div>
       </div>
       <div class="rules">
@@ -303,19 +303,39 @@ footer{font-size:11.5px; color:var(--muted); display:flex; flex-wrap:wrap; gap:6
       <div class="assembly">
         <div class="part"><div class="t">base_prompt (1 file)</div>Shared extraction instructions, field definitions, output schema, and a slot for retrieved examples.</div>
         <div class="plus">+</div>
-        <div class="part"><div class="t">networks/&lt;tag&gt;.config (1 per network)</div>Network-specific rules, terminology, layout quirks, field-mapping notes. Tuned and version-tracked independently.</div>
+        <div class="part"><div class="t">networks/&lt;tag&gt;.config (1 per network)</div>Network-specific rules, terminology, layout quirks, field-mapping notes, and <code>language</code> (drives the translation step). Tuned and version-tracked independently.</div>
         <div class="plus">+</div>
         <div class="part"><div class="t">retrieved examples (top 5)</div>Past SharePoint records for the same network, each with all fields filled in.</div>
       </div>
       <h3>Retrieval, two passes</h3>
       <div class="retrieval">
-        <div class="row"><span>quick</span><span>Pull title and description from the article.</span></div>
-        <div class="row"><span>retrieve</span><span>Search that network's historical SharePoint records by title + description similarity. Keep the top 5.</span></div>
+        <div class="row"><span>quick</span><span>Pull title and description from the article. Non-English networks: translate that pair to English right here, since the history it is matched against is English.</span></div>
+        <div class="row"><span>retrieve</span><span>Search that network's historical SharePoint records (all English) by title + description similarity. Keep the top 5.</span></div>
         <div class="row"><span>full</span><span>Run full extraction with those 5 records as few-shot examples. Output feeds the validation loop.</span></div>
         <div class="row"><span>fallback</span><span>Network has too few records → add similar examples from other networks.</span></div>
       </div>
       <h3>Knowledge base</h3>
-      <p style="font-size:12.5px">SharePoint already holds years of article loads across all networks. Use it for few-shot examples per network, to learn historical field mappings, and to build a <strong>labeled evaluation set</strong> so accuracy is measured per network before go-live.</p>
+      <p style="font-size:12.5px">SharePoint already holds years of article loads across all networks, in English. Use it for few-shot examples per network, to learn historical field mappings, and to build a <strong>labeled evaluation set</strong> so accuracy is measured per network before go-live.</p>
+    </section>
+
+    <!-- Language / translation -->
+    <section class="panel span">
+      <div class="panel-head"><h2>Non-English networks (e.g. French): where translation goes</h2><span class="ref">§3c · decision</span></div>
+      <p class="muted" style="font-size:12.5px"><strong>Translate after extraction, inside stage 4, never before it.</strong> The vision model reads French page images directly and fills the schema. Dates, region and impact are language-independent once normalized. Only the free-text fields (title, description) need an English version, and both languages travel together through validation and review.</p>
+      <div class="assembly">
+        <div class="part"><div class="t">chosen · last step of stage 4</div>Extract every field in the source language → normalize structured fields (« 1<sup>er</sup> mars 2026 » → ISO date, region and impact to the fixed English lists) → translate title and description to English → pass <strong>original + English</strong> into the validation loop. (The quick pass also makes a throwaway English pair earlier, just for retrieval.) Language comes from the network config (<code>language: fr</code>); detect as a fallback for bilingual networks.</div>
+        <div class="plus" style="font-size:12px;font-family:var(--mono)">vs</div>
+        <div class="part"><div class="t">rejected · translate the document first</div>Machine-translating the PDF before extraction breaks the layout and tables vision mode depends on, adds a lossy step before the one that matters, and the text cross-check would then compare against translated text instead of the source.</div>
+        <div class="plus" style="font-size:12px;font-family:var(--mono)">vs</div>
+        <div class="part"><div class="t">rejected · translate at load time</div>Validator and reviewer would see French free-text with nothing to check the English against, retrieval against English history would not match, and SharePoint would receive an unvalidated translation.</div>
+      </div>
+      <h3>How it ties into the rest of the flow</h3>
+      <div class="retrieval">
+        <div class="row"><span>retrieve</span><span>The retrieval corpus (SharePoint history) is <strong>English</strong> for every network. So the quick pass translates title and description to English first and searches with that pair. This is the one translation that happens before extraction; it is only used to find examples, never stored as the final value.</span></div>
+        <div class="row"><span>validate</span><span>Validator checks extracted values against the <strong>original</strong> French pages, not the translation. A separate translation check confirms the English title and description preserve meaning (back-translation or a judge prompt). A failed translation check is a flagged field like any other.</span></div>
+        <div class="row"><span>review</span><span>Translated records carry a "translated" marker. Reviewer sees French and English side by side for title and description.</span></div>
+        <div class="row"><span>load</span><span>Store source language, the original title and description, and the English versions. Downstream consumers read English; the original stays for audit.</span></div>
+      </div>
     </section>
 
     <!-- Fields -->
@@ -327,8 +347,9 @@ footer{font-size:11.5px; color:var(--muted); display:flex; flex-wrap:wrap; gap:6
           <tr><td class="f">Effective date</td><td>Must not be before publish date</td></tr>
           <tr><td class="f">Publish date</td><td>Cross-checked against text layer</td></tr>
           <tr><td class="f">Region</td><td>From a fixed list</td></tr>
-          <tr><td class="f">Article title</td><td>Cross-checked against text layer; used for retrieval</td></tr>
-          <tr><td class="f">Article description</td><td>Used for retrieval</td></tr>
+          <tr><td class="f">Article title</td><td>Cross-checked against text layer; used for retrieval. Non-English: original + English stored</td></tr>
+          <tr><td class="f">Article description</td><td>Used for retrieval. Non-English: original + English stored</td></tr>
+          <tr><td class="f">Source language</td><td>From the network config (e.g. <code>fr</code>); marks the record as translated for the reviewer</td></tr>
           <tr><td class="f">Issuer / acquirer impact</td><td>One of: issuer, acquirer, both</td></tr>
           <tr><td class="f">Network identifier</td><td>From the upload tag; added to the SharePoint record</td></tr>
           <tr><td class="f">Confidence score</td><td>0–1 per record (per field kept for the reviewer); written with the record</td></tr>
@@ -347,6 +368,7 @@ footer{font-size:11.5px; color:var(--muted); display:flex; flex-wrap:wrap; gap:6
         <li><span>Extend pickup and S3 routing to recognize the 16 networks.</span><span class="tag extend">Extend</span></li>
         <li><span>Pull historical SharePoint records per network. Build few-shot examples and an evaluation set.</span><span class="tag new">New</span></li>
         <li><span>Generalize the extraction prompt to a network-agnostic schema, with per-network config where formats differ.</span><span class="tag extend">Extend</span></li>
+        <li><span>Add the post-extraction translation step and translation check for non-English networks. Put French records in the evaluation set.</span><span class="tag new">New</span></li>
         <li><span>Reuse the SharePoint loader. Add a network identifier field if missing.</span><span class="tag reuse">Reuse</span></li>
         <li><span>Build the review queue: every record, sorted by risk, score and flagged fields visible to the reviewer.</span><span class="tag new">New</span></li>
         <li><span>Run evaluations per network. Pilot with a few networks, then roll out to all 16. Use review outcomes vs scores to calibrate the threshold.</span><span class="tag new">New</span></li>
@@ -359,7 +381,8 @@ footer{font-size:11.5px; color:var(--muted); display:flex; flex-wrap:wrap; gap:6
       <div class="grid" style="gap:14px">
         <ul class="q">
           <li>Final list of the remaining one or two fields.</li>
-          <li>Full list of the 16 networks and the file formats each sends (PDF, Word, HTML, email).</li>
+          <li>Full list of the 16 networks, the file formats each sends (PDF, Word, HTML, email), and which publish in French or another language.</li>
+          <li>SharePoint history is English only. Should new records from French networks also store the original-language title and description (new columns), or English only like today?</li>
           <li>MFTS upload convention, and who on the ops team owns uploads.</li>
           <li>Confidence threshold and the rules that mark a record high risk. Review is on for every record; the score only orders the queue.</li>
           <li>Repo path for the existing MC/Visa code and prompts, so the team starts from it rather than beside it.</li>
