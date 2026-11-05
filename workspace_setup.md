@@ -935,7 +935,7 @@ backlog/jira-intake/
 
 The order is: §8 steps 1–6 (set up and bootstrap), then step 7 → §11 VDI tasks (fill in what's missing) → §10 checklist (the last VDI task).
 
-1. **Create the root folder** in a location that survives VDI rebuilds, here `I:\ds\Neuro_Workspace` (the I: drive survives VDI rebuilds).
+1. **Create the root folder** in a location that survives VDI rebuilds, here `I:\ds\Neuro_Workspace`.
 2. **Copy this file** into the root as `workspace_setup.md` (it moves to `toolkit-kb/workspace/` at the end).
 3. **Optional: copy `Original_Build_Guide.md`, `open_questions.md` and `product_enhancements.md`** into the root too,
    if I have them on the VDI. Any that are there get moved or merged into place. Any that aren't get a placeholder, and
