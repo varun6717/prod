@@ -1,4 +1,4 @@
-# Workspace setup: po-toolkit-product
+# Workspace setup: neuro_workspace
 
 > **What this file is.** The full spec for the VS Code workspace I use to own and manage the product-owner-plugin (PO toolkit) as a product. Copy it onto the VDI, open Copilot Chat in agent mode, and give it the bootstrap prompt in §9. **This is the only file the bootstrap needs.** The build guide, open questions and enhancements list are optional: if they aren't in the root, the agent writes placeholders and I bring them in later (§11 task 0). The agent builds the scaffolding, and I do the manual steps in §8. Everything the scaffold leaves as a placeholder for me to fill is listed in **§11 VDI tasks**.
 >
@@ -10,8 +10,8 @@
 
 | # | Decision | Why |
 |---|---|---|
-| D1 | **Single root.** I open one folder, `po-toolkit-product/`, and everything else lives under it as subfolders. | The Copilot agent window only considers the folder that's open. It has to see toolkit-kb, the plugin source and run outputs together. |
-| D2 | **Include a workspace file** (`po-toolkit-product.code-workspace`) that lists only `"."`, and **always open the workspace through it**, never with File → Open Folder. All workspace settings live in that file. There's no `.vscode/settings.json`. | It holds the settings in one place and keeps the layout single root. VS Code ignores the workspace file's settings when the folder is opened directly. The title bar shows `(Workspace)` when it's opened correctly. |
+| D1 | **Single root.** I open one folder, `neuro_workspace/`, and everything else lives under it as subfolders. | The Copilot agent window only considers the folder that's open. It has to see toolkit-kb, the plugin source and run outputs together. |
+| D2 | **Include a workspace file** (`neuro_workspace.code-workspace`) that lists only `"."`, and **always open the workspace through it**, never with File → Open Folder. All workspace settings live in that file. There's no `.vscode/settings.json`. | It holds the settings in one place and keeps the layout single root. VS Code ignores the workspace file's settings when the folder is opened directly. The title bar shows `(Workspace)` when it's opened correctly. |
 | D3 | **Put `.github/` at the root** with `copilot-instructions.md`, plus per-folder rules in `.github/instructions/*.instructions.md` using `applyTo`. | Copilot reads instructions from the open root. Per-folder files keep each set of rules short. |
 | D4 | **`toolkit-kb/` is its own git repo**, for product knowledge, notes, backlog and decisions. It's named `toolkit-kb` (not `knowledge-base`) so it's never confused with Knowledge Hub, the firm's architecture knowledge base used in real runs. | History of decisions and backlog changes. **Local only, with no remote**: it isn't backed up off the VDI, by choice. |
 | D5 | **`plugin-repo/` is a read-only reference clone** of the plugin from Bitbucket. No notes or outputs go inside it. **It is never pushed from here:** its push URL is disabled (§8). I can experiment on local branches. Real changes to the plugin are made in a separate development location outside this workspace (OQ-023). | It's where I read the real source. Since it can't be pushed, nothing from this workspace, including real-run content, can reach Bitbucket through it. |
@@ -32,8 +32,8 @@
 ## 2. Folder scaffolding
 
 ```
-po-toolkit-product/                          ← open via the .code-workspace file
-├── po-toolkit-product.code-workspace
+neuro_workspace/                          ← open via the .code-workspace file
+├── neuro_workspace.code-workspace
 ├── README.md                                ← short map of the workspace (for humans)
 ├── .github/
 │   ├── copilot-instructions.md              ← workspace-wide agent rules
@@ -121,7 +121,7 @@ initiatives means changing `LOCAL_PROJECT_ROOT`. Sandbox stays as one flat folde
 
 ## 3. Workspace file
 
-`po-toolkit-product/po-toolkit-product.code-workspace`
+`neuro_workspace/neuro_workspace.code-workspace`
 
 ```jsonc
 {
@@ -207,7 +207,7 @@ initiatives means changing `LOCAL_PROJECT_ROOT`. Sandbox stays as one flat folde
 ## 4. `.github/copilot-instructions.md`
 
 ````markdown
-# Workspace instructions: po-toolkit-product
+# Workspace instructions: neuro_workspace
 
 I am the product owner of **product-owner-plugin** (the PO toolkit), a VS Code / Claude Code skill package
 that runs the JPMC PO workflow (6 stages, Working Hub gates GW-I1 → GW-I2 → GW-RD1 → GW-RD2 → GW-B1).
@@ -855,12 +855,12 @@ What it has to do, whatever the files look like:
 
 ## 6. Other files
 
-### 6.1 `po-toolkit-product/README.md`
+### 6.1 `neuro_workspace/README.md`
 
 ```markdown
-# po-toolkit-product
+# neuro_workspace
 
-Workspace for owning the product-owner-plugin as a product. Open `po-toolkit-product.code-workspace`.
+Workspace for owning the product-owner-plugin as a product. Open `neuro_workspace.code-workspace`.
 
 - `toolkit-kb/`: product knowledge, backlog, decisions, notes (git)
 - `plugin-repo/`: plugin source clone (git, Bitbucket)
@@ -935,15 +935,15 @@ backlog/jira-intake/
 
 The order is: §8 steps 1–6 (set up and bootstrap), then step 7 → §11 VDI tasks (fill in what's missing) → §10 checklist (the last VDI task).
 
-1. **Create the root folder** in a location that survives VDI rebuilds, e.g. `C:\Users\<SID>\po-toolkit-product`.
+1. **Create the root folder** in a location that survives VDI rebuilds, e.g. `C:\Users\<SID>\neuro_workspace`.
 2. **Copy this file** into the root as `workspace_setup.md` (it moves to `toolkit-kb/workspace/` at the end).
 3. **Optional: copy `Original_Build_Guide.md`, `open_questions.md` and `product_enhancements.md`** into the root too,
    if I have them on the VDI. Any that are there get moved or merged into place. Any that aren't get a placeholder, and
    I bring them in later with §11 task 0. Skipping this step doesn't block the bootstrap.
-4. **Open VS Code** → File → Open Folder → `po-toolkit-product`. Open Copilot Chat in **agent mode** with a
+4. **Open VS Code** → File → Open Folder → `neuro_workspace`. Open Copilot Chat in **agent mode** with a
    general agent, *not* the Working Hub Guide agent.
 5. **Run the bootstrap prompt** (§9). Review each step as it goes.
-6. **Reopen** using File → Open Workspace from File → `po-toolkit-product.code-workspace`. From now on, always
+6. **Reopen** using File → Open Workspace from File → `neuro_workspace.code-workspace`. From now on, always
    open it this way (or from File → Open Recent, where the entry is marked `(Workspace)`). Opening the folder
    directly skips every setting (D2).
 7. **Do the VDI tasks in §11**, in order: clone the plugin, point the plugin at sandbox,
@@ -962,7 +962,7 @@ Do the following, in order, and pause after each numbered step to show me what y
 1. Create every folder and file in §2 that is NOT inside plugin-repo/. Leave plugin-repo/ as an empty folder.
    Under runs/real/ create nothing: initiative folders are made when a real initiative starts.
    Do not create a git repo at the root.
-2. Write po-toolkit-product.code-workspace exactly as in §3.
+2. Write neuro_workspace.code-workspace exactly as in §3.
 3. Write .github/copilot-instructions.md exactly as in §4, the three files in §5 exactly as written
    (including their applyTo frontmatter), the five prompt files in §5A into .github/prompts/.
    Create the four empty skill folders in §5B under .github/skills/. Do NOT write any SKILL.md or script:
@@ -1019,7 +1019,7 @@ After that, run `/tk-skill-note <skill>` one skill at a time and review each not
 
 ### Verify after setup
 
-- [ ] The title bar reads `po-toolkit-product (Workspace)`, so the workspace file's settings are active (D2).
+- [ ] The title bar reads `neuro_workspace (Workspace)`, so the workspace file's settings are active (D2).
 - [ ] Explorer shows a single root `PO-TOOLKIT-PRODUCT` with all subfolders (not several roots).
 - [ ] Auto-approve works as intended (D8):
   - `git status` in `toolkit-kb/` runs **without** asking.
@@ -1085,7 +1085,7 @@ left placeholders. §8 and §9 say
 |---|---|---|---|---|---|
 | 0 | **Bring in the source files** (only the ones the bootstrap left as placeholders) | Any of `toolkit-kb/reference/original-build-guide.md`, `toolkit-kb/product/glossary.md` and `toolkit-kb/open_questions.md` that still say PLACEHOLDER. And the product backlog, if `product_enhancements.md` wasn't merged | Put the files in the root and ask the agent: "Do §9 step 5 again for the files now in the root, replacing the placeholders, then commit in toolkit-kb/." Do it before tasks 5 and 6 and the §9 follow-up prompt, which all read the build guide. Until it's done, OQ-NNN references in this spec (OQ-013, OQ-014, OQ-020–022) point at nothing | The three files | §9 step 5 |
 | 1 | **Clone the plugin source** into `plugin-repo/`, then disable pushing | `plugin-repo/` is empty, and the clone URL is a placeholder (`<PLUGIN_REPO_SSH_URL>`) | See the commands below the table | SSH key on Bitbucket | D5 |
-| 2 | **Point the installed plugin at sandbox** | `LOCAL_PROJECT_ROOT` in the installed plugin's `SETUP.md` | Set it to `C:\Users\<SID>\po-toolkit-product\runs\sandbox` | Plugins installed (OQ-014) | §2 |
+| 2 | **Point the installed plugin at sandbox** | `LOCAL_PROJECT_ROOT` in the installed plugin's `SETUP.md` | Set it to `C:\Users\<SID>\neuro_workspace\runs\sandbox` | Plugins installed (OQ-014) | §2 |
 | 3 | **Build and add the 4 skills**, one at a time: `tk-pdf-scrape-standard`, `tk-pdf-scrape-vision`, `tk-confluence-scrape`, `tk-jira-scrape` | Each folder in `.github/skills/` is empty: no `SKILL.md`, no scripts | Build each one from what I have on the VDI. The folder name and the `name:` in `SKILL.md` match, with the `tk-` prefix. Meet the "it must" points in §5B. Check the runtime the scripts need (OQ-020). Test each one with its §10 check before starting the next | — | §5B, D14 |
 | 4 | **Scrape the plugin's Confluence docs** | `toolkit-kb/reference/confluence/` is empty | Use `tk-confluence-scrape` on the plugin's pages (space `<CONFLUENCE_SPACE_KEY>`), including the Tutorial page the screenshots missed | Task 3 (`tk-confluence-scrape`) | §5B.3 |
 | 5 | **Write the skill notes**, one per plugin skill | `toolkit-kb/product/skill-notes/` has only `_template.md` | Run the follow-up prompt in §9 to list the skills, then `/tk-skill-note <skill>` for each, in stage order. Review each note before the next | Task 1 | §5A.3, §9 |
@@ -1098,7 +1098,7 @@ left placeholders. §8 and §9 say
 `<MARKETPLACE_REPO_SSH_URL>`. Check whether the plugin
 has its own repo or lives inside the marketplace repo (OQ-013), and clone whichever holds the source:
 ```powershell
-cd C:\Users\<SID>\po-toolkit-product
+cd C:\Users\<SID>\neuro_workspace
 git clone <PLUGIN_REPO_SSH_URL> plugin-repo
 cd plugin-repo
 git remote set-url --push origin DISABLED
