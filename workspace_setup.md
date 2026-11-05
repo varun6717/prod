@@ -935,7 +935,7 @@ backlog/jira-intake/
 
 The order is: §8 steps 1–6 (set up and bootstrap), then step 7 → §11 VDI tasks (fill in what's missing) → §10 checklist (the last VDI task).
 
-1. **Create the root folder** in a location that survives VDI rebuilds, e.g. `C:\Users\<SID>\neuro_workspace`.
+1. **Create the root folder** in a location that survives VDI rebuilds, here `I:\ds\Neuro_Workspace` (the I: drive survives VDI rebuilds).
 2. **Copy this file** into the root as `workspace_setup.md` (it moves to `toolkit-kb/workspace/` at the end).
 3. **Optional: copy `Original_Build_Guide.md`, `open_questions.md` and `product_enhancements.md`** into the root too,
    if I have them on the VDI. Any that are there get moved or merged into place. Any that aren't get a placeholder, and
@@ -1085,7 +1085,7 @@ left placeholders. §8 and §9 say
 |---|---|---|---|---|---|
 | 0 | **Bring in the source files** (only the ones the bootstrap left as placeholders) | Any of `toolkit-kb/reference/original-build-guide.md`, `toolkit-kb/product/glossary.md` and `toolkit-kb/open_questions.md` that still say PLACEHOLDER. And the product backlog, if `product_enhancements.md` wasn't merged | Put the files in the root and ask the agent: "Do §9 step 5 again for the files now in the root, replacing the placeholders, then commit in toolkit-kb/." Do it before tasks 5 and 6 and the §9 follow-up prompt, which all read the build guide. Until it's done, OQ-NNN references in this spec (OQ-013, OQ-014, OQ-020–022) point at nothing | The three files | §9 step 5 |
 | 1 | **Clone the plugin source** into `plugin-repo/`, then disable pushing | `plugin-repo/` is empty, and the clone URL is a placeholder (`<PLUGIN_REPO_SSH_URL>`) | See the commands below the table | SSH key on Bitbucket | D5 |
-| 2 | **Point the installed plugin at sandbox** | `LOCAL_PROJECT_ROOT` in the installed plugin's `SETUP.md` | Set it to `C:\Users\<SID>\neuro_workspace\runs\sandbox` | Plugins installed (OQ-014) | §2 |
+| 2 | **Point the installed plugin at sandbox** | `LOCAL_PROJECT_ROOT` in the installed plugin's `SETUP.md` | Set it to `I:\ds\Neuro_Workspace\runs\sandbox` | Plugins installed (OQ-014) | §2 |
 | 3 | **Build and add the 4 skills**, one at a time: `tk-pdf-scrape-standard`, `tk-pdf-scrape-vision`, `tk-confluence-scrape`, `tk-jira-scrape` | Each folder in `.github/skills/` is empty: no `SKILL.md`, no scripts | Build each one from what I have on the VDI. The folder name and the `name:` in `SKILL.md` match, with the `tk-` prefix. Meet the "it must" points in §5B. Check the runtime the scripts need (OQ-020). Test each one with its §10 check before starting the next | — | §5B, D14 |
 | 4 | **Scrape the plugin's Confluence docs** | `toolkit-kb/reference/confluence/` is empty | Use `tk-confluence-scrape` on the plugin's pages (space `<CONFLUENCE_SPACE_KEY>`), including the Tutorial page the screenshots missed | Task 3 (`tk-confluence-scrape`) | §5B.3 |
 | 5 | **Write the skill notes**, one per plugin skill | `toolkit-kb/product/skill-notes/` has only `_template.md` | Run the follow-up prompt in §9 to list the skills, then `/tk-skill-note <skill>` for each, in stage order. Review each note before the next | Task 1 | §5A.3, §9 |
@@ -1098,7 +1098,7 @@ left placeholders. §8 and §9 say
 `<MARKETPLACE_REPO_SSH_URL>`. Check whether the plugin
 has its own repo or lives inside the marketplace repo (OQ-013), and clone whichever holds the source:
 ```powershell
-cd C:\Users\<SID>\neuro_workspace
+cd I:\ds\Neuro_Workspace
 git clone <PLUGIN_REPO_SSH_URL> plugin-repo
 cd plugin-repo
 git remote set-url --push origin DISABLED
