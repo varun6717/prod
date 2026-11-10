@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neuro · Evergreen Knowledge Base · Pitch</title>
+<style>
+  :root{
+    --void:#04070D; --bg:#080C16; --panel:#0D1424; --panel-2:#121B30; --panel-3:#182340;
+    --rule:#1B2740; --rule-lit:#2B3B60;
+    --ink:#E8EEF8; --muted:#A3B2CC; --dim:#5E7094;
+    --accent:#8B5CF6; --accent-2:#22D3EE;
+    --kb:#22C55E; --src:#F59E0B; --user:#3B82F6; --der:#A78BFA; --unsup:#EF4444;
+    --wrong:#F97316; --nohit:#EF4444; --never:#94A3B8; --full:#22C55E;
+    --body:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    --mono:"JetBrains Mono","SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    --ease-out:cubic-bezier(.16,1,.3,1);
+    --ease-pop:cubic-bezier(.2,1.5,.35,1);
+  }
+  *{box-sizing:border-box;min-width:0}
+  html,body{margin:0;height:100%;background:var(--void);color:var(--ink);font-family:var(--body);overflow:hidden;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,h4,p,ul{margin:0} ul{padding:0;list-style:none}
+  b{font-weight:600;color:var(--ink)}
+  code{font-family:var(--mono)}
+
+  /* ── fixed 1920x1080 stage, scaled to fit ─────────────── */
+  #viewport{position:fixed;inset:0;display:grid;place-items:center}
+  #stage{position:relative;width:1920px;height:1080px;transform-origin:center center;overflow:hidden;background:var(--bg)}
+  .glow{position:absolute;border-radius:50%;filter:blur(120px);opacity:.35;pointer-events:none}
+  .glow.a{width:900px;height:900px;left:-250px;top:-350px;background:radial-gradient(circle,#3B1F7A,transparent 70%)}
+  .glow.b{width:800px;height:800px;right:-300px;bottom:-350px;background:radial-gradient(circle,#0B4F5C,transparent 70%)}
+  .grid-bg{position:absolute;inset:0;pointer-events:none;opacity:.07;
+    background-image:linear-gradient(var(--muted) 1px,transparent 1px),linear-gradient(90deg,var(--muted) 1px,transparent 1px);
+    background-size:80px 80px;
+    mask-image:radial-gradient(ellipse at center,#000 30%,transparent 85%);-webkit-mask-image:radial-gradient(ellipse at center,#000 30%,transparent 85%)}
+  .scan{position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background:repeating-linear-gradient(0deg,rgba(255,255,255,.018) 0 1px,transparent 1px 4px)}
+  .hud-frame{position:absolute;inset:28px;border:1px solid rgba(139,92,246,.18);pointer-events:none}
+  .hud-frame::before,.hud-frame::after{content:"";position:absolute;width:26px;height:26px;border:2px solid var(--accent-2)}
+  .hud-frame::before{left:-2px;top:-2px;border-right:0;border-bottom:0}
+  .hud-frame::after{right:-2px;bottom:-2px;border-left:0;border-top:0}
+  .hud-meta{position:absolute;top:44px;right:60px;font-family:var(--mono);font-size:15px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase;z-index:5}
+  .hud-meta i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--kb);margin-right:10px;box-shadow:0 0 12px var(--kb);animation:pulse 2s infinite}
+  @keyframes pulse{50%{opacity:.35}}
+
+  /* ── screens ───────────────────────────────────────────── */
+  .screen{position:absolute;inset:0;padding:88px 110px 140px;display:none}
+  .screen.on{display:block}
+  .screen.out{animation:screenOut .4s var(--ease-out) forwards}
+  @keyframes screenOut{to{opacity:0;transform:scale(1.02) translateY(-8px);filter:blur(4px)}}
+
+  .kicker{font-family:var(--mono);font-size:19px;color:var(--accent-2);letter-spacing:.16em;text-transform:uppercase;display:flex;align-items:center;gap:16px}
+  .kicker .n{color:var(--accent);padding:3px 10px;border:1px solid rgba(139,92,246,.5);border-radius:6px}
+  .kicker::after{content:"";height:1px;width:140px;background:linear-gradient(90deg,var(--accent-2),transparent)}
+  h2{font-weight:800;font-size:58px;line-height:1.05;letter-spacing:-.025em;margin:16px 0 14px}
+  .lede{font-size:25px;line-height:1.45;color:var(--muted);max-width:1450px}
+
+  /* ── animation primitives ──────────────────────────────── */
+  .a{opacity:0;animation-fill-mode:both;animation-timing-function:var(--ease-out);animation-duration:.75s;animation-delay:calc(var(--d,0)*1ms);animation-play-state:paused}
+  .screen.on .a{animation-play-state:running}
+  .screen.on .a.up{animation-name:up}
+  .screen.on .a.down{animation-name:down}
+  .screen.on .a.left{animation-name:fromLeft}
+  .screen.on .a.right{animation-name:fromRight}
+  .screen.on .a.fade{animation-name:fade}
+  .screen.on .a.pop{animation-name:pop;animation-timing-function:var(--ease-pop);animation-duration:.65s}
+  .screen.on .a.wipe{animation-name:wipe;transform-origin:left}
+  @keyframes up{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
+  @keyframes down{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:none}}
+  @keyframes fromLeft{from{opacity:0;transform:translateX(-70px)}to{opacity:1;transform:none}}
+  @keyframes fromRight{from{opacity:0;transform:translateX(70px)}to{opacity:1;transform:none}}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  @keyframes pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+  @keyframes wipe{from{opacity:1;transform:scaleX(0)}to{opacity:1;transform:scaleX(1)}}
+  .draw{stroke-dasharray:var(--len);stroke-dashoffset:var(--len)}
+  .screen.on .draw{animation:draw 1.6s var(--ease-out) forwards;animation-delay:calc(var(--d,0)*1ms)}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  .flow{stroke-dasharray:6 16;animation:flow 1.4s linear infinite}
+  @keyframes flow{to{stroke-dashoffset:-22}}
+  .grow{transform-origin:left;transform:scaleX(0)}
+  .screen.on .grow{animation:growx 1.1s var(--ease-out) forwards;animation-delay:calc(var(--d,0)*1ms)}
+  @keyframes growx{to{transform:scaleX(1)}}
+
+  /* ── shared components ─────────────────────────────────── */
+  .card{position:relative;background:linear-gradient(165deg,var(--panel-2),var(--panel));border:1px solid var(--rule-lit);border-radius:14px;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+  .hud::before,.hud::after{content:"";position:absolute;width:16px;height:16px;border:2px solid var(--hue,var(--accent-2));opacity:.9}
+  .hud::before{left:-1px;top:-1px;border-right:0;border-bottom:0;border-radius:6px 0 0 0}
+  .hud::after{right:-1px;bottom:-1px;border-left:0;border-top:0;border-radius:0 0 6px 0}
+  .chip{display:inline-flex;align-items:center;gap:10px;padding:7px 16px;border-radius:999px;border:1px solid var(--rule-lit);background:rgba(13,20,36,.8);font-family:var(--mono);font-size:17px;color:var(--muted);white-space:nowrap}
+  .chip i{width:11px;height:11px;border-radius:50%;background:var(--hue,var(--accent-2));box-shadow:0 0 12px var(--hue,var(--accent-2))}
+  .tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:14px;letter-spacing:.08em;text-transform:uppercase;padding:4px 11px;border-radius:6px;align-self:flex-start;
+    color:var(--hue,var(--accent-2));background:color-mix(in srgb,var(--hue,var(--accent-2)) 14%,transparent);border:1px solid color-mix(in srgb,var(--hue,var(--accent-2)) 45%,transparent);white-space:nowrap}
+  .kb{--hue:var(--kb)} .src{--hue:var(--src)} .usr{--hue:var(--user)} .der{--hue:var(--der)} .unsup{--hue:var(--unsup)}
+  .wrong{--hue:var(--wrong)} .nohit{--hue:var(--nohit)} .never{--hue:var(--never)} .full{--hue:var(--full)}
+  .acc{--hue:var(--accent)} .cy{--hue:var(--accent-2)} .dimc{--hue:var(--dim)}
+  .legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  .legend .sep{width:1px;height:28px;background:var(--rule-lit);margin:0 10px}
+  .legend .lbl{font-family:var(--mono);font-size:14px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase;margin-right:4px}
+  .mono{font-family:var(--mono)}
+  .foot{position:absolute;left:110px;right:110px;bottom:118px;display:flex;align-items:center;gap:18px;font-size:21px;color:var(--muted)}
+  .foot b{color:var(--ink)}
+  .foot .pill{font-family:var(--mono);font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-2);border:1px solid rgba(34,211,238,.4);padding:5px 12px;border-radius:6px;white-space:nowrap}
+  .term{font-family:var(--mono);font-size:15.5px;line-height:1.8;overflow:hidden;color:var(--muted);background:#070B14;border:1px solid var(--rule-lit);border-radius:14px;padding:22px 26px;white-space:pre}
+  .term .hd{color:var(--dim);border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:12px;display:block}
+  .term .sec{display:inline-block;width:86px;color:var(--accent-2)}
+  .term .ev{display:inline-block;width:122px;color:var(--ink)}
+  .term .ok{color:var(--kb)} .term .no{color:var(--nohit)} .term .q{color:var(--src)} .term .t{color:var(--dim)}
+  .term .cmt{color:var(--dim);font-style:italic}
+
+  /* ── 00 title ──────────────────────────────────────────── */
+  .screen.on.s0{display:flex;flex-direction:column;justify-content:center}
+  .s0 .orbit{position:absolute;right:-120px;top:50%;transform:translateY(-50%);width:980px;height:980px;pointer-events:none}
+  .s0 .orbit svg{width:100%;height:100%;overflow:visible}
+  .s0 .ring{transform-origin:center;animation:spin 60s linear infinite}
+  .s0 .ring.r2{animation-duration:40s;animation-direction:reverse}
+  .s0 .ring.r3{animation-duration:90s}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .s0 .prompt{font-family:var(--mono);font-size:24px;color:var(--kb);margin-bottom:30px;min-height:34px;position:relative;z-index:1}
+  .s0 .prompt .cursor{display:inline-block;width:13px;height:26px;background:var(--kb);vertical-align:-4px;margin-left:4px;animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .s0 h1{font-weight:900;font-size:100px;line-height:1;letter-spacing:-.035em;max-width:1350px;position:relative;z-index:1}
+  .w{display:inline-block;margin-right:.24em}
+  .hi{color:var(--kb);text-shadow:0 0 40px rgba(34,197,94,.45)}
+  .s0 .sub{font-size:30px;line-height:1.45;color:var(--muted);margin-top:28px;max-width:1150px;position:relative;z-index:1}
+  .s0 .goals{display:flex;gap:22px;margin-top:48px;position:relative;z-index:1}
+  .s0 .goal{padding:22px 28px;width:430px}
+  .s0 .goal .n{font-family:var(--mono);font-size:15px;color:var(--accent-2);letter-spacing:.14em}
+  .s0 .goal p{font-size:22px;line-height:1.35;margin-top:8px}
+  .s0 .legend{margin-top:48px;position:relative;z-index:1}
+
+  /* ── 01 problem ────────────────────────────────────────── */
+  .s1 h2{font-size:54px;max-width:1600px} .s1 h2 .k{color:var(--kb)} .s1 h2 .s{color:var(--src)} .s1 h2 .u{color:var(--user)}
+  .s1 .lede{max-width:1600px;font-size:24px}
+  .s1 .lede .k{color:var(--kb);font-weight:600} .s1 .lede .s{color:var(--src);font-weight:600} .s1 .lede .u{color:var(--user);font-weight:600}
+  .s1 .qblock{margin-top:26px}
+  .s1 .qhd{font-family:var(--mono);font-size:15px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-2);margin-bottom:14px;display:flex;align-items:center;gap:14px}
+  .s1 .qhd::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(34,211,238,.5),transparent)}
+  .s1 .qgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+  .s1 .qq{padding:22px 24px 20px;min-height:200px;--hue:var(--accent)}
+  .s1 .qq .qn{font-family:var(--mono);font-size:34px;font-weight:800;color:var(--accent);line-height:1;margin-bottom:12px}
+  .s1 .qq h4{font-size:23px;line-height:1.2}
+  .s1 .qq p{font-size:16.5px;line-height:1.4;color:var(--muted);margin-top:10px}
+  .s1 .risks{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:30px}
+  .s1 .rk{padding:22px 28px 20px;--hue:var(--nohit)}
+  .s1 .rk .rt{display:flex;align-items:center;gap:14px}
+  .s1 .rk h3{font-size:26px;line-height:1.15}
+  .s1 .rk p{font-size:19px;line-height:1.45;color:var(--muted);margin-top:10px}
+  .s1 .rk .ex{margin-top:12px;padding-top:12px;border-top:1px dashed var(--rule-lit);font-family:var(--mono);font-size:15px;line-height:1.6;color:var(--muted)}
+  .s1 .rk .ex .k{color:var(--kb)} .s1 .rk .ex .s{color:var(--src)} .s1 .rk .ex .x{color:var(--nohit)} .s1 .rk .ex .dm{color:var(--dim)}
+
+  /* ── 02 idea ───────────────────────────────────────────── */
+  .s2 .wrap{display:grid;grid-template-columns:720px 1fr;gap:70px;margin-top:22px;align-items:center}
+  .s2 .loop{position:relative;width:700px;height:640px}
+  .s2 .loop svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  .s2 .node{position:absolute;width:196px;padding:12px 14px;text-align:center;transform:translate(-50%,-50%);--hue:var(--accent-2)}
+  .s2 .node .n{font-family:var(--mono);font-size:13px;color:var(--hue);letter-spacing:.14em}
+  .s2 .node h4{font-size:22px;margin-top:3px}
+  .s2 .node p{font-size:15px;color:var(--muted);line-height:1.3;margin-top:4px}
+  .s2 .core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;width:250px}
+  .s2 .core .big{font-weight:900;font-size:46px;letter-spacing:-.03em;line-height:1;color:var(--kb);text-shadow:0 0 36px rgba(34,197,94,.4)}
+  .s2 .core p{font-size:16px;color:var(--muted);margin-top:10px;line-height:1.35}
+  .s2 .val h3{font-size:26px;color:var(--ink);margin-bottom:16px}
+  .s2 .val h3 span{color:var(--dim);font-weight:500}
+  .s2 .qcard{padding:18px 24px;margin-bottom:14px;display:grid;grid-template-columns:52px 1fr auto;gap:18px;align-items:center;--hue:var(--accent)}
+  .s2 .qcard .num{font-family:var(--mono);font-size:30px;font-weight:700;color:var(--accent)}
+  .s2 .qcard .num.chk{color:var(--kb);text-shadow:0 0 18px rgba(34,197,94,.5)}
+  .s2 .qcard{--hue:var(--kb)}
+  .s2 .qcard p b{color:var(--ink)}
+  .s2 .illus{font-family:var(--mono);font-size:13px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;text-align:right;margin-top:4px}
+  .s2 .qcard h4{font-size:25px;line-height:1.15}
+  .s2 .qcard p{font-size:17px;color:var(--muted);margin-top:4px}
+  .s2 .qcard .ex{font-family:var(--mono);font-size:19px;color:var(--kb);white-space:nowrap;text-align:right}
+  .s2 .qcard .ex small{display:block;font-size:13px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-top:3px}
+
+  /* ── 03 seven steps ────────────────────────────────────── */
+  .s3 .phases{display:grid;grid-template-columns:1fr 4fr 1fr 1fr;gap:18px;margin-top:50px}
+  .s3 .ph{font-family:var(--mono);font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-2);padding-bottom:10px;border-bottom:1px solid rgba(34,211,238,.35);margin-bottom:16px;display:flex;justify-content:space-between}
+  .s3 .ph span{color:var(--dim)}
+  .s3 .steps{display:grid;gap:18px}
+  .s3 .steps.four{grid-template-columns:repeat(4,1fr)}
+  .s3 .st{padding:24px 20px 20px;min-height:330px;--hue:var(--accent)}
+  .s3 .st .n{font-family:var(--mono);font-size:40px;font-weight:800;color:var(--accent);line-height:1}
+  .s3 .st h4{font-size:24px;line-height:1.15;margin-top:12px}
+  .s3 .st p{font-size:19px;line-height:1.4;color:var(--muted);margin-top:10px}
+  .s3 .st .who{margin-top:14px} .s3 .st .who .tag{white-space:normal;line-height:1.3}
+  .s3 .st.h{--hue:var(--kb)} .s3 .st.h .n{color:var(--kb)}
+  .s3 .st.res{--hue:var(--kb);border-style:dashed;border-color:rgba(34,197,94,.55);background:linear-gradient(165deg,rgba(34,197,94,.12),var(--panel))} .s3 .st.res .n{color:var(--kb);text-shadow:0 0 18px rgba(34,197,94,.5)}
+  .s3 .ph.res{color:var(--kb);border-bottom-color:rgba(34,197,94,.45)}
+  .s3 .st.rep{overflow:visible}
+  .s3 .st.rep::before{content:"➜";position:absolute;left:-30px;top:44%;width:38px;height:38px;border-radius:50%;background:var(--bg);border:1px solid rgba(34,211,238,.6);color:var(--accent-2);font-size:20px;display:grid;place-items:center;box-shadow:0 0 18px rgba(34,211,238,.45);z-index:2;opacity:1;border-right-color:rgba(34,211,238,.6);border-bottom-color:rgba(34,211,238,.6)}
+  .s3 .st .flowline{margin-top:16px;display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:14px;color:var(--muted)}
+  .s3 .st .flowline span{padding:4px 8px;border:1px solid var(--rule-lit);border-radius:6px;background:var(--panel);white-space:nowrap;font-size:13px}
+  .s3 .st .flowline span.doc{color:var(--accent-2);border-color:rgba(34,211,238,.5)}
+  .s3 .st .flowline i{color:var(--accent-2);font-style:normal;font-size:18px}
+  .s3 .st.m{--hue:var(--src)} .s3 .st.m .n{color:var(--src)}
+  .s3 .people{margin-top:26px;padding:20px 30px;display:flex;flex-direction:column;align-items:flex-start;gap:16px;border-style:dashed}
+  .s3 .people .t{font-size:24px}
+  .s3 .people .t b{color:var(--kb)}
+  .s3 .people .pp{display:flex;gap:14px;flex-wrap:wrap}
+  .s3 .people .pp span{font-family:var(--mono);font-size:16px;color:var(--muted);border:1px solid var(--rule-lit);padding:8px 14px;border-radius:8px;white-space:nowrap}
+  .s3 .people .pp span b{color:var(--accent-2);margin-right:8px}
+
+  /* ── step pages: shared two-column ─────────────────────── */
+  .two{display:grid;grid-template-columns:640px 1fr;gap:56px;margin-top:38px;align-items:start}
+  .two .pts li{display:grid;grid-template-columns:38px 1fr;gap:16px;align-items:start;margin-bottom:22px}
+  .two .pts li i{width:28px;height:28px;border-radius:50%;border:2px solid var(--hue,var(--accent-2));display:grid;place-items:center;font-family:var(--mono);font-size:14px;color:var(--hue,var(--accent-2));margin-top:4px}
+  .two .pts li h4{font-size:24px;line-height:1.2}
+  .two .pts li p{font-size:19px;line-height:1.4;color:var(--muted);margin-top:5px}
+  .two .pts li b{color:var(--ink)}
+  .not{margin-top:10px;padding:16px 22px;border:1px dashed var(--rule-lit);border-radius:12px;font-size:18px;color:var(--muted);line-height:1.45}
+  .not b{color:var(--never)}
+
+  /* ── when-it-runs badge on step pages ─────────────────── */
+  .when{position:absolute;top:84px;right:110px;display:inline-flex;align-items:center;gap:10px;padding:9px 18px;border-radius:999px;border:1px solid var(--hue,var(--accent-2));background:rgba(13,20,36,.85);font-family:var(--mono);font-size:16px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);z-index:5}
+  .when i{font-style:normal;color:var(--hue,var(--accent-2));font-size:18px}
+  .when b{color:var(--hue,var(--accent-2))}
+  .when.during{--hue:var(--accent-2)} .when.end{--hue:var(--accent)} .when.weekly{--hue:var(--src)} .when.over{--hue:var(--kb)}
+
+  /* ── 04 step 1 log ─────────────────────────────────────── */
+  .s4 .wrapbox{padding:22px 26px;margin-bottom:18px;display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;--hue:var(--kb)}
+  .s4 .wrapbox .src2{display:flex;flex-direction:column;gap:10px}
+  .s4 .wrapbox .src2 span{font-family:var(--mono);font-size:17px;padding:10px 14px;border-radius:8px;border:1px solid var(--rule-lit);background:var(--panel)}
+  .s4 .wrapbox .arrow{font-size:30px;color:var(--accent-2)}
+  .s4 .wrapbox .w{display:block;text-align:center;font-weight:700;font-size:22px;padding:20px 10px;border-radius:10px;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.45);color:var(--kb);margin:0}
+  .s4 .wrapbox .w small{display:block;font-weight:400;font-size:15px;color:var(--muted);margin-top:6px}
+
+  /* ── 05 step 2 collect ─────────────────────────────────── */
+  .s5 .tree{font-family:var(--mono);font-size:21px;line-height:2;padding:30px 34px;z-index:30}
+  .s5 .tree .d{color:var(--accent-2)}
+  .s5 .tree .f{display:grid;grid-template-columns:260px 1fr auto;gap:18px;align-items:center}
+  .s5 .tree .f .c{font-family:var(--body);font-size:19px;color:var(--muted)}
+  .s5 .tree .f .c b{color:var(--ink)}
+  .s5 .join{margin-top:20px;display:grid;grid-template-columns:1fr auto 1fr;gap:20px;align-items:center}
+  .s5 .join .b{padding:14px 20px;font-family:var(--mono);font-size:17px;color:var(--muted);text-align:center}
+  .s5 .join .b b{display:block;color:var(--ink);font-family:var(--body);font-size:20px;margin-bottom:4px}
+  .s5 .join .k{font-family:var(--mono);font-size:15px;color:var(--accent-2);letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+
+  .s5 .lede .hintp{display:inline-block;margin-left:14px;font-family:var(--mono);font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-2);opacity:.85}
+  .s5 .tree .f{position:relative;cursor:pointer;border-radius:10px;margin:0 -12px;padding:2px 12px;transition:background .2s}
+  .s5 .tree .f:hover{background:rgba(34,211,238,.08)}
+  .s5 .tree .f:hover .tag{box-shadow:0 0 0 2px color-mix(in srgb,var(--hue) 55%,transparent)}
+  /* file viewer modal */
+  .s5 .modal{position:absolute;inset:0;z-index:60;display:none;background:rgba(4,7,13,.78);backdrop-filter:blur(8px)}
+  .s5 .modal.on{display:grid;place-items:center}
+  .s5 .modal .box{width:1500px;max-height:900px;display:flex;flex-direction:column;--hue:var(--accent-2);animation:pop .4s var(--ease-pop) both}
+  .s5 .modal.kb .box{--hue:var(--kb)} .s5 .modal.usr .box{--hue:var(--user)} .s5 .modal.src .box{--hue:var(--src)} .s5 .modal.dimc .box{--hue:var(--dim)}
+  .s5 .modal .mh{display:flex;align-items:center;gap:18px;padding:18px 28px;border-bottom:1px solid var(--rule-lit);background:var(--panel)}
+  .s5 .modal .mt{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--hue)}
+  .s5 .modal .ms{font-size:17px;color:var(--muted)}
+  .s5 .modal .mx{margin-left:auto;appearance:none;background:var(--panel-2);border:1px solid var(--rule-lit);color:var(--muted);width:40px;height:40px;border-radius:10px;font-size:18px;cursor:pointer}
+  .s5 .modal .mx:hover{border-color:var(--hue);color:var(--ink)}
+  .s5 .modal .mb{padding:26px 30px;overflow:auto;background:#070B14}
+  .s5 .modal .mf{padding:10px 28px;font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);border-top:1px solid var(--rule);text-align:right}
+  .s5 .modal .ln{margin-top:20px;padding-top:14px;border-top:1px dashed var(--rule-lit);font-size:17px;color:var(--muted);line-height:1.5}
+  .s5 .modal .ln b{color:var(--ink)} .s5 .modal .ln code{font-size:15px;color:var(--accent-2)}
+  /* log table */
+  .s5 .lt{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:17px}
+  .s5 .lt th{text-align:left;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);padding:0 14px 12px;border-bottom:1px solid var(--rule-lit);font-weight:500}
+  .s5 .lt td{padding:13px 14px;border-bottom:1px solid var(--rule);color:var(--muted);vertical-align:top;line-height:1.4}
+  .s5 .lt td.sc{color:var(--accent-2)} .s5 .lt td.tn{color:var(--dim)} .s5 .lt td.ev{color:var(--ink)} .s5 .lt td.q{color:var(--src)}
+  .s5 .lt td.ok{color:var(--kb);font-weight:600} .s5 .lt td.no{color:var(--nohit);font-weight:600} .s5 .lt td.dm{color:var(--dim)}
+  /* chat */
+  .s5 .chat{display:flex;flex-direction:column;gap:14px;max-width:1200px;margin:0 auto}
+  .s5 .msg{max-width:72%;display:flex;flex-direction:column;gap:6px}
+  .s5 .msg.an{align-self:flex-start} .s5 .msg.ag{align-self:flex-end;align-items:flex-end}
+  .s5 .msg .who{font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:flex;gap:10px;align-items:center}
+  .s5 .msg .who .tag{font-size:11px;padding:2px 8px}
+  .s5 .msg .bb{font-size:19px;line-height:1.45;padding:14px 20px;border-radius:16px;border:1px solid var(--rule-lit);background:var(--panel-2);color:var(--ink)}
+  .s5 .msg.an .bb{border-bottom-left-radius:4px;background:rgba(59,130,246,.14);border-color:rgba(59,130,246,.45)}
+  .s5 .msg.ag .bb{border-bottom-right-radius:4px;color:var(--muted)}
+  .s5 .msg.src .bb{box-shadow:0 0 0 2px rgba(59,130,246,.35)}
+  /* document */
+  .s5 .doc{max-width:1200px;margin:0 auto;font-family:Georgia,"Times New Roman",serif}
+  .s5 .doc h5{font-family:var(--body);font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-2);margin:22px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+  .s5 .doc h5:first-child{margin-top:0}
+  .s5 .doc p{font-size:22px;line-height:1.6;color:var(--ink);margin:0 0 10px}
+  .s5 .doc .ct{display:inline-block;vertical-align:middle;margin-left:10px;font-family:var(--mono);font-size:13px;padding:3px 10px;border-radius:6px;border:1px solid;letter-spacing:.02em}
+  .s5 .doc .ct.src{color:var(--src);border-color:rgba(245,158,11,.5);background:rgba(245,158,11,.1)}
+  .s5 .doc .ct.kb{color:var(--kb);border-color:rgba(34,197,94,.5);background:rgba(34,197,94,.1)}
+  .s5 .doc .ct.usr{color:var(--user);border-color:rgba(59,130,246,.5);background:rgba(59,130,246,.1)}
+  .s5 .doc .ct.none{color:var(--nohit);border-color:rgba(239,68,68,.5);background:rgba(239,68,68,.1)}
+  /* sources list */
+  .s5 .srcl{display:flex;flex-direction:column;gap:12px;max-width:1200px;margin:0 auto}
+  .s5 .si{display:grid;grid-template-columns:44px 1fr auto;gap:16px;align-items:center;padding:14px 18px;border:1px solid var(--rule-lit);border-radius:12px;background:var(--panel-2)}
+  .s5 .si .ic{font-size:26px;text-align:center;color:var(--kb)}
+  .s5 .si b{display:block;font-family:var(--mono);font-size:18px;color:var(--ink)}
+  .s5 .si span:not(.tag):not(.ic){display:block;font-size:16px;color:var(--muted);margin-top:3px}
+  /* ── 06 step 3 claims ──────────────────────────────────── */
+  .s6 .flowbox{display:grid;grid-template-columns:1fr 60px 1fr;gap:18px;align-items:start;margin-top:30px}
+  .s6 .si{padding:26px 30px;--hue:var(--accent-2)}
+  .s6 .si .hd{font-family:var(--mono);font-size:14px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;margin-bottom:14px}
+  .s6 .si p{font-size:22px;line-height:1.45;margin-bottom:12px}
+  .s6 .si p.skip{color:var(--dim);text-decoration:line-through;text-decoration-color:rgba(148,163,184,.6)}
+  .s6 .si .cite{display:block;font-family:var(--mono);font-size:15px;color:var(--src);margin-top:-6px;margin-bottom:14px}
+  .s6 .si .cite.u{color:var(--user)} .s6 .si .cite.x{color:var(--never)}
+  .s6 .arr{font-size:46px;color:var(--accent-2);text-align:center;align-self:center}
+  .s6 .cl{padding:20px 24px;--hue:var(--kb)}
+  .s6 .cl table{width:100%;border-collapse:collapse;font-size:20px}
+  .s6 .cl th{font-family:var(--mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);text-align:left;padding:0 10px 10px;border-bottom:1px solid var(--rule-lit)}
+  .s6 .cl td{padding:12px 10px;border-bottom:1px solid var(--rule);vertical-align:top;line-height:1.3}
+  .s6 .cl td.id{font-family:var(--mono);color:var(--accent-2);white-space:nowrap}
+  .s6 .cl td.ct{font-family:var(--mono);font-size:15px;color:var(--src)}
+  .s6 .cl td.ct.u{color:var(--user)} .s6 .cl td.ct.x{color:var(--never)}
+  .s6 .si .cite.k{color:var(--kb)} .s6 .cl td.ct.k{color:var(--kb)}
+  .s6 .cl tr.none td{background:rgba(239,68,68,.10)}
+  .s6 .cl tr.none td:first-child{border-left:3px solid var(--nohit);border-radius:6px 0 0 6px}
+  .s6 .cl tr.none td:last-child{border-radius:0 6px 6px 0}
+  .s6 .cl tr.none td{border-top:1px solid rgba(239,68,68,.5);border-bottom:1px solid rgba(239,68,68,.5)}
+  .s6 .below{display:grid;grid-template-columns:1fr 60px 1fr;gap:18px;margin-top:14px;align-items:start}
+  .s6 .purpose{grid-column:1;padding:8px 6px 0}
+  .s6 .purpose p{font-size:24px;line-height:1.4;color:var(--ink)}
+  .s6 .purpose p b{color:var(--kb)}
+  .s6 .purpose p.sub{font-size:17px;line-height:1.45;color:var(--muted);margin-top:12px}
+  .s6 .catch{grid-column:3;display:flex;flex-direction:column;align-items:flex-start;margin-top:-72px}
+  .s6 .catch .darr{font-size:30px;color:var(--nohit);line-height:1;margin:-6px 0 6px 40px;text-shadow:0 0 16px rgba(239,68,68,.6)}
+  .s6 .catch .cbox{padding:16px 22px;--hue:var(--nohit);width:100%}
+  .s6 .catch .ch{display:flex;align-items:center;gap:12px;font-size:21px}
+  .s6 .catch .ch b{color:var(--ink)}
+  .s6 .catch p{font-size:17px;line-height:1.45;color:var(--muted);margin-top:8px}
+  .s6 .catch p b{color:var(--nohit)}
+  /* ── 07 step 4 trace ───────────────────────────────────── */
+  .s7 .chain{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:36px}
+  .s7 .ch{padding:18px 20px;min-height:132px;--hue:var(--accent)}
+  .s7 .ch .n{font-family:var(--mono);font-size:14px;color:var(--accent);letter-spacing:.14em}
+  .s7 .ch h4{font-size:22px;margin-top:6px;line-height:1.15}
+  .s7 .ch p{font-size:16px;line-height:1.35;color:var(--muted);margin-top:6px}
+  .s7 .ex{margin-top:22px;padding:22px 28px;display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:26px;--hue:var(--src);align-items:start}
+  .s7 .ex .lab{font-family:var(--mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+  .s7 .ex .claim{font-size:26px;font-weight:700;line-height:1.2}
+  .s7 .ex .cite{font-family:var(--mono);font-size:15px;color:var(--src);margin-top:8px}
+  .s7 .ex .qt{font-family:var(--mono);font-size:17px;line-height:1.45;color:var(--ink);padding:12px 14px;border-radius:8px;background:#070B14;border:1px solid var(--rule-lit)}
+  .s7 .ex .qt.k{border-color:rgba(34,197,94,.4)}
+  .s7 .ex .res{margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:17px;color:var(--muted)}
+  .s7 .rows{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:26px}
+  .s7 .rows .rw{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .s7 .foot{position:static;margin-top:44px}
+  .s7 .rows .lbl{font-family:var(--mono);font-size:14px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase;margin-right:6px}
+
+  /* ── 08 step 5 report ──────────────────────────────────── */
+  .s8 .rep{padding:0;overflow:hidden;--hue:var(--accent-2)}
+  .s8 .rep .bar{display:flex;gap:8px;padding:12px 16px;border-bottom:1px solid var(--rule-lit);background:var(--panel)}
+  .s8 .rep .bar i{width:11px;height:11px;border-radius:50%;background:var(--rule-lit)}
+  .s8 .rep .bar span{margin-left:12px;font-family:var(--mono);font-size:14px;color:var(--dim)}
+  .s8 .rep .body{font-family:var(--mono);font-size:15.5px;line-height:1.7;padding:18px 24px;white-space:pre;color:var(--muted)}
+  .s8 .rep .body b{color:var(--ink);font-weight:600}
+  .s8 .rep .body .h{color:var(--accent-2)} .s8 .rep .body .k{color:var(--kb)} .s8 .rep .body .s{color:var(--src)} .s8 .rep .body .u{color:var(--user)} .s8 .rep .body .x{color:var(--nohit)} .s8 .rep .body .w{color:var(--wrong)}
+  .s8 .fan{margin-top:22px;display:grid;grid-template-columns:230px 60px 1fr;gap:12px;align-items:center}
+  .s8 .fan .src0{padding:16px 18px;text-align:center;font-family:var(--mono);font-size:18px;color:var(--ink);display:flex;flex-direction:column;align-items:center}
+  .s8 .fan .src0 small{display:block;font-family:var(--body);font-size:15px;color:var(--muted);margin-top:4px}
+  .s8 .fan .arr{font-size:34px;color:var(--accent-2);text-align:center}
+  .s8 .fan .outs{display:grid;gap:8px}
+  .s8 .fan .outs span{font-size:17px;color:var(--muted);padding:9px 14px;border:1px solid var(--rule-lit);border-radius:8px;background:var(--panel)}
+  .s8 .fan .outs span b{color:var(--ink);font-family:var(--mono);font-size:15px;margin-right:10px}
+
+  /* ── 09 step 6 act ─────────────────────────────────────── */
+  .s9 .pipe{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-top:34px;position:relative}
+  .s9 .pipe .st{padding:18px 18px 16px;min-height:190px;--hue:var(--accent)}
+  .s9 .pipe .st .n{font-family:var(--mono);font-size:13px;color:var(--accent);letter-spacing:.12em}
+  .s9 .pipe .st h4{font-size:22px;line-height:1.15;margin-top:5px}
+  .s9 .pipe .st p{font-size:16.5px;line-height:1.35;color:var(--muted);margin-top:6px}
+  .s9 .pipe .st.hum{--hue:var(--kb);background:linear-gradient(165deg,rgba(34,197,94,.16),var(--panel));border-color:rgba(34,197,94,.5)}
+  .s9 .pipe .st.hum .n{color:var(--kb)}
+  .s9 .braces{display:grid;grid-template-columns:4fr 1fr 1fr;gap:12px;margin-top:10px}
+  .s9 .braces span{font-family:var(--mono);font-size:14px;letter-spacing:.12em;text-transform:uppercase;text-align:center;padding-top:8px;border-top:1px solid var(--rule-lit);color:var(--accent)}
+  .s9 .braces span.g{color:var(--kb)} .s9 .braces span.d{color:var(--dim)}
+  .s9 .low{display:grid;grid-template-columns:1fr 760px;gap:40px;margin-top:26px;align-items:start}
+  .s9 .low .pts li{display:grid;grid-template-columns:30px 1fr;gap:12px;margin-bottom:14px;font-size:19px;line-height:1.4;color:var(--muted)}
+  .s9 .low .pts li i{color:var(--kb);font-style:normal;font-size:20px}
+  .s9 .low .pts li b{color:var(--ink)}
+  .s9 .appr{padding:0;overflow:hidden;--hue:var(--kb)}
+  .s9 .appr .hd{padding:12px 20px;border-bottom:1px solid var(--rule-lit);background:var(--panel);display:flex;gap:14px;align-items:center;font-family:var(--mono);font-size:15px;color:var(--muted)}
+  .s9 .appr .hd b{color:var(--wrong);letter-spacing:.1em}
+  .s9 .appr .hd span.r{margin-left:auto;color:var(--accent-2)}
+  .s9 .appr .bd{padding:14px 20px;font-family:var(--mono);font-size:15.5px;line-height:1.75;color:var(--muted);white-space:pre}
+  .s9 .appr .bd .k{color:var(--kb)} .s9 .appr .bd .s{color:var(--src)} .s9 .appr .bd .j{color:var(--accent)}
+  .s9 .appr .btns{display:flex;gap:10px;padding:0 20px 16px}
+  .s9 .appr .btns span{font-family:var(--mono);font-size:14px;padding:8px 14px;border-radius:8px;border:1px solid var(--rule-lit);color:var(--muted)}
+  .s9 .appr .btns span.ok{background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.5);color:var(--kb)}
+
+  .s9 .hint9{position:absolute;right:110px;top:176px;font-family:var(--mono);font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-2);opacity:.85}
+  .s9 .pipe .st{cursor:pointer;transition:transform .2s,border-color .2s}
+  .s9 .pipe .st:hover,.s9 .pipe .st.pin{transform:translateY(-4px);border-color:var(--hue)}
+  .s9 .detail{position:absolute;left:110px;right:110px;top:462px;z-index:40;display:none}
+  .s9 .detail.on{display:block;animation:up .35s var(--ease-out) both}
+  .s9 .detail .caret{position:absolute;top:-9px;width:18px;height:18px;transform:translateX(-50%) rotate(45deg);background:var(--panel-2);border-left:1px solid var(--hue,var(--accent));border-top:1px solid var(--hue,var(--accent));z-index:41}
+  .s9 .detail.acc{--hue:var(--accent)} .s9 .detail.kb{--hue:var(--kb)}
+  .s9 .dbox{padding:0;overflow:hidden;--hue:var(--hue,var(--accent));background:linear-gradient(165deg,var(--panel-2),#070B14)}
+  .s9 .dbox .dh{display:flex;align-items:center;gap:16px;padding:14px 26px;border-bottom:1px solid var(--rule-lit);background:var(--panel)}
+  .s9 .dbox .dn{font-family:var(--mono);font-size:15px;color:var(--hue);letter-spacing:.14em;border:1px solid color-mix(in srgb,var(--hue) 50%,transparent);padding:3px 10px;border-radius:6px}
+  .s9 .dbox .dt{font-size:24px;font-weight:700}
+  .s9 .dbox .dw{margin-left:auto;font-family:var(--mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+  .s9 .dbox .db{padding:20px 26px 22px}
+  .s9 .db p{font-size:18px;line-height:1.45;color:var(--muted)} .s9 .db p b{color:var(--ink)} .s9 .db p i{color:var(--ink);font-style:italic}
+  .s9 .db p.lead{font-size:19px;color:var(--ink);margin-bottom:16px} .s9 .db p.lead b{color:var(--accent-2)}
+  .s9 .db p.nb{margin-top:16px;padding-top:12px;border-top:1px dashed var(--rule-lit);font-size:17px}
+  .s9 .db h6{font-family:var(--mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-2);margin:0 0 8px}
+  .s9 .db ul li{font-size:17px;line-height:1.45;color:var(--muted);padding:4px 0 4px 18px;position:relative}
+  .s9 .db ul li::before{content:"";position:absolute;left:0;top:14px;width:7px;height:7px;border-radius:50%;background:var(--hue)}
+  .s9 .db ul li b{color:var(--ink)}
+  .s9 .db .cols2{display:grid;grid-template-columns:1fr 1fr;gap:30px}
+  .s9 .db .cols3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px}
+  .s9 .db .cols3 p{font-size:17px}
+  .s9 .db code{font-family:var(--mono);font-size:15px;color:var(--accent-2)}
+  .s9 .db .sig{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:18px}
+  .s9 .db .sg{display:grid;grid-template-columns:38px 1fr;gap:12px;padding:14px 16px;border:1px solid var(--rule-lit);border-radius:12px;background:rgba(13,20,36,.7)}
+  .s9 .db .sg.one{border-color:rgba(34,197,94,.5);background:rgba(34,197,94,.07)}
+  .s9 .db .sg .k{font-family:var(--mono);font-size:26px;font-weight:800;color:var(--accent);line-height:1}
+  .s9 .db .sg.one .k{color:var(--kb)}
+  .s9 .db .sg p{font-size:16.5px}
+
+  /* ── 10 metrics ────────────────────────────────────────── */
+  .screen.s10{padding-top:70px}
+  .s10 h2{font-size:48px;margin:10px 0 10px}
+  .s10 .quad{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:18px;margin-top:16px;height:722px}
+  .s10 .q{padding:16px 24px 14px;display:flex;flex-direction:column;overflow:hidden;--hue:var(--accent)}
+  .s10 .q .qh{display:flex;align-items:baseline;gap:14px}
+  .s10 .q .qh .num{font-family:var(--mono);font-size:15px;color:var(--accent);letter-spacing:.14em}
+  .s10 .q .qh h4{font-size:24px;line-height:1.1}
+  .s10 .q .qh small{font-family:var(--mono);font-size:13px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase}
+  .s10 .q .head{display:flex;align-items:center;gap:16px;margin-top:10px}
+  .s10 .q .head .lbl{font-family:var(--mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+  .s10 .q .head .lbl b{display:block;font-family:var(--body);font-size:18px;letter-spacing:0;text-transform:none;color:var(--ink);margin-top:2px} .s10 .q .head .lbl b span{font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-left:8px}
+  .s10 .q .big{font-family:var(--mono);font-weight:800;font-size:40px;letter-spacing:-.03em;line-height:1;color:var(--ink);white-space:nowrap}
+  .s10 .q .big .fr{color:var(--dim);font-size:30px;font-weight:600}
+  .s10 .q .big .ar{color:var(--kb);font-size:30px;margin:0 8px}
+  .s10 .q .big .to{color:var(--kb)}
+  .s10 .q .big.red .to{color:var(--kb)}
+  .s10 .q .viz{margin-top:10px;flex:1}
+  .s10 .sbar{display:flex;align-items:center;gap:12px;margin-bottom:7px;font-family:var(--mono);font-size:14px;color:var(--dim)}
+  .s10 .sbar .yr{width:38px}
+  .s10 .sbar .trk{flex:1;height:20px;display:flex;border-radius:6px;overflow:hidden;background:var(--panel)}
+  .s10 .sbar .trk i{display:block;height:100%}
+  .s10 .sbar .trk i.u{background:var(--kb)} .s10 .sbar .trk i.o{background:var(--wrong)} .s10 .sbar .trk i.m{background:#334155}
+  .s10 .sbar .trk i.kp{background:var(--user)} .s10 .sbar .pct{width:72px;text-align:right;color:var(--muted)}
+  .s10 .sbar .trk i.l{background:var(--src)} .s10 .sbar .trk i.us{background:var(--user)} .s10 .sbar .trk i.x{background:var(--unsup)}
+  .s10 .keyr{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:6px}
+  .s10 .keyr span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;background:var(--c);vertical-align:-1px}
+  .s10 .note{font-size:15.5px;line-height:1.4;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px dashed var(--rule-lit)}
+  .s10 .note b{color:var(--ink)}
+  .s10 .cols{display:flex;gap:10px;align-items:flex-end;height:86px;margin-top:4px}
+  .s10 .cols .c{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;color:var(--dim)}
+  .s10 .cols .c i{display:block;width:100%;border-radius:4px 4px 0 0;background:var(--accent);transform-origin:bottom}
+  .s10 .cols .c i.pk{background:var(--accent-2)}
+  .s10 .cols .c i{transform:scaleY(0)} .s10.on .cols .c i{animation:growy 1s var(--ease-out) forwards;animation-delay:calc(var(--d,0)*1ms)}
+  @keyframes growy{to{transform:scaleY(1)}}
+  .s10 .mini{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+  .s10 .mini .m{padding:8px 12px;border:1px solid var(--rule-lit);border-radius:10px;background:var(--panel)}
+  .s10 .mini .m .l{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+  .s10 .mini .m .v{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--ink);margin-top:4px}
+  .s10 .mini .m .v span{color:var(--kb)} .s10 .mini .m .v span.bad{color:var(--wrong)}
+  .s10 .secs{display:flex;gap:8px;margin-top:6px;font-family:var(--mono);font-size:13px}
+  .s10 .secs span{flex:1;padding:6px 6px;text-align:center;border:1px solid var(--rule-lit);border-radius:8px;color:var(--muted)}
+  .s10 .secs span b{display:block;color:var(--kb);font-size:17px}
+  .s10 .secs span.bad{border-color:rgba(249,115,22,.5)} .s10 .secs span.bad b{color:var(--wrong)}
+
+  .s10 .hint10{position:absolute;right:110px;top:150px;font-family:var(--mono);font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-2);opacity:.85}
+  .s10 .q{cursor:pointer;transition:transform .2s,border-color .2s}
+  .s10 .q:hover{transform:translateY(-3px);border-color:var(--accent)}
+  .s10 .focus{position:absolute;inset:0;z-index:60;display:none;background:rgba(4,7,13,.78);backdrop-filter:blur(8px);cursor:pointer}
+  .s10 .focus.on{display:grid;place-items:center}
+  .s10 .focus .fwrap{width:841px;transform-origin:center;animation:popBig .45s var(--ease-pop) both}
+  @keyframes popBig{from{opacity:0;transform:scale(1)}to{opacity:1;transform:scale(1.62)}}
+  .s10 .focus .fq{min-height:352px;transform:none!important;cursor:default;box-shadow:0 40px 120px rgba(0,0,0,.8),0 0 0 1px rgba(139,92,246,.35)}
+  .s10 .focus .fq:hover{transform:none;border-color:var(--rule-lit)}
+  /* ── 11 close ──────────────────────────────────────────── */
+  .s11 .cols3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:26px;margin-top:44px}
+  .s11 .c3{padding:28px 30px;min-height:470px;--hue:var(--accent)}
+  .s11 .c3 .n{font-family:var(--mono);font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-2)}
+  .s11 .c3 h3{font-size:30px;margin-top:8px;line-height:1.1}
+  .s11 .c3 ul{margin-top:18px}
+  .s11 .c3 li{font-size:19px;line-height:1.4;color:var(--muted);padding:9px 0 9px 26px;position:relative;border-bottom:1px solid var(--rule)}
+  .s11 .c3 li::before{content:"";position:absolute;left:0;top:19px;width:10px;height:10px;border-radius:50%;background:var(--hue)}
+  .s11 .c3 li b{color:var(--ink)}
+  .s11 .c3.g{--hue:var(--kb)} .s11 .c3.g .n{color:var(--kb)}
+  .s11 .c3.o{--hue:var(--src)} .s11 .c3.o .n{color:var(--src)}
+  .s11 .ask{margin-top:26px;padding:22px 30px;display:flex;align-items:center;gap:26px;--hue:var(--kb)}
+  .s11 .ask .t{font-size:26px}
+  .s11 .ask .t b{color:var(--kb)}
+
+  /* ── controls ──────────────────────────────────────────── */
+  .ctl{position:absolute;left:110px;right:110px;bottom:46px;display:flex;align-items:center;gap:20px;z-index:50}
+  .ctl .dots{display:flex;gap:8px}
+  .ctl .dots i{width:38px;height:4px;border-radius:2px;background:var(--rule-lit);transition:background .3s,width .3s;cursor:pointer}
+  .ctl .dots i.cur{background:var(--accent-2);width:64px;box-shadow:0 0 12px var(--accent-2)}
+  .ctl .dots i.done{background:var(--dim)}
+  .ctl .pg{font-family:var(--mono);font-size:18px;color:var(--dim);margin-left:8px;letter-spacing:.1em}
+  .ctl .sp{flex:1}
+  .btn{appearance:none;border:1px solid var(--rule-lit);background:var(--panel-2);color:var(--ink);font-family:var(--mono);font-size:18px;padding:13px 24px;border-radius:10px;cursor:pointer;transition:background .2s,transform .15s,border-color .2s;letter-spacing:.04em}
+  .btn:hover{background:var(--panel-3);border-color:var(--accent-2)}
+  .btn:active{transform:translateY(1px)}
+  .btn:disabled{opacity:.35;cursor:default}
+  .btn.next{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;font-size:21px;padding:15px 34px;box-shadow:0 0 36px rgba(139,92,246,.45)}
+  .btn.next:hover{background:#9D73F8}
+  .hint{position:absolute;right:110px;bottom:112px;font-family:var(--mono);font-size:15px;color:var(--dim);opacity:0;animation:hint 7s 1.5s forwards}
+  @keyframes hint{0%{opacity:0}12%{opacity:1}80%{opacity:1}100%{opacity:0}}
+  @media (prefers-reduced-motion:reduce){
+    .a,.draw,.screen.out,.flow,.ring,.grow{animation-duration:.01s!important;animation-delay:0s!important}
+  }
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+<div class="glow a"></div><div class="glow b"></div><div class="grid-bg"></div><div class="scan"></div>
+<div class="hud-frame"></div>
+<div class="hud-meta"><i></i>PDLC Neuro · Knowledge Provenance</div>
+
+<!-- ══ 00 TITLE ═══════════════════════════════════════════════ -->
+<section class="screen s0">
+  <div class="orbit">
+    <svg viewBox="0 0 980 980">
+      <g class="ring"><circle cx="490" cy="490" r="420" fill="none" stroke="rgba(139,92,246,.25)" stroke-width="1.5" stroke-dasharray="4 14"/></g>
+      <g class="ring r2"><circle cx="490" cy="490" r="330" fill="none" stroke="rgba(34,211,238,.25)" stroke-width="1.5" stroke-dasharray="40 24"/></g>
+      <g class="ring r3"><circle cx="490" cy="490" r="240" fill="none" stroke="rgba(34,197,94,.35)" stroke-width="2" stroke-dasharray="2 10"/></g>
+      <circle cx="490" cy="490" r="120" fill="rgba(34,197,94,.06)" stroke="rgba(34,197,94,.3)"/>
+      <text x="490" y="482" text-anchor="middle" fill="#22C55E" font-family="JetBrains Mono,Menlo,monospace" font-size="26" font-weight="700">KB</text>
+      <text x="490" y="514" text-anchor="middle" fill="#5E7094" font-family="JetBrains Mono,Menlo,monospace" font-size="15" letter-spacing="3">EVERGREEN</text>
+    </svg>
+  </div>
+  <div class="prompt"><span id="typed"></span><span class="cursor"></span></div>
+  <h1 id="h1"></h1>
+  <p class="sub a up" style="--d:1700">Know where every fact in a Solution Intent came from.<br>Feed what the Knowledge Base didn't know back into it — with a person at the gate.</p>
+  <div class="goals">
+    <div class="card hud goal a up kb" style="--d:2100"><div class="n">01 · PROVE</div><p>Every claim traced to a source. Made-up content caught before publish.</p></div>
+    <div class="card hud goal a up src" style="--d:2250"><div class="n">02 · IMPROVE</div><p>What the KB got wrong or didn't have flows back — approved by a human.</p></div>
+    <div class="card hud goal a up usr" style="--d:2400"><div class="n">03 · MEASURE</div><p>Four questions nobody can answer today, answered every week.</p></div>
+  </div>
+  <div class="legend a fade" style="--d:2800">
+    <span class="lbl">Sources</span>
+    <span class="chip kb"><i></i>Knowledge Base</span>
+    <span class="chip src"><i></i>Documents in sources/</span>
+    <span class="chip usr"><i></i>Analyst</span>
+    <span class="sep"></span>
+    <span class="lbl">Gaps</span>
+    <span class="tag wrong">Wrong hit</span><span class="tag nohit">No hit</span><span class="tag never">Never asked</span><span class="tag full">Fully answered</span>
+  </div>
+</section>
+
+<!-- ══ 01 PROBLEM ═════════════════════════════════════════════ -->
+<section class="screen s1">
+  <div class="kicker a left"><span class="n">01</span>Today</div>
+  <h2 class="a up" style="--d:120"><span class="k">KB</span>, <span class="s">document</span> or <span class="u">analyst</span>? No one records which — so we can't make the KB better.</h2>
+  <p class="lede a up" style="--d:240">Every PDLC run draws on all three — the Knowledge Base, documents in sources/, and the analyst's head — and leaves no record of which fact came from where. No map means no view of the mix, and no way to tell whether the KB improves over time.</p>
+  <div class="risks">
+    <div class="card hud rk a up" style="--d:420">
+      <div class="rt"><span class="tag wrong">risk</span><h3>The KB silently decays</h3></div>
+      <p>The analyst fixes the number in the chat; the KB still says the old value tomorrow. Without the mapping, no gap is ever fed back.</p>
+      <div class="ex"><span class="k">KB</span> Standard tier <b>1.80%</b> &nbsp;·&nbsp; <span class="s">2026 sheet</span> <b>1.95%</b> &nbsp;·&nbsp; <span class="dm">Solution Intent uses 1.95% — KB unchanged</span></div>
+    </div>
+    <div class="card hud rk a up" style="--d:560">
+      <div class="rt"><span class="tag nohit">risk</span><h3>The agent injects inaccurate information</h3></div>
+      <p>With no map of where each fact came from, nothing checks that a claim was ever read anywhere. A plausible sentence from the model's own training reads exactly like a sourced one.</p>
+      <div class="ex"><span class="x">Unsupported</span> "Competitors already offer frictionless 3DS." &nbsp;·&nbsp; <span class="dm">no KB chunk · no document · analyst never said it</span></div>
+    </div>
+  </div>
+  <div class="qblock a up" style="--d:800">
+    <div class="qhd">Questions we can't answer today</div>
+    <div class="qgrid">
+      <div class="card hud qq a pop" style="--d:950"><div class="qn">?</div><h4>Can we trust the Solution Intent?</h4><p>Which sentences rest on a real source — and which did the agent supply on its own?</p></div>
+      <div class="card hud qq a pop" style="--d:1070"><div class="qn">?</div><h4>When we ask the KB, does it deliver?</h4><p>How much actually comes from the KB — and how often is its answer wrong or out of date?</p></div>
+      <div class="card hud qq a pop" style="--d:1190"><div class="qn">?</div><h4>Is the loop closing?</h4><p>When the KB is wrong, does the fix ever get back into it — or does every analyst re-discover the same gap?</p></div>
+      <div class="card hud qq a pop" style="--d:1310"><div class="qn">?</div><h4>Is it being used?</h4><p>Are teams running it — and is the agent actually asking the KB?</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 02 IDEA ════════════════════════════════════════════════ -->
+<section class="screen s2">
+  <div class="kicker a left"><span class="n">02</span>The idea</div>
+  <h2 class="a up" style="--d:120">Every run leaves a trace. The trace feeds the KB.</h2>
+  <div class="wrap">
+    <div class="loop a fade" style="--d:300">
+      <svg viewBox="0 0 700 640">
+        <circle cx="350" cy="320" r="235" fill="none" stroke="rgba(43,59,96,.9)" stroke-width="2"/>
+        <circle class="flow" cx="350" cy="320" r="235" fill="none" stroke="#22D3EE" stroke-width="3" opacity=".8"/>
+      </svg>
+      <div class="core a pop" style="--d:900"><div class="big">+1 run</div><p>each run makes the KB<br>a little better</p></div>
+      <div class="card hud node a pop cy" style="--d:500;left:350px;top:85px"><div class="n">1 · RUN</div><h4>PDLC chat</h4><p>agent writes the Solution Intent, citing as it goes</p></div>
+      <div class="card hud node a pop acc" style="--d:620;left:574px;top:247px"><div class="n">2 · TRACE</div><h4>Every claim tagged</h4><p>KB · document · analyst · or unsupported</p></div>
+      <div class="card hud node a pop wrong" style="--d:740;left:488px;top:510px"><div class="n">3 · GAPS</div><h4>What the KB missed</h4><p>wrong, missing, or never asked</p></div>
+      <div class="card hud node a pop usr" style="--d:860;left:212px;top:510px"><div class="n">4 · APPROVE</div><h4>A person decides</h4><p>nothing enters the KB without sign-off</p></div>
+      <div class="card hud node a pop kb" style="--d:980;left:126px;top:247px"><div class="n">5 · KB UPDATED</div><h4>Versioned, audited</h4><p>the next run gets the right answer</p></div>
+    </div>
+    <div class="val">
+      <h3 class="a right" style="--d:500">Now answerable <span>— the same four questions, with numbers</span></h3>
+      <div class="card hud qcard a right" style="--d:650"><div class="num chk">✓</div><div><h4>Can we trust the Solution Intent?</h4><p><b>Unsupported rate</b> — every claim traced; the unsourced ones caught before publish</p></div><div class="ex">6% → 2%<small>unsupported</small></div></div>
+      <div class="card hud qcard a right" style="--d:800"><div class="num chk">✓</div><div><h4>When we ask the KB, does it deliver?</h4><p><b>KB used rate</b> — used · overruled · missing, by domain</p></div><div class="ex">66% → 85%<small>KB used</small></div></div>
+      <div class="card hud qcard a right" style="--d:950"><div class="num chk">✓</div><div><h4>Is the loop closing?</h4><p><b>Time to fix</b> — gap found in a run → KB updated</p></div><div class="ex">21d → 9d<small>time to fix</small></div></div>
+      <div class="card hud qcard a right" style="--d:1100"><div class="num chk">✓</div><div><h4>Is it being used?</h4><p><b>Adoption</b> — runs per week, teams coming back, agent asking the KB</p></div><div class="ex">4 → 11<small>runs / week</small></div></div>
+      <p class="illus a fade" style="--d:1300">numbers illustrative — detail on the metrics page</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 03 SEVEN STEPS ═════════════════════════════════════════ -->
+<section class="screen s3">
+  <div class="kicker a left"><span class="n">03</span>How it works</div>
+  <h2 class="a up" style="--d:120">Six steps. Two human decisions. One result.</h2>
+  <div class="phases">
+    <div>
+      <div class="ph a fade" style="--d:300">During the run</div>
+      <div class="steps"><div class="card hud st a up" style="--d:400"><div class="n">1</div><h4>Log</h4><p>Write down every time the agent looks something up, and what came back.</p></div></div>
+    </div>
+    <div>
+      <div class="ph a fade" style="--d:360">End of the run <span>before publish</span></div>
+      <div class="steps four">
+        <div class="card hud st a up" style="--d:500"><div class="n">2</div><h4>Collect</h4><p>Put the log, the chat and the Solution Intent in one folder.</p></div>
+        <div class="card hud st a up" style="--d:600"><div class="n">3</div><h4>Split</h4><p>Break the Solution Intent into single facts.</p></div>
+        <div class="card hud st a up h" style="--d:700"><div class="n">4</div><h4>Trace</h4><p>For each fact: where did it come from, and did the KB have it right?</p><div class="who"><span class="tag usr">analyst · keep / remove</span></div></div>
+        <div class="card hud st rep a up" style="--d:800"><div class="n">5</div><h4>Report</h4><p>Turns the Trace output into a readable report.</p><div class="flowline"><span>Trace</span><i>→</i><span class="doc">📄 Report</span></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="ph a fade" style="--d:420">Weekly</div>
+      <div class="steps"><div class="card hud st a up m" style="--d:900"><div class="n">6</div><h4>Act</h4><p>Send what the KB got wrong or missed to a person to approve.</p><div class="who"><span class="tag kb">approver: the KB gate</span></div></div></div>
+    </div>
+    <div>
+      <div class="ph res a fade" style="--d:480">Result <span>weekly</span></div>
+      <div class="steps"><div class="card hud st res a up" style="--d:1000"><div class="n">★</div><h4>Resulting metrics</h4><p>Four questions answered every week. Is the KB getting better?</p></div></div>
+    </div>
+  </div>
+  <div class="card people a fade" style="--d:1250">
+    <div class="t"><b>People decide only twice.</b> The analyst confirms anything with no source. An approver signs off on every KB change. Everything in between is automatic and evidence-backed.</div>
+    <div class="pp"><span><b>LLM</b>splits · checks · judges</span><span><b>CODE</b>logs · verifies quotes · counts</span><span><b>HUMAN</b>keep/remove · approve</span></div>
+  </div>
+</section>
+
+<!-- ══ 10 METRICS ═════════════════════════════════════════════ -->
+<section class="screen s10">
+  <div class="kicker a left"><span class="n">RESULT</span>Resulting metrics</div>
+  <div class="when over a down" style="--d:200"><i>◷</i>Result of steps 1–6 · <b>weekly roll-up</b></div>
+  <h2 class="a up" style="--d:120">Four questions, answered every week.</h2>
+  <div class="hint10 a fade" style="--d:300">click a question to focus · click again or Esc to return</div>
+  <div class="quad">
+    <div class="card hud q a up" style="--d:300">
+      <div class="qh"><span class="num">Q1</span><h4>Can we trust the Solution Intent?</h4></div>
+      <div class="head"><div class="lbl">headline<b>Unsupported rate</b></div><div class="big a pop" style="--d:700"><span class="fr">6%</span><span class="ar">→</span><span class="to">2%</span></div></div>
+      <div class="viz">
+        <div class="sbar"><span class="yr">Wk1</span><div class="trk"><i class="x grow" style="width:4%;--d:900"></i><i class="kp grow" style="width:2%;--d:900"></i><i class="u grow" style="width:94%;--d:900;background:#1E3A5F"></i></div><span class="pct">4% · 2%</span></div>
+        <div class="sbar"><span class="yr">Wk8</span><div class="trk"><i class="x grow" style="width:1%;--d:1050"></i><i class="kp grow" style="width:1%;--d:1050"></i><i class="u grow" style="width:98%;--d:1050;background:#1E3A5F"></i></div><span class="pct">1% · 1%</span></div>
+        <div class="keyr"><span style="--c:var(--unsup)">removed — made up, caught before publish</span><span style="--c:var(--user)">kept — analyst vouched</span><span style="--c:#1E3A5F">sourced</span></div>
+        <div class="mini" style="grid-template-columns:1fr">
+          <div class="m"><div class="l">unsupported this run · analyst's call</div><div class="v">3 found → <span>2 removed</span> · 1 kept</div></div>
+        </div>
+      </div>
+      <div class="note">Unsupported = <b>no source of any kind</b>, counted before the analyst acts. The analyst then keeps or removes each one: <b>removed</b> = made-up content that never shipped; <b>kept</b> = the analyst vouches for it.</div>
+    </div>
+    <div class="card hud q a up" style="--d:420">
+      <div class="qh"><span class="num">Q2</span><h4>When we ask the KB, does it deliver?</h4><small>used · overruled · missing</small></div>
+      <div class="head"><div class="lbl">headline<b>KB used rate</b></div><div class="big a pop" style="--d:800"><span class="fr">66%</span><span class="ar">→</span><span class="to">85%</span></div></div>
+      <div class="viz">
+        <div class="sbar"><span class="yr">Wk1</span><div class="trk"><i class="u grow" style="width:66%;--d:1000"></i><i class="o grow" style="width:4%;--d:1000"></i><i class="m grow" style="width:30%;--d:1000"></i></div></div>
+        <div class="sbar"><span class="yr">Wk8</span><div class="trk"><i class="u grow" style="width:85%;--d:1150"></i><i class="o grow" style="width:5%;--d:1150"></i><i class="m grow" style="width:10%;--d:1150"></i></div></div>
+        <div class="keyr"><span style="--c:var(--kb)">used</span><span style="--c:var(--wrong)">overruled — KB answered, was replaced</span><span style="--c:#334155">missing — KB had nothing</span></div>
+        <div class="secs a fade" style="--d:1300"><span>Pricing<b>92%</b></span><span>Auth<b>88%</b></span><span class="bad">Risk<b>64%</b></span></div>
+      </div>
+      <div class="note"><b>Missing 30% → 10%</b> is the win — gaps filled. Accuracy held at ~94%. Risk is where to build next. The provenance mix (KB share 42% → 56%) tells the same story.</div>
+    </div>
+    <div class="card hud q a up" style="--d:540">
+      <div class="qh"><span class="num">Q3</span><h4>Is the loop closing?</h4></div>
+      <div class="head"><div class="lbl">headline<b>Time to fix <span>gap seen → KB updated</span></b></div><div class="big a pop" style="--d:900"><span class="fr">21d</span><span class="ar">→</span><span class="to">9d</span></div></div>
+      <div class="viz">
+        <div class="lbl" style="font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)">KB updates approved / week</div>
+        <div class="cols">
+          <div class="c"><i style="height:22%;--d:1100"></i>Wk1</div><div class="c"><i style="height:50%;--d:1180"></i>Wk2</div><div class="c"><i style="height:78%;--d:1260"></i>Wk3</div><div class="c"><i class="pk" style="height:100%;--d:1340"></i>Wk4</div><div class="c"><i style="height:85%;--d:1420"></i>Wk5</div><div class="c"><i style="height:70%;--d:1500"></i>Wk6</div><div class="c"><i style="height:55%;--d:1580"></i>Wk7</div><div class="c"><i style="height:43%;--d:1660"></i>Wk8</div>
+        </div>
+        <div class="mini">
+          <div class="m"><div class="l">open backlog</div><div class="v">12 <span class="bad">· Risk oldest 18d</span></div></div>
+          <div class="m"><div class="l">shape</div><div class="v"><span>rises, then settles</span></div></div>
+        </div>
+      </div>
+      <div class="note">Early runs clear the backlog of stale content; then updates settle to a low, steady flow. <b>The decline is the good news.</b> Backlog catches approvers falling behind.</div>
+    </div>
+    <div class="card hud q a up" style="--d:660">
+      <div class="qh"><span class="num">Q4</span><h4>Is it being used?</h4></div>
+      <div class="head"><div class="lbl">headline<b>Runs per week</b></div><div class="big a pop" style="--d:1000"><span class="fr">4</span><span class="ar">→</span><span class="to">11</span></div></div>
+      <div class="viz">
+        <div class="mini">
+          <div class="m"><div class="l">active teams</div><div class="v">2 → <span>5</span></div></div>
+          <div class="m"><div class="l">repeat teams · came back</div><div class="v">1 → <span>4</span></div></div>
+        </div>
+        <div class="lbl" style="font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:10px">never asked — the agent skipped the KB &nbsp;·&nbsp; 25% → 8%</div>
+        <div class="secs a fade" style="--d:1300"><span>Scope<b>3%</b></span><span>Solution<b>5%</b></span><span>Timeline<b>6%</b></span><span class="bad">Risks<b>22%</b></span></div>
+      </div>
+      <div class="note">Adoption is the business case. <b>Never Asked</b> is workflow health: when the agent skips the KB, the KB can't deliver or improve. By section it points tech at the exact prompt to fix.</div>
+    </div>
+  </div>
+  <div class="focus" id="qfocus"><div class="fwrap"><div class="card hud q fq" id="qfocusbox"></div></div></div>
+</section>
+
+<!-- ══ 04 STEP 1 LOG ══════════════════════════════════════════ -->
+<section class="screen s4">
+  <div class="kicker a left"><span class="n">STEP 1</span>Log every knowledge read</div>
+  <div class="when during a down" style="--d:200"><i>◷</i>Runs: <b>During the run</b></div>
+  <h2 class="a up" style="--d:120">One wrapper. Two kinds of event. No judgement.</h2>
+  <div class="two" style="grid-template-columns:600px 1fr;gap:44px">
+    <div>
+      <div class="card hud wrapbox a up" style="--d:300">
+        <div class="src2"><span>Knowledge Hub</span><span>sources/ folder</span></div>
+        <div class="arrow">→</div>
+        <p class="w">Logging wrapper<small>every read goes through it</small></p>
+      </div>
+      <ul class="pts">
+        <li class="a up kb" style="--d:450"><i>1</i><div><h4><code>kb_query</code> → hit / no_hit</h4><p>The question asked, the chunk IDs, and the <b>text that came back</b>.</p></div></li>
+        <li class="a up src" style="--d:570"><i>2</i><div><h4><code>source_read</code> → found / not_found</h4><p>File, location, version, and the <b>excerpt read</b>. Failed searches are logged too.</p></div></li>
+        <li class="a up cy" style="--d:690"><i>3</i><div><h4>Stamped with section and turn</h4><p>So later steps can line the log up with the chat. A no-hit is <b>retried once</b> with better wording.</p></div></li>
+      </ul>
+      <div class="not a fade" style="--d:850"><b>Not here:</b> what the analyst typed (that's the transcript), and no labels — nothing is judged in step 1.</div>
+    </div>
+    <div class="term card a right" style="--d:500"><span class="hd">run r-2026-10-27-0412 · EP-2210 · kb-2026-10-20 · sections: Scope, Solution, Timeline, Risks</span><span class="a fade" style="--d:800"><span class="sec">Scope</span><span class="t">t14 </span><span class="ev">kb_query</span><span class="q">"CNP interchange tiers"</span> → ic-0412        <span class="ok">hit</span>       "Standard 1.80% + $0.10"</span>
+<span class="a fade" style="--d:950"><span class="sec">Scope</span><span class="t">t14 </span><span class="ev">source_read</span>interchange_2026.xlsx · CNP!A4:D4         <span class="ok">found</span>     "Standard | 1.95% | $0.10"</span>
+<span class="a fade" style="--d:1100"><span class="sec">Solution</span><span class="t">t21 </span><span class="ev">kb_query</span><span class="q">"3DS step-up rule CNP"</span> → auth-0071       <span class="ok">hit</span>       "Step-up for CNP > $250"</span>
+<span class="a fade" style="--d:1250"><span class="sec">Timeline</span><span class="t">t27 </span><span class="ev">kb_query</span><span class="q">"mandate effective date"</span> → —             <span class="no">no_hit</span></span>
+<span class="a fade" style="--d:1400"><span class="sec">Timeline</span><span class="t">t27 </span><span class="ev">kb_query</span><span class="q">"scheme mandate go-live"</span> (rerun) → —     <span class="no">no_hit</span></span>
+<span class="a fade" style="--d:1550"><span class="sec">Timeline</span><span class="t">t27 </span><span class="ev">source_read</span>search "mandate effective date" → —      <span class="no">not_found</span></span>
+<span class="a fade" style="--d:1700"><span class="sec">Risks</span><span class="t">t33 </span><span class="ev">source_read</span>chargeback_monitoring.md · §4 · v12      <span class="ok">found</span>     "Threshold: 0.9% dispute ratio"</span>
+
+<span class="cmt a fade" style="--d:1950">t28 — the analyst types the mandate dates → transcript only, not the log</span></div>
+  </div>
+</section>
+
+<!-- ══ 05 STEP 2 COLLECT ══════════════════════════════════════ -->
+<section class="screen s5">
+  <div class="kicker a left"><span class="n">STEP 2</span>Collect the run</div>
+  <div class="when end a down" style="--d:200"><i>◷</i>Runs: <b>End of the run · before publish</b></div>
+  <h2 class="a up" style="--d:120">Four files, one folder, one job each.</h2>
+  <p class="lede a up" style="--d:240">Automatic at the end of the chat. Nothing is judged yet — this is the evidence everything else is built from. <span class="hintp">click a file to open it</span></p>
+  <div class="two" style="grid-template-columns:1fr 560px">
+    <div class="card hud tree a up" style="--d:420">
+<span class="d">runs/r-2026-10-27-0412/</span>
+<div class="f a fade" style="--d:600" data-pv="log"><span>├── log.jsonl</span><span class="c"><b>What was read.</b> Every KB query and document read, with the text that came back.</span><span class="tag kb">step 1</span></div>
+<div class="f a fade" style="--d:750" data-pv="chat"><span>├── transcript.jsonl</span><span class="c"><b>What was said.</b> Every message, numbered. Only the analyst's messages count as a source.</span><span class="tag usr">chat export</span></div>
+<div class="f a fade" style="--d:900" data-pv="final"><span>├── final.md</span><span class="c"><b>What was written.</b> The Solution Intent with a hidden citation after every factual sentence.</span><span class="tag src">cited draft</span></div>
+<div class="f a fade" style="--d:1050" data-pv="src"><span>└── sources.md</span><span class="c"><b>What was listed.</b> The agent's own citation list, kept for people.</span><span class="tag dimc">reference</span></div>
+    </div>
+    <div>
+      <ul class="pts">
+        <li class="a right cy" style="--d:700"><i>↔</i><div><h4>Log and transcript join on turn number</h4><p>Turn 14 in the log is the read the agent made while writing turn 14 in the chat.</p></div></li>
+        <li class="a right src" style="--d:850"><i>✎</i><div><h4>The agent cites as it writes</h4><p><code>&lt;!-- cite: KB ic-0412 --&gt;</code> · a sources/ file and location · <code>analyst "Phase 1: 2027-03-01"</code> · or honestly <code>none</code>.</p></div></li>
+        <li class="a right kb" style="--d:1000"><i>⇥</i><div><h4>Citations stay in the folder</h4><p>The published Solution Intent is stripped clean. The cited copy is the evidence.</p></div></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- file viewer modal -->
+  <div class="modal" id="pvmodal">
+    <div class="card hud box">
+      <div class="mh"><span class="mt" id="pvtitle"></span><span class="ms" id="pvsub"></span><button class="mx" id="pvclose" title="Close">✕</button></div>
+      <div class="mb" id="pvbody"></div>
+      <div class="mf">click outside or press Esc to close</div>
+    </div>
+  </div>
+  <template id="pv-log" data-title="log.jsonl" data-sub="one line per read · written live by the wrapper during the run" data-hue="kb">
+    <table class="lt">
+      <tr><th>section</th><th>turn</th><th>event</th><th>what was asked / opened</th><th>result</th><th>text that came back</th></tr>
+      <tr><td class="sc">Scope</td><td class="tn">t14</td><td class="ev">kb_query</td><td class="q">"CNP interchange tiers" → ic-0412 · Payments/Pricing</td><td class="ok">hit</td><td>"Standard 1.80% + $0.10 …"</td></tr>
+      <tr><td class="sc">Scope</td><td class="tn">t14</td><td class="ev">source_read</td><td>sources/interchange_2026.xlsx · CNP!A4:D4 · mod 2026-10-24</td><td class="ok">found</td><td>"Card-not-present | Standard | 1.95% | $0.10"</td></tr>
+      <tr><td class="sc">Solution</td><td class="tn">t21</td><td class="ev">kb_query</td><td class="q">"3DS step-up rule CNP" → auth-0071 · Payments/Auth</td><td class="ok">hit</td><td>"Step-up required for CNP > $250 …"</td></tr>
+      <tr><td class="sc">Timeline</td><td class="tn">t27</td><td class="ev">kb_query</td><td class="q">"mandate effective date" → —</td><td class="no">no_hit</td><td class="dm">—</td></tr>
+      <tr><td class="sc">Timeline</td><td class="tn">t27</td><td class="ev">kb_query</td><td class="q">"scheme mandate go-live dates" (rerun) → —</td><td class="no">no_hit</td><td class="dm">—</td></tr>
+      <tr><td class="sc">Timeline</td><td class="tn">t27</td><td class="ev">source_read</td><td>search sources/ "mandate effective date" → —</td><td class="no">not_found</td><td class="dm">—</td></tr>
+      <tr><td class="sc">Risks</td><td class="tn">t33</td><td class="ev">source_read</td><td>sources/chargeback_monitoring.md (Confluence v12) · §4</td><td class="ok">found</td><td>"Scheme threshold: 0.9% dispute ratio …"</td></tr>
+    </table>
+    <div class="ln">Header line: <code>run r-2026-10-27-0412 · EP-2210 · kb-2026-10-20 · sections: Scope, Solution, Timeline, Risks</code> &nbsp;·&nbsp; t28 (the analyst's dates) is not here — it lives in the transcript.</div>
+  </template>
+  <template id="pv-chat" data-title="transcript.jsonl" data-sub="every message, numbered · exported from the chat at run end" data-hue="usr">
+    <div class="chat">
+      <div class="msg an"><div class="who">analyst · t13 · 10:02</div><div class="bb">Start on Scope. What are the current CNP interchange tiers?</div></div>
+      <div class="msg ag"><div class="who">agent · t14 · 10:02</div><div class="bb">KB has Standard 1.80% + $0.10, but the 2026 pricing sheet (modified Oct 24) shows 1.95% + $0.10. Using 1.95%.</div></div>
+      <div class="msg an"><div class="who">analyst · t15 · 10:04</div><div class="bb">Yes, go with the sheet.</div></div>
+      <div class="msg ag"><div class="who">agent · t27 · 10:19</div><div class="bb">I couldn't find the mandate effective dates in the KB or in sources/. Can you provide them?</div></div>
+      <div class="msg an src"><div class="who">analyst · t28 · 10:21 <span class="tag usr">a source</span></div><div class="bb">Phase 1: 2027-03-01, Phase 2: 2027-09-01</div></div>
+      <div class="msg an src"><div class="who">analyst · t34 · 10:32 <span class="tag usr">a source</span></div><div class="bb">Add that we're currently at ~4,200 disputes/month.</div></div>
+    </div>
+    <div class="ln">Only the <b>analyst's</b> messages can back a claim. The agent's messages are context — they can't be a source for their own claims.</div>
+  </template>
+  <template id="pv-final" data-title="final.md" data-sub="the Solution Intent as drafted · citations are hidden comments, shown here as chips" data-hue="src">
+    <div class="doc">
+      <h5>Scope</h5>
+      <p>CNP Standard tier: 1.95% + $0.10 per transaction. <span class="ct src">sources/interchange_2026.xlsx · CNP!A4:D4</span></p>
+      <h5>Solution</h5>
+      <p>Apply 3DS step-up for CNP transactions over $250. <span class="ct kb">KB auth-0071</span></p>
+      <h5>Timeline</h5>
+      <p>Phase 1 go-live 1 March 2027; Phase 2 go-live 1 September 2027. <span class="ct usr">analyst "Phase 1: 2027-03-01"</span></p>
+      <h5>Risks</h5>
+      <p>Card scheme threshold is a 0.9% dispute ratio. <span class="ct src">sources/chargeback_monitoring.md §4</span></p>
+      <p>Current volume is ~4,200 disputes/month. <span class="ct usr">analyst "~4,200 disputes/month"</span></p>
+      <p>This change is expected to reduce false declines by 15%. <span class="ct none">cite: none</span></p>
+    </div>
+    <div class="ln">In the file each chip is <code>&lt;!-- cite: … --&gt;</code> after the sentence. The published Solution Intent has them stripped.</div>
+  </template>
+  <template id="pv-src" data-title="sources.md" data-sub="the agent's own citation list · kept for people, not used in the checks" data-hue="dimc">
+    <div class="srcl">
+      <div class="si"><span class="ic">📄</span><div><b>sources/interchange_2026.xlsx</b><span>CNP interchange tiers · sheet CNP · modified 2026-10-24</span></div><span class="tag src">Local</span></div>
+      <div class="si"><span class="ic">📄</span><div><b>sources/chargeback_monitoring.md</b><span>Chargeback monitoring program · Confluence v12 · §4</span></div><span class="tag src">Local</span></div>
+      <div class="si"><span class="ic">◉</span><div><b>KB ic-0412</b><span>Payments / Pricing</span></div><span class="tag kb">KB</span></div>
+      <div class="si"><span class="ic">◉</span><div><b>KB auth-0071</b><span>Payments / Auth</span></div><span class="tag kb">KB</span></div>
+    </div>
+    <div class="ln">Human-readable. The checks use the inline citations in final.md instead — they're stricter.</div>
+  </template>
+</section>
+
+<!-- ══ 06 STEP 3 CLAIMS ═══════════════════════════════════════ -->
+<section class="screen s6">
+  <div class="kicker a left"><span class="n">STEP 3</span>Split into claims</div>
+  <div class="when end a down" style="--d:200"><i>◷</i>Runs: <b>End of the run · before publish</b></div>
+  <h2 class="a up" style="--d:120">Sentence by sentence: is this stated as fact?</h2>
+  <div class="flowbox">
+    <div class="card hud si a up" style="--d:300">
+      <div class="hd">final.md · Business Overview</div>
+      <p class="a fade" style="--d:500">Merchant Services processes CNP payments for ~38,000 e-commerce merchants, with CNP representing 62% of volume in 2025.</p>
+      <span class="cite a fade" style="--d:600">&lt;!-- cite: sources/merchant_portfolio_2025.xlsx · Summary!B2:B3 --&gt;</span>
+      <p class="a fade" style="--d:700">Step-up authentication is required for CNP transactions over $250.</p>
+      <span class="cite k a fade" style="--d:800">&lt;!-- cite: KB auth-0071 --&gt;</span>
+      <p class="a fade" style="--d:900">The scheme mandate's Phase 1 takes effect on 1 March 2027.</p>
+      <span class="cite u a fade" style="--d:1000">&lt;!-- cite: analyst "Phase 1: 2027-03-01" --&gt;</span>
+      <p class="skip a fade" style="--d:1100">This initiative will help merchants stay compliant,</p>
+      <p class="a fade" style="--d:1150">which is critical to retaining our largest e-commerce clients.</p>
+      <span class="cite x a fade" style="--d:1250">&lt;!-- cite: none --&gt;</span>
+    </div>
+    <div class="arr a pop" style="--d:1350">→</div>
+    <div class="card hud cl a up" style="--d:1450">
+      <table>
+        <tr><th>ID</th><th>Claim — one fact each</th><th>Inherited citation</th></tr>
+        <tr class="a fade" style="--d:1600"><td class="id">C-10</td><td>~38,000 e-commerce merchants on CNP</td><td class="ct">portfolio xlsx · B2</td></tr>
+        <tr class="a fade" style="--d:1700"><td class="id">C-11</td><td>CNP was 62% of volume in 2025</td><td class="ct">portfolio xlsx · B3</td></tr>
+        <tr class="a fade" style="--d:1800"><td class="id">C-12</td><td>Step-up applies to CNP over $250</td><td class="ct k">KB auth-0071</td></tr>
+        <tr class="a fade" style="--d:1900"><td class="id">C-13</td><td>Mandate Phase 1 takes effect 2027-03-01</td><td class="ct u">analyst "Phase 1: 2027-03-01"</td></tr>
+        <tr class="a fade none" style="--d:2000"><td class="id">C-16</td><td>Large clients' retention depends on approval rates</td><td class="ct x">none</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="below">
+    <div class="purpose a up" style="--d:2200">
+      <p><b>The point:</b> chunk the Solution Intent into single claims, each carrying its source, so every one can be checked in step 4.</p>
+      <p class="sub">A claim is any statement of fact — a number, a date, a rule, a decision — that a reader could challenge with "says who?". Statements of intent ("this will help merchants…") are not claims. One fact per claim: "1.95% + $0.10" is two.</p>
+    </div>
+    <div class="catch a up" style="--d:2400">
+      <div class="darr">⬇</div>
+      <div class="card hud cbox">
+        <div class="ch"><span class="tag unsup">missing citation</span><b>This is how made-up content gets caught.</b></div>
+        <p>A sentence with no citation still becomes a claim. Step 4 searches the log, sources/ and the analyst's messages for it. If nothing backs it, it's <b>Unsupported</b> — and the analyst is asked to keep or remove it before publish.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 07 STEP 4 TRACE ════════════════════════════════════════ -->
+<section class="screen s7">
+  <div class="kicker a left"><span class="n">STEP 4</span>Trace each claim</div>
+  <div class="when end a down" style="--d:200"><i>◷</i>Runs: <b>End of the run · before publish</b></div>
+  <h2 class="a up" style="--d:120">Where did it come from — and what did the KB say?</h2>
+  <div class="chain">
+    <div class="card hud ch a up" style="--d:300"><div class="n">A · FIND</div><h4>Look up the citation</h4><p>KB chunk in the log · file in sources/ · analyst quote in the transcript</p></div>
+    <div class="card hud ch a up" style="--d:420"><div class="n">B · SUPPORT?</div><h4>Pick the <code>source_quote</code></h4><p>The exact words that back the claim. Code checks they really exist. → <b>tag</b></p></div>
+    <div class="card hud ch a up" style="--d:540"><div class="n">C · SEARCH</div><h4>No citation, or it failed</h4><p>Section log → whole log → sources/ → analyst messages. Nothing? <b>Unsupported</b></p></div>
+    <div class="card hud ch a up" style="--d:660"><div class="n">D · GAP</div><h4>Compare with the KB</h4><p>What did the KB return on this topic? Same · missing piece · different · nothing · never asked → <b>gap type</b></p></div>
+  </div>
+  <div class="card hud ex a up" style="--d:900">
+    <div>
+      <div class="lab">Claim C-01 · Scope</div>
+      <div class="claim">CNP Standard rate is 1.95%</div>
+      <div class="cite">cite: sources/interchange_2026.xlsx · CNP!A4:D4</div>
+      <div class="res a fade" style="--d:1500"><span class="tag src">tag · Local</span><span class="tag wrong">gap · Wrong Hit</span><span class="tag acc">proposed · correct ic-0412</span></div>
+    </div>
+    <div class="a fade" style="--d:1150">
+      <div class="lab">source_quote — from the xlsx (log t14)</div>
+      <div class="qt">"Card-not-present | Standard | <b>1.95%</b> | $0.10"</div>
+      <div class="res">supports the claim ✓ · found word-for-word ✓</div>
+    </div>
+    <div class="a fade" style="--d:1350">
+      <div class="lab">kb_quote — what the KB said instead (ic-0412, t14)</div>
+      <div class="qt k">"Standard <b>1.80%</b> + $0.10"</div>
+      <div class="res">same topic · different value → the KB was overruled</div>
+    </div>
+  </div>
+  <div class="rows">
+    <div class="rw a fade" style="--d:1700"><span class="lbl">Tags</span><span class="tag kb">KB</span><span class="tag src">Local</span><span class="tag usr">User</span><span class="tag der">Derived</span><span class="tag unsup">Unsupported</span></div>
+    <div class="rw a fade" style="--d:1800"><span class="lbl">Gaps</span><span class="tag full">Fully answered</span><span class="tag wrong">Wrong hit</span><span class="tag nohit">No hit</span><span class="tag never">Never asked</span></div>
+  </div>
+  <div class="foot a fade" style="--d:2000"><span class="pill">who</span><span>A <b>separate checking agent</b> — not the one that wrote it. Code verifies every quote is real. Wrong Hits get a second opinion. Only <b>Unsupported</b> claims go to the analyst: <b>keep or remove?</b></span></div>
+</section>
+
+<!-- ══ 08 STEP 5 REPORT ═══════════════════════════════════════ -->
+<section class="screen s8">
+  <div class="kicker a left"><span class="n">STEP 5</span>Provenance report</div>
+  <div class="when end a down" style="--d:200"><i>◷</i>Runs: <b>End of the run · before publish</b></div>
+  <h2 class="a up" style="--d:120">"Where did this number come from?" — one click.</h2>
+  <div class="two" style="grid-template-columns:1fr 700px">
+    <div class="card hud rep a up" style="--d:300">
+      <div class="bar"><i></i><i></i><i></i><span>runs/r-2026-10-27-0412/knowledge_provenance_report.md</span></div>
+      <div class="body"><span class="h"># Knowledge Provenance — r-2026-10-27-0412 · EP-2210</span>
+KB snapshot kb-2026-10-20 · 2026-10-27
+
+<span class="h">## Summary</span>  42 claims
+  <span class="k">KB 17</span> · <span class="s">Local 11</span> · <span class="u">User 8</span> · Derived 4 · <span class="x">Unsupported 2</span>
+  Gaps:   Fully answered 21 · <span class="w">Wrong Hit 2</span> · <span class="x">No Hit 5</span> · Never Asked 6
+  Unsupported: 3 found → analyst kept 1, removed 2
+
+<span class="h">## Scope</span>
+  <b>C-01</b>  CNP Standard rate is 1.95%          <span class="s">Local</span>
+        xlsx CNP!A4:D4 — "…Standard | 1.95% | $0.10"
+        KB said: ic-0412 — "Standard 1.80% + $0.10"   <span class="w">Wrong Hit · correct</span>
+  <b>C-02</b>  CNP fee $0.10                       <span class="s">Local</span>
+        KB said the same                           Fully answered
+
+<span class="h">## KB actions → step 6</span>
+  <span class="w">correct</span>  ic-0412   KB "1.80%"  →  source "1.95%"
+  <span class="x">add</span>      Timeline  "Mandate Phase 1: 2027-03-01"   (analyst t28)</div>
+    </div>
+    <div>
+      <ul class="pts">
+        <li class="a right cy" style="--d:600"><i>⚙</i><div><h4>Built by code, not a model</h4><p>Every judgement was made in step 4. This just lays it out for people.</p></div></li>
+        <li class="a right kb" style="--d:750"><i>⌕</i><div><h4>The audit trail</h4><p>Every claim with its tag, the exact words it rests on, and what the KB said. Kept with the run, never published.</p></div></li>
+      </ul>
+      <div class="fan a fade" style="--d:950">
+        <div class="card src0"><span class="tag acc" style="margin-bottom:8px">step 4 output</span>trace.jsonl<small>one line per claim</small></div>
+        <div class="arr">⇶</div>
+        <div class="outs">
+          <span><b>step 5</b>Report — for people, per run</span>
+          <span><b>step 6</b>KB actions — candidates to approvers</span>
+          <span><b>result</b>Metrics — numbers, across runs</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 09 STEP 6 ACT ══════════════════════════════════════════ -->
+<section class="screen s9">
+  <div class="kicker a left"><span class="n">STEP 6</span>Act on the gaps</div>
+  <div class="when weekly a down" style="--d:200"><i>◷</i>Runs: <b>Weekly</b></div>
+  <h2 class="a up" style="--d:120">Nothing enters the KB without a person.</h2>
+  <div class="hint9 a fade" style="--d:300">hover a stage for detail · click to pin</div>
+  <div class="pipe">
+    <div data-d="a" class="card hud st a up" style="--d:300"><div class="n">6A</div><h4>Reusable?</h4><p>Would a future run need this — or is it only true for this project?</p></div>
+    <div data-d="b" class="card hud st a up" style="--d:400"><div class="n">6B</div><h4>Already in the KB?</h4><p>Similarity search + judge: duplicate, stale twin, or new.</p></div>
+    <div data-d="c" class="card hud st a up" style="--d:500"><div class="n">6C</div><h4>Where does it go?</h4><p>Log location → similar entries → domain list. Approver can re-route.</p></div>
+    <div data-d="d" class="card hud st a up" style="--d:600"><div class="n">6D</div><h4>Merge across runs</h4><p>Same gap from three runs = one candidate, seen 3×.</p></div>
+    <div data-d="e" class="card hud st hum a up" style="--d:700"><div class="n">6E · HUMAN</div><h4>Approver reviews</h4><p>Approve · edit · reject · retire · re-route. Weekly, per domain.</p></div>
+    <div data-d="f" class="card hud st a up" style="--d:800"><div class="n">6F</div><h4>Ingest</h4><p>New version, never overwritten. Who, when, which runs.</p></div>
+  </div>
+  <div class="braces a fade" style="--d:950"><span>LLM judge recommends · code does the plumbing</span><span class="g">the KB gate</span><span class="d">automatic</span></div>
+  <div class="detail" id="s9detail">
+    <div class="caret" id="s9caret"></div>
+    <div class="card hud dbox">
+      <div class="dh"><span class="dn" id="s9dn"></span><span class="dt" id="s9dh"></span><span class="dw" id="s9dw"></span></div>
+      <div class="db" id="s9db"></div>
+    </div>
+  </div>
+  <template id="d6-a" data-n="6A" data-title="Reusable?" data-who="LLM judge" data-hue="acc">
+    <div class="cols2">
+      <div><h6>Keep → continue</h6><ul><li>Interchange rates, scheme rules, thresholds</li><li>Mandate dates, definitions, policy</li><li>Anything a <b>future run</b> would ask for</li></ul></div>
+      <div><h6>Run-specific → drop</h6><ul><li>This epic's go-live dates</li><li>"We're currently at ~4,200 disputes/month"</li><li>Team names, project choices</li></ul></div>
+    </div>
+    <p class="nb"><b>When unsure, keep.</b> The approver can reject; a wrong drop disappears silently. Dropped items are logged with a reason and sampled by the process owner.</p>
+  </template>
+  <template id="d6-b" data-n="6B" data-title="Already in the KB?" data-who="similarity search + LLM judge" data-hue="acc">
+    <p class="lead">Step 4 only saw what the KB <i>returned</i> during the run. Now the judge checks the KB itself for the correct value — a similarity search brings back the closest entries, and the judge decides what they are.</p>
+    <div class="cols3">
+      <div><h6>Same fact, same value</h6><p>Duplicate — no candidate. If the run called it a No Hit, the KB had it and search missed it: a <b>retrieval miss</b> → tech.</p></div>
+      <div><h6>Same fact, different value</h6><p>A stale twin. The right value already exists → <b>retire</b> the old entry instead of correcting it.</p></div>
+      <div><h6>Different fact</h6><p>Genuinely new → continue as <b>add</b> or <b>correct</b>.</p></div>
+    </div>
+    <p class="nb">Every KB quote the judge cites must exist word for word in the search results — code checks it.</p>
+  </template>
+  <template id="d6-c" data-n="6C" data-title="Where does it go?" data-who="LLM judge · approver can re-route" data-hue="acc">
+    <p class="lead">Three signals, strongest first. Most of the time the first one settles it.</p>
+    <div class="sig">
+      <div class="sg one"><span class="k">1</span><div><h6>The chunk the run returned</h6><p>Wrong Hit and missing-piece gaps already point at an entry: <code>ic-0412 → Payments/Pricing</code>. Correct or extend <b>that</b> entry, in <b>that</b> domain. No guessing.</p></div></div>
+      <div class="sg"><span class="k">2</span><div><h6>Similarity search</h6><p>For No Hit and Never Asked there's no chunk. Embed the proposed text, find the nearest entries, let the judge pick the entry to extend — or confirm it's new.</p></div></div>
+      <div class="sg"><span class="k">3</span><div><h6>The domain list</h6><p>Nothing similar exists → the judge reads <code>kb_domains</code> (each domain, a one-line description, its approver) and picks the best fit, marked <b>new topic</b>.</p></div></div>
+    </div>
+    <p class="nb">Borderline → flagged <b>placement unsure</b>. In every case the approver can <b>re-route</b> — a misplaced item costs one click, it's never lost.</p>
+  </template>
+  <template id="d6-d" data-n="6D" data-title="Merge across runs" data-who="code finds · LLM judge compares" data-hue="acc">
+    <p class="lead">Candidates wait in an open pool per domain until reviewed. A new one is compared with the open ones for the same entry.</p>
+    <div class="cols3">
+      <div><h6>Same fact, same value</h6><p><b>Merge.</b> One candidate, run count +1, this run's quote stacked as evidence. "Seen in 3 runs" outranks "seen once".</p></div>
+      <div><h6>Same fact, different value</h6><p>Run A says 1.95%, run B says 2.05% → <b>merged, flagged "sources disagree"</b>. The approver sees both.</p></div>
+      <div><h6>Rejected before</h6><p>An identical candidate links to the rejection and is <b>not re-queued</b> — unless it brings new evidence or keeps recurring.</p></div>
+    </div>
+  </template>
+  <template id="d6-e" data-n="6E" data-title="Approver reviews" data-who="human — the KB gate" data-hue="kb">
+    <p class="lead">A weekly queue per domain. Each card shows <b>KB says</b> · <b>source says</b> · <b>proposed text</b> · the judge's recommendation and reason · how many runs hit it · any flags.</p>
+    <div class="cols2">
+      <div><h6>Actions</h6><ul><li><b>Approve</b> — as proposed</li><li><b>Edit</b> — fix the wording, then approve</li><li><b>Reject + reason</b> — the KB was right (counted as "KB upheld")</li><li><b>Retire</b> — a stale duplicate</li><li><b>Re-route</b> — another domain's call</li></ul></div>
+      <div><h6>Flags the approver sees</h6><ul><li><b>analyst-supplied, no document</b> — verify before approving</li><li><b>judge unsure</b> — two judge runs disagreed</li><li><b>sources disagree</b> — runs proposed different values</li><li><b>placement unsure</b> / <b>new topic</b></li></ul></div>
+    </div>
+    <p class="nb">The judge recommends; the human decides. Nothing enters the KB without this step.</p>
+  </template>
+  <template id="d6-f" data-n="6F" data-title="Ingest" data-who="automatic" data-hue="acc">
+    <p class="lead">The approved change is written as a <b>new version</b> of the entry — never overwritten in place.</p>
+    <div class="cols2">
+      <div><h6>Audit trail</h6><ul><li>Who approved, when</li><li>Which runs raised it (the evidence quotes)</li><li>The judge's recommendation at the time</li></ul></div>
+      <div><h6>What should happen next</h6><ul><li>The candidate closes</li><li>Later runs get the right answer and stop raising it</li><li>If the same gap comes back after a fix, that's a signal (Q3 metrics)</li></ul></div>
+    </div>
+  </template>
+  <div class="low">
+    <ul class="pts">
+      <li class="a up" style="--d:1100"><i>✓</i><div><b>Dropped before the queue:</b> run-specific facts, things the KB already has (a retrieval problem → tech), choices the analyst made, anything unverified.</div></li>
+      <li class="a up" style="--d:1250"><i>✓</i><div><b>The judge shows its evidence</b> — every KB quote it cites must exist word for word. It recommends; the approver decides.</div></li>
+      <li class="a up" style="--d:1400"><i>✓</i><div><b>Out of 42 claims, about two reach an approver.</b> Most claims are fine; only real KB problems escalate.</div></li>
+    </ul>
+    <div class="card hud appr a right" style="--d:1200">
+      <div class="hd"><b>CORRECT</b> ic-0412 · Payments/Pricing <span class="r">seen in 3 runs</span></div>
+      <div class="bd"><span class="k">KB says:</span>      "Standard 1.80% + $0.10"
+<span class="s">Source says:</span>  "Standard | 1.95% | $0.10"   interchange_2026.xlsx
+Proposed:     "Standard 1.95% + $0.10 (effective 2026-01-01)"
+<span class="j">Judge:</span>        Approve — KB is the 2025 schedule; 2026 sheet is current.</div>
+      <div class="btns"><span class="ok">Approve</span><span>Edit</span><span>Reject + reason</span><span>Retire</span><span>Re-route</span></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══ controls ═══════════════════════════════════════════ -->
+<div class="hint">← → arrow keys · space · R to replay</div>
+<div class="ctl">
+  <div class="dots" id="dots"></div>
+  <span class="pg" id="pg">01 / 11</span>
+  <span class="sp"></span>
+  <button class="btn" id="replay" title="Replay this screen">↻ Replay</button>
+  <button class="btn" id="prev">← Back</button>
+  <button class="btn next" id="next">Next →</button>
+</div>
+</div></div>
+
+<script>
+(function(){
+  var $=function(s,c){return (c||document).querySelector(s)};
+  var $$=function(s,c){return Array.prototype.slice.call((c||document).querySelectorAll(s))};
+  var reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var stage=$("#stage");
+  function fit(){var s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform="scale("+s+")"}
+  addEventListener("resize",fit);fit();
+
+  var screens=$$(".screen"),cur=-1,gen=0,busy=false;
+  var dots=$("#dots"),pg=$("#pg"),nextBtn=$("#next"),prevBtn=$("#prev");
+  screens.forEach(function(_,i){var d=document.createElement("i");d.onclick=function(){go(i)};dots.appendChild(d)});
+
+  function updateCtl(){
+    $$("i",dots).forEach(function(d,i){d.className=i===cur?"cur":i<cur?"done":""});
+    pg.textContent=("0"+(cur+1)).slice(-2)+" / "+("0"+screens.length).slice(-2);
+    prevBtn.disabled=cur===0;
+    nextBtn.textContent=cur===screens.length-1?"↻ Start over":"Next →";
+  }
+  function go(i){
+    if(busy)return; i=(i+screens.length)%screens.length; if(i===cur)return; busy=true;
+    var old=cur>=0?screens[cur]:null; cur=i; updateCtl(); var mm=document.getElementById("pvmodal"); if(mm) mm.classList.remove("on"); var qff=document.getElementById("qfocus"); if(qff) qff.classList.remove("on"); var sdd=document.getElementById("s9detail"); if(sdd){sdd.classList.remove("on")} if(typeof sdPin!=="undefined"&&sdPin){sdPin.classList.remove("pin");sdPin=null}
+    var show=function(){ if(old){old.classList.remove("on","out")} play(screens[cur]); busy=false };
+    if(old){old.classList.add("out");setTimeout(show,reduce?0:400)} else show();
+    try{location.hash="p"+(cur+1)}catch(e){}
+  }
+  function play(s){
+    gen++; var g=gen;
+    s.classList.remove("on"); void s.offsetWidth;
+    s.classList.add("on");
+    if(s.classList.contains("s0")) title(g);
+  }
+  nextBtn.onclick=function(){go(cur+1)};
+  prevBtn.onclick=function(){go(cur-1)};
+  $("#replay").onclick=function(){play(screens[cur])};
+  addEventListener("keydown",function(e){
+    if(e.metaKey||e.ctrlKey||e.altKey)return;
+    if(e.key==="ArrowRight"||e.key===" "||e.key==="PageDown"||e.key==="Enter"){e.preventDefault();go(cur+1)}
+    else if(e.key==="ArrowLeft"||e.key==="PageUp"){e.preventDefault();go(cur-1)}
+    else if(e.key==="r"||e.key==="R"){play(screens[cur])}
+    else if(e.key==="Home"){go(0)}
+    else if(e.key==="End"){go(screens.length-1)}
+  });
+
+  function title(g){
+    var el=$("#typed"),txt='$ neuro run --trace-every-claim --loop-back-to-kb',i=0; el.textContent="";
+    (function tick(){ if(g!==gen)return; el.textContent=txt.slice(0,++i); if(i<txt.length)setTimeout(tick,reduce?0:26) })();
+    words($("#h1"),"Every run makes the Knowledge Base better.",800,110,g,["better."]);
+  }
+  function words(el,text,start,gap,g,hi){
+    el.innerHTML=""; hi=hi||[];
+    text.split(" ").forEach(function(w,i){
+      var sp=document.createElement("span"); sp.className="w a up"+(hi.indexOf(w)>=0?" hi":"");
+      sp.style.setProperty("--d",start+i*gap); sp.textContent=w; el.appendChild(sp);
+    });
+  }
+  /* step 6 stage detail (hover + click to pin) */
+  var sd=$("#s9detail"),sdn=$("#s9dn"),sdh=$("#s9dh"),sdw=$("#s9dw"),sdb=$("#s9db"),sdc=$("#s9caret"),sdPin=null;
+  function showD(el){var t=$("#d6-"+el.getAttribute("data-d"));if(!t)return;
+    sdn.textContent=t.getAttribute("data-n");sdh.textContent=t.getAttribute("data-title");sdw.textContent=t.getAttribute("data-who");sdb.innerHTML=t.innerHTML;
+    sd.className="detail on "+(t.getAttribute("data-hue")||"acc");
+    var sc=stage.getBoundingClientRect().width/1920,r=el.getBoundingClientRect(),d=sd.getBoundingClientRect();
+    sdc.style.left=((r.left-d.left)/sc+r.width/sc/2)+"px"}
+  function hideD(){if(sdPin)return;sd.classList.remove("on")}
+  $$(".s9 .pipe .st").forEach(function(el){
+    el.addEventListener("mouseenter",function(){if(!sdPin)showD(el)});
+    el.addEventListener("click",function(){ if(sdPin===el){sdPin=null;el.classList.remove("pin");hideD();return}
+      $$(".s9 .pipe .st.pin").forEach(function(x){x.classList.remove("pin")});sdPin=el;el.classList.add("pin");showD(el)});
+  });
+  var pipe=$(".s9 .pipe"); if(pipe) pipe.addEventListener("mouseleave",hideD);
+  /* step 7 focus mode */
+  var qf=$("#qfocus"),qfb=$("#qfocusbox");
+  function openQ(el){qfb.innerHTML=el.innerHTML;qfb.className=el.className.replace(/\ba\b|\bup\b/g,"")+" fq";qfb.style.cssText="";
+    $$(".a",qfb).forEach(function(x){x.classList.remove("a")});qf.classList.add("on")}
+  function closeQ(){qf.classList.remove("on")}
+  $$(".s10 .quad .q").forEach(function(el){el.addEventListener("click",function(){openQ(el)})});
+  qf.addEventListener("click",closeQ);
+  addEventListener("keydown",function(e){if(e.key==="Escape")closeQ()});
+  /* file viewer modal (step 2 page) */
+  var modal=$("#pvmodal"),mbody=$("#pvbody"),mtitle=$("#pvtitle"),msub=$("#pvsub");
+  function openM(id){var t=$("#pv-"+id);if(!t)return;mtitle.textContent=t.getAttribute("data-title");msub.textContent=t.getAttribute("data-sub");mbody.innerHTML=t.innerHTML;modal.className="modal on "+t.getAttribute("data-hue")}
+  function closeM(){modal.classList.remove("on")}
+  $$(".s5 .tree .f").forEach(function(el){el.addEventListener("click",function(){openM(el.getAttribute("data-pv"))})});
+  modal.addEventListener("click",function(e){if(e.target===modal)closeM()});
+  $("#pvclose").onclick=closeM;
+  addEventListener("keydown",function(e){if(e.key==="Escape")closeM()});
+  var m=/p(\d+)/.exec(location.hash||""),start=m?Math.min(screens.length,Math.max(1,+m[1]))-1:0;
+  go(start);
+})();
+</script>
+</body>
+</html>
