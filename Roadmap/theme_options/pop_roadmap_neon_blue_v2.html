@@ -1,0 +1,994 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title></title>
+
+<!-- =====================================================================
+     CONTENT DATA BLOCK
+     Everything the audience reads lives here. Edit text, outcomes, backlog
+     items, dependencies and metrics in this block only. The layout and style
+     code below never contains presentation text.
+     ===================================================================== -->
+<script id="deck-data">
+const DECK = {
+
+  cover: {
+    title: "POP (Product Owner Plugin) Roadmap",
+    team: "Neuro Product Team, Merchant Services",
+    date: "November 2026"
+  },
+
+  ui: {
+    docTitle: "POP Roadmap, neon blue theme",
+    next: "Next",
+    back: "Back",
+    showAll: "Show all lanes",
+    roadmapEyebrow: "POP roadmap",
+    roadmapTitle: "Outcomes by theme: Now, Next, Later",
+    roadmapHint: "Select an outcome for the backlog items behind it. The link dot shows what it depends on.",
+    roadmapNote: "Waves are relative, with no dates. Six Now items still need a named owner; the Now wave is only real once they have one. Milestones: POP roadmap 11/30, product leader liaison validation 11/30.",
+    emptyCell: "No committed work yet",
+    itemsWord: "backlog items",
+    itemWord: "backlog item",
+    metricsWord: "metrics",
+    metricWord: "metric",
+    lanePos: "Lane {n} of {t}",
+    catPos: "{n} of {t}",
+    depHint: "Show what this depends on",
+    panelSummary: "Outcome",
+    panelWhy: "Why it sits in this wave",
+    panelDepends: "Depends on",
+    panelNoDepends: "No dependency on another roadmap outcome.",
+    panelItems: "Backlog items behind this outcome",
+    itemWhat: "What it is",
+    itemAcceptance: "Done looks like",
+    itemNeeds: "Needs from other teams",
+    itemNoNeeds: "Nothing from other teams",
+    itemOwner: "Owner",
+    itemWave: "Wave",
+    itemScope: "In this outcome",
+    close: "Close",
+    metricsEyebrow: "Measuring POP's impact",
+    backToRoadmap: "Back to roadmap",
+    firstOnline: "First measured",
+    actual: "Actual data",
+    illustrative: "Illustrative",
+    illustrativeNote: "Illustrative numbers shown to preview the dashboard. They are replaced as real data comes online.",
+    actualNote: "Actual numbers from the October Neuro update.",
+    baseline: "Baseline",
+    target: "Target",
+    sample: "Sample",
+    definition: "How it is measured",
+    now: "Now",
+    noTrend: "No trend yet",
+    noBaseline: "No baseline yet",
+    swapHint: "Select a tile to bring it into focus"
+  },
+
+  buckets: [
+    { id: "now",   name: "Now",   caption: "In progress or starting this PI" },
+    { id: "next",  name: "Next",  caption: "Starts when a Now item or a dependency frees up" },
+    { id: "later", name: "Later", caption: "Blocked, or not committed yet" }
+  ],
+
+  /* Lanes are revealed top to bottom. Metrics is last. */
+  lanes: [
+    { id: "ur",  name: "Usability and Reliability", caption: "POP is current, dependable and easy to work with",
+      cells: { now: ["UR-NOW"], next: ["UR-NEXT"], later: [] } },
+    { id: "pkb", name: "Product Knowledge Base", caption: "Product knowledge POP can trust and reuse",
+      cells: { now: ["PKB-NOW"], next: ["PKB-NEXT"], later: ["PKB-LATER"] } },
+    { id: "gov", name: "Governance and Standardization", caption: "Clear policy, sign-off and traceability",
+      cells: { now: ["GOV-NOW"], next: ["GOV-NEXT"], later: ["GOV-LATER"] } },
+    { id: "ci",  name: "Cross-Impact Analysis", caption: "See what a change touches before work starts",
+      cells: { now: ["CI-NOW"], next: ["CI-NEXT"], later: ["CI-LATER"] } },
+    { id: "met", name: "Metrics", caption: "Six categories, each shown in the wave it is first measured", metrics: true,
+      cells: { now: ["adoption", "onboarding", "quality", "governance"], next: ["speed"], later: ["value"] } }
+  ],
+
+  outcomes: [
+    { id: "UR-NOW", lane: "ur", bucket: "now",
+      title: "Every user gets the latest fixes, and PI planning dates stay current",
+      summary: "Fixes reach users as they ship, with a short what's-new for each release. PI dates come from the live Confluence calendar, not a saved copy that runs out on 16 February 2027.",
+      justification: "Now, because every other improvement reaches users only through updates, and today users report problems that are already fixed. The PI calendar has a hard date. Both are small and wait on no other roadmap work.",
+      dependsOn: [],
+      backlogItems: [ { ref: "PO-016" }, { ref: "PO-013" } ] },
+
+    { id: "UR-NEXT", lane: "ur", bucket: "next",
+      title: "Product owners refine epics in place and bring clear visuals to PMO and Architecture",
+      summary: "A registered epic can be edited, re-checked and re-submitted without re-creating it. POP drafts business and API consumer flow diagrams before any architect is involved.",
+      justification: "Next, because both have narrower reach than the Now items and each has one check to finish first: whether Working Hub supports re-submitting a registered epic, and confirming that no diagram is offered today.",
+      dependsOn: [],
+      backlogItems: [ { ref: "PO-004" }, { ref: "PO-011" } ] },
+
+    { id: "PKB-NOW", lane: "pkb", bucket: "now",
+      title: "A standard Product Context model, piloted with Vault, and the groundwork for a Knowledge Base that learns from every run",
+      summary: "Product, Architecture and Engineering agree one model for product knowledge, including how products depend on capabilities and systems. POP pilots it with Vault, loads product-area context before ideation, and traces every Solution Intent claim to a source before publish.",
+      justification: "Now, because it is the foundation: area context, impact lookup, Knowledge Base write-back and several metrics all build on it. The content model can start today on guarded local files while the Knowledge Base store waits on Knowledge Hub. The PO chose to start claim tracing now.",
+      dependsOn: [],
+      backlogItems: [
+        { ref: "PO-014", tag: "model", scope: "Content model agreed, Vault proof of concept, custom KB API testing" },
+        { ref: "PO-015", tag: "pilot", scope: "Vault pilot on local area files" },
+        { ref: "PO-017", tag: "Ph 0–1", scope: "Phases 0 to 1: trace every claim, decide unsupported ones before publish" } ] },
+
+    { id: "PKB-NEXT", lane: "pkb", bucket: "next",
+      title: "A governed Knowledge Base is live for the pilot areas, and its gaps are queued for owners",
+      summary: "Product-area knowledge sits in one shared, governed Knowledge Base with an owner per area. POP loads area context from it, and what the Knowledge Base got wrong or missed in each run is queued for the owner to approve.",
+      justification: "Next, because go-live waits on two things outside POP: Knowledge Hub supporting custom Knowledge Bases the skill can query, and named owners for each product area. The gap queue needs the claim tracing from Now.",
+      dependsOn: [ { id: "PKB-NOW", note: "The agreed content model and the per-claim trace come first" } ],
+      backlogItems: [
+        { ref: "PO-014", tag: "live", scope: "Shared custom KB live for 2 to 3 pilot areas, with owners per area" },
+        { ref: "PO-015", tag: "from KB", scope: "Loader switches from local files to the custom KB" },
+        { ref: "PO-017", tag: "Ph 2–3", scope: "Phases 2 to 3: turn gaps into candidates and queue them for approval" } ] },
+
+    { id: "PKB-LATER", lane: "pkb", bucket: "later",
+      title: "Jira and ServiceNow history become product context, and approved fixes update the Knowledge Base automatically",
+      summary: "Past and in-flight delivery history from Jira and ServiceNow is added, tagged by area. Approved fixes are written back as a new Knowledge Base version without manual upkeep, which closes the learning loop started in Now.",
+      justification: "Later, because it needs the live Knowledge Base first, plus an ingestion pipeline for Jira and ServiceNow history and a Knowledge Base write path. Neither has an owner yet.",
+      dependsOn: [ { id: "PKB-NEXT", note: "Needs the governed Knowledge Base live (blocking)" } ],
+      backlogItems: [
+        { ref: "PO-014", tag: "history", scope: "Jira and ServiceNow history ingested and tagged by area" },
+        { ref: "PO-017", tag: "Ph 4", scope: "Phase 4: approved fixes written back as a new KB version" } ] },
+
+    { id: "CI-NOW", lane: "ci", bucket: "now",
+      title: "Shared services are engaged early on every deliverable",
+      summary: "When a deliverable is drafted, POP proposes which shared services are likely impacted, the PO confirms, and each team gets a next action well before PBR 3.",
+      justification: "Now, because this first part is a checklist that needs no Jira access and no other team's build. Every deliverable needs these responses before PBR 3, and today POP only checks after the fact.",
+      dependsOn: [],
+      backlogItems: [ { ref: "PO-010", tag: "part 1", scope: "Part 1: confirmed shared-services checklist, no Jira needed" } ] },
+
+    { id: "CI-NEXT", lane: "ci", bucket: "next",
+      title: "Every impacted engine owns its epics, and shared-service responses are confirmed before PBR 3",
+      summary: "For each deliverable, POP proposes one epic per impacted engine and hands it to that engine's accountable PO to review, own and sign off. The pre-PBR 3 check confirms each shared-service team has responded.",
+      justification: "Next, because the hand-off to other engines' POs waits on Working Hub allowing a second PO to author in the same deliverable, and the pre-PBR 3 check waits on the Jira access policy.",
+      dependsOn: [
+        { id: "GOV-NOW", note: "Jira access policy and the recorded sign-off are reused here (partial)" },
+        { id: "CI-NOW", note: "Builds on the shared-services checklist" } ],
+      backlogItems: [
+        { ref: "PO-012" },
+        { ref: "PO-010", tag: "part 2", scope: "Part 2: responses checked before PBR 3" } ] },
+
+    { id: "CI-LATER", lane: "ci", bucket: "later",
+      title: "POP shows what a change impacts across products, systems and the portfolio",
+      summary: "Describe a change and POP lists the capabilities, systems and components it touches; for example, a change to UPG surfaces Boarding. New initiatives are also checked against other initiatives and the strategic roadmap.",
+      justification: "Later, because it is blocked on foundations that do not exist yet: dependency relationships recorded in the Knowledge Base for the pilot areas, one product and capability hierarchy, the strategic roadmap as data, and shared tags on initiatives.",
+      dependsOn: [
+        { id: "PKB-NEXT", note: "Dependency relationships recorded in the Knowledge Base (blocking)" },
+        { id: "PKB-LATER", note: "Jira history finds parallel work outside Working Hub (partial)" },
+        { id: "GOV-NOW", note: "Jira read policy, for exact-duplicate checks (partial)" } ],
+      backlogItems: [ { ref: "PO-020" }, { ref: "PO-009" } ] },
+
+    { id: "GOV-NOW", lane: "gov", bucket: "now",
+      title: "One Jira access policy everyone follows, and a recorded sign-off on every publish",
+      summary: "POP, its documentation and its users all work to the same Jira read and write policy. Every artifact published to Working Hub carries a record of who reviewed it and when.",
+      justification: "Now, because both remove confusion product owners meet today: the plugin, the docs and three skills currently disagree about Jira writes. Settling it also partly unblocks Cross-Impact work. Sign-off is a quick win with a named owner and no dependencies.",
+      dependsOn: [],
+      backlogItems: [ { ref: "PO-018" }, { ref: "PO-005" } ] },
+
+    { id: "GOV-NEXT", lane: "gov", bucket: "next",
+      title: "Delivered work is traceable from requirement to code, with auditable artifacts and one standard for spec-driven development",
+      summary: "After delivery, POP closes out each deliverable against its requirements and traces them to code. Every artifact records the POP version, template version and sources that produced it, and specs follow an agreed detail standard with a clear hand-off to Dev.",
+      justification: "Next, because close-out is the only route to the leadership Governance OKR of end-to-end traceability and to measuring realized value, but it needs delivered initiatives to close out and Engineering to reference Jira keys in commits. The spec standard needs Product, Engineering and Architecture to agree, and has no owner yet.",
+      dependsOn: [],
+      backlogItems: [ { ref: "PO-008" }, { ref: "PO-006" }, { ref: "PO-003" } ] },
+
+    { id: "GOV-LATER", lane: "gov", bucket: "later",
+      title: "Epics are flagged when their deliverable changes",
+      summary: "When a deliverable changes after its epics were generated, POP flags the affected epics so the PO can update them or knowingly keep them.",
+      justification: "Later, because it is small and nice to have, and works best after the spec standard settles how upstream changes reach an approved spec.",
+      dependsOn: [ { id: "GOV-NEXT", note: "The spec standard settles how upstream changes propagate (partial)" } ],
+      backlogItems: [ { ref: "PO-007" } ] }
+  ],
+
+  /* Backlog items, referenced by the outcomes above. */
+  items: {
+    "PO-014": { title: "Governed custom Knowledge Bases: product-area knowledge, Jira history and ServiceNow history",
+      priority: "P1", owner: "TBD (Knowledge Hub is the likely builder of the store)", wave: "Now, then Next and Later",
+      what: "POP lacks three kinds of product-level knowledge that Knowledge Hub does not hold. Build governed sources for each: product-area knowledge curated by Product Area Owners in one shared KB, Jira history, and ServiceNow history, all tagged by area. One standard content model includes dependency relationships from product or feature to capability, with links to systems.",
+      acceptance: "The content model is agreed and piloted with 2 to 3 areas, with dependency relationships recorded. Product-area knowledge is in one shared custom KB with an owner per area. Jira and ServiceNow history are ingested, tagged by area and dated. POP can query all three by area through the Knowledge Hub skill.",
+      needs: [ "Organisation: product areas and their owners as one hierarchy (blocking for go-live)",
+               "Knowledge Hub: custom KBs the skill can query, with per-folder owners and permissions (blocking for go-live)",
+               "Data team or Knowledge Hub: Jira and ServiceNow history ingestion pipeline (blocking for history; owner TBD)" ] },
+
+    "PO-015": { title: "Front-load product-area context before ideation",
+      priority: "P1", owner: "Assigned", wave: "Now",
+      what: "Before ideation, POP proposes the product area, the PO confirms, and POP loads that area's context, cites it and tags its confidence. Local files are the interim; the shared custom KB is the end state.",
+      acceptance: "Product-area context is loaded and cited before Stage 1. The same area's context is reused across initiatives. The loader switches to the custom KB without changes to the skills that call it.",
+      needs: [ "Organisation: product areas defined (partial; until then the PO names the area)" ] },
+
+    "PO-017": { title: "Recursive Knowledge Base improvement: find what the KB got wrong or missed, and feed approved fixes back",
+      priority: "P1", owner: "Assigned", wave: "Now (phases 0 to 1), then Next and Later (phases 2 to 4)",
+      what: "On each run, trace every fact in the Solution Intent to its source, catch unsupported claims before publish, turn what the KB got wrong or missed into candidates, and after a person approves, update the KB as a new version. Trust metrics come out of the process as a by-product.",
+      acceptance: "Per run, every claim in the Solution Intent is traced and every unsupported claim is decided before publish. KB gaps become approved, versioned KB updates through a named approver. The weekly metrics are produced from the same data.",
+      needs: [ "Knowledge Hub: chunk IDs, locations and full text returned by the KB tooling (blocking for phase 0)",
+               "Knowledge Hub and product area owners: similarity search, domain list and named approvers (blocking for phase 3)",
+               "Knowledge Hub: a KB write path (blocking for phase 4)",
+               "Owner TBD: a shared store for cross-run work (blocking for phases 2 to 3)" ] },
+
+    "PO-020": { title: "Impact lookup: show what a product or feature change affects",
+      priority: "P1", owner: "TBD", wave: "Later",
+      what: "When a PO describes a change, POP follows the dependency relationships in the custom KB and the system detail in Knowledge Hub to list the capabilities, systems and components impacted, each sourced and confirmed by the PO, so impacts are found at project start.",
+      acceptance: "For the pilot areas, POP lists the capabilities, systems and components a described change impacts, each sourced and confirmed by the PO, and the confirmed list feeds the epic breakdown.",
+      needs: [ "Organisation: one product and capability hierarchy (blocking)",
+               "Knowledge Hub: system and component detail queryable by an ID the custom KB can link to (partial)" ] },
+
+    "PO-018": { title: "Settle POP's Jira access policy (read and write) and make the skills, docs and users agree",
+      priority: "P1", owner: "TBD", wave: "Now",
+      what: "The plugin allows read-only Jira access and bans writes, a recent meeting describes a tighter restriction, three skills still tell the agent to write, and users are confused. Revisit the policy with Working Hub and make the router, skills, docs and user messages say the same thing.",
+      acceptance: "The policy is decided and logged. The router, skills, docs and POP's answers to users all match it.",
+      needs: [ "Working Hub team: agreement on the policy, in line with centralising Jira integration in Working Hub (blocking)" ] },
+
+    "PO-016": { title: "Plugin update process: keep users on the current version, and tell them what changed",
+      priority: "P1", owner: "TBD", wave: "Now",
+      what: "Fixes do not reach users who have not updated, so they report problems that are already fixed. Define how updates are released and announced, have POP tell users when their install is out of date, and give a short what's-new for each release.",
+      acceptance: "An owned update process is documented: owner, approval, cadence, channel and supported versions. POP warns when the install is out of date and points to the update. Each release has a short what's-new for users.",
+      needs: [ "Common plugin: the shared setup script's plugin status (partial; one step only)" ] },
+
+    "PO-005": { title: "Record the user's sign-off in an artifact before publishing it to Working Hub",
+      priority: "P1", owner: "Assigned", wave: "Now",
+      what: "After the automated completeness checks, the user confirms they reviewed the artifact. Who and when is recorded in the artifact before it goes to Working Hub.",
+      acceptance: "Every Working Hub publish path shows the sign-off after the completeness checks, and the published artifact carries the sign-off record.",
+      needs: [] },
+
+    "PO-008": { title: "Close out deliverables and epics after delivery, with requirements-to-code traceability",
+      priority: "P1", owner: "TBD", wave: "Next",
+      what: "After delivery, POP builds a requirements-to-code traceability matrix (met, partial, not met, not evidenced), requires a human decision for every row that is not met, and checks the definition of done, closure artifacts and the success metrics set at intake.",
+      acceptance: "Close-out produces the traceability matrix and cannot complete while any row that is not met is undecided. It records the definition-of-done check and closure artifacts, and shows actual versus target for every business outcome.",
+      needs: [ "Engineering: code check-ins that reference Jira keys (partial; without them rows show as not evidenced)",
+               "Neuro platform: optional read access to the code repository (partial)",
+               "Owner TBD: the end-to-end lifecycle map across plugins (partial)" ] },
+
+    "PO-012": { title: "Propose the full cross-engine epic breakdown per deliverable, and hand each engine's epic to its PO",
+      priority: "P1", owner: "TBD", wave: "Next",
+      what: "For each deliverable, POP proposes one epic per impacted engine, records the owning engine and its accountable PO, and manages the hand-off so each engine's PO reviews and owns their epic in Working Hub under the same initiative and deliverable.",
+      acceptance: "For every deliverable, the epic list covers every impacted engine with an owning engine and a hand-off status. Each other engine's epic is owned and committed by that engine's PO, names its accountable PO and carries that PO's recorded sign-off.",
+      needs: [ "Working Hub and Neuro team: a second PO can author in the same deliverable area (blocking for hand-off)",
+               "Working Hub and Neuro team: a draft by one person can be committed by another under their own ID (blocking)",
+               "Working Hub and engine teams: the owning engine flows to a Jira field so it appears on that engine's board (partial)",
+               "Organisation and product owners: an engine-to-accountable-PO mapping (partial)" ] },
+
+    "PO-011": { title: "Draft business and API consumer flow diagrams for PMO and Architecture conversations",
+      priority: "P2", owner: "TBD", wave: "Next",
+      what: "Give every PO, including API product owners, a visual for PMO and Architecture conversations before any architect is involved: a business journey flow in the solution intent and an API consumer interaction diagram in the API product brief. Systems and internal design stay with architects.",
+      acceptance: "Stage 3 offers a business flow diagram that the PO approves into the solution intent. The API product brief includes an API consumer interaction diagram. Both follow agreed conventions and contain no internal systems.",
+      needs: [ "Architecture plugin team: recognise and use POP's flow sections (partial)",
+               "Architecture plugin team: optional reuse of the shared diagram linter (partial)" ] },
+
+    "PO-010": { title: "Prompt shared-services engagement early, not only at PBR 3",
+      priority: "P2", owner: "TBD", wave: "Now (part 1), then Next (part 2)",
+      what: "When each deliverable is drafted, POP proposes which shared services are likely impacted (AE, CJT, DE, PDP, SRE, Risk Materiality), the PO confirms, and POP lists each team's next action, so they are engaged well before PBR 3.",
+      acceptance: "Every deliverable drafted in Stage 4 has a confirmed shared-services checklist with a next action per team, recorded before PBR 3 preparation. The pre-PBR 3 check is a stage step, not only an on-request skill.",
+      needs: [ "PBR process owners: the organisation's process for engaging shared services earlier (partial)" ] },
+
+    "PO-004": { title: "Refine and re-submit an existing epic without re-creating it",
+      priority: "P2", owner: "TBD", wave: "Next",
+      what: "A documented way to edit a registered epic, re-check it and re-submit it, in place of exporting, editing elsewhere and re-uploading. Covers what to do after changes are requested.",
+      acceptance: "The Stage 4 guidance describes the refine-and-resubmit path, and a sandbox run completes it without re-creating the epic.",
+      needs: [ "Working Hub and Neuro team: support for re-submitting a registered epic (not yet confirmed)" ] },
+
+    "PO-009": { title: "Assess impact on current initiatives and fit with the strategic roadmap at project start",
+      priority: "P2", owner: "TBD", wave: "Later",
+      what: "At project start, check a new initiative against other Working Hub initiatives for overlaps, conflicts and synergies, and against the strategic roadmap for fit and timing, so the impact assessment reflects the wider portfolio.",
+      acceptance: "At Stage 3, POP reports overlaps, conflicts and synergies with other initiatives, and fit with the roadmap, each with evidence. The findings appear in the solution intent's impact assessment and strategy.",
+      needs: [ "Working Hub and Neuro team: initiative data POP can read, including other initiatives' deliverables and epics (blocking; partly met)",
+               "Business and strategy: one authoritative product and capability hierarchy (blocking)",
+               "Strategic roadmap owner: the integrated roadmap as data, not slides (blocking)",
+               "Owner TBD: shared tags on initiatives for domain, capability, system and API (blocking)" ] },
+
+    "PO-006": { title: "Stamp generated artifacts with POP version, template version, date and sources used",
+      priority: "P2", owner: "TBD", wave: "Next",
+      what: "Each generated artifact records which POP and template versions made it, when, and which knowledge sources it drew on, so it can be audited later. The stamp also tells POP-produced documents from hand-written ones, which several metrics need.",
+      acceptance: "Every artifact POP generates records its POP version, template version, generation date and sources used.",
+      needs: [ "Knowledge Hub: a version for each knowledge source (partial; only the source-version field waits)" ] },
+
+    "PO-003": { title: "Refine the level of detail for spec-driven development, and the process for consumption by Dev",
+      priority: "P2", owner: "TBD", wave: "Next",
+      what: "Agree how much detail a spec needs, how a person approves it, and how Dev picks it up, alongside the short human-readable epic.",
+      acceptance: "A documented detail standard for epic versus spec, an approval step for the spec, and a consumption process for Dev, reflected in the plugin's Stage 4 guidance.",
+      needs: [] },
+
+    "PO-013": { title: "Read the PI calendar from Confluence",
+      priority: "P2", owner: "TBD", wave: "Now (due before 16 February 2027)",
+      what: "POP's PI calendar is a saved copy that runs out on 16 February 2027 and is already stale. Read the dates from the Confluence source, keep a dated fallback copy, warn when it is stale, and remove dates written into skill text and docs.",
+      acceptance: "POP's PI dates come from the Confluence source through configuration, with a dated fallback and a staleness warning. No PI dates are written out in skill text or docs. Delivered before 16 February 2027.",
+      needs: [ "Owner of the PI dates Confluence page (partial; the fallback and warning can start now)" ] },
+
+    "PO-007": { title: "Flag epics that are out of date when their deliverable changes",
+      priority: "P3", owner: "TBD", wave: "Later",
+      what: "When a deliverable changes after its epics were generated, nothing tells the PO today, so epics can quietly go out of date. POP flags the affected epics so the PO can update them or knowingly keep them.",
+      acceptance: "A deliverable change after epic generation flags every affected epic, and the PO's choice is recorded.",
+      needs: [] }
+  },
+
+  /* Six metric categories, in the order they come online. */
+  metricCategories: [
+    { id: "adoption", name: "Adoption", wave: "now", heroMetricId: "MET-012", dependsOn: [],
+      metrics: [
+        { id: "MET-012", name: "Active User Rate", data: "actual",
+          value: "33.3%", valueNote: "195 of 585 people",
+          trend: "4.9 pts", trendDir: "up", trendGood: true,
+          baseline: "28.4% (185 of 651, Aug 2026)", target: "~90% (suggested OKR)", sample: "PDLC headcount, one org, 20 Oct 2026",
+          whatThisTellsUs: "How many of the people who could use Neuro are using it?",
+          context: "A third of the PDLC organisation is now active on Neuro, up from 28%. Most of that rise came from a smaller headcount: only 10 more people are using it. Installed is 44%, so about a quarter of those who installed it are not active yet.",
+          definition: "Active Neuro users divided by PDLC headcount. This is reach, not value.",
+          gauge: { max: 100, current: 33.3, baseline: 28.4, target: 90 } },
+        { id: "MET-003", name: "Sustained Adoption Rate", data: "illustrative",
+          value: "30%", valueNote: "12 of 40 eligible POs",
+          trend: "12 pts", trendDir: "up", trendGood: true,
+          baseline: "18%", target: "50% or more", sample: "40 eligible POs",
+          whatThisTellsUs: "Are product owners using POP for real work, month after month?",
+          context: "30% of eligible POs now use POP for real work month after month, up from 18%. 70% have tried it, so the gap is turning a first try into real output.",
+          definition: "Eligible POs with meaningful use in 2 or more of the last 3 months, divided by eligible POs.",
+          gauge: { max: 100, current: 30, baseline: 18, target: 50 } },
+        { id: "MET-005", name: "Practitioner Experience Score", data: "illustrative",
+          value: "74%", valueNote: "23 of 31 responses",
+          trend: null, trendDir: "flat", trendGood: true,
+          baseline: null, target: "80% or more", sample: "31 responses, 62% response rate",
+          whatThisTellsUs: "Do product owners find that POP makes their work straightforward, and what gets in the way?",
+          context: "Three-quarters of POs say POP made their work straightforward. The most common thing getting in the way is missing product context, which the Knowledge Base work addresses.",
+          definition: "Share of respondents rating 4 or 5 on a 20-second in-tool survey after a meaningful use.",
+          gauge: { max: 100, current: 74, baseline: null, target: 80 } }
+      ] },
+
+    { id: "onboarding", name: "Onboarding", wave: "now", heroMetricId: "MET-004", dependsOn: [],
+      metrics: [
+        { id: "MET-004", name: "Time to First Meaningful Use", data: "illustrative",
+          value: "11 days", valueNote: "median, 9 new POs",
+          trend: "58%", trendDir: "down", trendGood: true,
+          baseline: "26 days", target: "10 days or fewer", sample: "9 new POs",
+          whatThisTellsUs: "How quickly do new product owners get to their first real output with POP?",
+          context: "New POs now produce their first real output with POP in about a week and a half, down from almost four weeks, so getting started is no longer the main barrier to adoption. One PO is still waiting after 30 days.",
+          definition: "From a PO's first POP session or role on an active initiative, whichever is later, to their first POP-produced document committed or first gate passed.",
+          gauge: { max: 30, current: 11, baseline: 26, target: 10 } }
+      ] },
+
+    { id: "quality", name: "Quality", wave: "now", heroMetricId: "MET-006",
+      dependsOn: [ { id: "GOV-NEXT", note: "The artifact stamp tells POP-produced documents from hand-written ones (partial)" } ],
+      metrics: [
+        { id: "MET-006", name: "First-Pass Approval Rate", data: "illustrative",
+          value: "75%", valueNote: "15 of 20 documents",
+          trend: "20 pts", trendDir: "up", trendGood: true,
+          baseline: "55%", target: "85% or more", sample: "20 documents",
+          whatThisTellsUs: "Are the documents POP helps produce approved at governance the first time?",
+          context: "Three in four documents POP helps produce are approved first time at governance, up from just over half, so fewer review cycles slow initiatives down.",
+          definition: "POP-produced documents approved on the first version submitted, divided by documents approved in the period.",
+          gauge: { max: 100, current: 75, baseline: 55, target: 85 } },
+        { id: "MET-002", name: "Readiness Stability Rate", data: "illustrative",
+          value: "83%", valueNote: "5 of 6 initiatives",
+          trend: null, trendDir: "flat", trendGood: true,
+          baseline: null, target: "90% or more", sample: "6 initiatives",
+          whatThisTellsUs: "When work is handed to a Pod, was it really ready?",
+          context: "Five of six initiatives were a clean handoff: the Pod accepted them and nothing material had to change afterwards, so fast readiness is not hiding half-finished work.",
+          definition: "Initiatives with no material change to their locked documents after Pod acceptance, divided by initiatives that reached Pod accepted. First measured in the Next wave.",
+          gauge: { max: 100, current: 83, baseline: null, target: 90 } },
+        { id: "MET-008", name: "Post-Release Defect Rate", data: "illustrative",
+          value: "6", valueNote: "defects per initiative, median of 5",
+          trend: "from 7 last quarter", trendDir: "down", trendGood: true,
+          baseline: "7 last quarter", target: "No increase quarter on quarter", sample: "5 initiatives",
+          whatThisTellsUs: "Has quality held, or improved, as Neuro speeds delivery up?",
+          context: "Initiatives delivered through Neuro are reaching production with no more defects than before, so faster delivery is not coming at the cost of quality. Reported as a contribution, not proof of cause.",
+          definition: "Production defects in the 90 days after an initiative's first release. A guardrail: it must not rise. First measured in the Later wave.",
+          gauge: { max: 10, current: 6, baseline: 7, target: null } }
+      ] },
+
+    { id: "governance", name: "Governance", wave: "now", heroMetricId: "MET-009",
+      dependsOn: [ { id: "PKB-NOW", note: "Claim tracing automates the trust metrics; manual samples work until then" } ],
+      metrics: [
+        { id: "MET-009", name: "Unsupported Claim Rate", data: "illustrative",
+          value: "4%", valueNote: "of 820 claims",
+          trend: "2 pts", trendDir: "down", trendGood: true,
+          baseline: "6% (first sample)", target: "2% or less", sample: "6 Solution Intents, 820 claims",
+          whatThisTellsUs: "How well-sourced is what POP writes?",
+          context: "Only 4% of the facts in POP-produced Solution Intents lack a source, down from 6%, and each of those is reviewed by a person before the document is published, so nothing unsourced goes to governance unchecked.",
+          definition: "Claims with no traceable source, divided by material claims, before the analyst's review. A manual sample now; automated once claim tracing ships.",
+          gauge: { max: 10, current: 4, baseline: 6, target: 2 } },
+        { id: "MET-010", name: "Knowledge Base Used Rate", data: "illustrative",
+          value: "85%", valueNote: "of 240 KB lookups",
+          trend: "19 pts", trendDir: "up", trendGood: true,
+          baseline: "66% (first sample)", target: "90% or more", sample: "6 Solution Intents, 240 lookups",
+          whatThisTellsUs: "When POP asks the Knowledge Base, does it give an answer we can use?",
+          context: "The Knowledge Base's answer is now good enough to use 85% of the time, up from 66%, so it is getting more useful run by run. The weakest domain, Risk at 64%, shows where to build content next.",
+          definition: "KB answers used in the Solution Intent, divided by topics the KB was asked about.",
+          gauge: { max: 100, current: 85, baseline: 66, target: 90 } },
+        { id: "MET-011", name: "Requirements Traceability Rate", data: "illustrative",
+          value: "72%", valueNote: "of 180 requirements",
+          trend: null, trendDir: "flat", trendGood: true,
+          baseline: null, target: "100% (suggested OKR)", sample: "4 initiatives at close-out, 180 requirements",
+          whatThisTellsUs: "Can every requirement be traced to the code that delivered it?",
+          context: "Almost three-quarters of requirements can be traced to the code that delivered them. The chain breaks most often between story and code, where commits do not reference Jira.",
+          definition: "Requirements traceable from Solution Intent through deliverable, epic and story to code, divided by requirements in closed-out initiatives. First measured in the Later wave.",
+          gauge: { max: 100, current: 72, baseline: null, target: 100 } }
+      ] },
+
+    { id: "speed", name: "Speed", wave: "next", heroMetricId: "MET-001", dependsOn: [],
+      metrics: [
+        { id: "MET-001", name: "Time to Pod-ready", data: "illustrative",
+          value: "44 days", valueNote: "median of 6 initiatives",
+          trend: "37%", trendDir: "down", trendGood: true,
+          baseline: "70 days", target: "40 days or fewer", sample: "6 initiatives",
+          whatThisTellsUs: "How long does it take to get a piece of work ready for a delivery Pod?",
+          context: "Initiatives now reach a delivery Pod about a third faster than before, 44 days against 70, and are close to the 40-day target. This is POP's direct share of the leadership Speed OKR.",
+          definition: "From initiative created in Working Hub to the Pod accepting its epics. Needs the Pod-accepted event to be defined and recorded first.",
+          gauge: { max: 80, current: 44, baseline: 70, target: 40 } },
+        { id: "MET-007", name: "Idea-to-Production Cycle Time", data: "illustrative",
+          value: "199 days", valueNote: "median of 5 initiatives",
+          trend: "31%", trendDir: "down", trendGood: true,
+          baseline: "290 days", target: "30 to 50% faster (suggested OKR)", sample: "5 initiatives",
+          whatThisTellsUs: "How long does it take an idea to reach production?",
+          context: "Ideas now reach production about 30% faster, which meets the bottom of the Speed OKR range. Getting work ready dropped 37%, so readiness is driving the gain.",
+          definition: "From initiative created in Working Hub to first production release. A Neuro programme metric, with POP as context. First measured in the Later wave.",
+          gauge: { max: 300, current: 199, baseline: 290, target: 203 } }
+      ] },
+
+    { id: "value", name: "Realized Value", wave: "later", heroMetricId: "MET-013",
+      dependsOn: [ { id: "GOV-NEXT", note: "Close-out measures each business outcome against its target (blocking)" } ],
+      metrics: [
+        { id: "MET-013", name: "Business Outcome Achievement Rate", data: "illustrative",
+          value: "61%", valueNote: "11 of 18 outcomes",
+          trend: null, trendDir: "flat", trendGood: true,
+          baseline: null, target: "To be set", sample: "18 outcomes measured across 6 initiatives",
+          whatThisTellsUs: "Do initiatives deliver the business outcomes they promised?",
+          context: "Six in ten of the business outcomes promised at intake were fully achieved, and most of the rest partly. This is Neuro's contribution, not proof of cause, and more close-outs are needed before it can carry headline claims.",
+          definition: "Business outcomes achieved at close-out, divided by business outcomes measured, excluding those too early to measure.",
+          gauge: { max: 100, current: 61, baseline: null, target: null } }
+      ] }
+  ]
+};
+</script>
+
+<style>
+:root{
+  --bg:#04060c; --bg2:#070b14; --surface:#0b0f1d; --surface2:#0e1426;
+  --line:rgba(110,160,255,.14); --line2:rgba(110,160,255,.26);
+  --text:#eaf2ff; --muted:#8ea2c0; --dim:#5d6f8c;
+  --cyan:#4682ff; --blue:#00e5ff; --slate:#7f8fb5;
+  --good:#3fdc9a; --warn:#ffb85c;
+  --head:"Century Gothic","Avenir Next","Futura","Segoe UI",system-ui,sans-serif;
+  --body:"Segoe UI","Avenir Next","Helvetica Neue",system-ui,sans-serif;
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#000;overflow:hidden}
+body{font-family:var(--body);color:var(--text);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+#viewport{position:fixed;inset:0;overflow:hidden;background:#000;display:flex;align-items:center;justify-content:center}
+#stage{position:relative;flex:none;width:1920px;height:1080px;overflow:hidden;text-rendering:optimizeLegibility;
+  background:
+    radial-gradient(1200px 700px at 78% 18%,rgba(70,130,255,.07),transparent 60%),
+    radial-gradient(900px 600px at 8% 95%,rgba(0,229,255,.09),transparent 60%),
+    linear-gradient(180deg,var(--bg),var(--bg2));}
+#stage::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.55;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:64px 64px;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 40%,#000 0%,transparent 78%);mask-image:radial-gradient(ellipse at 50% 40%,#000 0%,transparent 78%)}
+
+/* ---------- slides ---------- */
+.slide{position:absolute;inset:0;opacity:0;visibility:hidden;transform:translateX(70px) scale(.985);
+  transition:opacity .55s ease,transform .7s var(--ease),visibility 0s linear .6s}
+.slide.before{transform:translateX(-70px) scale(.985)}
+.slide.active{opacity:1;visibility:visible;transform:none;transition:opacity .6s ease .1s,transform .75s var(--ease) .1s,visibility 0s}
+.eyebrow{font-family:var(--head);font-size:15px;letter-spacing:.34em;text-transform:uppercase;color:var(--cyan)}
+
+/* ---------- cover ---------- */
+#net{position:absolute;inset:0;width:1920px;height:1080px}
+.cover-veil{position:absolute;inset:0;background:linear-gradient(90deg,rgba(4,6,12,.95) 0%,rgba(4,6,12,.74) 33%,rgba(4,6,12,0) 62%)}
+.cover-text{position:absolute;left:120px;top:0;bottom:44px;display:flex;flex-direction:column;justify-content:center;max-width:1000px}
+.cover-text h1{font-family:var(--head);font-weight:400;font-size:86px;line-height:1.08;letter-spacing:-.01em;
+  background:linear-gradient(100deg,#fff 20%,#dee8ff 70%,var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.cover-rule{width:120px;height:2px;margin:44px 0 34px;background:linear-gradient(90deg,var(--cyan),transparent);box-shadow:0 0 18px var(--cyan)}
+#cv-team{font-family:var(--head);font-size:30px;color:var(--text);letter-spacing:.02em}
+#cv-date{font-size:22px;color:var(--muted);margin-top:14px;letter-spacing:.2em;text-transform:uppercase}
+.slide.active .cover-text>*{animation:rise .9s var(--ease) both}
+.slide.active .cover-text>*:nth-child(2){animation-delay:.25s}
+.slide.active .cover-text>*:nth-child(3){animation-delay:.4s}
+.slide.active .cover-text>*:nth-child(4){animation-delay:.52s}
+@keyframes rise{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+
+/* ---------- roadmap ---------- */
+.rd-head{position:absolute;left:56px;right:56px;top:30px;height:92px;display:flex;justify-content:space-between;align-items:flex-end}
+.rd-head h2{font-family:var(--head);font-weight:400;font-size:38px;margin-top:10px;letter-spacing:-.005em}
+.rd-tools{display:flex;align-items:center;gap:26px;padding-bottom:6px}
+.rd-hint{font-size:15px;color:var(--muted);max-width:520px;text-align:right;line-height:1.4}
+.pill-btn{height:42px;padding:0 20px;border:1px solid var(--line2);border-radius:21px;font-size:15px;letter-spacing:.04em;color:var(--text);
+  background:rgba(70,130,255,.05);transition:border-color .25s,background .25s,box-shadow .25s,opacity .3s}
+.pill-btn:hover{border-color:var(--cyan);background:rgba(70,130,255,.12);box-shadow:0 0 22px rgba(70,130,255,.25)}
+.pill-btn:disabled{opacity:.3;pointer-events:none}
+.grid{position:absolute;left:56px;right:56px;top:136px}
+.cols{display:grid;grid-template-columns:262px repeat(3,1fr);gap:14px;height:54px;align-items:end;padding-bottom:10px}
+.col-h{display:flex;align-items:baseline;gap:14px;border-bottom:1px solid var(--line2);padding:0 4px 9px}
+.col-h b{font-family:var(--head);font-weight:400;font-size:24px;letter-spacing:.06em}
+.col-h span{font-size:13.5px;color:var(--muted)}
+.col-h[data-b=now] b{color:var(--cyan)} .col-h[data-b=next] b{color:#78f0ff} .col-h[data-b=later] b{color:var(--slate)}
+.lane{display:grid;grid-template-columns:262px repeat(3,1fr);gap:14px;height:152px;margin-bottom:10px}
+.lane-label,.node,.empty{opacity:0;transform:translateY(18px);transition:opacity .55s ease,transform .65s var(--ease),border-color .3s,box-shadow .3s,background .3s}
+.lane.revealed .lane-label,.lane.revealed .node,.lane.revealed .empty{opacity:1;transform:none}
+.lane.revealed .cell:nth-child(2)>*,.lane.revealed .cell:nth-child(2) .node{transition-delay:.10s,.10s,0s,0s,0s}
+.lane.revealed .cell:nth-child(3)>*,.lane.revealed .cell:nth-child(3) .node{transition-delay:.20s,.20s,0s,0s,0s}
+.lane.revealed .cell:nth-child(4)>*,.lane.revealed .cell:nth-child(4) .node{transition-delay:.30s,.30s,0s,0s,0s}
+.lane:not(.revealed) .node,.lane:not(.revealed) .empty{pointer-events:none}
+.lane-label{position:relative;padding:16px 16px 14px 22px;border-left:2px solid var(--cyan);
+  background:linear-gradient(90deg,rgba(70,130,255,.08),transparent);display:flex;flex-direction:column;justify-content:center}
+.lane-label i{font-style:normal;font-family:var(--head);font-size:13px;letter-spacing:.3em;color:var(--cyan);opacity:.8}
+.lane-label b{font-family:var(--head);font-weight:400;font-size:21px;line-height:1.22;margin:8px 0 8px}
+.lane-label span{font-size:13.5px;line-height:1.4;color:var(--muted)}
+.cell{position:relative;display:flex;gap:10px;min-width:0}
+.card{position:relative;flex:1;min-width:0;text-align:left;padding:18px 54px 14px 20px;border:1px solid var(--line);border-radius:14px;
+  background:linear-gradient(160deg,rgba(18,25,48,.92),rgba(10,14,27,.92));display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--bc);box-shadow:0 0 16px var(--bc)}
+.card[data-b=now]{--bc:var(--cyan)} .card[data-b=next]{--bc:var(--blue)} .card[data-b=later]{--bc:var(--slate)}
+.card:hover{border-color:var(--bc);box-shadow:0 0 0 1px rgba(70,130,255,.08),0 12px 40px rgba(0,0,0,.5),0 0 34px rgba(70,130,255,.12)}
+.card h3{font-family:var(--body);font-weight:500;font-size:19.5px;line-height:1.32;color:var(--text)}
+.card .meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);letter-spacing:.03em;white-space:nowrap}
+.card .meta em{font-style:normal;padding:2px 8px;border:1px solid var(--line2);border-radius:9px;color:#b9c9e6;font-size:12px}
+.dep{position:absolute;right:12px;top:12px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line2);display:grid;place-items:center;
+  color:var(--cyan);background:rgba(4,6,12,.6);transition:all .25s}
+.dep:hover,.dep-src .dep{border-color:var(--cyan);background:rgba(70,130,255,.16);box-shadow:0 0 18px rgba(70,130,255,.45)}
+.dep svg{width:16px;height:16px}
+.empty{flex:1;border:1px dashed var(--line);border-radius:14px;display:grid;place-items:center;font-size:14px;color:var(--dim);letter-spacing:.04em}
+.chips{flex:1;display:flex;gap:10px;min-width:0}
+.chip{position:relative;flex:1;min-width:0;border:1px solid var(--line2);border-radius:14px;padding:14px 10px 12px 14px;text-align:left;
+  background:linear-gradient(160deg,rgba(70,130,255,.10),rgba(0,229,255,.05));display:flex;flex-direction:column;justify-content:space-between}
+.chip:hover{border-color:var(--cyan);box-shadow:0 0 30px rgba(70,130,255,.2)}
+.chip b{font-family:var(--head);font-weight:400;font-size:16px;letter-spacing:0;white-space:nowrap}
+.chip .cv{font-family:var(--head);font-size:24px;color:var(--cyan);line-height:1;white-space:nowrap}
+.chip small{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.chip small svg{width:13px;height:13px;color:var(--cyan)}
+.chip .dep{width:26px;height:26px;right:8px;top:auto;bottom:8px}.chip .dep svg{width:13px;height:13px}
+/* dependency mode */
+.grid.dep-mode .lane.revealed .node:not(.dep-src):not(.dep-tgt),.grid.dep-mode .lane.revealed .empty{opacity:.2}
+.node.dep-tgt,.node.dep-src{border-color:var(--cyan)!important;box-shadow:0 0 0 1px rgba(70,130,255,.35),0 0 40px rgba(70,130,255,.28)!important}
+.lane:not(.revealed) .node.ghost{opacity:.42;transform:none;border-style:dashed}
+#links{position:absolute;inset:0;width:1920px;height:1080px;pointer-events:none;overflow:visible}
+#links path{fill:none;stroke:var(--cyan);stroke-width:2;stroke-linecap:round;transition:stroke-dashoffset .7s var(--ease)}
+#links path.glow{stroke-width:8;opacity:.22}
+#links circle{fill:var(--cyan);opacity:0;transition:opacity .3s ease .55s}
+#links circle.halo{opacity:0}
+#links.on circle{opacity:1} #links.on circle.halo{opacity:.25}
+.dep-notes{position:absolute;left:56px;bottom:18px;max-width:1400px;display:flex;flex-direction:column;gap:2px;opacity:0;transition:opacity .35s;pointer-events:none}
+.dep-notes.on{opacity:1}
+.dep-notes p{font-size:13.5px;color:#dee8ff;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dep-notes p b{color:var(--cyan);font-weight:600}
+.footnote{position:absolute;left:56px;bottom:26px;max-width:1340px;font-size:13.5px;line-height:1.45;color:var(--dim);transition:opacity .3s}
+.footnote.off{opacity:0}
+
+/* ---------- panel ---------- */
+#scrim{position:absolute;inset:0;background:rgba(3,4,8,.62);opacity:0;visibility:hidden;transition:opacity .35s,visibility 0s .35s;z-index:20}
+#scrim.on{opacity:1;visibility:visible;transition:opacity .35s}
+#panel{position:absolute;top:0;right:0;bottom:0;width:900px;z-index:21;transform:translateX(104%);transition:transform .55s var(--ease);
+  background:linear-gradient(180deg,#0c1121,#080c17);border-left:1px solid var(--line2);box-shadow:-40px 0 90px rgba(0,0,0,.6);display:flex;flex-direction:column}
+#panel.on{transform:none}
+#panel::before{content:"";position:absolute;left:-1px;top:0;width:1px;height:38%;background:linear-gradient(var(--cyan),transparent);box-shadow:0 0 16px var(--cyan)}
+.p-head{padding:38px 48px 22px;border-bottom:1px solid var(--line)}
+.p-tags{display:flex;gap:10px;align-items:center;margin-bottom:16px}
+.tag{font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;padding:5px 12px;border-radius:12px;border:1px solid var(--line2);color:var(--muted)}
+.tag.b-now{color:var(--cyan);border-color:rgba(70,130,255,.5)} .tag.b-next{color:#78f0ff;border-color:rgba(0,229,255,.6)} .tag.b-later{color:#a9b5d2}
+.p-head h2{font-family:var(--head);font-weight:400;font-size:30px;line-height:1.24;padding-right:50px}
+.p-close{position:absolute;right:30px;top:30px;width:42px;height:42px;border-radius:50%;border:1px solid var(--line2);display:grid;place-items:center;color:var(--muted);transition:all .25s}
+.p-close:hover{color:var(--text);border-color:var(--cyan)} .p-close svg{width:16px;height:16px}
+.p-body{flex:1;overflow-y:auto;padding:26px 48px 46px;scrollbar-width:thin;scrollbar-color:#1b2548 transparent}
+.p-sec{margin-bottom:28px}
+.p-sec>h4{font-family:var(--head);font-weight:400;font-size:13px;letter-spacing:.26em;text-transform:uppercase;color:var(--cyan);margin-bottom:11px}
+.p-sec>p{font-size:18px;line-height:1.55;color:#d5e1f5}
+.p-deps{display:flex;flex-direction:column;gap:10px}
+.p-dep{display:flex;gap:14px;align-items:flex-start;text-align:left;padding:13px 16px;border:1px solid var(--line2);border-radius:12px;background:rgba(70,130,255,.04);transition:all .25s}
+.p-dep:hover{border-color:var(--cyan);background:rgba(70,130,255,.1)}
+.p-dep svg{flex:none;width:17px;height:17px;margin-top:3px;color:var(--cyan)}
+.p-dep b{display:block;font-weight:500;font-size:16.5px;line-height:1.35}
+.p-dep span{display:block;font-size:14px;color:var(--muted);margin-top:4px;line-height:1.4}
+.p-none{font-size:16px!important;color:var(--muted)!important}
+.item{border:1px solid var(--line);border-radius:14px;margin-bottom:12px;background:rgba(255,255,255,.015);overflow:hidden;transition:border-color .3s}
+.item.open{border-color:var(--line2)}
+.item-h{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;padding:16px 18px;text-align:left}
+.item-id{font-family:var(--head);font-size:13.5px;letter-spacing:.08em;color:var(--cyan);padding:4px 9px;border:1px solid rgba(70,130,255,.35);border-radius:8px;white-space:nowrap}
+.item-t b{display:block;font-weight:500;font-size:17px;line-height:1.35}
+.item-t span{display:block;font-size:13.5px;color:var(--muted);margin-top:4px}
+.item-t span i{font-style:normal;color:#b9c9e6}
+.chev{width:16px;height:16px;color:var(--muted);transition:transform .35s var(--ease)}
+.item.open .chev{transform:rotate(180deg);color:var(--cyan)}
+.item-b{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s var(--ease)}
+.item.open .item-b{grid-template-rows:1fr}
+.item-b>div{overflow:hidden}
+.item-in{padding:2px 20px 20px;display:grid;gap:15px}
+.item-in h5{font-family:var(--head);font-weight:400;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.item-in p,.item-in li{font-size:15.5px;line-height:1.52;color:#cfdbf0}
+.item-in ul{list-style:none;display:grid;gap:5px}
+.item-in li{padding-left:16px;position:relative}
+.item-in li::before{content:"";position:absolute;left:0;top:10px;width:6px;height:1px;background:var(--cyan)}
+.item-in .acc{padding:12px 15px;border-left:2px solid var(--good);background:rgba(63,220,154,.05);border-radius:0 8px 8px 0}
+
+/* ---------- metrics ---------- */
+.m-head{position:absolute;left:72px;right:72px;top:38px;display:flex;justify-content:space-between;align-items:flex-end}
+.m-head h2{font-family:var(--head);font-weight:400;font-size:54px;margin-top:10px;letter-spacing:-.01em}
+.m-right{display:flex;align-items:center;gap:26px;padding-bottom:10px}
+.m-wave{font-size:14px;color:var(--muted);letter-spacing:.06em} .m-wave b{color:var(--cyan);font-weight:500;margin-left:6px}
+.m-prog{display:flex;align-items:center;gap:14px;font-family:var(--head);font-size:20px;color:var(--text)}
+.m-dots{display:flex;gap:7px} .m-dots i{width:26px;height:3px;border-radius:2px;background:var(--line2);transition:all .4s}
+.m-dots i.on{background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+#m-body{position:absolute;left:72px;right:72px;top:176px;bottom:96px}
+.hero{position:relative;height:500px;border:1px solid var(--line2);border-radius:22px;padding:38px 46px;display:grid;grid-template-columns:1.12fr .88fr;gap:54px;
+  background:radial-gradient(700px 380px at 12% 0%,rgba(70,130,255,.11),transparent 70%),linear-gradient(160deg,rgba(17,24,47,.95),rgba(9,12,24,.95));
+  box-shadow:0 30px 90px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05);animation:heroIn .8s var(--ease) both;overflow:hidden}
+.hero::after{content:"";position:absolute;left:46px;right:46px;top:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:.7}
+#m-body.solo .hero{height:640px;margin-top:50px}
+@keyframes heroIn{from{opacity:0;transform:translateY(34px) scale(.975)}to{opacity:1;transform:none}}
+.badge{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;padding:4px 10px;border-radius:10px;border:1px solid rgba(255,184,92,.45);color:var(--warn)}
+.badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.badge.actual{border-color:rgba(63,220,154,.5);color:var(--good)}
+.h-left{display:flex;flex-direction:column;min-width:0}
+.h-name{font-family:var(--head);font-weight:400;font-size:30px;margin-top:14px}
+.h-q{font-size:22px;line-height:1.38;color:var(--cyan);margin-top:8px;max-width:820px}
+.h-val{display:flex;align-items:flex-end;gap:26px;margin-top:auto;padding-top:10px}
+.h-val b{font-family:var(--head);font-weight:400;font-size:128px;line-height:.95;letter-spacing:-.03em;
+  background:linear-gradient(180deg,#fff,#dee8ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.h-val .side{display:flex;flex-direction:column;gap:10px;padding-bottom:10px}
+.h-val .note{font-size:17px;color:var(--muted)}
+.trend{display:inline-flex;align-items:center;gap:8px;font-size:18px;font-weight:500;padding:6px 14px;border-radius:16px;width:fit-content}
+.trend svg{width:14px;height:14px}
+.trend.good{color:var(--good);background:rgba(63,220,154,.1)} .trend.bad{color:#ff7a8a;background:rgba(255,122,138,.1)} .trend.none{color:var(--muted);background:rgba(255,255,255,.05)}
+.gauge{position:relative;height:56px;margin-top:26px}
+.g-track{position:absolute;left:0;right:0;top:26px;height:6px;border-radius:3px;background:rgba(255,255,255,.07)}
+.g-fill{position:absolute;left:0;top:26px;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--blue),var(--cyan));box-shadow:0 0 16px rgba(70,130,255,.6);width:0;transition:width 1.1s var(--ease) .5s}
+.g-mark{position:absolute;top:18px;width:2px;height:22px;transform:translateX(-1px)}
+.g-mark span{position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase}
+.g-mark.base{background:var(--slate)} .g-mark.base span{top:26px;color:var(--slate)}
+.g-mark.tgt{background:var(--good)} .g-mark.tgt span{top:-19px;color:var(--good)}
+.h-right{display:flex;flex-direction:column;gap:20px;border-left:1px solid var(--line);padding-left:46px;min-width:0}
+.h-ctx{font-size:19.5px;line-height:1.55;color:#dbe6f8}
+.h-stats{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;margin-top:auto}
+.h-stats div.wide{grid-column:1/-1}
+.h-stats h5{font-family:var(--head);font-weight:400;font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.h-stats p{font-size:15.5px;line-height:1.42;color:#cfdbf0}
+.tiles{display:flex;justify-content:center;gap:22px;margin-top:24px;height:236px}
+.tile{position:relative;flex:1;max-width:880px;text-align:left;border:1px solid var(--line);border-radius:18px;padding:22px 26px;display:flex;flex-direction:column;
+  background:linear-gradient(160deg,rgba(14,20,38,.9),rgba(8,12,22,.9));animation:tileIn .65s var(--ease) both;animation-delay:calc(.6s + var(--i)*.14s);
+  transition:border-color .3s,box-shadow .3s,transform .3s}
+.tile:hover{border-color:var(--cyan);box-shadow:0 0 34px rgba(70,130,255,.16);transform:translateY(-3px)}
+@keyframes tileIn{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+.tile .t-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.tile .t-name{font-family:var(--head);font-size:19px}
+.tile .t-q{font-size:15.5px;line-height:1.42;color:var(--cyan);margin-top:8px;opacity:.92}
+.tile .t-bot{display:flex;align-items:flex-end;justify-content:space-between;margin-top:auto}
+.tile .t-val{font-family:var(--head);font-size:50px;line-height:1;color:#fff}
+.tile .trend{font-size:15px;padding:4px 11px}
+.m-foot{position:absolute;left:72px;bottom:30px;max-width:1300px;font-size:14px;color:var(--dim);display:flex;gap:18px;align-items:center}
+.m-foot .swap{color:var(--muted)}
+
+.still *,.still *::before,.still *::after{transition:none!important;animation-duration:.001s!important;animation-delay:0s!important}
+
+/* ---------- nav ---------- */
+#nav{position:absolute;right:56px;bottom:22px;display:flex;align-items:center;gap:14px;z-index:10}
+#nav-pos{font-family:var(--head);font-size:14px;letter-spacing:.14em;color:var(--muted);min-width:110px;text-align:right;margin-right:6px}
+.nav-btn{height:46px;padding:0 22px;border-radius:23px;border:1px solid var(--line2);font-size:15.5px;letter-spacing:.06em;display:flex;align-items:center;gap:10px;
+  background:rgba(9,12,24,.7);transition:all .25s}
+.nav-btn svg{width:14px;height:14px}
+.nav-btn:hover{border-color:var(--cyan);box-shadow:0 0 24px rgba(70,130,255,.28)}
+.nav-btn.primary{background:linear-gradient(90deg,rgba(0,229,255,.35),rgba(70,130,255,.28));border-color:rgba(70,130,255,.6)}
+.nav-btn[hidden]{display:none}
+
+/* ===== theme: neon ===== */
+
+:root{--head:"Bahnschrift","DIN Alternate","Avenir Next Condensed","Arial Narrow","Segoe UI",sans-serif;--text:#f7f9ff;--muted:#a3acc4}
+#stage{background:radial-gradient(1100px 600px at 50% 110%,rgba(70,130,255,.22),transparent 65%),radial-gradient(900px 500px at 85% -10%,rgba(0,229,255,.16),transparent 60%),#02040a}
+#stage::before{opacity:.9}
+.rd-head h2,.m-head h2,.col-h b,.lane-label b,.h-name,.tile .t-name,.chip b{text-transform:uppercase;letter-spacing:.05em}
+.rd-head h2{font-size:40px;text-shadow:0 0 12px rgba(70,130,255,.55)}
+.m-head h2{text-shadow:0 0 12px rgba(70,130,255,.55)}
+.lane-label b{font-size:19px}
+.card{background:rgba(70,130,255,.045)!important;border:1.5px solid rgba(70,130,255,.6);box-shadow:0 0 9px rgba(70,130,255,.28),inset 0 0 12px rgba(70,130,255,.07);border-radius:6px}
+.card[data-b=next]{background:rgba(0,229,255,.04)!important;border-color:rgba(0,229,255,.6);box-shadow:0 0 9px rgba(0,229,255,.26),inset 0 0 12px rgba(0,229,255,.07)}
+.card[data-b=later]{background:rgba(255,255,255,.02)!important;border-color:rgba(190,170,220,.45);box-shadow:none}
+.card::before{display:none}
+.chip,.hero,.tile{background:rgba(0,229,255,.04);border:1.5px solid rgba(0,229,255,.55);box-shadow:0 0 10px rgba(0,229,255,.22),inset 0 0 14px rgba(0,229,255,.06);border-radius:6px}
+.chip b{font-size:14px}
+.chip .cv,.h-q,.tile .t-q{color:#00e5ff}
+.lane-label{border-left:3px solid #4682ff;background:linear-gradient(90deg,rgba(70,130,255,.16),transparent)}
+.empty,.item,.p-dep,.tag,.badge,.item-id{border-radius:4px}
+.h-val b{background:linear-gradient(180deg,#fff,#96b9ff);-webkit-background-clip:text;background-clip:text;}
+.cover-text h1{text-transform:uppercase;font-size:80px;background:linear-gradient(100deg,#fff 10%,#96b9ff 55%,#00e5ff);-webkit-background-clip:text;background-clip:text;}
+.nav-btn.primary{background:linear-gradient(90deg,rgba(70,130,255,.55),rgba(0,229,255,.45));border-color:#4682ff}
+
+</style>
+</head>
+
+<body>
+<div id="viewport"><div id="stage">
+
+  <section class="slide" id="s-cover">
+    <canvas id="net" width="1920" height="1080"></canvas>
+    <div class="cover-veil"></div>
+    <div class="cover-text"><h1 id="cv-title"></h1><div class="cover-rule"></div><p id="cv-team"></p><p id="cv-date"></p></div>
+  </section>
+
+  <section class="slide" id="s-road">
+    <header class="rd-head">
+      <div><p class="eyebrow" id="rd-eyebrow"></p><h2 id="rd-title"></h2></div>
+      <div class="rd-tools"><p class="rd-hint" id="rd-hint"></p><button class="pill-btn" id="btn-all"></button></div>
+    </header>
+    <div class="grid" id="grid"></div>
+    <svg id="links" viewBox="0 0 1920 1080"></svg>
+    <p class="footnote" id="rd-note"></p>
+    <div class="dep-notes" id="dep-notes"></div>
+  </section>
+
+  <section class="slide" id="s-met">
+    <header class="m-head">
+      <div><p class="eyebrow" id="m-eyebrow"></p><h2 id="m-title"></h2></div>
+      <div class="m-right"><span class="m-wave" id="m-wave"></span><div class="m-prog"><span id="m-count"></span><div class="m-dots" id="m-dots"></div></div><button class="pill-btn" id="btn-road"></button></div>
+    </header>
+    <div id="m-body"></div>
+    <div class="m-foot" id="m-foot"></div>
+  </section>
+
+  <div id="scrim"></div>
+  <aside id="panel"></aside>
+
+  <nav id="nav"><span id="nav-pos"></span><button class="nav-btn" id="btn-back"></button><button class="nav-btn primary" id="btn-next"></button></nav>
+</div></div>
+
+<script>
+(function(){
+"use strict";
+var D=DECK,U=D.ui;
+var $=function(s){return document.querySelector(s)};
+function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+function fmt(t,o){return t.replace(/\{(\w+)\}/g,function(_,k){return o[k]})}
+var ICON={
+  link:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6.7 9.3a3 3 0 0 0 4.2 0l2.2-2.2a3 3 0 0 0-4.2-4.2l-.8.8"/><path d="M9.3 6.7a3 3 0 0 0-4.2 0L2.9 8.9a3 3 0 0 0 4.2 4.2l.8-.8"/></svg>',
+  x:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg>',
+  chev:'<svg class="chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l5 5 5-5"/></svg>',
+  right:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg>',
+  left:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"/></svg>',
+  up:'<svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 3l6 9H2z"/></svg>',
+  down:'<svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 13L2 4h12z"/></svg>'
+};
+function icon(name){var s=el("span");s.style.display="contents";s.innerHTML=ICON[name];return s.firstChild}
+
+/* ---------- lookups ---------- */
+var OUT={},CAT={},NODE={},BIDX={};
+D.buckets.forEach(function(b,i){BIDX[b.id]=i});
+D.outcomes.forEach(function(o){OUT[o.id]=o});
+D.metricCategories.forEach(function(c,i){c.index=i;CAT[c.id]=c});
+var S={slide:0,revealed:1,cat:0,jumped:false,hero:{},panel:null,dep:null,panelAt:0};
+var slides=[$("#s-cover"),$("#s-road"),$("#s-met")];
+var LANES=D.lanes.length;
+
+/* ---------- stage scaling ---------- */
+var stage=$("#stage");
+function fit(){var k=Math.min(innerWidth/1920,innerHeight/1080);stage.style.zoom=k;if(net)net.size(k);if(S.dep){var d=S.dep;clearDeps();showDeps(d)}}
+addEventListener("resize",fit);fit();
+
+/* ---------- static text ---------- */
+document.title=U.docTitle;
+$("#cv-title").textContent=D.cover.title;$("#cv-team").textContent=D.cover.team;$("#cv-date").textContent=D.cover.date;
+$("#rd-eyebrow").textContent=U.roadmapEyebrow;$("#rd-title").textContent=U.roadmapTitle;$("#rd-hint").textContent=U.roadmapHint;
+$("#rd-note").textContent=U.roadmapNote;$("#btn-all").textContent=U.showAll;
+$("#m-eyebrow").textContent=U.metricsEyebrow;$("#btn-road").textContent=U.backToRoadmap;
+(function(){var b=$("#btn-back"),n=$("#btn-next");b.appendChild(icon("left"));b.appendChild(el("span",null,U.back));n.appendChild(el("span",null,U.next));n.appendChild(icon("right"))})();
+
+/* ---------- roadmap grid ---------- */
+function heroOf(c){var id=S.hero[c.id]||c.heroMetricId;return c.metrics.filter(function(m){return m.id===id})[0]||c.metrics[0]}
+function depButton(id){var b=el("span","dep");b.setAttribute("role","button");b.title=U.depHint;b.appendChild(icon("link"));
+  b.addEventListener("click",function(e){e.stopPropagation();showDeps(id)});return b}
+function buildGrid(){
+  var g=$("#grid"),cols=el("div","cols");cols.appendChild(el("div"));
+  D.buckets.forEach(function(b){var h=el("div","col-h");h.dataset.b=b.id;h.appendChild(el("b",null,b.name));h.appendChild(el("span",null,b.caption));cols.appendChild(h)});
+  g.appendChild(cols);
+  D.lanes.forEach(function(l,li){
+    var lane=el("div","lane");lane.dataset.lane=l.id;
+    var lab=el("div","lane-label");lab.appendChild(el("i",null,String(li+1).padStart(2,"0")));lab.appendChild(el("b",null,l.name));lab.appendChild(el("span",null,l.caption));lane.appendChild(lab);
+    D.buckets.forEach(function(b){
+      var cell=el("div","cell"),ids=l.cells[b.id]||[];
+      if(!ids.length){cell.appendChild(el("div","empty",U.emptyCell))}
+      else if(l.metrics){var wrap=el("div","chips");ids.forEach(function(cid){wrap.appendChild(chip(CAT[cid],li,BIDX[b.id]))});cell.appendChild(wrap)}
+      else ids.forEach(function(oid){cell.appendChild(card(OUT[oid],li,BIDX[b.id]))});
+      lane.appendChild(cell)});
+    g.appendChild(lane)});
+}
+function card(o,li,bi){
+  var c=el("div","node card");c.dataset.b=o.bucket;c.setAttribute("role","button");c.tabIndex=0;
+  c.appendChild(el("h3",null,o.title));
+  var m=el("div","meta"),seen={};
+  o.backlogItems.forEach(function(it){if(!seen[it.ref]){seen[it.ref]=1;m.appendChild(el("em",null,it.tag?it.ref+" · "+it.tag:it.ref))}});
+  c.appendChild(m);
+  if(o.dependsOn.length)c.appendChild(depButton(o.id));
+  c.addEventListener("click",function(){openPanel(o.id)});
+  c.addEventListener("keydown",function(e){if(e.key==="Enter"){e.stopPropagation();openPanel(o.id)}});
+  NODE[o.id]={el:c,lane:li,col:bi,title:o.title,deps:o.dependsOn};return c}
+function chip(c,li,bi){
+  var b=el("div","node chip");b.setAttribute("role","button");b.tabIndex=0;
+  b.appendChild(el("b",null,c.name));b.appendChild(el("span","cv",heroOf(c).value));
+  var s=el("small");s.appendChild(el("span",null,c.metrics.length+" "+(c.metrics.length===1?U.metricWord:U.metricsWord)));s.appendChild(icon("right"));b.appendChild(s);
+  if(c.dependsOn.length)b.appendChild(depButton(c.id));
+  b.addEventListener("click",function(){clearDeps();S.cat=c.index;S.jumped=true;go(2)});
+  NODE[c.id]={el:b,lane:li,col:bi,title:c.name,deps:c.dependsOn};return b}
+function applyReveal(){
+  document.querySelectorAll(".lane").forEach(function(l,i){l.classList.toggle("revealed",i<S.revealed)});
+  $("#btn-all").disabled=S.revealed>=LANES}
+
+/* ---------- dependency lines ---------- */
+var road=$("#s-road"),links=$("#links");
+function boxOf(e){var x=0,y=0,n=e,f=1920/road.offsetWidth;while(n&&n!==road){x+=n.offsetLeft;y+=n.offsetTop;n=n.offsetParent}return{x:x*f,y:y*f,w:e.offsetWidth*f,h:e.offsetHeight*f}}
+function clearDeps(){
+  if(!S.dep)return;S.dep=null;links.innerHTML="";links.classList.remove("on");$("#grid").classList.remove("dep-mode");
+  document.querySelectorAll(".dep-src,.dep-tgt,.ghost").forEach(function(n){n.classList.remove("dep-src","dep-tgt","ghost")});
+  $("#dep-notes").classList.remove("on");$("#rd-note").classList.remove("off")}
+function showDeps(id){
+  if(S.dep===id){clearDeps();return}clearDeps();
+  var src=NODE[id];if(!src||!src.deps.length)return;S.dep=id;
+  $("#grid").classList.add("dep-mode");src.el.classList.add("dep-src");
+  var notes=$("#dep-notes"),drawn=[],NS="http://www.w3.org/2000/svg";notes.innerHTML="";
+  src.deps.forEach(function(d){
+    var t=NODE[d.id];if(!t)return;t.el.classList.add("dep-tgt");
+    if(t.lane>=S.revealed)t.el.classList.add("ghost");
+    var a=boxOf(src.el),b=boxOf(t.el),x1,y1,x2,y2,p;
+    if(src.col===t.col){var up=t.lane<src.lane;x1=a.x+a.w/2;x2=b.x+b.w/2;y1=up?a.y:a.y+a.h;y2=up?b.y+b.h:b.y;var m=(y2-y1)/2;
+      p="M"+x1+","+y1+" C"+x1+","+(y1+m)+" "+x2+","+(y2-m)+" "+x2+","+y2}
+    else{var left=t.col<src.col;x1=left?a.x:a.x+a.w;x2=left?b.x+b.w:b.x;y1=a.y+a.h/2;y2=b.y+b.h/2;var mx=(x2-x1)/2;
+      p="M"+x1+","+y1+" C"+(x1+mx)+","+y1+" "+(x2-mx)+","+y2+" "+x2+","+y2}
+    ["glow",""].forEach(function(cls){var path=document.createElementNS(NS,"path");path.setAttribute("d",p);if(cls)path.setAttribute("class",cls);links.appendChild(path);
+      var len=Math.ceil(path.getTotalLength())+2;path.style.strokeDasharray=len;path.style.strokeDashoffset=len;drawn.push(path)});
+    [["halo",11],["",5]].forEach(function(c){var dot=document.createElementNS(NS,"circle");dot.setAttribute("cx",x2);dot.setAttribute("cy",y2);dot.setAttribute("r",c[1]);if(c[0])dot.setAttribute("class",c[0]);links.appendChild(dot)});
+    var n=el("p");n.appendChild(el("b",null,t.title+": "));n.appendChild(document.createTextNode(d.note||""));notes.appendChild(n)});
+  links.getBoundingClientRect();drawn.forEach(function(q){q.style.strokeDashoffset=0});links.classList.add("on");
+  notes.classList.add("on");$("#rd-note").classList.add("off")}
+document.addEventListener("click",function(e){if(S.dep&&!e.target.closest(".dep"))clearDeps()});
+
+/* ---------- outcome panel ---------- */
+var panel=$("#panel"),scrim=$("#scrim");
+function section(title){var s=el("div","p-sec");s.appendChild(el("h4",null,title));return s}
+function openPanel(id){
+  var o=OUT[id];if(!o)return;clearDeps();S.panel=id;S.panelAt=Date.now();panel.innerHTML="";
+  var lane=D.lanes.filter(function(l){return l.id===o.lane})[0],bucket=D.buckets[BIDX[o.bucket]];
+  var head=el("div","p-head"),tags=el("div","p-tags");
+  tags.appendChild(el("span","tag b-"+o.bucket,bucket.name));tags.appendChild(el("span","tag",lane.name));
+  head.appendChild(tags);head.appendChild(el("h2",null,o.title));
+  var x=el("button","p-close");x.title=U.close;x.appendChild(icon("x"));x.addEventListener("click",closePanel);head.appendChild(x);panel.appendChild(head);
+  var body=el("div","p-body"),s;
+  s=section(U.panelSummary);s.appendChild(el("p",null,o.summary));body.appendChild(s);
+  s=section(U.panelWhy);s.appendChild(el("p",null,o.justification));body.appendChild(s);
+  s=section(U.panelDepends);
+  if(!o.dependsOn.length)s.appendChild(el("p","p-none",U.panelNoDepends));
+  else{var list=el("div","p-deps");o.dependsOn.forEach(function(d){var t=OUT[d.id];if(!t)return;
+      var b=el("button","p-dep");b.appendChild(icon("link"));var w=el("div");w.appendChild(el("b",null,t.title));if(d.note)w.appendChild(el("span",null,d.note));b.appendChild(w);
+      b.addEventListener("click",function(){openPanel(d.id)});list.appendChild(b)});s.appendChild(list)}
+  body.appendChild(s);
+  s=section(U.panelItems+" ("+o.backlogItems.length+")");
+  o.backlogItems.forEach(function(ref,i){s.appendChild(itemRow(ref,i===0))});body.appendChild(s);
+  panel.appendChild(body);panel.classList.add("on");scrim.classList.add("on")}
+function itemRow(ref,open){
+  var it=D.items[ref.ref],w=el("div","item"+(open?" open":""));
+  var h=el("button","item-h");h.appendChild(el("span","item-id",ref.ref));if(ref.tag)h.firstChild.title=ref.tag;
+  var t=el("div","item-t");t.appendChild(el("b",null,it.title));
+  var sub=el("span");sub.appendChild(document.createTextNode(it.priority+"  ·  "+U.itemOwner+": "));sub.appendChild(el("i",null,it.owner));t.appendChild(sub);
+  h.appendChild(t);h.appendChild(icon("chev"));h.addEventListener("click",function(){w.classList.toggle("open")});w.appendChild(h);
+  var b=el("div","item-b"),clip=el("div"),inn=el("div","item-in");
+  function blk(title,node){var d=el("div");d.appendChild(el("h5",null,title));d.appendChild(node);inn.appendChild(d);return d}
+  if(ref.scope)blk(U.itemScope,el("p",null,ref.scope));
+  blk(U.itemWhat,el("p",null,it.what));
+  blk(U.itemAcceptance,el("p",null,it.acceptance)).lastChild.className="acc";
+  if(it.needs.length){var ul=el("ul");it.needs.forEach(function(n){ul.appendChild(el("li",null,n))});blk(U.itemNeeds,ul)}
+  else blk(U.itemNeeds,el("p",null,U.itemNoNeeds));
+  blk(U.itemWave,el("p",null,it.wave));
+  clip.appendChild(inn);b.appendChild(clip);w.appendChild(b);return w}
+function closePanel(){S.panel=null;panel.classList.remove("on");scrim.classList.remove("on")}
+scrim.addEventListener("click",function(){if(Date.now()-S.panelAt>450)closePanel()});
+
+/* ---------- metrics ---------- */
+function trendEl(m){
+  var t=el("span","trend "+(m.trend?(m.trendGood?"good":"bad"):"none"));
+  if(m.trend&&m.trendDir!=="flat")t.appendChild(icon(m.trendDir==="up"?"up":"down"));
+  t.appendChild(el("span",null,m.trend||U.noTrend));return t}
+function badge(m){return el("span","badge"+(m.data==="actual"?" actual":""),m.data==="actual"?U.actual:U.illustrative)}
+function stat(title,text,wide){var d=el("div",wide?"wide":null);d.appendChild(el("h5",null,title));d.appendChild(el("p",null,text));return d}
+function renderMetrics(){
+  var c=D.metricCategories[S.cat],hero=heroOf(c),rest=c.metrics.filter(function(m){return m!==hero}),T=D.metricCategories.length;
+  $("#m-title").textContent=c.name;
+  var w=$("#m-wave");w.innerHTML="";w.appendChild(document.createTextNode(U.firstOnline));w.appendChild(el("b",null,D.buckets[BIDX[c.wave]].name));
+  $("#m-count").textContent=fmt(U.catPos,{n:S.cat+1,t:T});
+  var dots=$("#m-dots");dots.innerHTML="";for(var i=0;i<T;i++)dots.appendChild(el("i",i<=S.cat?"on":null));
+  var body=$("#m-body");body.innerHTML="";body.classList.toggle("solo",!rest.length);
+  var h=el("div","hero"),L=el("div","h-left"),R=el("div","h-right");
+  L.appendChild(el("div")).appendChild(badge(hero));
+  L.appendChild(el("div","h-name",hero.name));L.appendChild(el("div","h-q",hero.whatThisTellsUs));
+  var v=el("div","h-val");v.appendChild(el("b",null,hero.value));var side=el("div","side");side.appendChild(trendEl(hero));side.appendChild(el("span","note",hero.valueNote));v.appendChild(side);L.appendChild(v);
+  var g=hero.gauge,gz=el("div","gauge");gz.appendChild(el("div","g-track"));var fill=el("div","g-fill");gz.appendChild(fill);
+  function mark(val,cls,label){if(val==null)return;var k=el("div","g-mark "+cls);k.style.left=Math.max(0,Math.min(100,val/g.max*100))+"%";k.appendChild(el("span",null,label));gz.appendChild(k)}
+  mark(g.baseline,"base",U.baseline);mark(g.target,"tgt",U.target);L.appendChild(gz);
+  requestAnimationFrame(function(){requestAnimationFrame(function(){fill.style.width=Math.min(100,g.current/g.max*100)+"%"})});
+  R.appendChild(el("p","h-ctx",hero.context));
+  var st=el("div","h-stats");st.appendChild(stat(U.baseline,hero.baseline||U.noBaseline));st.appendChild(stat(U.target,hero.target));
+  st.appendChild(stat(U.sample,hero.sample,true));st.appendChild(stat(U.definition,hero.definition,true));R.appendChild(st);
+  h.appendChild(L);h.appendChild(R);body.appendChild(h);
+  if(rest.length){var tiles=el("div","tiles");
+    rest.forEach(function(m,i){var t=el("button","tile");t.style.setProperty("--i",i);
+      var top=el("div","t-top");top.appendChild(el("span","t-name",m.name));top.appendChild(badge(m));t.appendChild(top);
+      t.appendChild(el("div","t-q",m.whatThisTellsUs));
+      var bot=el("div","t-bot");bot.appendChild(el("span","t-val",m.value));bot.appendChild(trendEl(m));t.appendChild(bot);
+      t.addEventListener("click",function(){S.hero[c.id]=m.id;renderMetrics()});tiles.appendChild(t)});
+    body.appendChild(tiles)}
+  var f=$("#m-foot");f.innerHTML="";f.appendChild(el("span",null,hero.data==="actual"?U.actualNote:U.illustrativeNote));
+  if(rest.length)f.appendChild(el("span","swap",U.swapHint))}
+
+/* ---------- navigation ---------- */
+function go(i){
+  var prev=S.slide;S.slide=i;
+  slides.forEach(function(s,k){s.classList.toggle("active",k===i);s.classList.toggle("before",k<i)});
+  if(i===2)renderMetrics();
+  if(i===1&&prev!==1)applyReveal();
+  net.run(i===0);updateNav()}
+function updateNav(){
+  $("#btn-back").hidden=S.slide===0;
+  $("#btn-next").hidden=S.slide===2&&S.cat===D.metricCategories.length-1;
+  var p="";if(S.slide===1)p=fmt(U.lanePos,{n:S.revealed,t:LANES});
+  $("#nav-pos").textContent=p}
+function next(){
+  if(S.panel)return;clearDeps();
+  if(S.slide===0)go(1);
+  else if(S.slide===1){if(S.revealed<LANES){S.revealed++;applyReveal();updateNav()}else{S.cat=0;S.jumped=false;go(2)}}
+  else if(S.cat<D.metricCategories.length-1){S.cat++;S.jumped=false;renderMetrics();updateNav()}}
+function back(){
+  if(S.panel)return;clearDeps();
+  if(S.slide===2){if(S.jumped||S.cat===0){S.jumped=false;go(1)}else{S.cat--;renderMetrics();updateNav()}}
+  else if(S.slide===1){if(S.revealed>1){S.revealed--;applyReveal();updateNav()}else go(0)}}
+$("#btn-next").addEventListener("click",next);$("#btn-back").addEventListener("click",back);
+$("#btn-all").addEventListener("click",function(e){e.stopPropagation();clearDeps();S.revealed=LANES;applyReveal();updateNav()});
+$("#btn-road").addEventListener("click",function(){S.jumped=false;go(1)});
+addEventListener("keydown",function(e){
+  if(e.key==="Escape"){if(S.panel)closePanel();else clearDeps();return}
+  if(e.key==="ArrowRight"||e.key==="PageDown"||e.key===" "){e.preventDefault();next()}
+  else if(e.key==="ArrowLeft"||e.key==="PageUp"){e.preventDefault();back()}});
+
+/* ---------- cover: wireframe payment card inside orbiting token rings ---------- */
+var net=(function(){
+  var cv=$("#net"),c=cv.getContext("2d"),W=1920,H=1080,raf=0,on=false,t0=0,i;
+  var seed=11;function rnd(){seed=(seed*16807)%2147483647;return(seed-1)/2147483646}
+  var CX=1340,CY=540,F=1500;
+  function dot(x,y,r,a){c.save();c.shadowColor="#4682ff";c.shadowBlur=16;c.fillStyle="rgba(222,232,255,"+a+")";c.beginPath();c.arc(x,y,r,0,6.2832);c.fill();c.restore()}
+  function rot(x,y,z,ry,rx){var cy=Math.cos(ry),sy=Math.sin(ry),cx=Math.cos(rx),sx=Math.sin(rx),X=x*cy+z*sy,Z=-x*sy+z*cy,Y=y*cx-Z*sx;return[X,Y,y*sx+Z*cx]}
+  function pr(v){var k=F/(F+v[2]);return[CX+v[0]*k,CY+v[1]*k,v[2],k]}
+  function rr(w,h,r,n){var pts=[],k,a;[[w-r,h-r,0],[-w+r,h-r,1.5708],[-w+r,-h+r,3.1416],[w-r,-h+r,4.7124]].forEach(function(q){for(k=0;k<=n;k++){a=q[2]+k/n*1.5708;pts.push([q[0]+r*Math.cos(a),q[1]+r*Math.sin(a)])}});pts.push(pts[0]);return pts}
+  var outline=rr(300,188,32,8),chip=rr(46,34,9,3).map(function(p){return[p[0]-190,p[1]-34]});
+  var rings=[{R:430,tx:1.25,tz:.25,n:46,v:.32},{R:520,tx:1.05,tz:-.35,n:58,v:-.22},{R:620,tx:1.38,tz:.08,n:70,v:.15}];
+  rings.forEach(function(r){r.ph=[];for(i=0;i<r.n;i++)r.ph.push(i/r.n*6.2832+rnd()*.05);r.hot=[];for(i=0;i<7;i++)r.hot.push(Math.floor(rnd()*r.n))});
+  function draw(t){var ry=.6*Math.sin(t*.38)-.28,rx=.26+.09*Math.sin(t*.27),rz=-.13,cz=Math.cos(rz),sz=Math.sin(rz);
+    function cp(x,y,z){var X=x*cz-y*sz,Y=x*sz+y*cz;return pr(rot(X,Y,z,ry,rx))}
+    function poly(pts,z,close){c.beginPath();pts.forEach(function(p,k){var q=cp(p[0],p[1],z);if(k)c.lineTo(q[0],q[1]);else c.moveTo(q[0],q[1])});if(close)c.closePath()}
+    function rp(r,a){var x=r.R*Math.cos(a),z=r.R*Math.sin(a),cx=Math.cos(r.tx),sx=Math.sin(r.tx),Y=-z*sx,Z=z*cx,ct=Math.cos(r.tz),st=Math.sin(r.tz);return pr(rot(x*ct-Y*st,x*st+Y*ct,Z,t*.05,.1))}
+    c.clearRect(0,0,W,H);
+    var g=c.createRadialGradient(CX,CY,60,CX,CY,640);g.addColorStop(0,"rgba(70,130,255,.10)");g.addColorStop(1,"rgba(70,130,255,0)");c.fillStyle=g;c.fillRect(CX-660,CY-660,1320,1320);
+    rings.forEach(function(r){c.beginPath();for(var k=0;k<=96;k++){var q=rp(r,k/96*6.2832);if(k)c.lineTo(q[0],q[1]);else c.moveTo(q[0],q[1])}c.strokeStyle="rgba(0,229,255,.20)";c.lineWidth=1;c.stroke()});
+    function parts(front){rings.forEach(function(r){r.ph.forEach(function(a,k){var q=rp(r,a+t*r.v);if((q[2]<0)!==front)return;
+      if(r.hot.indexOf(k)>=0){for(var j=1;j<=7;j++){var w=rp(r,a+t*r.v-j*.022*(r.v>0?1:-1));c.fillStyle="rgba(70,130,255,"+(.5*(1-j/8))+")";c.beginPath();c.arc(w[0],w[1],2.2*w[3],0,6.2832);c.fill()}dot(q[0],q[1],3.4*q[3],front?1:.55)}
+      else{c.fillStyle="rgba(222,232,255,"+(front?.55:.2)+")";c.beginPath();c.arc(q[0],q[1],1.7*q[3],0,6.2832);c.fill()}})})}
+    parts(false);
+    poly(outline,0,true);c.fillStyle="rgba(9,12,24,.8)";c.fill();
+    [-7,7].forEach(function(z,k){poly(outline,z,true);c.strokeStyle=k?"rgba(222,232,255,.95)":"rgba(0,229,255,.5)";c.lineWidth=k?2:1;c.save();if(k){c.shadowColor="#4682ff";c.shadowBlur=18}c.stroke();c.restore()});
+    c.strokeStyle="rgba(70,130,255,.85)";c.lineWidth=1.4;poly(chip,7,true);c.stroke();
+    [[-236,-34,-144,-34],[-190,-68,-190,0],[-212,-52,-168,-52],[-212,-16,-168,-16]].forEach(function(s){poly([[s[0],s[1]],[s[2],s[3]]],7);c.stroke()});
+    [18,32,46].forEach(function(r0){var pts=[];for(var a=-.75;a<=.751;a+=.15)pts.push([-110+r0*Math.cos(a),-34+r0*Math.sin(a)]);poly(pts,7);c.stroke()});
+    c.fillStyle="rgba(222,232,255,.8)";for(var gI=0;gI<4;gI++)for(var d=0;d<4;d++){var q=cp(-232+gI*122+d*22,58,7);c.beginPath();c.arc(q[0],q[1],3.2*q[3],0,6.2832);c.fill()}
+    c.strokeStyle="rgba(222,232,255,.5)";c.lineWidth=2;poly([[-236,122],[-60,122]],7);c.stroke();poly([[60,122],[140,122]],7);c.stroke();
+    var sw=((t*.22)%1.6)-.3;if(sw>-.2&&sw<1.2){var x0=-300+600*sw;poly([[x0-30,-188],[x0+30,188]],8);c.strokeStyle="rgba(222,232,255,.07)";c.lineWidth=34;c.stroke()}
+    parts(true)}
+  function frame(ts){if(!on)return;if(!t0)t0=ts;draw((ts-t0)/1000);raf=requestAnimationFrame(frame)}
+  var lastT=0,_draw=draw;draw=function(t){lastT=t;_draw(t)};
+  function size(k){var s=Math.max(.5,Math.min(3,k*(window.devicePixelRatio||1)));cv.width=Math.round(W*s);cv.height=Math.round(H*s);c.setTransform(s,0,0,s,0,0);draw(lastT)}
+  size(Math.min(innerWidth/1920,innerHeight/1080));
+  return{size:size,run:function(v){if(v===on)return;on=v;cancelAnimationFrame(raf);if(on)raf=requestAnimationFrame(frame)}}
+})();
+
+/* ---------- start ---------- */
+buildGrid();applyReveal();fit();
+/* optional deep links for rehearsal: #r3 (roadmap, 3 lanes), #m2 (metrics category 2), #o=ID (open outcome), #d=ID (show dependencies) */
+(function(){var h=location.hash.slice(1),m;
+  if(h.charAt(0)==="!"){h=h.slice(1);stage.classList.add("still")} /* "!" prefix turns motion off, for printing or screenshots */
+  if((m=/^r(\d)/.exec(h))){S.revealed=Math.max(1,Math.min(LANES,+m[1]));go(1)}
+  else if((m=/^m(\d)/.exec(h))){S.revealed=LANES;S.cat=Math.max(0,Math.min(D.metricCategories.length-1,+m[1]-1));go(2)}
+  else if((m=/^o=(.+)/.exec(h))){S.revealed=LANES;go(1);openPanel(m[1])}
+  else if((m=/^d=([^,]+)(?:,(\d))?/.exec(h))){S.revealed=m[2]?+m[2]:LANES;go(1);setTimeout(function(){showDeps(m[1])},50)}
+  else go(0)})();
+})();
+</script>
+</body>
+</html>
